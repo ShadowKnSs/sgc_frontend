@@ -1,0 +1,84 @@
+/* Estructura principal del header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #0056b3;
+    color: white;
+    box-shadow: 0px 10px rgb(45, 193, 223);
+  }
+  
+  /* Logo y nombre de la compañía */
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo {
+    width: 200px;
+    height: 75px;
+    margin-right: 1rem;
+    box-shadow: 2px 0 rgb(255, 255, 255);
+  }
+  
+  .company-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  /* Barra de búsqueda */
+  .header-center {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .search-bar {
+    padding: 0.3rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .search-icon {
+    position: absolute;
+    right: 10px;
+    color: #555;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  .search-icon:hover {
+    color: white;
+  }
+  
+  
+  /* Contenedor del usuario */
+  .header-right {
+    display: flex;
+    align-items: center;
+    padding-right: 4rem;
+  }
+  
+  .user-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    margin-right: 0.5rem;
+  }
+  
+  .user-icon-hover {
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  
+  .user-icon-hover:hover {
+    transform: scale(1.2);
+    color: #00c8ff;
+  }
+  
