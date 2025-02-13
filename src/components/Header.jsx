@@ -1,6 +1,6 @@
 import React from "react";
 import { FaSearch, FaUser } from "react-icons/fa"; // Import icons
-import "../styles/Header.css"; // Estilos
+import "../css/Header.css"; // Estilos
 import image from "../img/UASLP_Logo.png"; // Ruta de tu logo
 
 
@@ -12,10 +12,10 @@ function Header() {
         <h1 className="company-name">Sistema de Gestión de Calidad</h1>
       </div>
       
-      <div className="header-center">
+      {/* <div className="header-center">
         <input type="text" placeholder="Buscar" className="search-bar" />
         <FaSearch className="search-icon" />
-      </div>
+      </div> */}
       
       
       <div className="header-right">

@@ -25,6 +25,7 @@ function NewProcess() {
   };
 
   return (
+      
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", p: 4 }}>
       <h1
         style={{
@@ -215,6 +216,8 @@ function NewProcess() {
         </CardContent>
       </Card>
     </Box>
+    
+    
   );
 }
 
