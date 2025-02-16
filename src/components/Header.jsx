@@ -1,7 +1,7 @@
 import React from "react";
 import { FaSearch, FaUser } from "react-icons/fa"; // Import icons
 import "../css/Header.css"; // Estilos
-import image from "../img/UASLP_Logo.png"; // Ruta de tu logo
+import image from "../assests/UASLP_Logo.png"; // Ruta de tu logo
 
 
 function Header() {
