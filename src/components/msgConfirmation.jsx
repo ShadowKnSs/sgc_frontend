@@ -36,8 +36,8 @@ function ConfirmationDialog({ open, onClose, onConfirm, type, status, name }) {
         </Typography>
       </DialogTitle>
       <DialogContent>
-        <Typography variant="body1" sx={{ textAlign: "center" }}>
-          <span style={{ fontWeight: "bold", color: "#004A98" }}>
+        <Typography variant="body1" sx={{ textAlign: "center" }}> 
+          ¿<span style={{ fontWeight: "bold", color: "#004A98" }}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </span>{" "}
           {getMessage()} <b>{name}</b>?
