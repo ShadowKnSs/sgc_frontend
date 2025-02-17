@@ -3,10 +3,11 @@ import { Grid, Typography } from "@mui/material";
 import IndicatorCard from "../components/CardHorizontal";
 import NewIndicatorButton from "../components/NewCardButtom";
 import ResultModal from "../components/ResultModal";
+import ResultModalEncuesta from "../components/ModuloIndicadores/ResultModalEncuesta";
+import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import AddIndicatorForm from "../components/formularioAddIndicador";
-import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
-import ConfirmEditDialog from '../components/ConfirmEditDialog';
-
+import ResultModalRetroalimentacion from "../components/ModuloIndicadores/ResultModalRetroalimentacion";
+import ConfirmEditDialog from "../components/ConfirmEditDialog";
 
 const IndicatorPage = ({ userType }) => {
   const [indicators, setIndicators] = useState([]);
@@ -29,21 +30,30 @@ const IndicatorPage = ({ userType }) => {
     console.log("Editar indicador:", id);
     // Lógica de edición
   };
-  const confirmDelete = () => {
-    setIndicators(indicators.filter(ind => ind.id !== indicatorToDelete.id));
-    setResults(prev => {
-      const updated = { ...prev };
-      delete updated[indicatorToDelete.id];
-      return updated;
-    });
-    setDeleteDialogOpen(false);
-  };
-  
   const handleDeleteClick = (indicator) => {
+    console.log(
+      "handleDeleteClick: Se seleccionó el indicador para eliminar:",
+      indicator
+    );
     setIndicatorToDelete(indicator);
     setDeleteDialogOpen(true);
   };
 
+  const confirmDelete = () => {
+    const idToDelete =
+      typeof indicatorToDelete === "object"
+        ? indicatorToDelete.id
+        : indicatorToDelete;
+    setIndicators((prevIndicators) =>
+      prevIndicators.filter((ind) => ind.id !== idToDelete)
+    );
+    setResults((prevResults) => {
+      const updated = { ...prevResults };
+      delete updated[idToDelete];
+      return updated;
+    });
+    setDeleteDialogOpen(false);
+  };
   const handleCardClick = (indicator) => {
     setSelectedIndicator(indicator);
     setModalOpen(true);
@@ -99,7 +109,7 @@ const IndicatorPage = ({ userType }) => {
           >
             <IndicatorCard
               indicator={indicator}
-              userType={(userType = "user")}
+              userType={(userType = "admin")}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
               onCardClick={handleCardClick}
@@ -116,16 +126,33 @@ const IndicatorPage = ({ userType }) => {
         <NewIndicatorButton onClick={handleAddIndicator} />
       )}
       {selectedIndicator && (
-        <ResultModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onSave={handleResultRegister}
-          indicator={selectedIndicator}
-        />
+        selectedIndicator.tipo === "Encuesta de Satisfacción" ? (
+          <ResultModalEncuesta
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSave={handleResultRegister}
+            indicator={selectedIndicator}
+          />
+        ) : selectedIndicator.tipo === "Retroalimentación" ? (
+          <ResultModalRetroalimentacion
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSave={handleResultRegister}
+            indicator={selectedIndicator}
+          />
+        ) : (
+          <ResultModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSave={handleResultRegister}
+            indicator={selectedIndicator}
+          />
+        )
       )}
-      
+
+
       {deleteDialogOpen && indicatorToDelete && (
-        <ConfirmDeleteDialog 
+        <ConfirmDeleteDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
           onConfirm={confirmDelete}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, TextField, DialogActions } from '@mui/material';
+import DialogActionButtons from './DialogActionButtons';
 
 const ResultModal = ({ open, onClose, onSave, indicator }) => {
   const [result, setResult] = useState('');
@@ -27,10 +28,14 @@ const ResultModal = ({ open, onClose, onSave, indicator }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={() => { onSave(indicator.id, result); onClose(); }} color="primary">
-          Guardar
-        </Button>
+        <DialogActionButtons 
+          onCancel={onClose} 
+          onSave={() => { onSave(indicator.id, result); onClose(); }}
+          saveText="Guardar"
+          cancelText="Cancelar"
+          saveColor="#F9B800" // Ajusta según tu paleta
+          cancelColor="#0056b3"
+        />
       </DialogActions>
     </Dialog>
   );

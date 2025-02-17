@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
+import DialogActionButtons from './DialogActionButtons';
 
 const ConfirmDeleteDialog = ({ open, onClose, onConfirm, indicatorName }) => {
   return (
@@ -11,10 +12,14 @@ const ConfirmDeleteDialog = ({ open, onClose, onConfirm, indicatorName }) => {
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={onConfirm} color="error" variant="contained">
-          Eliminar
-        </Button>
+        <DialogActionButtons 
+          onCancel={onClose} 
+          onSave={onConfirm} 
+          saveText="Eliminar"
+          cancelText="Cancelar"
+          saveColor="#F9B800"  // Por ejemplo, rojo para eliminar
+          cancelColor="#0056b3"
+        />
       </DialogActions>
     </Dialog>
   );

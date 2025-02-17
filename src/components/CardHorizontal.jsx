@@ -41,7 +41,7 @@ const IndicatorCard = ({
               <EditIcon fontSize="large" />
             </IconButton>
             <IconButton 
-              onClick={(e) => { e.stopPropagation(); onDelete(indicator.id); }}
+              onClick={(e) => { e.stopPropagation(); onDelete(indicator); }}
               sx={{ color: 'gold' }}
             >
               <DeleteIcon fontSize="large" />

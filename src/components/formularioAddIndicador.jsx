@@ -3,26 +3,25 @@ import {
   Dialog, 
   DialogTitle, 
   DialogContent, 
-  DialogActions, 
-  TextField, 
-  Button, 
   FormControl, 
   InputLabel, 
   Select, 
   MenuItem, 
-  RadioGroup, 
+  TextField, 
   FormControlLabel, 
+  RadioGroup, 
   Radio, 
-  Typography 
+  Typography,
+  DialogActions
 } from '@mui/material';
+import DialogActionButtons from './DialogActionButtons'; // Asegúrate de ajustar la ruta según tu estructura
 
 const AddIndicatorForm = ({ open, onClose, onSave }) => {
   const [tipo, setTipo] = useState('');
   const [nombre, setNombre] = useState('');
-  const [periodo, setPeriodo] = useState('Semestral'); // valor por defecto
+  const [periodo, setPeriodo] = useState('Semestral'); // Valor por defecto
   const [meta, setMeta] = useState('');
 
-  // Opcional: Reiniciar campos cada vez que se abra el modal
   useEffect(() => {
     if (open) {
       setTipo('');
@@ -33,7 +32,6 @@ const AddIndicatorForm = ({ open, onClose, onSave }) => {
   }, [open]);
 
   const handleSave = () => {
-    // Preparamos los datos del indicador
     const indicatorData = { tipo, nombre, periodo, meta };
     onSave(indicatorData);
     onClose();
@@ -89,10 +87,14 @@ const AddIndicatorForm = ({ open, onClose, onSave }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
-          Guardar
-        </Button>
+        <DialogActionButtons 
+          onCancel={onClose} 
+          onSave={handleSave} 
+          saveText="Guardar"
+          cancelText="Cancelar"
+          saveColor="#F9B800"  // Ajusta el color según tu paleta
+          cancelColor="#0056b3"
+        />
       </DialogActions>
     </Dialog>
   );
