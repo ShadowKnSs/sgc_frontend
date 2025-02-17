@@ -50,15 +50,15 @@ function NewProcess() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 sx={{
-                  borderRadius: "12px", // Bordes redondeados
+                  borderRadius: "12px", 
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px", // Bordes redondeados también en el input
+                    borderRadius: "12px", 
                   },
                   "& .MuiInputBase-root": {
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Sombra suave
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", 
                   },
                   "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2", // Cambiar color del borde cuando se selecciona
+                    borderColor: "#1976d2", 
                   },
                 }}
               />
@@ -200,10 +200,10 @@ function NewProcess() {
                 variant="contained"
                 onClick={handleSubmit}
                 sx={{
-                  backgroundColor: "#004A98", // Cambia el color de fondo
+                  backgroundColor: "#004A98", 
                   borderRadius: "30px",
                   "&:hover": {
-                    backgroundColor: "#00B2E3", // Color del hover
+                    backgroundColor: "#00B2E3", 
                   },
                 }}
               >
