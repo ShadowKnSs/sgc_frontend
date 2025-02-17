@@ -83,6 +83,26 @@ const IndicatorPage = ({ userType }) => {
     setIndicators([...indicators, newIndicator]);
   };
 
+  const renderModal = () => {
+    if (!selectedIndicator) return null;
+
+    const props = {
+      open: modalOpen,
+      onClose: () => setModalOpen(false),
+      onSave: handleResultRegister,
+      indicator: selectedIndicator,
+    };
+
+    switch (selectedIndicator.tipo) {
+      case "Encuesta de Satisfacción":
+        return <ResultModalEncuesta {...props} />;
+        case "Retroalimentación":
+          return <ResultModalRetroalimentacion {...props} />;
+      default:
+        return <ResultModal {...props} />;
+    }
+  };
+
   return (
     <div
       style={{
@@ -109,7 +129,7 @@ const IndicatorPage = ({ userType }) => {
           >
             <IndicatorCard
               indicator={indicator}
-              userType={(userType = "admin")}
+              userType={(userType = "user")}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
               onCardClick={handleCardClick}
@@ -125,32 +145,8 @@ const IndicatorPage = ({ userType }) => {
       {userType === "admin" && (
         <NewIndicatorButton onClick={handleAddIndicator} />
       )}
-      {selectedIndicator && (
-        selectedIndicator.tipo === "Encuesta de Satisfacción" ? (
-          <ResultModalEncuesta
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            onSave={handleResultRegister}
-            indicator={selectedIndicator}
-          />
-        ) : selectedIndicator.tipo === "Retroalimentación" ? (
-          <ResultModalRetroalimentacion
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            onSave={handleResultRegister}
-            indicator={selectedIndicator}
-          />
-        ) : (
-          <ResultModal
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            onSave={handleResultRegister}
-            indicator={selectedIndicator}
-          />
-        )
-      )}
 
-
+      {renderModal()}
       {deleteDialogOpen && indicatorToDelete && (
         <ConfirmDeleteDialog
           open={deleteDialogOpen}
