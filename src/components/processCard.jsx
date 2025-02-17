@@ -1,8 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, Box, IconButton, Typography } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
+import ConfirmationDialog from "./msgConfirmation";
 
 function ProcessCard({ process, onDelete, onEdit }) {
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState("");
+  const [type, setType] = useState("");
+
+  const handleOpen = (action) => {
+    setStatus(action);
+    setType("proceso");
+    setOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (status === "eliminar") {
+      onDelete(process.id);
+    } else if (status === "actualizar") {
+      onEdit(process.id);
+    }
+    setOpen(false);
+  };
+
   return (
     <Card
       sx={{
@@ -21,13 +41,22 @@ function ProcessCard({ process, onDelete, onEdit }) {
         {process.name}
       </Typography>
       <Box>
-        <IconButton onClick={onEdit} sx={{ color: "#004A98" }}>
+        <IconButton onClick={() => handleOpen("actualizar")} sx={{ color: "#004A98" }}>
           <Edit />
         </IconButton>
-        <IconButton onClick={onDelete} sx={{ color: "#F9B800" }}>
+        <IconButton onClick={() => handleOpen("eliminar")} sx={{ color: "#F9B800" }}>
           <Delete />
         </IconButton>
       </Box>
+
+      <ConfirmationDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        onConfirm={handleConfirm}
+        type={type}
+        status={status}
+        name={process.name}
+      />
     </Card>
   );
 }
