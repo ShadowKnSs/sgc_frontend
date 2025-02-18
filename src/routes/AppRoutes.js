@@ -5,6 +5,8 @@ import HomePage from '../views/welcome';
 import ProcessPage from '../views/processList';
 import IndicatorPage from '../views/indicadores';
 import GraficasPage from '../views/graficasIndicadores';
+import NewProcess from '../views/newProcess';
+
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -16,6 +18,7 @@ const AppRoutes = () => {
         < Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="procesos" element={<ProcessPage />} />
+          <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="indicadores" element={<IndicatorPage userType={userType} />} />
           <Route path="graficas" element={<GraficasPage />} />
         </Route>
