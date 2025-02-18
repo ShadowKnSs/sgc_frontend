@@ -7,6 +7,7 @@ import ResultModalEncuesta from "../components/ModuloIndicadores/ResultModalEncu
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import AddIndicatorForm from "../components/formularioAddIndicador";
 import ResultModalRetroalimentacion from "../components/ModuloIndicadores/ResultModalRetroalimentacion";
+import IrGraficasBoton from "../components/ModuloIndicadores/BotonGraficas";
 import ConfirmEditDialog from "../components/ConfirmEditDialog";
 
 const IndicatorPage = ({ userType }) => {
@@ -129,7 +130,7 @@ const IndicatorPage = ({ userType }) => {
           >
             <IndicatorCard
               indicator={indicator}
-              userType={(userType = "user")}
+              userType={(userType)}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
               onCardClick={handleCardClick}
@@ -145,7 +146,9 @@ const IndicatorPage = ({ userType }) => {
       {userType === "admin" && (
         <NewIndicatorButton onClick={handleAddIndicator} />
       )}
-
+{userType === "user" && (
+        <IrGraficasBoton/>
+      )}
       {renderModal()}
       {deleteDialogOpen && indicatorToDelete && (
         <ConfirmDeleteDialog
