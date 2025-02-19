@@ -8,6 +8,7 @@ import GraficasPage from '../views/graficasIndicadores';
 import NewProcess from '../views/newProcess';
 
 
+
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
   const userType = "user"; // Cambia a 'user' para probar el otro rol
