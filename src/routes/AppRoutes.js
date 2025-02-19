@@ -6,6 +6,8 @@ import ProcessPage from '../views/processList';
 import IndicatorPage from '../views/indicadores';
 import GraficasPage from '../views/graficasIndicadores';
 import NewProcess from '../views/newProcess';
+import GestionRiesgos from '../views/gestionRiesgos';
+import FilesGestRiesgos from '../views/filesGestRiesgos';
 
 
 
