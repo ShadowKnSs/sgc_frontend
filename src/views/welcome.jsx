@@ -18,7 +18,7 @@ const Welcome = () => {
     { icon: <AccountTreeIcon />, title: "Procesos" },
     { icon: <DescriptionIcon />, title: "Formatos" },
     { icon: <VerifiedUserIcon />, title: "Auditores" },
-    { icon: <SupervisorAccountIcon />, title: "Supervisores" },
+    { icon: <SupervisorAccountIcon />, title: "Indicadores" },
     { icon: <BarChartIcon />, title: "Reportes" },
   ];
 
@@ -32,6 +32,7 @@ const Welcome = () => {
         alignItems: "center",
         height: "100vh",
         padding: 2,
+        paddingLeft: 20,
       }}
     >
       {menuItems.map((item, index) => (

@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from "react";
+// src/views/indicadores.jsx
+import React, { useState, useEffect, useCallback } from "react";
 import { Grid, Typography } from "@mui/material";
 import IndicatorCard from "../components/CardHorizontal";
 import NewIndicatorButton from "../components/NewCardButtom";
-import ResultModal from "../components/ResultModal";
-import ResultModalEncuesta from "../components/ModuloIndicadores/ResultModalEncuesta";
+import ResultModal from "../components/Modals/ResultModal";
+import ResultModalEncuesta from "../components/Modals/ResultModalEncuesta";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
-import AddIndicatorForm from "../components/formularioAddIndicador";
-import ResultModalRetroalimentacion from "../components/ModuloIndicadores/ResultModalRetroalimentacion";
-import IrGraficasBoton from "../components/ModuloIndicadores/BotonGraficas";
+import AddIndicatorForm from "../components/Forms/AddIndicatorForm";
+import ResultModalRetroalimentacion from "../components/Modals/ResultModalRetroalimentacion";
+import IrGraficasBoton from "../components/Modals/BotonGraficas";
 import ConfirmEditDialog from "../components/ConfirmEditDialog";
 
 const IndicatorPage = ({ userType }) => {
   const [indicators, setIndicators] = useState([]);
   const [selectedIndicator, setSelectedIndicator] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [results, setResults] = useState({}); // Guarda: { [indicatorId]: result }
+  const [results, setResults] = useState({});
   const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [indicatorToDelete, setIndicatorToDelete] = useState(null);
@@ -27,66 +28,50 @@ const IndicatorPage = ({ userType }) => {
     ]);
   }, []);
 
-  const handleEdit = (id) => {
+  const handleEdit = useCallback((id) => {
     console.log("Editar indicador:", id);
-    // Lógica de edición
-  };
-  const handleDeleteClick = (indicator) => {
-    console.log(
-      "handleDeleteClick: Se seleccionó el indicador para eliminar:",
-      indicator
-    );
+  }, []);
+
+  const handleDeleteClick = useCallback((indicator) => {
     setIndicatorToDelete(indicator);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const confirmDelete = () => {
-    const idToDelete =
-      typeof indicatorToDelete === "object"
-        ? indicatorToDelete.id
-        : indicatorToDelete;
-    setIndicators((prevIndicators) =>
-      prevIndicators.filter((ind) => ind.id !== idToDelete)
-    );
-    setResults((prevResults) => {
-      const updated = { ...prevResults };
+  const confirmDelete = useCallback(() => {
+    const idToDelete = indicatorToDelete.id;
+    setIndicators((prev) => prev.filter(ind => ind.id !== idToDelete));
+    setResults((prev) => {
+      const updated = { ...prev };
       delete updated[idToDelete];
       return updated;
     });
     setDeleteDialogOpen(false);
-  };
-  const handleCardClick = (indicator) => {
+  }, [indicatorToDelete]);
+
+  const handleCardClick = useCallback((indicator) => {
     setSelectedIndicator(indicator);
     setModalOpen(true);
-  };
+  }, []);
 
-  const handleResultRegister = (id, resultValue) => {
-    console.log("Resultado registrado para indicador:", id, resultValue);
+  const handleResultRegister = useCallback((id, resultValue) => {
     setResults((prev) => ({ ...prev, [id]: resultValue }));
-  };
+  }, []);
 
-  // const handleAddIndicator = () => {
-  //   const newIndicator = { id: Date.now(), name: 'Nuevo Indicador' };
-  //   setIndicators([...indicators, newIndicator]);
-  // };
-
-  const handleAddIndicator = () => {
+  const handleAddIndicator = useCallback(() => {
     setFormOpen(true);
-  };
+  }, []);
 
-  const handleSaveNewIndicator = (newIndicatorData) => {
-    // Asigna un id nuevo y agrega el indicador a la lista
+  const handleSaveNewIndicator = useCallback((newIndicatorData) => {
     const newIndicator = {
       id: Date.now(),
       name: newIndicatorData.nombre,
       ...newIndicatorData,
     };
-    setIndicators([...indicators, newIndicator]);
-  };
+    setIndicators(prev => [...prev, newIndicator]);
+  }, []);
 
   const renderModal = () => {
     if (!selectedIndicator) return null;
-
     const props = {
       open: modalOpen,
       onClose: () => setModalOpen(false),
@@ -97,58 +82,34 @@ const IndicatorPage = ({ userType }) => {
     switch (selectedIndicator.tipo) {
       case "Encuesta de Satisfacción":
         return <ResultModalEncuesta {...props} />;
-        case "Retroalimentación":
-          return <ResultModalRetroalimentacion {...props} />;
+      case "Retroalimentación":
+        return <ResultModalRetroalimentacion {...props} />;
       default:
         return <ResultModal {...props} />;
     }
   };
 
   return (
-    <div
-      style={{
-        textAlign: "center",
-        paddingBottom: "100px",
-        maxWidth: "800px",
-        margin: "0 auto",
-      }}
-    >
-      <Typography
-        variant="h1"
-        sx={{ fontSize: "2rem", marginBottom: 2, marginTop: 3 }}
-      >
+    <div style={{ textAlign: "center", paddingBottom: "100px", maxWidth: "800px", margin: "0 auto" }}>
+      <Typography variant="h1" sx={{ fontSize: "2rem", marginBottom: 2, marginTop: 3 }}>
         Indicadores
       </Typography>
       <Grid container spacing={2}>
         {indicators.map((indicator) => (
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            key={indicator.id}
-            style={{ display: "flex", justifyContent: "flex-start" }}
-          >
+          <Grid item xs={12} sm={6} key={indicator.id} style={{ display: "flex", justifyContent: "flex-start" }}>
             <IndicatorCard
               indicator={indicator}
-              userType={(userType)}
+              userType={userType}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
               onCardClick={handleCardClick}
-              // Solo para usuarios no admin se cambia a verde si se registró el resultado
-              isResultRegistered={
-                userType !== "admin" && results.hasOwnProperty(indicator.id)
-              }
+              isResultRegistered={userType !== "admin" && results.hasOwnProperty(indicator.id)}
             />
           </Grid>
         ))}
       </Grid>
-      {/* El botón de agregar se muestra únicamente si el usuario es admin */}
-      {userType === "admin" && (
-        <NewIndicatorButton onClick={handleAddIndicator} />
-      )}
-{userType === "user" && (
-        <IrGraficasBoton/>
-      )}
+      {userType === "admin" && <NewIndicatorButton onClick={handleAddIndicator} />}
+      {userType === "user" && <IrGraficasBoton />}
       {renderModal()}
       {deleteDialogOpen && indicatorToDelete && (
         <ConfirmDeleteDialog
@@ -158,11 +119,7 @@ const IndicatorPage = ({ userType }) => {
           indicatorName={indicatorToDelete.name}
         />
       )}
-      <AddIndicatorForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSave={handleSaveNewIndicator}
-      />
+      <AddIndicatorForm open={formOpen} onClose={() => setFormOpen(false)} onSave={handleSaveNewIndicator} />
     </div>
   );
 };
