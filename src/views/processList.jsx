@@ -45,7 +45,7 @@ function ProcessList() {
       <Fab
         color="primary"
         aria-label="add"
-        onClick={() => navigate("/newP")}
+        onClick={() => navigate("/nuevo-proceso")}
         sx={{
           position: "fixed",
           bottom: 24,
