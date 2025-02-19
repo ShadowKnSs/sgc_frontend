@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Card, CardContent, Box, IconButton, Typography } from "@mui/material";
+import { Card, Box, IconButton, Typography } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
-import ConfirmationDialog from "./msgConfirmation";
+import ConfirmationDialog from "./MsgConfirmation";
 
 function ProcessCard({ process, onDelete, onEdit }) {
   const [open, setOpen] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Grid, Fab } from "@mui/material";
+import { Box, Grid, Fab } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import ProcessCard from "../components/processCard";
+import ProcessCard from "../components/ProcessCard";
 import { useNavigate } from "react-router-dom";
 
 function ProcessList() {
@@ -50,9 +50,9 @@ function ProcessList() {
           position: "fixed",
           bottom: 24,
           right: 24,
-          backgroundColor: "#00B2E3",
+          backgroundColor: "secondary.main",
           "&:hover": {
-            backgroundColor: "#1B3156",
+            backgroundColor: "primary.main",
           },
         }}
       >

@@ -76,8 +76,8 @@ const AddIndicatorForm = ({ open, onClose, onSave }) => {
       onSave={handleSave}
       title={title}
       initialState={initialState}
-      saveColor="#F9B800"
-      cancelColor="#0056b3"
+      saveColor="terciary.main"
+      cancelColor="primary.main"
     >
       <AddIndicatorFormContent />
     </GenericModal>
