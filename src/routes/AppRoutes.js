@@ -5,6 +5,7 @@ import HomePage from '../views/welcome';
 import ProcessPage from '../views/processList';
 import IndicatorPage from '../views/indicadores';
 import GestionRiesgos from '../views/gestionRiesgos';
+import FilesGestRiesgos from '../views/filesGestRiesgos';
 
 // Datos de ejemplo para los indicadores
 const AppRoutes = () => {
@@ -56,6 +57,8 @@ const AppRoutes = () => {
                         />
                     } />
                     <Route path="gestion-riesgos" element={<GestionRiesgos />} />
+                    <Route path="archivos/:year" element={<FilesGestRiesgos />} />
+
                 </Route>
             </Routes>
         </BrowserRouter>
