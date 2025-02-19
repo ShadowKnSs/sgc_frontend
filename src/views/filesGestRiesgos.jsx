@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Grid, Typography } from "@mui/material";
 import CardArchivos from "../components/CardArchivos";
 import CardAddFolder from "../components/CardAddFolder";
-
+import CardFile from "../components/CardFile";
 function FilesGestRiesgos({ year }) {
   return (
     <Box sx={{ p: 4 }}>
@@ -22,8 +22,8 @@ function FilesGestRiesgos({ year }) {
         {/* Carpeta con el año recibido */}
 
         {/* Otras carpetas */}
-        <CardArchivos nombreCarpeta="Archivo 1" ruta="/archivos/2023" />
-        <CardArchivos nombreCarpeta="Archivo 2" ruta="/archivos/2025" />
+        <CardFile nombreCarpeta="Archivo 1" ruta="/archivos/2023" />
+        <CardFile nombreCarpeta="Archivo 2" ruta="/archivos/2025" />
 
         {/* Botón para agregar nueva carpeta */}
         <CardAddFolder />
