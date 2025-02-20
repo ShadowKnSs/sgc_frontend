@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Grid, Fab } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import ProcessCard from "../components/ProcessCard";
+import ProcessCard from "../components/processCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 

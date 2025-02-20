@@ -30,7 +30,7 @@ const ProcessStructure = () => {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
-        padding: 2,
+        padding: 0,
         maxWidth: "900px",
         margin: "auto",
       }}
