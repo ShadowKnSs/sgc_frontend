@@ -91,7 +91,7 @@ const IndicatorPage = ({ userType }) => {
 
   return (
     <div style={{ textAlign: "center", paddingBottom: "100px", maxWidth: "800px", margin: "0 auto" }}>
-      <Typography variant="h1" sx={{ fontSize: "2rem", marginBottom: 2, marginTop: 3 }}>
+      <Typography variant="h1" sx={{ fontSize: "2rem", marginBottom: 2, marginTop: 3 , color:"primary.main"}}>
         Indicadores
       </Typography>
       <Grid container spacing={2}>
