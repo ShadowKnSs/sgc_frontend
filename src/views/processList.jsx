@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Grid, Fab } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import ProcessCard from "../components/processCard";
+import ProcessCard from "../components/ProcessCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -13,7 +13,6 @@ function ProcessList() {
   const fetchProcesses = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/procesos");
-      // Si la respuesta tiene la propiedad "procesos", la usamos; de lo contrario, asumimos que response.data es un arreglo
       const data = response.data.procesos || response.data;
       console.log("Fetched processes:", data);
       setProcesses(Array.isArray(data) ? data : []);
