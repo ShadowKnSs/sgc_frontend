@@ -7,6 +7,7 @@ import axios from "axios";
 
 function ProcessList() {
   const [processes, setProcesses] = useState([]);
+  const [entidades, setEntidades] = useState([]);
   const navigate = useNavigate();
 
   // Función para obtener la lista de procesos desde el backend
@@ -22,21 +23,44 @@ function ProcessList() {
     }
   };
 
+  // Función para obtener las entidades
+  const fetchEntidades = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/api/entidades");
+      setEntidades(response.data.entidades || []);
+    } catch (error) {
+      console.error("Error fetching entidades:", error);
+      setEntidades([]);
+    }
+  };
+
+
   useEffect(() => {
     fetchProcesses();
+    fetchEntidades();
   }, []);
 
   const handleDelete = async (idProceso) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/procesos/${idProceso}`);
-      // Actualizamos el estado eliminando el proceso borrado
-      setProcesses((prevProcesses) =>
-        prevProcesses.filter((procesos) => procesos.idProceso !== idProceso)
-      );
+      setProcesses((prev) => prev.filter((p) => p.idProceso !== idProceso));
     } catch (error) {
       console.error("Error deleting process:", error);
     }
   };
+
+  const enrichedProcesses = processes.map((process) => {
+    const processId = process.id || process.idProcesoPK;
+    const entity = entidades.find(
+      (ent) => ent.idEntidadDependecia.toString() === process.idEntidad.toString()
+    );
+    return {
+      ...process,
+      id: processId,
+      name: process.nombreProceso,
+      entidad: entity ? entity.nombreEntidad : "Sin entidad",
+    };
+  });
 
   return (
     <Box sx={{ p: 4 }}>
@@ -46,7 +70,7 @@ function ProcessList() {
           textAlign: "center",
           marginBottom: "32px",
           fontFamily: "'Roboto', sans-serif",
-          color: "#004A98",
+          color: "primary.main",
           fontSize: 48,
           fontWeight: "bold",
         }}
@@ -54,13 +78,12 @@ function ProcessList() {
         Lista De Procesos
       </Typography>
       <Grid container spacing={2}>
-        {Array.isArray(processes) &&
-          processes.map((process) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={process.idProceso}>
+           {enrichedProcesses.map((process) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
               <ProcessCard
                 process={process}
-                onDelete={() => handleDelete(process.idProceso)}
-                onEdit={() => navigate(`/editar-proceso/${process.ididProceso}`)}
+                onEdit={() => navigate(`/editar-proceso/${process.id}`)}
+                onDelete={() => handleDelete(process.id)}
               />
             </Grid>
           ))}

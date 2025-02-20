@@ -23,7 +23,7 @@ const ProcessCard = ({ process, onEdit, onDelete }) => {
     >
       <CardContent>
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {process.nombreProceso || process.name}
+          {process.nombreProceso}
         </Typography>
         <Typography variant="subtitle2" color="text.secondary">
           {process.entidad || process.dependencia || "Sin entidad"}

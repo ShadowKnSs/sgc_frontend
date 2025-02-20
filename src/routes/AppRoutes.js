@@ -6,6 +6,7 @@ import ProcessPage from "../views/processList";
 import IndicatorPage from "../views/indicadores";
 import GraficasPage from "../views/graficasIndicadores";
 import NewProcess from "../views/newProcess";
+import EditProcess from "../views/editProcess";
 import GestionRiesgos from "../views/gestionRiesgos";
 import FilesGestRiesgos from "../views/filesGestRiesgos";
 import EstructuraProcesos from "../views/procesStructure";
@@ -22,6 +23,7 @@ const AppRoutes = () => {
           <Route index element={<HomePage />} />
           <Route path="procesos" element={<ProcessPage />} />
           <Route path="nuevo-proceso" element={<NewProcess />} />
+          <Route path="editar-proceso/:id" element={<EditProcess />} />
           <Route path="indicadores" element={<IndicatorPage userType={userType} />}/>
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="gestion-riesgos" element={<GestionRiesgos />} />
