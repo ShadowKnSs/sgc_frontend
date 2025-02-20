@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { Box, Container } from "@mui/material";
+import { Box, Container, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import PageButton from "../components/PageButton";
-import UASLPLogo from "../assests/UASLP_SICAL_Logo.png"; //Amigos revisar el nombre de la carpeta "assests"
+import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import NoteAddIcon from "@mui/icons-material/NoteAdd";
+import EditIcon from "@mui/icons-material/Edit";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
+  const [menuAnchor, setMenuAnchor] = useState(null);
 
   const buttons = [
     "Caratula",
@@ -14,13 +18,23 @@ const ProcessView = () => {
     "Plan de Control",
   ];
 
+  const handleButtonClick = (event, label) => {
+    if (activeButton === "Caratula" && label === "Caratula") {
+      setMenuAnchor(event.currentTarget);
+    }
+  };
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+  };
+
   const renderContent = () => {
     switch (activeButton) {
       case "Caratula":
         return (
-          <>
-            <Box sx={{ position: "relative", height: "180px", width: "220px", marginBottom: "50px" }}>
-              <img src={UASLPLogo} alt="UASLP Logo" style={{ position: "absolute", top: "-90px", left: "-10px", width: "100%" }} />
+          <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box sx={{ position: "relative", height: "320px", width: "250px", marginBottom: "30px", left: "-15px", display: "flex", justifyContent: "center" }}>
+              <img src={UASLPLogo} alt="UASLP Logo" style={{ width: "100%" }} />
             </Box>
             <Box sx={{ display: "flex", justifyContent: "space-around", width: "100%" }}>
               <Box>
@@ -39,7 +53,7 @@ const ProcessView = () => {
                 <p>Aprobó</p>
               </Box>
             </Box>
-          </>
+          </Box>
         );
       case "Control de Cambios":
         return <h2>Contenido de Control de Cambios</h2>;
@@ -68,14 +82,46 @@ const ProcessView = () => {
         }}
       >
         {buttons.map((label) => (
-          <PageButton
+          <Box
             key={label}
-            label={label}
-            active={activeButton === label}
-            onClick={() => setActiveButton(label)}
-          />
+            onClick={(event) => handleButtonClick(event, label)}
+          >
+            <PageButton
+              label={label}
+              active={activeButton === label}
+              onClick={() => setActiveButton(label)}
+            />
+          </Box>
         ))}
       </Box>
+
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        transformOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ width: "100%" }}
+      >
+        <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00BCD4", color: "white" } }}>
+          <ListItemText primary="Ver" />
+          <ListItemIcon>
+            <VisibilityIcon />
+          </ListItemIcon>
+        </MenuItem>
+        <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00B2E3", color: "white" } }}>
+          <ListItemText primary="Crear" />
+          <ListItemIcon>
+            <NoteAddIcon />
+          </ListItemIcon>
+        </MenuItem>
+        <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00BCD4", color: "white" } }}>
+          <ListItemText primary="Editar" />
+          <ListItemIcon>
+            <EditIcon />
+          </ListItemIcon>
+        </MenuItem>
+      </Menu>
 
       <Box
         sx={{

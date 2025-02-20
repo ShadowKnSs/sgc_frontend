@@ -16,7 +16,7 @@ const CustomButton = ({ label, active, onClick }) => {
         minWidth: "250px",
         maxWidth: "250px",
         "&:hover": {
-          backgroundColor: active ? "#E0A800" : "#C7C7C7",
+          backgroundColor: active ? "#F9B800" : "#C7C7C7",
         },
       }}
     >
