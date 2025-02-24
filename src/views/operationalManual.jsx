@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Box, Container } from "@mui/material";
-import PageButton from "../components/PageButton";
 import CaratulaMenu from "../components/CaratulaMenu";
+import ButtonScrollNav from "../components/ButtonScrollNav";
 
-//Importar vistas
+// Importar vistas
 import MapaProceso from "../views/formProcessMap";
 import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
@@ -37,11 +37,11 @@ const ProcessView = () => {
       case "Control de Cambios":
         return <h2>Contenido de Control de Cambios</h2>;
       case "Mapa de Proceso":
-        return <MapaProceso />; 
+        return <MapaProceso />;
       case "Diagrama de Flujo":
         return <h2>Contenido de Diagrama de Flujo</h2>;
-        case "Plan de Control":
-          return <PlanControl />;        
+      case "Plan de Control":
+        return <PlanControl />;
       default:
         return <h2>Seleccione una opción</h2>;
     }
@@ -49,37 +49,20 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          paddingBottom: "20px",
-          marginTop: "40px",
-          flexWrap: "nowrap",
-          width: "100%",
-          gap: "30px",
-        }}
-      >
-        {buttons.map((label) => (
-          <Box
-            key={label}
-            onClick={(event) => handleButtonClick(event, label)}
-          >
-            <PageButton
-              label={label}
-              active={activeButton === label}
-              onClick={() => setActiveButton(label)}
-            />
-          </Box>
-        ))}
-      </Box>
+      {/* Se importan los botones para deslizar entre botones de vistas */}
+      <ButtonScrollNav
+        buttons={buttons}
+        activeButton={activeButton}
+        setActiveButton={setActiveButton}
+        handleButtonClick={handleButtonClick}
+      />
 
       <CaratulaMenu menuAnchor={menuAnchor} handleCloseMenu={handleCloseMenu} />
 
       <Box
         sx={{
           border: "2px solid black",
-          padding: "10px",
+          padding: "5px",
           minHeight: "500px",
           display: "flex",
           flexDirection: "column",
