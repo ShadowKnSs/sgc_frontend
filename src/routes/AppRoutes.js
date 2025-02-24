@@ -11,6 +11,8 @@ import GestionRiesgos from "../views/gestionRiesgos";
 import FilesGestRiesgos from "../views/filesGestRiesgos";
 import EstructuraProcesos from "../views/procesStructure";
 import ManualOperativo from "../views/operationalManual";
+import Entity from "../views/entity";
+import UserManagement from "../views/usersList";
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -30,6 +32,8 @@ const AppRoutes = () => {
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
           <Route path="estructura-procesos" element={<EstructuraProcesos />}/>
           <Route path="operational-manual" element={<ManualOperativo />}/>
+          <Route path="entidades" element={<Entity />}/>
+          <Route path="usuarios" element={<UserManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>
