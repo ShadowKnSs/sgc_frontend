@@ -6,6 +6,7 @@ import CaratulaMenu from "../components/CaratulaMenu";
 //Importar vistas
 import MapaProceso from "../views/formProcessMap";
 import Caratula from "../views/caratula";
+import PlanControl from "../views/planControl";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -39,8 +40,8 @@ const ProcessView = () => {
         return <MapaProceso />; 
       case "Diagrama de Flujo":
         return <h2>Contenido de Diagrama de Flujo</h2>;
-      case "Plan de Control":
-        return <h2>Contenido de Plan de Control</h2>;
+        case "Plan de Control":
+          return <PlanControl />;        
       default:
         return <h2>Seleccione una opción</h2>;
     }
