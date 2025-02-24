@@ -5,6 +5,7 @@ import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import EditIcon from "@mui/icons-material/Edit";
+import { Typography, TextField } from "@mui/material";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -58,7 +59,111 @@ const ProcessView = () => {
       case "Control de Cambios":
         return <h2>Contenido de Control de Cambios</h2>;
       case "Mapa de Proceso":
-        return <h2>Contenido de Mapa de Proceso</h2>;
+        return (
+          <Container maxWidth="xl">
+            <Box sx={{ marginTop: "10px" }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Documentos Relacionados:
+              </Typography>
+              <TextField
+                fullWidth
+                variant="filled"
+                sx={{
+                  backgroundColor: "#E0E0E0",
+                  borderRadius: "10px",
+                  "& .MuiFilledInput-root": {
+                    borderRadius: "10px",
+                  },
+                }}
+              />
+            </Box>
+            <Box sx={{ marginTop: "30px" }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Fuentes de Entrada:
+              </Typography>
+              <TextField
+                fullWidth
+                variant="filled"
+                sx={{
+                  backgroundColor: "#E0E0E0",
+                  borderRadius: "10px",
+                  "& .MuiFilledInput-root": {
+                    borderRadius: "10px",
+                  },
+                }}
+              />
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: "30px" }}>
+              <Box sx={{ width: "48%" }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Material de Entrada:
+                </Typography>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  sx={{
+                    backgroundColor: "#E0E0E0",
+                    borderRadius: "10px",
+                    "& .MuiFilledInput-root": {
+                      borderRadius: "10px",
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ width: "48%" }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Requisito de Entrada:
+                </Typography>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  sx={{
+                    backgroundColor: "#E0E0E0",
+                    borderRadius: "10px",
+                    "& .MuiFilledInput-root": {
+                      borderRadius: "10px",
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: "30px" }}>
+              <Box sx={{ width: "48%" }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Salidas:
+                </Typography>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  sx={{
+                    backgroundColor: "#E0E0E0",
+                    borderRadius: "10px",
+                    "& .MuiFilledInput-root": {
+                      borderRadius: "10px",
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ width: "48%" }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Receptores:
+                </Typography>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  sx={{
+                    backgroundColor: "#E0E0E0",
+                    borderRadius: "10px",
+                    "& .MuiFilledInput-root": {
+                      borderRadius: "10px",
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+          </Container>
+        );
+        
       case "Diagrama de Flujo":
         return <h2>Contenido de Diagrama de Flujo</h2>;
       case "Plan de Control":
@@ -126,7 +231,7 @@ const ProcessView = () => {
       <Box
         sx={{
           border: "2px solid black",
-          padding: "50px",
+          padding: "10px",
           minHeight: "500px",
           display: "flex",
           flexDirection: "column",
