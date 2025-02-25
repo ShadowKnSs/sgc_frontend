@@ -1,64 +1,44 @@
-import React, { useState } from "react";
-import { Card, Box, IconButton, Typography } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
-import ConfirmationDialog from "./MsgConfirmation";
+// src/components/ProcessCard.jsx
+import React from "react";
+import { Card, CardContent, Typography, IconButton, Box } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-function ProcessCard({ process, onDelete, onEdit }) {
-  const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState("");
-  const [type, setType] = useState("");
-
-  const handleOpen = (action) => {
-    setStatus(action);
-    setType("proceso");
-    setOpen(true);
-  };
-
-  const handleConfirm = () => {
-    if (status === "eliminar") {
-      onDelete(process.id);
-    } else if (status === "actualizar") {
-      onEdit(process.id);
-    }
-    setOpen(false);
-  };
-
+const ProcessCard = ({ process, onEdit, onDelete }) => {
   return (
     <Card
       sx={{
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
         justifyContent: "space-between",
-        padding: "8px 16px",
-        borderRadius: "16px",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-        backgroundColor: "#E8E8E8",
-        marginBottom: "10px",
-        minWidth: "300px",
+        p: 2,
+        borderRadius: 2,
+        boxShadow: 3,
+        transition: "transform 0.3s, box-shadow 0.3s",
+        "&:hover": {
+          transform: "scale(1.02)",
+          boxShadow: 6,
+        },
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-        {process.name}
-      </Typography>
-      <Box>
-        <IconButton onClick={() => handleOpen("actualizar")} sx={{ color: "#004A98" }}>
-          <Edit />
+      <CardContent>
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+          {process.nombreProceso}
+        </Typography>
+        <Typography variant="subtitle2" color="text.secondary">
+          {process.entidad || process.dependencia || "Sin entidad"}
+        </Typography>
+      </CardContent>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, pt: 1 }}>
+        <IconButton onClick={onEdit} sx={{ color: "primary.main" }}>
+          <EditIcon />
         </IconButton>
-        <IconButton onClick={() => handleOpen("eliminar")} sx={{ color: "#F9B800" }}>
-          <Delete />
+        <IconButton onClick={onDelete} sx={{ color: "terciary.main" }}>
+          <DeleteIcon />
         </IconButton>
       </Box>
-
-      <ConfirmationDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        onConfirm={handleConfirm}
-        type={type}
-        status={status}
-        name={process.name}
-      />
     </Card>
   );
-}
+};
 
 export default ProcessCard;
