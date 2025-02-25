@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Grid, Fab } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import ProcessCard from "../components/processCard";
+import ProcessCard from "../components/ProcessCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function ProcessList() {
   const [processes, setProcesses] = useState([]);
+  const [entidades, setEntidades] = useState([]);
   const navigate = useNavigate();
 
-  // Función para obtener la lista de procesos desde el backend
+  // Función para obtener la lista de procesos
   const fetchProcesses = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/procesos");
-      // Si la respuesta tiene la propiedad "procesos", la usamos; de lo contrario, asumimos que response.data es un arreglo
       const data = response.data.procesos || response.data;
       console.log("Fetched processes:", data);
       setProcesses(Array.isArray(data) ? data : []);
@@ -23,21 +23,48 @@ function ProcessList() {
     }
   };
 
+  // Función para obtener las entidades
+  const fetchEntidades = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/api/entidades");
+      setEntidades(response.data.entidades || []);
+    } catch (error) {
+      console.error("Error fetching entidades:", error);
+      setEntidades([]);
+    }
+  };
+
   useEffect(() => {
     fetchProcesses();
+    fetchEntidades();
   }, []);
 
-  const handleDelete = async (idProceso) => {
+  const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/procesos/${idProceso}`);
-      // Actualizamos el estado eliminando el proceso borrado
-      setProcesses((prevProcesses) =>
-        prevProcesses.filter((procesos) => procesos.idProceso !== idProceso)
-      );
+      await axios.delete(`http://127.0.0.1:8000/api/procesos/${id}`);
+      setProcesses((prev) => prev.filter((p) => {
+        const pid = p.idProceso || p.idProcesoPK;
+        return pid !== id;
+      }));
     } catch (error) {
       console.error("Error deleting process:", error);
     }
   };
+
+  // Enriquecer cada proceso para agregar el nombre de la entidad y asegurar el id
+  const enrichedProcesses = processes.map((process) => {
+    // Verificamos ambos nombres de propiedad, por si el backend usa otro nombre
+    const processId = process.idProceso || process.idProcesoPK;
+    const entity = entidades.find(
+      (ent) => ent.idEntidadDependecia.toString() === process.idEntidad.toString()
+    );
+    return {
+      ...process,
+      id: processId,
+      name: process.nombreProceso,
+      entidad: entity ? entity.nombreEntidad : "Sin entidad",
+    };
+  });
 
   return (
     <Box sx={{ p: 4 }}>
@@ -47,7 +74,7 @@ function ProcessList() {
           textAlign: "center",
           marginBottom: "32px",
           fontFamily: "'Roboto', sans-serif",
-          color: "#004A98",
+          color: "primary.main",
           fontSize: 48,
           fontWeight: "bold",
         }}
@@ -55,16 +82,15 @@ function ProcessList() {
         Lista De Procesos
       </Typography>
       <Grid container spacing={2}>
-        {Array.isArray(processes) &&
-          processes.map((process) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={process.idProceso}>
-              <ProcessCard
-                process={process}
-                onDelete={() => handleDelete(process.idProceso)}
-                onEdit={() => navigate(`/editar-proceso/${process.ididProceso}`)}
-              />
-            </Grid>
-          ))}
+        {enrichedProcesses.map((process) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
+            <ProcessCard
+              process={process}
+              onEdit={() => navigate(`/editar-proceso/${process.id}`)}
+              onDelete={() => handleDelete(process.id)}
+            />
+          </Grid>
+        ))}
       </Grid>
       <Fab
         color="primary"
