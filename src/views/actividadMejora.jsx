@@ -101,19 +101,19 @@ const ProcessView = () => {
         sx={{ width: "100%" }}
       >
         <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00BCD4", color: "white" } }}>
-          <ListItemText primary="Ver Actividades" />
+          <ListItemText primary="Ver" />
           <ListItemIcon>
             <VisibilityIcon />
           </ListItemIcon>
         </MenuItem>
         <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00B2E3", color: "white" } }}>
-          <ListItemText primary="Crear Actividad" />
+          <ListItemText primary="Crear" />
           <ListItemIcon>
             <NoteAddIcon />
           </ListItemIcon>
         </MenuItem>
         <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00BCD4", color: "white" } }}>
-          <ListItemText primary="Subir archivo" />
+          <ListItemText primary="Editar" />
           <ListItemIcon>
             <EditIcon />
           </ListItemIcon>
