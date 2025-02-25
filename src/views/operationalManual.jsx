@@ -7,6 +7,7 @@ import ButtonScrollNav from "../components/ButtonScrollNav";
 import MapaProceso from "../views/formProcessMap";
 import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
+import ControlDocuments from "../views/controlDocuments";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -18,6 +19,7 @@ const ProcessView = () => {
     "Mapa de Proceso",
     "Diagrama de Flujo",
     "Plan de Control",
+    "Control de documentos",
   ];
 
   const handleButtonClick = (event, label) => {
@@ -42,6 +44,8 @@ const ProcessView = () => {
         return <h2>Contenido de Diagrama de Flujo</h2>;
       case "Plan de Control":
         return <PlanControl />;
+      case "Control de documentos":
+        return <ControlDocuments />;
       default:
         return <h2>Seleccione una opción</h2>;
     }

@@ -8,7 +8,7 @@ const ButtonScrollNav = ({ buttons, activeButton, setActiveButton, handleButtonC
 
   const handleScroll = (direction) => {
     if (buttonContainerRef.current) {
-      buttonContainerRef.current.scrollLeft += direction === "left" ? -250 : 250;
+      buttonContainerRef.current.scrollLeft += direction === "left" ? -260 : 260;
     }
   };
 
@@ -54,7 +54,7 @@ const ButtonScrollNav = ({ buttons, activeButton, setActiveButton, handleButtonC
           "&::-webkit-scrollbar": { display: "none" },
           gap: "10px",
           padding: "5px",
-          maxWidth: "70%",
+          maxWidth: "87.6%",
           whiteSpace: "nowrap",
         }}
       >
