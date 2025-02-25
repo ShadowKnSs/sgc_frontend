@@ -1,37 +1,38 @@
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
-import BookIcon from "@mui/icons-material/Book";
-import LanguageIcon from "@mui/icons-material/Language";
-import PeopleIcon from "@mui/icons-material/People";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import DescriptionIcon from "@mui/icons-material/Description";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
-import BarChartIcon from "@mui/icons-material/BarChart";
+import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
+import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
+import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
+import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
+import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
 
 const Welcome = () => {
   const menuItems = [
-    { icon: <BookIcon />, title: "Manual de Calidad" },
-    { icon: <LanguageIcon />, title: "Manual del Sitio" },
-    { icon: <PeopleIcon />, title: "Usuarios" },
-    { icon: <AccountTreeIcon />, title: "Procesos" },
-    { icon: <DescriptionIcon />, title: "Formatos" },
-    { icon: <VerifiedUserIcon />, title: "Auditores" },
-    { icon: <SupervisorAccountIcon />, title: "Supervisores" },
-    { icon: <BarChartIcon />, title: "Reportes" },
+    { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad" },
+    { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio" },
+    { icon: <GroupAddOutlinedIcon />, title: "Usuarios" },
+    { icon: <AccountTreeOutlinedIcon />, title: "Procesos" },
+    { icon: <DescriptionOutlinedIcon />, title: "Formatos" },
+    { icon: <VerifiedUserOutlinedIcon />, title: "Auditores" },
+    { icon: <SupervisorAccountOutlinedIcon />, title: "Supervisores" },
+    { icon: <InsertChartOutlinedIcon />, title: "Reportes" },
   ];
 
   return (
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: 3,
+        gridTemplateColumns: "repeat(4, auto)", 
+        gap: 8, 
+        placeItems: "center", 
         justifyContent: "center",
-        alignItems: "center",
+        alignContent: "center",
         height: "100vh",
-        padding: 2,
+        width: "100%", 
       }}
     >
       {menuItems.map((item, index) => (
