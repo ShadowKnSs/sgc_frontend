@@ -5,12 +5,12 @@ import ProcessForm from "../components/Forms/ProcesoForm";
 import axios from "axios";
 
 const EditProcess = () => {
-  const { id } = useParams();
+  // Cambia el nombre del parámetro para que coincida con la navegación
+  const { idProceso } = useParams();
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 2002 }, (_, i) => 2003 + i);
   
-  // Estados para los datos del proceso y opciones de selects
   const [initialValues, setInitialValues] = useState({
     nombreProceso: "",
     idUsuario: "",
@@ -28,12 +28,12 @@ const EditProcess = () => {
 
   useEffect(() => {
     // Consulta el proceso a editar
-    axios.get(`http://127.0.0.1:8000/api/procesos/${id}`)
+    axios.get(`http://127.0.0.1:8000/api/procesos/${idProceso}`)
       .then(response => {
         const proc = response.data.proceso || response.data;
         setInitialValues({
           nombreProceso: proc.nombreProceso,
-          idUsuario: proc.idUsuario,
+          idUsuario: proc.idUsuario, // Si es numérico, asegúrate de que coincida con el select
           objetivo: proc.objetivo,
           alcance: proc.alcance,
           norma: proc.norma,
@@ -57,11 +57,11 @@ const EditProcess = () => {
     axios.get("http://127.0.0.1:8000/api/entidades")
       .then(response => setEntidades(response.data.entidades || []))
       .catch(error => console.error("Error al obtener entidades:", error));
-  }, [id]);
+  }, [idProceso]);
 
   const handleSubmit = async (formData) => {
     try {
-      await axios.put(`http://127.0.0.1:8000/api/procesos/${id}`, formData);
+      await axios.put(`http://127.0.0.1:8000/api/procesos/${idProceso}`, formData);
       navigate("/procesos");
     } catch (error) {
       console.error("Error al actualizar el proceso:", error);

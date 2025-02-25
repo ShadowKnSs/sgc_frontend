@@ -10,7 +10,7 @@ function ProcessList() {
   const [entidades, setEntidades] = useState([]);
   const navigate = useNavigate();
 
-  // Función para obtener la lista de procesos desde el backend
+  // Función para obtener la lista de procesos
   const fetchProcesses = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/procesos");
@@ -34,23 +34,27 @@ function ProcessList() {
     }
   };
 
-
   useEffect(() => {
     fetchProcesses();
     fetchEntidades();
   }, []);
 
-  const handleDelete = async (idProceso) => {
+  const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/procesos/${idProceso}`);
-      setProcesses((prev) => prev.filter((p) => p.idProceso !== idProceso));
+      await axios.delete(`http://127.0.0.1:8000/api/procesos/${id}`);
+      setProcesses((prev) => prev.filter((p) => {
+        const pid = p.idProceso || p.idProcesoPK;
+        return pid !== id;
+      }));
     } catch (error) {
       console.error("Error deleting process:", error);
     }
   };
 
+  // Enriquecer cada proceso para agregar el nombre de la entidad y asegurar el id
   const enrichedProcesses = processes.map((process) => {
-    const processId = process.id || process.idProcesoPK;
+    // Verificamos ambos nombres de propiedad, por si el backend usa otro nombre
+    const processId = process.idProceso || process.idProcesoPK;
     const entity = entidades.find(
       (ent) => ent.idEntidadDependecia.toString() === process.idEntidad.toString()
     );
@@ -78,15 +82,15 @@ function ProcessList() {
         Lista De Procesos
       </Typography>
       <Grid container spacing={2}>
-           {enrichedProcesses.map((process) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
-              <ProcessCard
-                process={process}
-                onEdit={() => navigate(`/editar-proceso/${process.id}`)}
-                onDelete={() => handleDelete(process.id)}
-              />
-            </Grid>
-          ))}
+        {enrichedProcesses.map((process) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
+            <ProcessCard
+              process={process}
+              onEdit={() => navigate(`/editar-proceso/${process.id}`)}
+              onDelete={() => handleDelete(process.id)}
+            />
+          </Grid>
+        ))}
       </Grid>
       <Fab
         color="primary"

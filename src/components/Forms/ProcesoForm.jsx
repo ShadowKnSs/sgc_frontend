@@ -26,6 +26,7 @@ const ProcessForm = ({
 
     useEffect(() => {
         setFormData(initialValues);
+        console.log("Form data precargado:", initialValues);
     }, [initialValues]);
 
     const handleChange = (field) => (e) => {
@@ -68,7 +69,7 @@ const ProcessForm = ({
                         onChange={handleChange("idUsuario")}
                         sx={commonStyles}
                     >
-                        <MenuItem value="">Seleccione un líder</MenuItem>
+                        <MenuItem value=""></MenuItem>
                         {leaders.map((l) => (
                             <MenuItem key={l.idUsuario} value={l.idUsuario}>
                                 {l.nombre} {l.apellidoPat} {l.apellidoMat}
