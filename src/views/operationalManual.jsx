@@ -4,10 +4,10 @@ import CaratulaMenu from "../components/CaratulaMenu";
 import ButtonScrollNav from "../components/ButtonScrollNav";
 
 // Importar vistas
-import MapaProceso from "../views/formProcessMap";
 import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
 import ControlDocuments from "../views/controlDocuments";
+import MapaProceso from "../views/formProcessMap";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -23,8 +23,11 @@ const ProcessView = () => {
   ];
 
   const handleButtonClick = (event, label) => {
-    if (activeButton === "Caratula" && label === "Caratula") {
+    if (activeButton === label) {
       setMenuAnchor(event.currentTarget);
+    } else {
+      setActiveButton(label);
+      setMenuAnchor(null);
     }
   };
 
@@ -39,7 +42,7 @@ const ProcessView = () => {
       case "Control de Cambios":
         return <h2>Contenido de Control de Cambios</h2>;
       case "Mapa de Proceso":
-        return <MapaProceso />;
+        return <MapaProceso />; // 📌 Se cargará la vista de usuarios en esta opción
       case "Diagrama de Flujo":
         return <h2>Contenido de Diagrama de Flujo</h2>;
       case "Plan de Control":
@@ -53,7 +56,6 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      {/* Se importan los botones para deslizar entre botones de vistas */}
       <ButtonScrollNav
         buttons={buttons}
         activeButton={activeButton}
