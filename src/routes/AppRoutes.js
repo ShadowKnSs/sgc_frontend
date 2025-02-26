@@ -10,7 +10,6 @@ import GestionRiesgos from "../views/gestionRiesgos";
 import FilesGestRiesgos from "../views/filesGestRiesgos";
 import EstructuraProcesos from "../views/procesStructure";
 import ManualOperativo from "../views/operationalManual";
-import FormularioMapaProceso from "../views/formProcessMap";
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -29,7 +28,6 @@ const AppRoutes = () => {
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
           <Route path="estructura-procesos" element={<EstructuraProcesos />}/>
           <Route path="manual-operativo" element={<ManualOperativo />}/>
-          <Route path="formulario-mapa-proceso" element={<FormularioMapaProceso />}/>
         </Route>
       </Routes>
     </BrowserRouter>

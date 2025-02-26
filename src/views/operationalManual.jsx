@@ -7,7 +7,7 @@ import ButtonScrollNav from "../components/ButtonScrollNav";
 import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
 import ControlDocuments from "../views/controlDocuments";
-import MapaProceso from "../views/formProcessMap";
+import MapaProceso from "./processMap";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -42,7 +42,7 @@ const ProcessView = () => {
       case "Control de Cambios":
         return <h2>Contenido de Control de Cambios</h2>;
       case "Mapa de Proceso":
-        return <MapaProceso />; // 📌 Se cargará la vista de usuarios en esta opción
+        return <MapaProceso />;
       case "Diagrama de Flujo":
         return <h2>Contenido de Diagrama de Flujo</h2>;
       case "Plan de Control":
