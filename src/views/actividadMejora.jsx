@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Box, Container, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Box, Container, Menu, MenuItem, ListItemIcon, ListItemText, Button } from "@mui/material";
 import PageButton from "../components/PageButton";
 import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import EditIcon from "@mui/icons-material/Edit";
+import FormProyMejora from "../components/FormProyMejora";
+
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -21,6 +23,7 @@ const ProcessView = () => {
     if (activeButton === "Caratula" && label === "Caratula") {
       setMenuAnchor(event.currentTarget);
     }
+    setActiveButton(label);
   };
 
   const handleCloseMenu = () => {
@@ -58,8 +61,12 @@ const ProcessView = () => {
         return <h2>Contenido del Plan de Acción Correctiva</h2>;
       case "Plan de Trabajo":
         return <h2>Contenido del Plan de Trabajo</h2>;
-      case "Proyecto de Mejora":
-        return <h2>Contenido del Proyecto de Mejora</h2>;
+        case "Proyecto de Mejora":
+          return (
+              <Box>
+                  <FormProyMejora />
+              </Box>
+          );
       default:
         return <h2>Seleccione una opción</h2>;
     }
@@ -122,7 +129,6 @@ const ProcessView = () => {
 
       <Box
         sx={{
-          border: "2px solid black",
           padding: "50px",
           minHeight: "500px",
           display: "flex",
