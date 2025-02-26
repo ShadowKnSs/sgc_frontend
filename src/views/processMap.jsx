@@ -97,22 +97,42 @@ function ProcessMapView() {
             </Box>
 
             {openForm && (
-                <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="md" fullWidth>
+                <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="lg" fullWidth>
                     <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>Agregar Nuevo Registro</DialogTitle>
                     <DialogContent>
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 1 }}>
-                            {["Documentos Relacionados", "Fuentes de Entrada", "Material de Entrada", "Requisitos de Entrada", "Salidas", "Receptores"].map((key) => (
-                                <Box key={key}>
-                                    <Box sx={{ backgroundColor: "#e0e0e0", p: 1, borderRadius: 1 }}>
-                                        <Typography sx={{ fontWeight: "bold" }}>
-                                            {key.replace(/([A-Z])/g, " $1").trim()}:
-                                        </Typography>
-                                    </Box>
-                                    <TextField fullWidth name={key} variant="outlined" />
-                                </Box>
-                            ))}
+                        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, p: 2 }}>
+                            {/* Primera fila */}
+                            <Box>
+                                <Typography sx={{ fontWeight: "bold" }}>Documentos Relacionados:</Typography>
+                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                            </Box>
+                            <Box>
+                                <Typography sx={{ fontWeight: "bold" }}>Fuentes de Entrada:</Typography>
+                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                            </Box>
+
+                            {/* Segunda fila */}
+                            <Box>
+                                <Typography sx={{ fontWeight: "bold" }}>Material de Entrada:</Typography>
+                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                            </Box>
+                            <Box>
+                                <Typography sx={{ fontWeight: "bold" }}>Requisitos de Entrada:</Typography>
+                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                            </Box>
+
+                            {/* Tercera fila */}
+                            <Box>
+                                <Typography sx={{ fontWeight: "bold" }}>Salidas:</Typography>
+                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                            </Box>
+                            <Box>
+                                <Typography sx={{ fontWeight: "bold" }}>Receptores:</Typography>
+                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                            </Box>
                         </Box>
                     </DialogContent>
+
                     <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
                         <Button onClick={() => setOpenForm(false)} variant="outlined" color="error">
                             Cancelar
