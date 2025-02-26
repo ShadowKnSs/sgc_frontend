@@ -5,7 +5,7 @@ import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import EditIcon from "@mui/icons-material/Edit";
-import FormProyMejora from "../components/FormProyMejora";
+import FormProyMejora from "../components/Forms/FormProyMejora";
 
 
 const ProcessView = () => {
