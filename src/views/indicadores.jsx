@@ -26,7 +26,7 @@ const IndicatorPage = ({ userType }) => {
 
   // Cargar indicadores desde el backend
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/indicadoresconsolidados")
+    axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados`)
       .then(response => {
         const data = response.data.indicadores || [];
         const transformed = data.map(ind => ({
@@ -48,7 +48,7 @@ const IndicatorPage = ({ userType }) => {
           axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados/${ind.idIndicadorConsolidado}/resultados`)
             .then(response => response.data.analisis)
             .catch(error => {
-              console.error(`Error fetching result for ${ind.idIndicadorConsolidado}:`, error);
+              console.error("Error fetching result for ${ind.idIndicadorConsolidado}:", error);
               return null;
             })
         )
@@ -69,6 +69,15 @@ const IndicatorPage = ({ userType }) => {
     if (userType === "admin") return "#f5f5f5";
     const res = results[indicator.idIndicadorConsolidado] || {};
     if (!res || Object.keys(res).length === 0) return "#f5f5f5";
+    if (indicator.origenIndicador === "EvaluaProveedores") {
+      // Suponiendo que los valores guardados sean nulos si no se han registrado y tengan algún valor (incluyendo 0) si están completos.
+      // Si consideras que 0 es un valor válido, puedes usar una comprobación específica
+      const { confiable, condicionado, noConfiable } = res;
+      if (confiable !== null && condicionado !== null && noConfiable !== null) {
+        return "lightgreen";
+      }
+      return "#f5f5f5";
+    }
     const period = indicator.periodicidad.toLowerCase().trim();
     if (period === "anual") {
       return res.resultadoSemestral1 ? "lightgreen" : "#f5f5f5";
@@ -105,14 +114,34 @@ const IndicatorPage = ({ userType }) => {
   }, [userType]);
 
   // Registrar resultado (se usa idIndicadorConsolidado)
+  // Dentro de IndicatorPage.jsx
+
   const handleResultRegister = useCallback((id, resultValue) => {
     if (!selectedIndicator) return;
-    axios.post(`http://127.0.0.1:8000/api/indicadoresconsolidados/${id}/resultados`, resultValue)
+    // Dependiendo del origenIndicador, se llama a distintos endpoints
+    let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${id}/resultados`;
+    
+    if (selectedIndicator.origenIndicador === "Encuesta") {
+      endpoint = `http://127.0.0.1:8000/api/encuesta/${id}/resultados`;
+    } else if (selectedIndicator.origenIndicador === "EvaluaProveedores") {
+      return axios.post(`http://127.0.0.1:8000/api/evalua-proveedores/${id}/resultados`, resultValue)
+        .then(response => {
+          setResults(prev => ({ ...prev, [id]: response.data.evaluacion }));
+        })
+        .catch(error => console.error("Error registering evaluacion result:", error));
+    } else if (selectedIndicator.origenIndicador === "Retroalimentacion") {
+      endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${id}/resultados`;
+    }
+    
+    console.log(`Guardando resultado para indicador ${id} en ${endpoint} con payload:`, resultValue);
+    axios.post(endpoint, resultValue)
       .then(response => {
-        setResults(prev => ({ ...prev, [id]: response.data.analisis }));
+        setResults(prev => ({ ...prev, [id]: response.data.analisis || response.data.evaluacion }));
       })
       .catch(error => console.error("Error registering result:", error));
   }, [selectedIndicator]);
+  
+
 
   // Función para agregar nuevo indicador (modal de creación)
   const handleAddIndicator = useCallback(() => {
@@ -120,7 +149,7 @@ const IndicatorPage = ({ userType }) => {
   }, []);
 
   const handleSaveNewIndicator = useCallback((newIndicatorData) => {
-    axios.post("http://127.0.0.1:8000/api/indicadoresconsolidados", newIndicatorData)
+    axios.post(`http://127.0.0.1:8000/api/indicadoresconsolidados`, newIndicatorData)
       .then(response => {
         const newInd = response.data.indicador;
         newInd.name = newInd.nombreIndicador;
@@ -200,8 +229,7 @@ const IndicatorPage = ({ userType }) => {
       case "Retroalimentacion":
         return <ResultModalRetroalimentacion {...modalProps} />;
       case "EvaluaProveedores":
-          return <ResultModalEvaluaProveedores {...modalProps}/>;
-
+        return <ResultModalEvaluaProveedores {...modalProps} />;
       case "ActividadControl":
       case "MapaProceso":
       case "GestionRiesgo":
@@ -221,7 +249,7 @@ const IndicatorPage = ({ userType }) => {
 
   return (
     <div style={{ textAlign: "center", paddingBottom: "100px", maxWidth: "800px", margin: "0 auto" }}>
-      <Typography variant="h1" sx={{ fontSize: "2rem", marginBottom: 2, marginTop: 3, color:"primary.main" }}>
+      <Typography variant="h1" sx={{ fontSize: "2rem", marginBottom: 2, marginTop: 3, color: "primary.main" }}>
         Indicadores
       </Typography>
       <Grid container spacing={2}>

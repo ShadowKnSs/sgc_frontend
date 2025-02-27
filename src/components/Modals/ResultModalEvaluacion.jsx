@@ -51,30 +51,27 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
     </>
   );
 
+  // Estado inicial a pasar al modal
   const initialState = {
-    confiable: '',
-    condicionado: '',
-    noConfiable: ''
+    confiable: savedResult && savedResult.confiable != null ? savedResult.confiable.toString() : '',
+    condicionado: savedResult && savedResult.condicionado != null ? savedResult.condicionado.toString() : '',
+    noConfiable: savedResult && savedResult.noConfiable != null ? savedResult.noConfiable.toString() : ''
   };
 
-  const [formData, setFormData] = useState(initialState);
+  // Función para transformar valores vacíos en null y convertir a número si hay valor
+  const transformValue = (val) => (val === '' ? null : Number(val));
 
-  useEffect(() => {
-    if (open) {
-      setFormData({
-        confiable: (savedResult && savedResult.confiable != null) ? savedResult.confiable.toString() : '',
-        condicionado: (savedResult && savedResult.condicionado != null) ? savedResult.condicionado.toString() : '',
-        noConfiable: (savedResult && savedResult.noConfiable != null) ? savedResult.noConfiable.toString() : ''
-      });
-    }
-  }, [open, savedResult]);
-
-  const handleSave = () => {
+  // handleSave ahora recibe "data" desde GenericModal, que ya es el estado actualizado
+  const handleSave = (data) => {
     const payload = {
       periodicidad: indicator.periodicidad,
-      result: { ...formData }
+      result: {
+        confiable: transformValue(data.confiable),
+        condicionado: transformValue(data.condicionado),
+        noConfiable: transformValue(data.noConfiable)
+      }
     };
-    console.log("Guardando evaluación de proveedores para indicador", indicator.idIndicadorConsolidado, payload);
+    console.log("Guardando evaluación de proveedores para indicador", indicator.idIndicadorConsolidado, "payload:", payload);
     onSave(indicator.idIndicadorConsolidado, payload);
     onClose();
   };
@@ -85,7 +82,7 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
       onClose={onClose}
       onSave={handleSave}
       title={title}
-      initialState={formData}
+      initialState={initialState}
       saveColor="secondary.main"
       cancelColor="primary.main"
     >

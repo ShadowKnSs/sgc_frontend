@@ -10,6 +10,7 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import BarChartIcon from "@mui/icons-material/BarChart";
 
+
 const Entity = () => {
   const menuItems = [
     { icon: <BookIcon />, title: "Facultad de Enfermería " },
