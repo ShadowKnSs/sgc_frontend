@@ -69,7 +69,6 @@ const IndicatorPage = ({ userType }) => {
     if (userType === "admin") return "#f5f5f5";
     const res = results[indicator.idIndicadorConsolidado] || {};
     if (!res || Object.keys(res).length === 0) return "#f5f5f5";
-
     // Si el indicador es de evaluación de proveedores, chequeamos que existan todos los valores
   if (indicator.origenIndicador === "EvaluaProveedores") {
     // Suponiendo que los valores guardados sean nulos si no se han registrado y tengan algún valor (incluyendo 0) si están completos.
@@ -232,7 +231,6 @@ const IndicatorPage = ({ userType }) => {
         return <ResultModalRetroalimentacion {...modalProps} />;
       case "EvaluaProveedores":
         return <ResultModalEvaluaProveedores {...modalProps} />;
-
       case "ActividadControl":
       case "MapaProceso":
       case "GestionRiesgo":
