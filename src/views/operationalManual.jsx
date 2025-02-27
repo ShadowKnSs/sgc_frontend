@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { Box, Container, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
-import PageButton from "../components/PageButton";
-import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import NoteAddIcon from "@mui/icons-material/NoteAdd";
-import EditIcon from "@mui/icons-material/Edit";
+import { Box, Container } from "@mui/material";
+import CaratulaMenu from "../components/CaratulaMenu";
+import ButtonScrollNav from "../components/ButtonScrollNav";
+
+// Importar vistas
+import Caratula from "../views/caratula";
+import PlanControl from "../views/planControl";
+import ControlDocuments from "../views/controlDocuments";
+import MapaProceso from "./processMap";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -16,11 +19,15 @@ const ProcessView = () => {
     "Mapa de Proceso",
     "Diagrama de Flujo",
     "Plan de Control",
+    "Control de documentos",
   ];
 
   const handleButtonClick = (event, label) => {
-    if (activeButton === "Caratula" && label === "Caratula") {
+    if (activeButton === label) {
       setMenuAnchor(event.currentTarget);
+    } else {
+      setActiveButton(label);
+      setMenuAnchor(null);
     }
   };
 
@@ -31,38 +38,17 @@ const ProcessView = () => {
   const renderContent = () => {
     switch (activeButton) {
       case "Caratula":
-        return (
-          <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <Box sx={{ position: "relative", height: "320px", width: "250px", marginBottom: "30px", left: "-15px", display: "flex", justifyContent: "center" }}>
-              <img src={UASLPLogo} alt="UASLP Logo" style={{ width: "100%" }} />
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-around", width: "100%" }}>
-              <Box>
-                <p>Dr. Juanito Perez</p>
-                <p>Secretario General</p>
-                <p>Responsable</p>
-              </Box>
-              <Box>
-                <p>Dr. Pedro Sanchez</p>
-                <p>Secretario Escolar</p>
-                <p>Revisó</p>
-              </Box>
-              <Box>
-                <p>Dra. Paola Rivera</p>
-                <p>Directora de Facultad</p>
-                <p>Aprobó</p>
-              </Box>
-            </Box>
-          </Box>
-        );
+        return <Caratula />;
       case "Control de Cambios":
         return <h2>Contenido de Control de Cambios</h2>;
       case "Mapa de Proceso":
-        return <h2>Contenido de Mapa de Proceso</h2>;
+        return <MapaProceso />;
       case "Diagrama de Flujo":
         return <h2>Contenido de Diagrama de Flujo</h2>;
       case "Plan de Control":
-        return <h2>Contenido de Plan de Control</h2>;
+        return <PlanControl />;
+      case "Control de documentos":
+        return <ControlDocuments />;
       default:
         return <h2>Seleccione una opción</h2>;
     }
@@ -70,63 +56,19 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          paddingBottom: "20px",
-          marginTop: "40px",
-          flexWrap: "nowrap",
-          width: "100%",
-          gap: "30px",
-        }}
-      >
-        {buttons.map((label) => (
-          <Box
-            key={label}
-            onClick={(event) => handleButtonClick(event, label)}
-          >
-            <PageButton
-              label={label}
-              active={activeButton === label}
-              onClick={() => setActiveButton(label)}
-            />
-          </Box>
-        ))}
-      </Box>
+      <ButtonScrollNav
+        buttons={buttons}
+        activeButton={activeButton}
+        setActiveButton={setActiveButton}
+        handleButtonClick={handleButtonClick}
+      />
 
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        transformOrigin={{ vertical: "top", horizontal: "center" }}
-        sx={{ width: "100%" }}
-      >
-        <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00BCD4", color: "white" } }}>
-          <ListItemText primary="Ver" />
-          <ListItemIcon>
-            <VisibilityIcon />
-          </ListItemIcon>
-        </MenuItem>
-        <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00B2E3", color: "white" } }}>
-          <ListItemText primary="Crear" />
-          <ListItemIcon>
-            <NoteAddIcon />
-          </ListItemIcon>
-        </MenuItem>
-        <MenuItem onClick={handleCloseMenu} sx={{ display: "flex", justifyContent: "space-between", width: "200px", '&:hover': { backgroundColor: "#00BCD4", color: "white" } }}>
-          <ListItemText primary="Editar" />
-          <ListItemIcon>
-            <EditIcon />
-          </ListItemIcon>
-        </MenuItem>
-      </Menu>
+      <CaratulaMenu menuAnchor={menuAnchor} handleCloseMenu={handleCloseMenu} />
 
       <Box
         sx={{
           border: "2px solid black",
-          padding: "50px",
+          padding: "5px",
           minHeight: "500px",
           display: "flex",
           flexDirection: "column",

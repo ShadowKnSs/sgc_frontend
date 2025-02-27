@@ -1,7 +1,7 @@
-// src/components/ModuloIndicadores/ResultModalRetroalimentacion.jsx
-import React from 'react';
-import { TextField, Grid, Box } from '@mui/material';
-import GenericModal from './GenericModal';
+// src/components/Modals/ResultModalRetroalimentacion.jsx
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from '@mui/material';
+import DialogActionButtons from '../DialogActionButtons';
 
 const RetroalimentacionContent = ({ formData, setFormData }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -11,10 +11,9 @@ const RetroalimentacionContent = ({ formData, setFormData }) => (
           label="Felicitaciones"
           type="number"
           fullWidth
-          value={formData.felicitaciones || ''}
-          onChange={(e) =>
-            setFormData({ ...formData, felicitaciones: e.target.value })
-          }
+          value={formData.felicitaciones || ""}
+          onChange={(e) => setFormData({ ...formData, felicitaciones: e.target.value })}
+          margin="dense"
         />
       </Grid>
       <Grid item xs={12}>
@@ -22,10 +21,9 @@ const RetroalimentacionContent = ({ formData, setFormData }) => (
           label="Quejas"
           type="number"
           fullWidth
-          value={formData.quejas || ''}
-          onChange={(e) =>
-            setFormData({ ...formData, quejas: e.target.value })
-          }
+          value={formData.quejas || ""}
+          onChange={(e) => setFormData({ ...formData, quejas: e.target.value })}
+          margin="dense"
         />
       </Grid>
       <Grid item xs={12}>
@@ -33,41 +31,74 @@ const RetroalimentacionContent = ({ formData, setFormData }) => (
           label="Sugerencias"
           type="number"
           fullWidth
-          value={formData.sugerencias || ''}
-          onChange={(e) =>
-            setFormData({ ...formData, sugerencias: e.target.value })
-          }
+          value={formData.sugerencias || ""}
+          onChange={(e) => setFormData({ ...formData, sugerencias: e.target.value })}
+          margin="dense"
         />
       </Grid>
     </Grid>
   </Box>
 );
 
-const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator }) => {
-  const title = `Registrar Retroalimentación para: ${indicator?.name || ''}`;
-  const initialState = { felicitaciones: '', quejas: '', sugerencias: '' };
+const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedResult }) => {
+  const [formData, setFormData] = useState({
+    felicitaciones: "",
+    quejas: "",
+    sugerencias: ""
+  });
 
-  const handleSave = (data) => {
+  useEffect(() => {
+    if (open && savedResult) {
+      setFormData({
+        felicitaciones: (savedResult.felicitaciones !== undefined && savedResult.felicitaciones !== null)
+          ? savedResult.felicitaciones.toString()
+          : "",
+        quejas: (savedResult.quejas !== undefined && savedResult.quejas !== null)
+          ? savedResult.quejas.toString()
+          : "",
+        sugerencias: (savedResult.sugerencias !== undefined && savedResult.sugerencias !== null)
+          ? savedResult.sugerencias.toString()
+          : ""
+      });
+    }
+  }, [open, savedResult]);
+
+  const handleSave = () => {
     const resultData = {
-      felicitaciones: Number(data.felicitaciones),
-      quejas: Number(data.quejas),
-      sugerencias: Number(data.sugerencias),
+      felicitaciones: Number(formData.felicitaciones),
+      quejas: Number(formData.quejas),
+      sugerencias: Number(formData.sugerencias),
     };
-    onSave(indicator.id, resultData);
+    onSave(indicator.idIndicadorConsolidado, { result: resultData });
+    onClose();
   };
 
+  const title = (
+    <>
+      Registrar Retroalimentación para: {indicator ? indicator.name : ''}
+      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+        Origen: {indicator ? indicator.origenIndicador : 'Sin origen'}
+      </Typography>
+    </>
+  );
+
   return (
-    <GenericModal
-      open={open}
-      onClose={onClose}
-      onSave={handleSave}
-      title={title}
-      initialState={initialState}
-      saveColor="#F9B800"
-      cancelColor="#0056b3"
-    >
-      <RetroalimentacionContent />
-    </GenericModal>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <RetroalimentacionContent formData={formData} setFormData={setFormData} />
+      </DialogContent>
+      <DialogActions>
+        <DialogActionButtons
+          onCancel={onClose}
+          onSave={handleSave}
+          saveText="Guardar"
+          cancelText="Cancelar"
+          saveColor="#F9B800"
+          cancelColor="#0056b3"
+        />
+      </DialogActions>
+    </Dialog>
   );
 };
 

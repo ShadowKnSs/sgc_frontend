@@ -1,7 +1,7 @@
-// src/components/ResultModal.jsx
-import React from 'react';
-import { TextField } from '@mui/material';
-import GenericModal from './GenericModal';
+// src/components/Modals/ResultModal.jsx
+import React, { useEffect, useState } from 'react';
+import { Typography, TextField } from '@mui/material';
+import GenericModal from '../GenericModal';
 
 const ResultModalContent = ({ formData, setFormData }) => (
   <TextField
@@ -15,13 +15,43 @@ const ResultModalContent = ({ formData, setFormData }) => (
   />
 );
 
-const ResultModal = ({ open, onClose, onSave, indicator }) => {
-  const title = `Registrar Resultado para: ${indicator?.name || ''}`;
-  const initialState = { result: '' };
+const ResultModal = ({ open, onClose, onSave, indicator, savedResult }) => {
+  const [localState, setLocalState] = useState({ result: '' });
+
+  useEffect(() => {
+    if (open && indicator) {
+      // Si el indicador es anual, se utiliza el campo "resultadoSemestral1"
+      if (indicator.periodicidad === "Anual") {
+        setLocalState({
+          result:
+            savedResult && savedResult.resultadoSemestral1 !== undefined
+              ? savedResult.resultadoSemestral1.toString()
+              : ''
+        });
+      } else {
+        // Para otros casos (p.ej., si usas el modal simple para indicadores no anuales)
+        setLocalState(
+          savedResult && savedResult.result !== undefined
+            ? { result: savedResult.result.toString() }
+            : { result: '' }
+        );
+      }
+      console.log("ResultModal opened. savedResult:", savedResult);
+    }
+  }, [open, savedResult, indicator]);
+
+  const title = (
+    <>
+      Registrar Resultado para: {indicator?.nombreIndicador || ''}
+      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+        Origen: {indicator?.origenIndicador || 'Sin origen'}
+      </Typography>
+    </>
+  );
 
   const handleSave = (data) => {
-    // Se envía el resultado usando el id del indicador
-    onSave(indicator.id, data.result);
+    // Se usa el idIndicadorConsolidado para construir el endpoint
+    onSave(indicator.idIndicadorConsolidado, data.result);
   };
 
   return (
@@ -30,9 +60,9 @@ const ResultModal = ({ open, onClose, onSave, indicator }) => {
       onClose={onClose}
       onSave={handleSave}
       title={title}
-      initialState={initialState}
-      saveColor="#F9B800"
-      cancelColor="#0056b3"
+      initialState={localState}
+      saveColor="terciary.main"
+      cancelColor="primary.main"
     >
       <ResultModalContent />
     </GenericModal>
