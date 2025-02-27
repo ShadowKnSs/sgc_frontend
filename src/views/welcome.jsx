@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import MenuCard from "../components/MenuCard";
+import MenuCard from "../components/menuCard";
 import BookIcon from "@mui/icons-material/Book";
 import LanguageIcon from "@mui/icons-material/Language";
 import PeopleIcon from "@mui/icons-material/People";
@@ -40,14 +40,9 @@ const Welcome = () => {
         gridTemplateColumns: "repeat(4, auto)", 
         gap: 8, 
         placeItems: "center", 
-        gridTemplateColumns: "repeat(4, auto)", 
-        gap: 8, 
-        placeItems: "center", 
         justifyContent: "center",
         alignContent: "center",
-        alignContent: "center",
         height: "100vh",
-        width: "100%", 
         width: "100%", 
       }}
     >

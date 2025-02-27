@@ -8,6 +8,7 @@ import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
 import ControlDocuments from "../views/controlDocuments";
 import MapaProceso from "./processMap";
+import PlanCorrectivo from "./correctivePlan";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -20,6 +21,7 @@ const ProcessView = () => {
     "Diagrama de Flujo",
     "Plan de Control",
     "Control de documentos",
+    "Plan Correctivo"
   ];
 
   const handleButtonClick = (event, label) => {
@@ -49,6 +51,8 @@ const ProcessView = () => {
         return <PlanControl />;
       case "Control de documentos":
         return <ControlDocuments />;
+      case "Plan Correctivo":
+        return <PlanCorrectivo />;
       default:
         return <h2>Seleccione una opción</h2>;
     }

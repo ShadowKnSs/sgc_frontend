@@ -1,8 +1,7 @@
 // src/components/Modals/ResultModalEvaluaProveedores.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, DialogTitle, DialogContent, DialogActions, TextField, Grid, Typography } from '@mui/material';
+import { Box, TextField, Grid, Typography } from '@mui/material';
 import GenericModal from './GenericModal';
-import DialogActionButtons from '../DialogActionButtons';
 
 const EvaluaContent = ({ formData, setFormData }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -13,7 +12,7 @@ const EvaluaContent = ({ formData, setFormData }) => (
           type="number"
           fullWidth
           value={formData.confiable || ''}
-          onChange={e => setFormData({ ...formData, confiable: e.target.value })}
+          onChange={(e) => {console.log("Valor actualizado:", e.target.value);setFormData({ ...formData, confiable: e.target.value });}}
           margin="dense"
         />
       </Grid>
@@ -92,3 +91,4 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
 };
 
 export default ResultModalEvaluaProveedores;
+
