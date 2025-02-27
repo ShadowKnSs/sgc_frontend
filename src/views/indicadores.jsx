@@ -26,7 +26,7 @@ const IndicatorPage = ({ userType }) => {
 
   // Cargar indicadores desde el backend
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/indicadoresconsolidados")
+    axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados`)
       .then(response => {
         const data = response.data.indicadores || [];
         const transformed = data.map(ind => ({
@@ -48,7 +48,7 @@ const IndicatorPage = ({ userType }) => {
           axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados/${ind.idIndicadorConsolidado}/resultados`)
             .then(response => response.data.analisis)
             .catch(error => {
-              console.error(`Error fetching result for ${ind.idIndicadorConsolidado}:`, error);
+              console.error("Error fetching result for ${ind.idIndicadorConsolidado}:", error);
               return null;
             })
         )
@@ -69,7 +69,6 @@ const IndicatorPage = ({ userType }) => {
     if (userType === "admin") return "#f5f5f5";
     const res = results[indicator.idIndicadorConsolidado] || {};
     if (!res || Object.keys(res).length === 0) return "#f5f5f5";
-
     // Si el indicador es de evaluación de proveedores, chequeamos que existan todos los valores
   if (indicator.origenIndicador === "EvaluaProveedores") {
     // Suponiendo que los valores guardados sean nulos si no se han registrado y tengan algún valor (incluyendo 0) si están completos.
@@ -151,7 +150,7 @@ const IndicatorPage = ({ userType }) => {
   }, []);
 
   const handleSaveNewIndicator = useCallback((newIndicatorData) => {
-    axios.post("http://127.0.0.1:8000/api/indicadoresconsolidados", newIndicatorData)
+    axios.post(`http://127.0.0.1:8000/api/indicadoresconsolidados`, newIndicatorData)
       .then(response => {
         const newInd = response.data.indicador;
         newInd.name = newInd.nombreIndicador;
@@ -232,7 +231,6 @@ const IndicatorPage = ({ userType }) => {
         return <ResultModalRetroalimentacion {...modalProps} />;
       case "EvaluaProveedores":
         return <ResultModalEvaluaProveedores {...modalProps} />;
-
       case "ActividadControl":
       case "MapaProceso":
       case "GestionRiesgo":
