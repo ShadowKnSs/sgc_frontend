@@ -43,7 +43,6 @@ const AppRoutes = () => {
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
           <Route path="estructura-procesos" element={<EstructuraProcesos />}/>
           <Route path="analisis-Datos" element={<AnalisisDatos />}/>
-          <Route path="operational-manual" element={<ManualOperativo />}/>
           <Route path="entidades" element={<Entity />}/>
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
