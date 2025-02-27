@@ -26,7 +26,7 @@ const IndicatorPage = ({ userType }) => {
 
   // Cargar indicadores desde el backend
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/indicadoresconsolidados")
+    axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados`)
       .then(response => {
         const data = response.data.indicadores || [];
         const transformed = data.map(ind => ({
@@ -48,7 +48,7 @@ const IndicatorPage = ({ userType }) => {
           axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados/${ind.idIndicadorConsolidado}/resultados`)
             .then(response => response.data.analisis)
             .catch(error => {
-              console.error(`Error fetching result for ${ind.idIndicadorConsolidado}:`, error);
+              console.error("Error fetching result for ${ind.idIndicadorConsolidado}:", error);
               return null;
             })
         )
@@ -151,7 +151,7 @@ const IndicatorPage = ({ userType }) => {
   }, []);
 
   const handleSaveNewIndicator = useCallback((newIndicatorData) => {
-    axios.post("http://127.0.0.1:8000/api/indicadoresconsolidados", newIndicatorData)
+    axios.post(`http://127.0.0.1:8000/api/indicadoresconsolidados`, newIndicatorData)
       .then(response => {
         const newInd = response.data.indicador;
         newInd.name = newInd.nombreIndicador;
