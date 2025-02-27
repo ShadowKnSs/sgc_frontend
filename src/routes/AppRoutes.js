@@ -38,6 +38,7 @@ const AppRoutes = () => {
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="eventos" element={<EventosNotAv />} />
           <Route path="admin-eventos" element={<AdminEventos />} />
+          <Route path="manual-operativo" element={<ManualOperativo />}/>
         </Route>
       </Routes>
     </BrowserRouter>
