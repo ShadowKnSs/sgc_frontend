@@ -21,31 +21,12 @@ const MenuCard = ({ icon, title, onClick }) => {
         "&:hover": {
           transform: "scale(1.05)",
           boxShadow: 6,
-        },
+        }
       }}
     >
-      <CardContent
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
-        }}
-      >
-        {React.cloneElement(icon, { sx: { color: "#FFF", fontSize: 70 } })}
-        <Typography
-          variant="subtitle1"
-          sx={{
-            marginTop: 1,
-            fontWeight: "bold",
-            color: "#FFF",
-            textAlign: "center",
-            whiteSpace: "normal",
-            wordWrap: "break-word",
-            maxWidth: "100%",
-            fontSize: title.length > 15 ? "0.9rem" : "1.1rem",
-          }}
-        >
+      <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {React.cloneElement(icon, { sx: { color: "#FFFFFF", fontSize: 70 } })}
+        <Typography variant="subtitle1" sx={{ marginTop: 1, fontWeight: "bold", color: "#FFF" }}>
           {title}
         </Typography>
       </CardContent>

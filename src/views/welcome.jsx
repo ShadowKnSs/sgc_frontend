@@ -32,9 +32,14 @@ const Welcome = () => {
         gridTemplateColumns: "repeat(4, auto)", 
         gap: 8, 
         placeItems: "center", 
+        gridTemplateColumns: "repeat(4, auto)", 
+        gap: 8, 
+        placeItems: "center", 
         justifyContent: "center",
         alignContent: "center",
+        alignContent: "center",
         height: "100vh",
+        width: "100%", 
         width: "100%", 
       }}
     >
