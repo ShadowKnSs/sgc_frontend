@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Button, Switch, FormControlLabel } from "@mui/material";
+import { Box, Button, Switch, FormControlLabel, Typography } from "@mui/material";
 import PTForm from "../components/Forms/PTForm";
 import TablaRegistros from "../components/TablaRegistros";
 import CardRegistros from "../components/CardRegistros";
@@ -94,7 +94,21 @@ const PlanTrabajoFormV = () => {
   return (
     
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mx: "auto" }}>
-        <h1 style={{ textAlign: "center", color: "#1976d2", padding:5 }}>Plan de Trabajo</h1>
+        <Box sx={{ display: "flex", alignItems: "center", width: "100%", padding: 2 }}>
+          <Typography variant="h4" sx={{ color: "#1976d2", flex: 1, textAlign: "center" }}>
+            Plan de Trabajo
+          </Typography>
+        </Box>
+        <Box sx={{ marginLeft: "auto" }}>
+            <FormControlLabel
+              control={<Switch checked={viewMode === "cards"} onChange={handleViewModeChange} />}
+              label={viewMode === "cards" ? "Ver en Tarjetas" : "Ver en Tabla"}
+            />
+        </Box>
+
+
+
+
       <PTForm
         formData={formData}
         handleChange={handleChange}
@@ -102,21 +116,9 @@ const PlanTrabajoFormV = () => {
         handleClear={handleClear}
         isFormValid={isFormValid}
       />
+  
+      
 
-      {formSaved && (
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-          <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
-            Agregar Registro
-          </Button>
-        </Box>
-      )}
-
-      <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-        <FormControlLabel
-          control={<Switch checked={viewMode === "cards"} onChange={handleViewModeChange} />}
-          label={viewMode === "cards" ? "Ver en Tarjetas" : "Ver en Tabla"}
-        />
-      </Box>
 
       {records.length > 0 && viewMode === "table" && (
         <TablaRegistros
@@ -149,6 +151,22 @@ const PlanTrabajoFormV = () => {
         selectedRecord={selectedRecord}
         handleCloseCardModal={handleCloseCardModal}
       />
+      <Box sx={{ mt: 2, display: "flex", marginLeft: "auto", padding:"5"}}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => handleOpenModal()}
+          sx={{
+            width: 80, 
+            height: 80, 
+            borderRadius: "50%", 
+            fontSize: 30, 
+            minWidth: "auto", 
+          }}
+        >
+          +
+        </Button>
+      </Box>
     </Box>
   );
 };

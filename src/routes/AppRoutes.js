@@ -39,9 +39,9 @@ const AppRoutes = () => {
           <Route path="operational-manual" element={<ManualOperativo />}/>
           <Route path="entidades" element={<Entity />}/>
           <Route path="usuarios" element={<UserManagement />} />
-          <Route path="plan-trabajo" element={<PlanTrabajoForm />} />
+          <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
           <Route path="analisis-DatosForm" element={<FormularioAnalisis/>}/>
-          <Route path="Gestion-riesgosForm" element={<GestionRiesgosForm/>}/>
+          <Route path="gestion-riesgosForm" element={<GestionRiesgosForm/>}/>
         </Route>
       </Routes>
     </BrowserRouter>
