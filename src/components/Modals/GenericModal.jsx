@@ -17,7 +17,8 @@ const GenericModal = ({
 }) => {
   const [formData, setFormData] = useState(initialState);
 
-  // Reiniciamos el estado cada vez que se abre el modal
+  // Cada vez que se abra el modal, si initialState cambia (por ejemplo, si hay datos guardados),
+  // se actualiza el estado local.
   useEffect(() => {
     if (open) {
       setFormData(initialState);
@@ -29,7 +30,6 @@ const GenericModal = ({
     onClose();
   };
 
-  // Clonamos el componente hijo para pasarle formData y setFormData
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>

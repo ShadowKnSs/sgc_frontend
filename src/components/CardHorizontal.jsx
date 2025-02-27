@@ -9,14 +9,14 @@ const IndicatorCard = ({
   onEdit, 
   onDelete, 
   onCardClick,
-  isResultRegistered 
+  isResultRegistered,
+  cardColor  // Prop adicional para el color de fondo
 }) => {
   return (
     <Card 
       onClick={userType !== 'admin' ? () => onCardClick(indicator) : undefined} 
       sx={{
-        // Si el usuario no es admin y se registró el resultado, fondo verde; de lo contrario, gris claro.
-        backgroundColor: userType !== 'admin' && isResultRegistered ? 'lightgreen' : '#f5f5f5',
+        backgroundColor: cardColor || '#f5f5f5',
         width: 350,
         borderRadius: 8,
         transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s',
