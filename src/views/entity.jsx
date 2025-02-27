@@ -35,6 +35,7 @@ const Entity = () => {
         gap: 8, 
         placeItems: "center", 
         justifyContent: "center",
+        textAlign: "center",
         minHeight: "100vh", 
         paddingTop: "80px", 
         paddingBottom: "40px", 
