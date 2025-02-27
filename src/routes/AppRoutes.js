@@ -13,8 +13,13 @@ import EstructuraProcesos from "../views/procesStructure";
 import ManualOperativo from "../views/operationalManual";
 import Entity from "../views/entity";
 import UserManagement from "../views/usersList";
+import ActividadMejora from "../views/actividadMejora";
+import Seguimiento from "../views/seguimiento";
+import FormSeguimiento from "../views/formularioSeguimiento";
+import Archivos from "../views/archivosSeg";
 import EventosNotAv from "../views/eventNotAv";
 import AdminEventos from "../views/adminEventos";
+
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -36,9 +41,14 @@ const AppRoutes = () => {
           <Route path="operational-manual" element={<ManualOperativo />}/>
           <Route path="entidades" element={<Entity />}/>
           <Route path="usuarios" element={<UserManagement />} />
+          <Route path="actividad-mejora" element={<ActividadMejora />} />
+          <Route path="seguimiento" element={<Seguimiento />} />
+          <Route path="formulario-seguimiento" element={<FormSeguimiento />} />
+          <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="eventos" element={<EventosNotAv />} />
           <Route path="admin-eventos" element={<AdminEventos />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
+
         </Route>
       </Routes>
     </BrowserRouter>
