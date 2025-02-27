@@ -15,6 +15,8 @@ import ManualOperativo from "../views/operationalManual";
 import Entity from "../views/entity";
 import UserManagement from "../views/usersList";
 import PlanTrabajoForm from "../views/planTrabajoForm";
+import FormularioAnalisis from "../views/analisisDatosForm";
+import GestionRiesgosForm from "../views/gestionRiegosForm";
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -38,6 +40,8 @@ const AppRoutes = () => {
           <Route path="entidades" element={<Entity />}/>
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajo" element={<PlanTrabajoForm />} />
+          <Route path="analisis-DatosForm" element={<FormularioAnalisis/>}/>
+          <Route path="Gestion-riesgosForm" element={<GestionRiesgosForm/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

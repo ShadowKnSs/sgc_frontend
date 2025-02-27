@@ -1,37 +1,39 @@
 import React, { useState } from "react";
 import { Card, CardContent, Typography, IconButton, Box } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
-import DetailsModal from "./Modals/DetailsModal"; // Importa el modal
+import DetailsModal from "./Modals/DetailsModal";
 
-const CardRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
-  const [selectedRecord, setSelectedRecord] = useState(null); // Estado para la tarjeta seleccionada
+const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) => {
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null); // Estado para el registro seleccionado
 
-  // Abrir modal con la información completa
+  // Abrir modal con un registro seleccionado
   const handleOpenCardModal = (record) => {
     setSelectedRecord(record);
+    setOpenModal(true);
   };
 
   // Cerrar modal
   const handleCloseCardModal = () => {
-    setSelectedRecord(null);
+    setOpenModal(false);
+    setSelectedRecord(null); // Reiniciar selección
   };
 
   return (
-    <Box sx={{ mt: 4, width: "80%", display: "flex", flexWrap: "wrap", gap: 2 }}>
+    <Box sx={{ mt: 4, width: "80%", display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center",}}>
       {records.map((record, index) => (
         <Card
           key={index}
           sx={{
-            width: 100,
-            height: 150,
-            boxShadow: 3,
-            bgcolor: "primary.light",
-            color: "white",
+            width: 150,
+            height: 200,
+            boxShadow: 7,
+            color: "black",
             cursor: "pointer",
-            "&:hover": { bgcolor: "primary.dark" },
+            "&:hover": { bgcolor: "lightgrey" },
             position: "relative",
           }}
-          onClick={() => handleOpenCardModal(record)} // Abrir modal al hacer clic
+          onClick={() => handleOpenCardModal(record)}
         >
           <CardContent sx={{ p: 1 }}>
             <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>
@@ -49,7 +51,7 @@ const CardRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
             <IconButton
               sx={{ color: "orange", p: 0.5 }}
               onClick={(e) => {
-                e.stopPropagation(); // Evita que se abra el modal al hacer clic en el botón
+                e.stopPropagation();
                 handleOpenModal(index);
               }}
             >
@@ -58,7 +60,7 @@ const CardRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
             <IconButton
               sx={{ color: "error.main", p: 0.5 }}
               onClick={(e) => {
-                e.stopPropagation(); // Evita que se abra el modal al hacer clic en el botón
+                e.stopPropagation();
                 handleDeleteRecord(index);
               }}
             >
@@ -70,7 +72,9 @@ const CardRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
 
       {/* Modal de detalles */}
       <DetailsModal
+        open={openModal}
         selectedRecord={selectedRecord}
+        records={records}
         handleCloseCardModal={handleCloseCardModal}
       />
     </Box>
