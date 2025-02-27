@@ -10,9 +10,13 @@ import EditProcess from "../views/editProcess";
 import GestionRiesgos from "../views/gestionRiesgos";
 import FilesGestRiesgos from "../views/filesGestRiesgos";
 import EstructuraProcesos from "../views/procesStructure";
+import AnalisisDatos from "../views/analisisDatos";
 import ManualOperativo from "../views/operationalManual";
 import Entity from "../views/entity";
 import UserManagement from "../views/usersList";
+import PlanTrabajoForm from "../views/planTrabajoForm";
+import FormularioAnalisis from "../views/analisisDatosForm";
+import GestionRiesgosForm from "../views/gestionRiegosForm";
 import ActividadMejora from "../views/actividadMejora";
 import Seguimiento from "../views/seguimiento";
 import FormSeguimiento from "../views/formularioSeguimiento";
@@ -38,9 +42,13 @@ const AppRoutes = () => {
           <Route path="gestion-riesgos" element={<GestionRiesgos />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
           <Route path="estructura-procesos" element={<EstructuraProcesos />}/>
+          <Route path="analisis-Datos" element={<AnalisisDatos />}/>
           <Route path="operational-manual" element={<ManualOperativo />}/>
           <Route path="entidades" element={<Entity />}/>
           <Route path="usuarios" element={<UserManagement />} />
+          <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
+          <Route path="analisis-DatosForm" element={<FormularioAnalisis/>}/>
+          <Route path="gestion-riesgosForm" element={<GestionRiesgosForm/>}/>
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="seguimiento" element={<Seguimiento />} />
           <Route path="formulario-seguimiento" element={<FormSeguimiento />} />
