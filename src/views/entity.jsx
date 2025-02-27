@@ -9,7 +9,6 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import MenuCard from "../components/menuCard";
 
 const Entity = () => {
   const menuItems = [
