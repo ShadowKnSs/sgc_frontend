@@ -16,6 +16,7 @@ import UserManagement from "../views/usersList";
 import ActividadMejora from "../views/actividadMejora";
 import Seguimiento from "../views/seguimiento";
 import FormSeguimiento from "../views/formularioSeguimiento";
+import Archivos from "../views/archivosSeg";
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -40,6 +41,7 @@ const AppRoutes = () => {
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="seguimiento" element={<Seguimiento />} />
           <Route path="formulario-seguimiento" element={<FormSeguimiento />} />
+          <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
         </Route>
       </Routes>
     </BrowserRouter>

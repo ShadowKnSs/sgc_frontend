@@ -3,7 +3,8 @@ import { Box, Grid, Typography, TextField, Button } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import AddAsistente from "../components/Forms/AddAsistente";
 import AddActividad from "../components/Forms/AddActividad";
-import AddCompromiso from "../components/Forms/AddCompromiso"; // Importa el formulario de compromiso
+import AddCompromiso from "../components/Forms/AddCompromiso";
+import Registro from "../components/cardSeg";
 
 function FormularioSeguimiento() {
     const [formData, setFormData] = useState({
@@ -12,17 +13,14 @@ function FormularioSeguimiento() {
         duracion: "",
     });
 
-    // Estado para los datos de los asistentes, actividades y compromisos
     const [asistentes, setAsistentes] = useState([]);
     const [actividades, setActividades] = useState([]);
-    const [compromisos, setCompromisos] = useState([]); // Estado para los compromisos
+    const [compromisos, setCompromisos] = useState([]);
 
-    // Estado para controlar la visibilidad de los formularios
     const [showAddAsistenteForm, setShowAddAsistenteForm] = useState(false);
     const [showAddActividadForm, setShowAddActividadForm] = useState(false);
-    const [showAddCompromisoForm, setShowAddCompromisoForm] = useState(false); // Estado para el formulario de compromiso
+    const [showAddCompromisoForm, setShowAddCompromisoForm] = useState(false);
 
-    // Estado para los datos de los formularios
     const [asistenteData, setAsistenteData] = useState({
         nombre: "",
         apellidoPaterno: "",
@@ -41,7 +39,6 @@ function FormularioSeguimiento() {
         fecha: "",
     });
 
-    // Manejo de cambios en los campos de texto
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === "nombre" || name === "apellidoPaterno" || name === "apellidoMaterno") {
@@ -67,7 +64,6 @@ function FormularioSeguimiento() {
         }
     };
 
-    // Manejo de agregar asistente
     const handleAddAsistente = () => {
         setAsistentes([...asistentes, asistenteData]);
         setAsistenteData({
@@ -78,7 +74,6 @@ function FormularioSeguimiento() {
         setShowAddAsistenteForm(false);
     };
 
-    // Manejo de agregar actividad
     const handleAddActividad = () => {
         setActividades([...actividades, actividadData]);
         setActividadData({
@@ -89,7 +84,6 @@ function FormularioSeguimiento() {
         setShowAddActividadForm(false);
     };
 
-    // Manejo de agregar compromiso
     const handleAddCompromiso = () => {
         setCompromisos([...compromisos, compromisoData]);
         setCompromisoData({
@@ -100,11 +94,10 @@ function FormularioSeguimiento() {
         setShowAddCompromisoForm(false);
     };
 
-    // Cancelar y cerrar los formularios
     const handleCancel = () => {
         setShowAddAsistenteForm(false);
         setShowAddActividadForm(false);
-        setShowAddCompromisoForm(false); // Cerrar formulario de compromiso
+        setShowAddCompromisoForm(false); 
     };
 
     return (
@@ -114,7 +107,6 @@ function FormularioSeguimiento() {
             </Typography>
 
             <Grid container spacing={3}>
-                {/* Fila superior con 2 cuadros */}
                 <Grid item xs={12} sm={6}>
                     <Box
                         sx={{
@@ -128,14 +120,18 @@ function FormularioSeguimiento() {
                             borderRadius: "4px",
                         }}
                     >
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                Asistentes
-                            </Typography>
-                            <AddIcon
-                                sx={{ position: "absolute", right: 10, top: 10, cursor: "pointer" }}
-                                onClick={() => setShowAddAsistenteForm(true)}
-                            />
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", width: "100%", position: "relative", paddingTop: 2 }}>
+                                <Typography variant="h6" sx={{ fontWeight: "bold", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+                                    Asistentes
+                                </Typography>
+                                <AddIcon
+                                    sx={{ cursor: "pointer", position: "absolute", right: 0, top: 0 }}
+                                    onClick={() => setShowAddAsistenteForm(true)}
+                                />
+                            </Box>
+
+                            <Registro texto="Torres Gonzáles Paola Diana" />
                         </Box>
                     </Box>
                 </Grid>
@@ -153,19 +149,23 @@ function FormularioSeguimiento() {
                             borderRadius: "4px",
                         }}
                     >
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                Actividades Realizadas
-                            </Typography>
-                            <AddIcon
-                                sx={{ position: "absolute", right: 10, top: 10, cursor: "pointer" }}
-                                onClick={() => setShowAddActividadForm(true)}
-                            />
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", width: "100%", position: "relative", paddingTop: 2 }}>
+                                <Typography variant="h6" sx={{ fontWeight: "bold", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+                                    Actividades Realizadas
+                                </Typography>
+                                <AddIcon
+                                    sx={{ cursor: "pointer", position: "absolute", right: 0, top: 0 }}
+                                    onClick={() => setShowAddActividadForm(true)}
+                                />
+                            </Box>
+
+                            <Registro texto="Actividad 1" />
                         </Box>
+
                     </Box>
                 </Grid>
 
-                {/* Fila inferior con 3 cuadros */}
                 <Grid item xs={12} sm={6}>
                     <Box
                         sx={{
@@ -222,20 +222,24 @@ function FormularioSeguimiento() {
                             borderRadius: "4px",
                         }}
                     >
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                Compromisos
-                            </Typography>
-                            <AddIcon
-                                sx={{ position: "absolute", right: 10, top: 10, cursor: "pointer" }}
-                                onClick={() => setShowAddCompromisoForm(true)} // Mostrar formulario de compromiso
-                            />
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", width: "100%", position: "relative", paddingTop: 2 }}>
+                                <Typography variant="h6" sx={{ fontWeight: "bold", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+                                    Compromisos
+                                </Typography>
+                                <AddIcon
+                                    sx={{ cursor: "pointer", position: "absolute", right: 0, top: 0 }}
+                                    onClick={() => setShowAddCompromisoForm(true)}
+                                />
+                            </Box>
+
+                            <Registro texto="Compromiso 1" />
+                            
                         </Box>
                     </Box>
                 </Grid>
             </Grid>
 
-            {/* Formulario de Agregar Asistente */}
             <AddAsistente
                 showForm={showAddAsistenteForm}
                 handleCancel={handleCancel}
@@ -244,7 +248,6 @@ function FormularioSeguimiento() {
                 handleChange={handleChange}
             />
 
-            {/* Formulario de Agregar Actividad */}
             <AddActividad
                 showForm={showAddActividadForm}
                 handleCancel={handleCancel}
@@ -253,7 +256,6 @@ function FormularioSeguimiento() {
                 handleChange={handleChange}
             />
 
-            {/* Formulario de Agregar Compromiso */}
             <AddCompromiso
                 showForm={showAddCompromisoForm}
                 handleCancel={handleCancel}
@@ -262,7 +264,6 @@ function FormularioSeguimiento() {
                 handleChange={handleChange}
             />
 
-            {/* Botones al final alineados a la derecha */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
                 <Button 
                     variant="contained" 
