@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Box, Container, Button, IconButton } from "@mui/material";
-import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
+import { Box, Container, Button } from "@mui/material";
 
 // Importar vistas
 import Caratula from "../views/caratula";
@@ -16,23 +15,11 @@ const sections = [
   "Diagrama de Flujo",
   "Plan de Control",
   "Control de documentos",
-  "Plan Correctivo"
 ];
 
 const ProcessView = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const navbarRef = useRef(null);
-
-  // Función para mover el scroll del navbar
-  const scrollNav = (direction) => {
-    if (navbarRef.current) {
-      const scrollAmount = 200; // Cantidad de scroll por click
-      navbarRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth"
-      });
-    }
-  };
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
@@ -59,10 +46,6 @@ const ProcessView = () => {
     <Container maxWidth="xl">
       {/* Contenedor del navbar con botones de desplazamiento */}
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2 }}>
-        <IconButton onClick={() => scrollNav("left")} sx={{ color: "#0056b3", mx: 1 }}>
-          <ArrowBackIos />
-        </IconButton>
-
         <Box
           ref={navbarRef}
           sx={{
@@ -70,7 +53,7 @@ const ProcessView = () => {
             backgroundColor: "#0056b3",
             borderRadius: "40px",
             padding: "5px",
-            width: "100%",
+            width: "86%",
             overflowX: "auto",
             scrollBehavior: "smooth",
             whiteSpace: "nowrap",
@@ -100,10 +83,6 @@ const ProcessView = () => {
             </Button>
           ))}
         </Box>
-
-        <IconButton onClick={() => scrollNav("right")} sx={{ color: "#0056b3", mx: 1 }}>
-          <ArrowForwardIos />
-        </IconButton>
       </Box>
 
       {/* Contenido dinámico según la pestaña seleccionada */}
