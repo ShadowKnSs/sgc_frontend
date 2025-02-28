@@ -67,7 +67,7 @@ function ProcessMapView() {
   };
 
   return (
-    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
+    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" , paddingTop: 8}}>
       
       {activeCards.length > 0 && (
         <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
@@ -85,10 +85,10 @@ function ProcessMapView() {
         ))}
       </Box>
 
-      <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10 }}>
+      <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10, paddingRight: 5, paddingTop: 3}}>
         <Button 
           variant="contained" 
-          sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "#0056B3", color: "#fff", "&:hover": { backgroundColor: "#003366" }}} 
+          sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "secondary.main", color: "#fff", "&:hover": { backgroundColor: "primary.main" }}} 
           onClick={handleToggleAll} 
           startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
         >
@@ -99,7 +99,7 @@ function ProcessMapView() {
       <Box sx={{ position: "fixed", bottom: 16, right: 30 }}>
         <Fab 
           color="primary" 
-          sx={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "#0056B3", "&:hover": { backgroundColor: "#003366" } }} 
+          sx={{ width: 56, height: 56, borderRadius: "50%", paddingRight: 5, backgroundColor: "secondary.main", "&:hover": { backgroundColor: "primary.main" } }} 
           onClick={() => setOpenForm(true)}
         >
           <Add />
