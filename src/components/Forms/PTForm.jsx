@@ -21,7 +21,7 @@ const PTForm = () => {
             fullWidth
             margin="normal"
             InputProps={{
-              readOnly: true,  // Hace que el campo sea de solo lectura
+              readOnly: true,  
             }}
           />
           <TextField
@@ -33,7 +33,7 @@ const PTForm = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
             InputProps={{
-              readOnly: true,  // Hace que el campo sea de solo lectura
+              readOnly: true, 
             }}
           />
         </Grid>
@@ -45,7 +45,7 @@ const PTForm = () => {
             fullWidth
             margin="normal"
             InputProps={{
-              readOnly: true,  // Hace que el campo sea de solo lectura
+              readOnly: true,
             }}
           />
           <TextField
@@ -55,7 +55,7 @@ const PTForm = () => {
             fullWidth
             margin="normal"
             InputProps={{
-              readOnly: true,  // Hace que el campo sea de solo lectura
+              readOnly: true,  
             }}
           />
         </Grid>

@@ -152,16 +152,19 @@ const PlanTrabajoFormV = () => {
         handleCloseCardModal={handleCloseCardModal}
       />
       <Box sx={{ mt: 2, display: "flex", marginLeft: "auto", padding:"5"}}>
-        <Button
+      <Button
           variant="contained"
-          color="primary"
           onClick={() => handleOpenModal()}
           sx={{
-            width: 80, 
-            height: 80, 
+            width: 50, 
+            height: 50, 
             borderRadius: "50%", 
             fontSize: 30, 
             minWidth: "auto", 
+            backgroundColor: "#00B2E3",
+            '&:hover': {
+              backgroundColor: "#0099C3", 
+            },
           }}
         >
           +

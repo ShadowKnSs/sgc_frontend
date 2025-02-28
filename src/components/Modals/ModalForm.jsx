@@ -22,12 +22,37 @@ const ModalForm = ({ showModal, setShowModal, additionalFormData, handleAddition
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setShowModal(false)} color="error">
+      <Button
+          onClick={() => setShowModal(false)}
+          sx={{
+            backgroundColor: "#CCCCCC", 
+            color: "#000000", 
+            '&:hover': {
+              backgroundColor: "#B3B3B3", 
+            },
+          }}
+        >
           Cancelar
         </Button>
-        <Button onClick={handleAddOrUpdateRecord} color="primary" disabled={!isAdditionalFormValid()}>
+      <Button
+          onClick={handleAddOrUpdateRecord}
+          disabled={!isAdditionalFormValid()}
+          sx={{
+            backgroundColor: "#F9B800", 
+            color: "#000000", 
+            '&:hover': {
+              backgroundColor: "#E0A500", 
+            },
+            '&:disabled': {
+              backgroundColor: "#CCCCCC", 
+              color: "#666666", 
+            },
+          }}
+        >
           {editIndex !== null ? "Actualizar" : "Agregar"}
         </Button>
+
+        
       </DialogActions>
     </Dialog>
   );

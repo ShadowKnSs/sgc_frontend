@@ -142,24 +142,24 @@ const FormularioGestionRiesgos = () => {
         </Table>
       </TableContainer>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenModal(true)}
-          sx={{
-            borderRadius: "50%",
-            width: 60,
-            height: 60,
-            minWidth: 0,
-            minHeight: 0,
-            boxShadow: 3,
-            bgcolor: "#0056b3",
-            "&:hover": { bgcolor: "#004494" },
-          }}
-        >
-          <AddCircleOutlineIcon sx={{ fontSize: 30, color: "white" }} />
-        </Button>
+      <Box sx={{ mt: 2, display: "flex", justifyContent:"center", padding:"5"}}>
+            <Button
+                variant="contained"
+                onClick={() => setOpenModal(true)}
+                sx={{
+                  width: 50, 
+                  height: 50, 
+                  borderRadius: "50%", 
+                  fontSize: 30, 
+                  minWidth: "auto", 
+                  backgroundColor: "#00B2E3",
+                  '&:hover': {
+                    backgroundColor: "#0099C3", 
+                  },
+                }}
+              >
+                +
+              </Button>
       </Box>
       {/* Modal para agregar nuevo registro */}
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
@@ -187,9 +187,20 @@ const FormularioGestionRiesgos = () => {
               onChange={(e) => setNewRow({ ...newRow, [key]: e.target.value })}
             />
           ))}
-          <Button variant="contained" sx={{ bgcolor: "#F9B800", color: "black", "&:hover": { bgcolor: "#d99b00" }, mt: 2 }} fullWidth onClick={handleAddRow}>
-            Guardar
-          </Button>
+          <Box sx={{ display: "flex", justifyContent: "right", mt: 2 }}>
+                      
+                      <Button sx={{
+                      backgroundColor: "#F9B800", 
+                      color: "#000000", 
+                      '&:hover': {
+                        backgroundColor: "#E0A500", 
+                      },
+                      '&:disabled': {
+                        backgroundColor: "#CCCCCC", 
+                        color: "#666666", 
+                      },
+                    }} onClick={handleAddRow}>Guardar</Button>
+                    </Box>
         </Box>
       </Modal>
     </Box>

@@ -15,6 +15,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Button,
   Grid
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -183,8 +184,24 @@ const FormularioAnalisis = () => {
           </Typography>
           <TextField fullWidth multiline rows={4} value={tempValue} onChange={(e) => setTempValue(e.target.value)} sx={{ borderRadius: 3 }} />
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-            <IconButton color="error" onClick={handleCloseModal}>Cancelar</IconButton>
-            <IconButton color="primary" onClick={handleSaveModal}>Guardar</IconButton>
+            <Button sx={{
+            backgroundColor: "#CCCCCC", 
+            color: "#000000", 
+            '&:hover': {
+              backgroundColor: "#B3B3B3", 
+            },
+          }} onClick={handleCloseModal}>Cancelar</Button>
+            <Button sx={{
+            backgroundColor: "#F9B800", 
+            color: "#000000", 
+            '&:hover': {
+              backgroundColor: "#E0A500", 
+            },
+            '&:disabled': {
+              backgroundColor: "#CCCCCC", 
+              color: "#666666", 
+            },
+          }} onClick={handleSaveModal}>Guardar</Button>
           </Box>
         </Box>
       </Modal>
