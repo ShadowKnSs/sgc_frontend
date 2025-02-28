@@ -1,5 +1,5 @@
 // src/components/Modals/ResultModalEvaluaProveedores.jsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, TextField, Grid, Typography } from '@mui/material';
 import GenericModal from './GenericModal';
 

@@ -11,7 +11,7 @@ import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import AddIndicatorForm from "../components/Forms/AddIndicatorForm";
 import IrGraficasBoton from "../components/Modals/BotonGraficas";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvaluacion";
 
 const IndicatorPage = ({ userType }) => {

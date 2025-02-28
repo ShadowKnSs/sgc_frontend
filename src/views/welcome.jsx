@@ -1,22 +1,23 @@
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/MenuCard";
-import BookIcon from "@mui/icons-material/Book";
-import LanguageIcon from "@mui/icons-material/Language";
-import PeopleIcon from "@mui/icons-material/People";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import DescriptionIcon from "@mui/icons-material/Description";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
-import BarChartIcon from "@mui/icons-material/BarChart";
+// import BookIcon from "@mui/icons-material/Book";
+// import LanguageIcon from "@mui/icons-material/Language";
+// import PeopleIcon from "@mui/icons-material/People";
+// import AccountTreeIcon from "@mui/icons-material/AccountTree";
+// import DescriptionIcon from "@mui/icons-material/Description";
+// import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+// import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+// import BarChartIcon from "@mui/icons-material/BarChart";
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
-import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
+// import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
 import AssuredWorkloadOutlinedIcon from '@mui/icons-material/AssuredWorkloadOutlined';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import { useNavigate } from "react-router-dom";
 
 
@@ -28,7 +29,7 @@ const Welcome = () => {
     { icon: <GroupAddOutlinedIcon />, title: "Usuarios", path: "/usuarios" },
     { icon: <AccountTreeOutlinedIcon />, title: "Procesos", path: "/procesos" },
     { icon: <VerifiedUserOutlinedIcon />, title: "Auditores", path: "/auditores" },
-    { icon: <SupervisorAccountOutlinedIcon />, title: "Supervisores", path: "/supervisores" },
+    { icon: <AutoGraphIcon />, title: "Indicadores", path: "/indicadores" },
     { icon: <InsertChartOutlinedIcon />, title: "Reportes", path: "/reportes" },
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
   ];

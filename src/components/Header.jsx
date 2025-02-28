@@ -1,5 +1,5 @@
 import React from "react";
-import { FaSearch, FaUser } from "react-icons/fa"; // Import icons
+import { FaUser } from "react-icons/fa"; // Import icons
 import { Link } from "react-router-dom"; // Import Link
 import "../css/Header.css"; // Estilos
 import image from "../assests/UASLP_Logo.png"; // Ruta de tu logo
