@@ -1,35 +1,20 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Box, Container, Button, IconButton } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import Caratula from "../views/caratula";
 import PlanCorrectivo from "./correctivePlan";
-import PlanTrabajoForm from "../views/planTrabajoForm";
 import FormProyMejora from "../components/Forms/FormProyMejora";
 import PlanTrabajo from "../views/planTrabajoForm";
 
 const ProcessView = () => {
-  const [activeButton, setActiveButton] = useState("Caratula");
-  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [selectedTab, setSelectedTab] = useState(0);
 
-  const buttons = [
+  const sections = [
     "Caratula",
     "Plan de Acción Correctiva",
     "Plan de Trabajo",
     "Proyecto de Mejora",
   ];
-
-  const handleButtonClick = (event, label) => {
-    if (activeButton === label) {
-      setMenuAnchor(event.currentTarget);
-    } else {
-      setActiveButton(label);
-      setMenuAnchor(null);
-    }
-  };
-
-  const handleCloseMenu = () => {
-    setMenuAnchor(null);
-  };
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
@@ -54,16 +39,18 @@ const ProcessView = () => {
     }
   };
 
+  const scrollNav = (direction) => {
+    // Implementa la lógica de desplazamiento aquí
+  };
+
   return (
     <Container maxWidth="xl">
-      
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 2 }}>
         <IconButton onClick={() => scrollNav("left")} sx={{ color: "#0056b3", mx: 1 }}>
           <ArrowBackIos />
         </IconButton>
 
         <Box
-          ref={navbarRef}
           sx={{
             display: "flex",
             backgroundColor: "#0056b3",
@@ -107,7 +94,6 @@ const ProcessView = () => {
 
       <Box
         sx={{
-          
           padding: "5px",
           minHeight: "500px",
           display: "flex",
