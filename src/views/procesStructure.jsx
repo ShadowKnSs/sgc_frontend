@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import MenuCard from "../components/menuCard";
+import MenuCard from "../components/MenuCard";
 import BookIcon from "@mui/icons-material/Book";
 import WarningIcon from "@mui/icons-material/Warning";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
