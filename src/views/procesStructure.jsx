@@ -13,12 +13,12 @@ import { useNavigate } from "react-router-dom";
 const ProcessStructure = () => {
   const navigate = useNavigate();
   const menuItems = [
-    { icon: <BookIcon />, title: "Manual Operativo", path: "/operational-manual"  },
-    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: "/gestion-riesgos" },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: "/operational-manual" },
+    { icon: <BookIcon />, title: "Manual Operativo", path: "/manual-operativo"  },
+    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: "/gestion-riesgosForm" },
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: "/analisis-DatosForm" },
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: "/actividad-mejora" },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoria", path: "/operational-manual" },
-    { icon: <LinkIcon />, title: "Seguimiento", path: "/seguimiento" },
+    { icon: <DescriptionIcon />, title: "Generar informe de auditoria", path: "/manual-operativo" },
+    { icon: <LinkIcon />, title: "Seguimiento", path: "/formulario-seguimiento" },
     { icon: <BarChartIcon />, title: "Indicadores", path: "/indicadores" },
   ];
 
