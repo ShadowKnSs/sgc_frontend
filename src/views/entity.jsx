@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import MenuCard from "../components/menuCard";
+import MenuCard from "../components/MenuCard";
 import BookIcon from "@mui/icons-material/Book";
 import LanguageIcon from "@mui/icons-material/Language";
 import PeopleIcon from "@mui/icons-material/People";
@@ -9,6 +9,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import BarChartIcon from "@mui/icons-material/BarChart";
+
 
 const Entity = () => {
   const menuItems = [
@@ -34,6 +35,7 @@ const Entity = () => {
         gap: 8, 
         placeItems: "center", 
         justifyContent: "center",
+        textAlign: "center",
         minHeight: "100vh", 
         paddingTop: "80px", 
         paddingBottom: "40px", 

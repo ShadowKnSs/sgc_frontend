@@ -1,5 +1,8 @@
 import React, { useState, useCallback } from "react";
-import { Card, CardActionArea, CardContent, Typography, Grid, Dialog, DialogTitle, TextField, Button } from "@mui/material";
+import { 
+  Card, CardActionArea, CardContent, Typography, Grid, Dialog, 
+  DialogTitle, TextField, Button 
+} from "@mui/material";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 
 const CardAddFolder = () => {
@@ -7,6 +10,7 @@ const CardAddFolder = () => {
   const [folderName, setFolderName] = useState("");
 
   const handleOpen = useCallback(() => setOpen(true), []);
+  
   const handleClose = useCallback(() => {
     setOpen(false);
     setFolderName("");
@@ -56,8 +60,8 @@ const CardAddFolder = () => {
           <Grid container justifyContent="space-between" sx={{ marginTop: 2 }}>
             <Button 
               variant="outlined"
+              onClick={handleClose} // Se agregó el evento onClick
               sx={{ 
-    
                 borderRadius: 2,
                 transition: 'all 0.3s ease',
                 backgroundColor: 'transparent',
@@ -66,7 +70,6 @@ const CardAddFolder = () => {
                 '&:hover': {
                   borderWidth: '2px',
                   transform: 'scale(1.05)',
-                  // Opcional: puedes agregar un boxShadow para dar un efecto de "movimiento" al borde
                   boxShadow: '0px 0px 8px rgba(0,0,0,0.2)',
                 }
               }}
@@ -74,17 +77,17 @@ const CardAddFolder = () => {
               Cancelar
             </Button>
             <Button 
-             variant="contained"
-             sx={{ 
-               borderRadius: 2,
-               transition: 'all 0.3s ease',
-               backgroundColor: '#F9B800',
-               '&:hover': {
-                 backgroundColor:  '#2dc1df',
-                 transform: 'scale(1.05)',
-               }
-             }}
-             
+              variant="contained"
+              onClick={handleSave} // Se agregó el evento onClick
+              sx={{ 
+                borderRadius: 2,
+                transition: 'all 0.3s ease',
+                backgroundColor: '#F9B800',
+                '&:hover': {
+                  backgroundColor:  '#2dc1df',
+                  transform: 'scale(1.05)',
+                }
+              }}
             >
               Guardar
             </Button>

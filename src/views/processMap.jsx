@@ -70,30 +70,25 @@ function ProcessMapView() {
                     ))}
             </Box>
 
-            <Box sx={{ position: "fixed", bottom: 16, right: 50, display: "flex", gap: 2 }}>
-                <Fab
-                    color="primary"
-                    sx={{ width: 56, height: 56, borderRadius: 2, backgroundColor: "#004A98" }}
-                    onClick={() => setOpenForm(true)}
+            <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10 }}>
+                <Button 
+                variant="contained" 
+                sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "#0056B3", color: "#fff", "&:hover": { backgroundColor: "#003366" }}} 
+                onClick={handleToggleAll} 
+                startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
                 >
-                    <Add />
-                </Fab>
-
-                <Button
-                    variant="contained"
-                    sx={{
-                        width: 180,
-                        height: 56,
-                        borderRadius: 2,
-                        backgroundColor: "#004A98",
-                        color: "#fff",
-                        "&:hover": { backgroundColor: "#003366" }
-                    }}
-                    onClick={handleToggleAll}
-                    startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
-                >
-                    {allExpanded ? "Cerrar Todo" : "Desplegar Todos"}
+                {allExpanded ? "Cerrar" : "Desplegar"}
                 </Button>
+            </Box>
+
+            <Box sx={{ position: "fixed", bottom: 16, right: 30 }}>
+                <Fab 
+                color="primary" 
+                sx={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "#0056B3", "&:hover": { backgroundColor: "#003366" } }} 
+                onClick={() => setOpenForm(true)}
+                >
+                <Add />
+                </Fab>
             </Box>
 
             {openForm && (
