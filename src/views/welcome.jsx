@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import MenuCard from "../components/menuCard";
+import MenuCard from "../components/MenuCard";
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
