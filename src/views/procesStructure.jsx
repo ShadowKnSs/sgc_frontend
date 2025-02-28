@@ -8,16 +8,18 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import DescriptionIcon from "@mui/icons-material/Description";
 import LinkIcon from "@mui/icons-material/Link";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import { useNavigate } from "react-router-dom";
 
 const ProcessStructure = () => {
+  const navigate = useNavigate();
   const menuItems = [
-    { icon: <BookIcon />, title: "Manual Operativo" },
-    { icon: <WarningIcon />, title: "Gestión de Riesgo" },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos" },
-    { icon: <TrendingUpIcon />, title: "Acciones de Mejora" },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoria" },
-    { icon: <LinkIcon />, title: "Seguimiento" },
-    { icon: <BarChartIcon />, title: "Indicadores" },
+    { icon: <BookIcon />, title: "Manual Operativo", path: "/operational-manual"  },
+    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: "/gestion-riesgos" },
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: "/operational-manual" },
+    { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: "/actividad-mejora" },
+    { icon: <DescriptionIcon />, title: "Generar informe de auditoria", path: "/operational-manual" },
+    { icon: <LinkIcon />, title: "Seguimiento", path: "/seguimiento" },
+    { icon: <BarChartIcon />, title: "Indicadores", path: "/indicadores" },
   ];
 
   return (
@@ -36,7 +38,7 @@ const ProcessStructure = () => {
       }}
     >
       {menuItems.slice(0, 4).map((item, index) => (
-        <MenuCard key={index} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} />
+        <MenuCard key={index} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} onClick={() => navigate(item.path)} />
       ))}
       <Box
         sx={{
@@ -48,7 +50,7 @@ const ProcessStructure = () => {
         }}
       >
         {menuItems.slice(4).map((item, index) => (
-          <MenuCard key={index + 4} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} />
+          <MenuCard key={index + 4} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} onClick={() => navigate(item.path)} />
         ))}
       </Box>
     </Box>
