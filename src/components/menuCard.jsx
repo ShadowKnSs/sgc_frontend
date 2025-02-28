@@ -16,7 +16,7 @@ const MenuCard = ({ icon, title, onClick }) => {
         borderRadius: 3,
         boxShadow: 3,
         cursor: "pointer",
-        backgroundColor: "#004A98",
+        backgroundColor: "primary.main",
         transition: "transform 0.3s ease-in-out, background-color 0.3s ease-in-out",
         "&:hover": {
           transform: "scale(1.05)", // se mueve hacia abajo y se agranda un poco
