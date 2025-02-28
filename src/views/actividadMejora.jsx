@@ -11,7 +11,7 @@ const ProcessView = () => {
 
   const sections = [
     "Caratula",
-    "Plan de Acción Correctiva",
+    "Plan de Acción Correctivo",
     "Plan de Trabajo",
     "Proyecto de Mejora",
   ];
@@ -20,7 +20,7 @@ const ProcessView = () => {
     switch (sections[selectedTab]) {
       case "Caratula":
         return <Caratula />;
-      case "Plan de Acción Correctiva":
+      case "Plan de Acción Correctivo":
         return <PlanCorrectivo />;
       case "Plan de Trabajo":
         return (
@@ -46,7 +46,7 @@ const ProcessView = () => {
   return (
     <Container maxWidth="xl">
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 2 }}>
-        <IconButton onClick={() => scrollNav("left")} sx={{ color: "#0056b3", mx: 1 }}>
+        <IconButton onClick={() => scrollNav("left")} sx={{ color: "secondary.main", mx: 1 }}>
           <ArrowBackIos />
         </IconButton>
 
@@ -73,7 +73,7 @@ const ProcessView = () => {
                 marginX: "5px",
                 textAlign: "center",
                 color: selectedTab === index ? "black" : "white",
-                backgroundColor: selectedTab === index ? "#F9B800" : "transparent",
+                backgroundColor: selectedTab === index ? "terciary.main" : "transparent",
                 borderRadius: "40px",
                 transition: "all 0.3s ease-in-out",
                 fontSize: "1rem",
@@ -87,7 +87,7 @@ const ProcessView = () => {
           ))}
         </Box>
 
-        <IconButton onClick={() => scrollNav("right")} sx={{ color: "#0056b3", mx: 1 }}>
+        <IconButton onClick={() => scrollNav("right")} sx={{ color: "secondary.main", mx: 1 }}>
           <ArrowForwardIos />
         </IconButton>
       </Box>
