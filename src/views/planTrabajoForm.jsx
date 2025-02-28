@@ -106,9 +106,6 @@ const PlanTrabajoFormV = () => {
             />
         </Box>
 
-
-
-
       <PTForm
         formData={formData}
         handleChange={handleChange}
@@ -117,8 +114,6 @@ const PlanTrabajoFormV = () => {
         isFormValid={isFormValid}
       />
   
-      
-
 
       {records.length > 0 && viewMode === "table" && (
         <TablaRegistros

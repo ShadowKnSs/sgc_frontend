@@ -4,6 +4,7 @@ import CaratulaMenu from "../components/CaratulaMenu";
 import ButtonScrollNav from "../components/ButtonScrollNav";
 import Caratula from "../views/caratula";
 import FormProyMejora from "../components/Forms/FormProyMejora";
+import PlanTrabajo from "../views/planTrabajoForm";
 
 const ProcessView = () => {
   const [activeButton, setActiveButton] = useState("Caratula");
@@ -36,7 +37,11 @@ const ProcessView = () => {
       case "Plan de Acción Correctiva":
         return <h2>Contenido del Plan de Acción Correctiva</h2>;
       case "Plan de Trabajo":
-        return <h2>Contenido del Plan de Trabajo</h2>;
+        return (
+          <Box>
+              <PlanTrabajo/>
+          </Box>
+        );
       case "Proyecto de Mejora":
         return (
           <Box>
@@ -61,7 +66,7 @@ const ProcessView = () => {
 
       <Box
         sx={{
-          border: "2px solid black",
+          
           padding: "5px",
           minHeight: "500px",
           display: "flex",
