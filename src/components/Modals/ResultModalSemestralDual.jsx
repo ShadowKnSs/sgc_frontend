@@ -134,7 +134,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
           onSave={handleSave}
           saveText="Guardar"
           cancelText="Cancelar"
-          saveColor="secondary.main"
+          saveColor="terciary.main"
           cancelColor="primary.main"
         />
       </DialogActions>

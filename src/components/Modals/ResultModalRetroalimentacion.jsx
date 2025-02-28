@@ -94,8 +94,8 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
           onSave={handleSave}
           saveText="Guardar"
           cancelText="Cancelar"
-          saveColor="#F9B800"
-          cancelColor="#0056b3"
+          saveColor="terciary.main"
+          cancelColor="primary.main"
         />
       </DialogActions>
     </Dialog>

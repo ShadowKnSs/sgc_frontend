@@ -52,7 +52,7 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) =>
           saveText="Guardar"
           cancelText="Cancelar"
           saveColor="terciary.main"
-          cancelColor="secondary.main"
+          cancelColor="primary.main"
         />
       </DialogActions>
     </Dialog>

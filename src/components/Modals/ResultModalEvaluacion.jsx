@@ -82,7 +82,7 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
       onSave={handleSave}
       title={title}
       initialState={initialState}
-      saveColor="secondary.main"
+      saveColor="terciary.main"
       cancelColor="primary.main"
     >
       <EvaluaContent />
