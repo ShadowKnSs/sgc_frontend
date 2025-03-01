@@ -23,6 +23,8 @@ import FormSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import EventosNotAv from "../views/eventNotAv";
 import AdminEventos from "../views/adminEventos";
+import AdminIndicatorPage from "../views/adminIndicadoresPage";
+import UserIndicatorPage from "../views/userIndicadoresPage";
 
 
 const AppRoutes = () => {
@@ -37,6 +39,8 @@ const AppRoutes = () => {
           <Route path="procesos" element={<ProcessPage />} />
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
+          <Route path="/admin-indicadores" element={<AdminIndicatorPage />} />
+          <Route path="/user-indicadores" element={<UserIndicatorPage />} />
           <Route path="indicadores" element={<IndicatorPage userType={userType} />}/>
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="gestion-riesgos" element={<GestionRiesgos />} />

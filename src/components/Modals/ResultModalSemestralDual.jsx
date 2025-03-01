@@ -6,7 +6,7 @@ import DialogActionButtons from '../DialogActionButtons';
 const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult }) => {
   const [tab, setTab] = useState(0); // 0: Ene-Jun, 1: Jul-Dic
 
-  // Calcula el estado por defecto a partir de los campos
+  // Estado por defecto usando los nombres de los campos
   const defaultState = useMemo(() => {
     const obj = {};
     fields.forEach(field => {
@@ -19,34 +19,27 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
   const [resultEneJun, setResultEneJun] = useState(defaultState);
   const [resultJulDic, setResultJulDic] = useState(defaultState);
 
-  // Transforma savedResult en el formato esperado, de forma segura
-  const transformedSavedResult = useMemo(() => {
-    if (savedResult && typeof savedResult === 'object') {
-      return {
-        "Ene-Jun": {
-          resultado: savedResult.resultadoSemestral1 != null 
-            ? savedResult.resultadoSemestral1.toString() 
-            : ""
-        },
-        "Jul-Dic": {
-          resultado: savedResult.resultadoSemestral2 != null 
-            ? savedResult.resultadoSemestral2.toString() 
-            : ""
-        }
-      };
-    }
-    return { "Ene-Jun": defaultState, "Jul-Dic": defaultState };
-  }, [savedResult, defaultState]);
-
   // Al abrir el modal, precargar los valores guardados o usar defaultState
   useEffect(() => {
     if (open && indicator) {
-      setResultEneJun(transformedSavedResult["Ene-Jun"]);
-      setResultJulDic(transformedSavedResult["Jul-Dic"]);
+      if (indicator.periodicidad === "Semestral") {
+        setResultEneJun({
+          [fields[0].name]:
+            savedResult && savedResult.resultadoSemestral1 !== null
+              ? savedResult.resultadoSemestral1.toString()
+              : ''
+        });
+        setResultJulDic({
+          [fields[0].name]:
+            savedResult && savedResult.resultadoSemestral2 !== null
+              ? savedResult.resultadoSemestral2.toString()
+              : ''
+        });
+      }
+      console.log("ResultModalSemestralDual opened. savedResult:", savedResult);
       setTab(0);
-      console.log("ModalSemestralDual abierto para indicador", indicator.idIndicadorConsolidado, "transformedSavedResult:", transformedSavedResult);
     }
-  }, [open, transformedSavedResult, indicator]);
+  }, [open, savedResult, indicator, fields, defaultState]);
 
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
