@@ -7,6 +7,7 @@ import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import AddIndicatorForm from "../components/Forms/AddIndicatorForm";
 import axios from "axios";
 
+
 const AdminIndicatorPage = () => {
   const [indicators, setIndicators] = useState([]);
   const [results, setResults] = useState({});
@@ -23,8 +24,10 @@ const AdminIndicatorPage = () => {
         const data = response.data.indicadores || [];
         const transformed = data.map(ind => ({
           ...ind,
-          name: ind.nombreIndicador
+          name: ind.nombreIndicador,
+          origen: ind.origenIndicador
         }));
+
         setIndicators(transformed);
       })
       .catch(error => console.error("Error fetching indicators:", error));
@@ -54,10 +57,6 @@ const AdminIndicatorPage = () => {
     }
   }, [indicators]);
 
-  const getCardBackgroundColor = (indicator) => {
-    // Para admin, dejamos el fondo neutro
-    return "#f5f5f5";
-  };
 
   const handleEdit = useCallback((id) => {
     const indicator = indicators.find(ind => ind.idIndicadorConsolidado === id);
@@ -122,19 +121,21 @@ const AdminIndicatorPage = () => {
       </Typography>
       <Grid container spacing={4} columnSpacing={10}>
         {indicators.map(ind => (
-          <Grid item xs={12} sm={6} md={4} key={ind.idIndicadorConsolidado}>
+          <Grid item xs={12} sm={6} md={3} key={ind.idIndicadorConsolidado}>
+          
             <IndicatorCard
               indicator={ind}
               userType="admin"
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
-              cardColor={getCardBackgroundColor(ind)}
+              cardColor= "white"//{getCardBackgroundColor(ind)}
         
             />
+            
           </Grid>
         ))}
       </Grid>
-      <NewIndicatorButton onClick={handleAddIndicator} />
+      <NewIndicatorButton sx={{}} onClick={handleAddIndicator} />
       {deleteDialogOpen && indicatorToDelete && (
         <ConfirmDeleteDialog
           open={deleteDialogOpen}

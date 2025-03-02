@@ -45,6 +45,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
     setTab(newValue);
   };
 
+
   const handleFieldChange = (tabNumber, fieldName, value) => {
     if (tabNumber === 0) {
       setResultEneJun(prev => ({ ...prev, [fieldName]: value }));
@@ -57,16 +58,11 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
     // Construir el payload a enviar
     const payload = {
       periodicidad: indicator.periodicidad,
-      result: {}
+      result: {
+        resultadoSemestral1: resultEneJun[fields[0].name],
+        resultadoSemestral2: resultJulDic[fields[0].name]
+      }
     };
-
-    if (fields.length === 1) {
-      payload.result["Ene-Jun"] = { resultado: resultEneJun[fields[0].name] };
-      payload.result["Jul-Dic"] = { resultado: resultJulDic[fields[0].name] };
-    } else {
-      payload.result["Ene-Jun"] = { ...resultEneJun };
-      payload.result["Jul-Dic"] = { ...resultJulDic };
-    }
 
     console.log("Guardando resultado para indicador", indicator.idIndicadorConsolidado, "payload:", payload);
     onSave(indicator.idIndicadorConsolidado, payload);
