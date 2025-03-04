@@ -19,7 +19,7 @@ const ProcessStructure = () => {
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: "/actividad-mejora" },
     { icon: <DescriptionIcon />, title: "Generar informe de auditoria", path: "/manual-operativo" },
     { icon: <LinkIcon />, title: "Seguimiento", path: "/formulario-seguimiento" },
-    { icon: <BarChartIcon />, title: "Indicadores", path: "/indicadores" },
+    { icon: <BarChartIcon />, title: "Indicadores", path: "/user-indicadores" },
   ];
 
   return (

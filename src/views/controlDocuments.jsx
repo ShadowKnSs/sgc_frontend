@@ -96,10 +96,10 @@ function ProcessMapView() {
         </Button>
       </Box>
 
-      <Box sx={{ position: "fixed", bottom: 16, right: 30 }}>
+      <Box sx={{ position: "fixed", bottom: 16, right: 30, paddingRight: 5, paddingTop: 3 }}>
         <Fab 
           color="primary" 
-          sx={{ width: 56, height: 56, borderRadius: "50%", paddingRight: 5, backgroundColor: "secondary.main", "&:hover": { backgroundColor: "primary.main" } }} 
+          sx={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "secondary.main", "&:hover": { backgroundColor: "primary.main" } }} 
           onClick={() => setOpenForm(true)}
         >
           <Add />

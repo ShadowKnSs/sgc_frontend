@@ -21,10 +21,10 @@ import ActividadMejora from "../views/actividadMejora";
 import Seguimiento from "../views/seguimiento";
 import FormSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
-import EventosNotAv from "../views/eventNotAv";
-import AdminEventos from "../views/adminEventos";
+import AdminEventos from "../views/adminEventNot";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
+import UserEvent from "../views/userEventNot";
 
 
 const AppRoutes = () => {
@@ -41,7 +41,6 @@ const AppRoutes = () => {
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
           <Route path="/admin-indicadores" element={<AdminIndicatorPage />} />
           <Route path="/user-indicadores" element={<UserIndicatorPage />} />
-          <Route path="indicadores" element={<IndicatorPage userType={userType} />}/>
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="gestion-riesgos" element={<GestionRiesgos />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
@@ -56,7 +55,7 @@ const AppRoutes = () => {
           <Route path="seguimiento" element={<Seguimiento />} />
           <Route path="formulario-seguimiento" element={<FormSeguimiento />} />
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
-          <Route path="eventos" element={<EventosNotAv />} />
+          <Route path="user-eventos" element={<UserEvent />} />
           <Route path="admin-eventos" element={<AdminEventos />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
 

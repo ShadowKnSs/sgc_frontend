@@ -15,11 +15,15 @@ const UserIndicatorPage = () => {
   const [results, setResults] = useState({});
   const [selectedIndicator, setSelectedIndicator] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  // Modo exclusivo: solo se puede elegir un estado
+  const [selectedState, setSelectedState] = useState("noRecord");
 
-  // Estados fijos en orden: "noRecord", "incomplete", "complete"
-  const orderedStates = ["noRecord", "incomplete", "complete"];
-  // Por defecto, se selecciona "Sin registrar"
-  const [selectedStates, setSelectedStates] = useState(["noRecord"]);
+  // Estados fijos y asignación de colores
+  const stateMap = {
+    noRecord: { label: "Sin registrar", items: [], color: "white" },
+    incomplete: { label: "Incompleto", items: [], color: "yellow" },
+    complete: { label: "Completo", items: [], color: "lightGreen" },
+  };
 
   // Cargar indicadores desde el backend
   useEffect(() => {
@@ -72,7 +76,7 @@ const UserIndicatorPage = () => {
     }
   }, [indicators]);
 
-  // Determinar el estado del indicador
+  // Función para determinar el estado de registro del indicador
   const getStatus = (indicator) => {
     const res = results[indicator.idIndicadorConsolidado];
     if (!res || Object.keys(res).length === 0) return "noRecord";
@@ -97,26 +101,19 @@ const UserIndicatorPage = () => {
     return "noRecord";
   };
 
-  // Agrupar indicadores por estado
-  const noRecordIndicators = indicators.filter(ind => getStatus(ind) === "noRecord");
-  const incompleteIndicators = indicators.filter(ind => getStatus(ind) === "incomplete");
-  const completeIndicators = indicators.filter(ind => getStatus(ind) === "complete");
+  // Actualizar stateMap con los indicadores filtrados
+  stateMap.noRecord.items = indicators.filter(ind => getStatus(ind) === "noRecord");
+  stateMap.incomplete.items = indicators.filter(ind => getStatus(ind) === "incomplete");
+  stateMap.complete.items = indicators.filter(ind => getStatus(ind) === "complete");
 
-  // Asignar colores a cada estado
-  const stateMap = {
-    noRecord: { label: "Sin registrar", items: noRecordIndicators, color: "#white" },
-    incomplete: { label: "Incompleto", items: incompleteIndicators, color: "yellow" },
-    complete: { label: "Completo", items: completeIndicators, color: "lightGreen" },
-  };
-
-  // Handler para el ToggleButtonGroup
-  const handleStateChange = (event, newStates) => {
-    if (newStates.length) {
-      setSelectedStates(newStates);
+  // Handler para el ToggleButtonGroup (modo exclusivo)
+  const handleStateChange = (event, newState) => {
+    if (newState !== null) {
+      setSelectedState(newState);
     }
   };
 
-  // Handler para abrir modal al hacer click en una card
+  // Handler para abrir modal
   const handleCardClick = useCallback((indicator) => {
     setSelectedIndicator(indicator);
     setModalOpen(true);
@@ -143,59 +140,28 @@ const UserIndicatorPage = () => {
       .catch(error => console.error("Error registering result:", error));
   }, [selectedIndicator]);
 
-  // Renderizar columnas: si se selecciona un único estado, usar un grid interno de 4 columnas;
-  // en caso de múltiples estados, cada columna se renderiza individualmente en el grid principal
-  const renderColumns = () => {
-    if (selectedStates.length === 1) {
-      const stateKey = selectedStates[0];
-      return (
-        <Grid item xs={12} >
-          <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
-            {stateMap[stateKey].label}
-          </Typography>
-          <Grid container spacing={3} columnSpacing={10}>
-            {stateMap[stateKey].items.map(ind => (
-              <Grid item xs={12} sm={6} md={3} key={ind.idIndicadorConsolidado}>
-                <IndicatorCard
-                  indicator={ind}
-                  userType="user"
-                  onCardClick={handleCardClick}
-                  cardColor={stateMap[stateKey].color}
-                />
-              </Grid>
-            ))}
-          </Grid>
+  // Renderizar columna única: cuando se selecciona un único estado, se muestra un grid de 4 columnas
+  const renderColumn = () => {
+    const items = stateMap[selectedState].items;
+    return (
+      <Grid item xs={12}>
+        <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
+          {stateMap[selectedState].label}
+        </Typography>
+        <Grid container spacing={3} columnSpacing={12}>
+          {items.map(ind => (
+            <Grid item key={ind.idIndicadorConsolidado} xs={12} sm={6} md={3}>
+              <IndicatorCard
+                indicator={ind}
+                userType="user"
+                onCardClick={handleCardClick}
+                cardColor={stateMap[selectedState].color}
+              />
+            </Grid>
+          ))}
         </Grid>
-      );
-    } else {
-      // Para 2 o 3 estados, cada columna ocupará un ancho determinado.
-      // Ejemplo: 2 estados → md=6; 3 estados → md=4
-      let mdWidth;
-      if (selectedStates.length === 2) {
-        mdWidth = 6;
-      } else if (selectedStates.length === 3) {
-        mdWidth = 4;
-      }
-      return orderedStates
-        .filter(stateKey => selectedStates.includes(stateKey))
-        .map(stateKey => (
-          <Grid item xs={12} md={mdWidth} key={stateKey}>
-            <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
-              {stateMap[stateKey].label}
-            </Typography>
-            {stateMap[stateKey].items.map(ind => (
-              <Box key={ind.idIndicadorConsolidado} sx={{ mb: 4 }}>
-                <IndicatorCard
-                  indicator={ind}
-                  userType="user"
-                  onCardClick={handleCardClick}
-                  cardColor={stateMap[stateKey].color}
-                />
-              </Box>
-            ))}
-          </Grid>
-        ));
-    }
+      </Grid>
+    );
   };
 
   // Render del modal para registrar resultados
@@ -224,7 +190,7 @@ const UserIndicatorPage = () => {
       case "ActividadControl":
       case "MapaProceso":
       case "GestionRiesgo":
-        if (periodicidad === "Semestral") {
+        if (periodicidad === "semestral") {
           return (
             <ResultModalSemestralDual
               {...modalProps}
@@ -243,10 +209,12 @@ const UserIndicatorPage = () => {
       <Typography variant="h3" sx={{ mb: 3, textAlign: "center", color: "primary.main" }}>
         Indicadores - Usuario
       </Typography>
-      {/* Botones de filtro */}
+
+      {/* Botones de filtro (modo exclusivo) */}
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         <ToggleButtonGroup
-          value={selectedStates}
+          exclusive
+          value={selectedState}s
           onChange={handleStateChange}
           aria-label="Filtro de indicadores"
           sx={{
@@ -258,7 +226,7 @@ const UserIndicatorPage = () => {
               fontWeight: "bold",
               color: "#555",
               "&.Mui-selected": {
-                backgroundColor: "#1976d2",
+                backgroundColor: "secondary.main",
                 color: "white",
                 border: "1px solid #1976d2",
               },
@@ -281,9 +249,9 @@ const UserIndicatorPage = () => {
         </ToggleButtonGroup>
       </Box>
 
-      {/* Render de columnas */}
+      {/* Render de la columna única */}
       <Grid container spacing={3} columnSpacing={18}>
-        {renderColumns()}
+        {renderColumn()}
       </Grid>
       <IrGraficasBoton />
       {renderModal()}
