@@ -1,49 +1,31 @@
-import React, {useState} from 'react';
-import { Box, Typography, Card, CardContent, CardActions, CardMedia, Button, Grid , Dialog, DialogContent} from '@mui/material';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay} from 'swiper/modules';
-import 'swiper/css';           // estilos básicos
-import 'swiper/css/navigation';// estilos para flechas de navegación // Estilos para flechas de navegaciónlos para flechas de navegación
+// src/views/UserHome.js
+import React, { useState } from 'react';
+import { Box, Typography, Dialog, DialogContent, DialogActions, DialogTitle, Button} from '@mui/material';
+import NewsCarousel from '../components/NewsCarrusel';
+import DualCarousel from '../components/EventosAvisosCarousel';
 
+// Estilos personalizados para flechas
 const arrowOverride = `
   .swiper-button-next,
   .swiper-button-prev {
-    color: #2dc1df;            /* color de flechas */
-    width: 30px;            /* ancho de la zona clicable */
-    height: 30px;           /* alto de la zona clicable */
+    color: #2dc1df;
+    width: 30px;
+    height: 30px;
   }
   .swiper-button-next::after,
   .swiper-button-prev::after {
-    font-size: 20px;        /* tamaño del ícono de flecha */
+    font-size: 20px;
   }
 `;
+
 const UserHome = () => {
   // Datos de ejemplo
   const newsData = [
-    {
-      id: 1,
-      title: 'Noticia 1',
-      description: 'Descripción breve de la noticia...',
-      image: 'http://127.0.0.1:8000/storage/img/aviso.png'
-    },
-    {
-      id: 2,
-      title: 'Noticia 2',
-      description: 'Descripción breve de la noticia...',
-      image: 'http://127.0.0.1:8000/storage/img/efecto.jpg'
-    },
-    {
-      id: 3,
-      title: 'Noticia 3',
-      description: 'Descripción breve de la noticia...',
-      image: 'http://127.0.0.1:8000/storage/img/aviso.png'
-    },
-    {
-      id: 4,
-      title: 'Noticia 4',
-      description: 'Descripción breve de la noticia...',
-      image: 'http://127.0.0.1:8000/storage/img/aviso.png'
-    },
+    { id: 1, title: 'Noticia 1', description: 'Descripcion breve....', image: 'http://127.0.0.1:8000/storage/img/aviso.png' },
+    { id: 2, title: 'Noticia 2', description: 'Descripción breve...', image: 'http://127.0.0.1:8000/storage/img/efecto.jpg' },
+    { id: 3, title: 'Noticia 3', description: 'Descripción breve...', image: 'http://127.0.0.1:8000/storage/img/aviso.png' },
+    { id: 4, title: 'Noticia 4', description: 'Descripción breve...', image: 'http://127.0.0.1:8000/storage/img/aviso.png' },
+    { id: 5, title: 'Noticia 5', description: 'Descripción breve...', image: 'http://127.0.0.1:8000/storage/img/aviso.png' }
   ];
 
   const eventsData = [
@@ -59,8 +41,10 @@ const UserHome = () => {
     { id: 3, image: 'http://127.0.0.1:8000/storage/img/aviso.png' },
   ];
 
-
+  // Estado para mostrar imagen en modal
   const [selectedImage, setSelectedImage] = useState(null);
+ // Para mostrar la noticia seleccionada en modal
+ const [selectedNews, setSelectedNews] = useState(null);
 
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -70,11 +54,21 @@ const UserHome = () => {
     setSelectedImage(null);
   };
 
+
+ // Se llama cuando se hace clic en "Ver Más" de una noticia
+  const handleViewMoreNews = (newsItem) => {
+    setSelectedNews(newsItem);
+  };
+
+  const handleCloseNewsModal = () => {
+    setSelectedNews(null);
+  };
   return (
     <Box sx={{ p: 3 }}>
+      {/* Estilos para flechas de swiper */}
       <style>{arrowOverride}</style>
 
-      {/* Título Principal */}
+      {/* Título principal */}
       <Typography
         variant="h4"
         align="center"
@@ -84,111 +78,19 @@ const UserHome = () => {
         Informate
       </Typography>
 
-      {/* Carrusel de Noticias */}
+      {/* Sección de Noticias */}
       <Typography variant="h5" align="center" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff' }}>
         Noticias
       </Typography>
-      <Swiper
-        modules={[Navigation]}
-        navigation
-        loop
-        spaceBetween={15}
-        slidesPerView={4}
-        style={{ padding: '20px 0' }}
-      >
-        {newsData.map(item => (
-          <SwiperSlide key={item.id}>
-            <Card sx={{ maxWidth: 260, margin: '0 auto' }}>
-              <CardMedia
-                component="img"
-                height="140"
-                image={item.image}
-                alt={item.title}
-              />
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {item.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.description}
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', mb: 1 }}>
-                <Button variant="contained" size="small" sx={{ background: "#F9B800"}}>Ver Más</Button>
-              </CardActions>
-            </Card>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      <NewsCarousel newsData={newsData} onViewMore={handleViewMoreNews}/>
 
       {/* Carruseles de Eventos y Avisos en la misma fila */}
-      <Grid container spacing={4} columnSpacing={10} sx={{ mt: 5 }}>
-        {/* Eventos */}
-        <Grid item xs={12} md={6}>
-          <Typography variant="h5" gutterBottom align="center" sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff' }}>
-            Eventos
-          </Typography>
-          <Swiper
-            modules={[Navigation, Autoplay]}
-            navigation
-            loop
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            spaceBetween={10}
-            slidesPerView={2}
-            style={{  padding: '10px 0', width: '90%', margin: '0 auto'}}
-          >
-            {eventsData.map(event => (
-              <SwiperSlide key={event.id}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <img
-                    src={event.image}
-                    alt={`Evento ${event.id}`}
-                    style={{ 
-                      width: '100%', 
-                      borderRadius: '5px', 
-                      cursor: 'pointer' 
-                    }}
-                    onClick={() => handleImageClick(event.image)}
-                  />
-                </Box>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </Grid>
+      <DualCarousel
+        eventsData={eventsData}
+        announcementsData={announcementsData}
+        onImageClick={handleImageClick}
+      />
 
-        {/* Avisos */}
-        <Grid item xs={12} md={6}>
-          <Typography variant="h5" gutterBottom align="center" sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff' }}>
-            Avisos
-          </Typography>
-          <Swiper
-            modules={[Navigation, Autoplay]}
-            navigation
-            loop
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            spaceBetween={10}
-            slidesPerView={2}
-            style={{ padding: '10px 0', width: '90%', margin: '0 auto' }}
-          >
-            {announcementsData.map(announcement => (
-              <SwiperSlide key={announcement.id}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <img
-                    src={announcement.image}
-                    alt={`Aviso ${announcement.id}`}
-                    style={{ 
-                      width: '100%', 
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => handleImageClick(announcement.image)}
-                  />
-                </Box>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </Grid>
-      </Grid>
       {/* Modal para mostrar imagen ampliada */}
       {selectedImage && (
         <Dialog open={Boolean(selectedImage)} onClose={handleCloseModal} maxWidth="md">
@@ -199,6 +101,25 @@ const UserHome = () => {
               style={{ maxWidth: '100%', borderRadius: '5px' }} 
             />
           </DialogContent>
+        </Dialog>
+      )}
+      {/* Modal para mostrar noticia completa */}
+      {selectedNews && (
+        <Dialog open={Boolean(selectedNews)} onClose={handleCloseNewsModal} maxWidth="sm" fullWidth>
+          <DialogTitle>{selectedNews.title}</DialogTitle>
+          <DialogContent dividers sx={{textAlign: "center"}}>
+            <img
+              src={selectedNews.image}
+              alt={selectedNews.title}
+              style={{ width: '70%', marginBottom: '1em', borderRadius: '5px' }}
+            />
+            <Typography variant="body1" sx={{textAlign: "justify"}}>
+              {selectedNews.description}
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseNewsModal}>Cerrar</Button>
+          </DialogActions>
         </Dialog>
       )}
     </Box>
