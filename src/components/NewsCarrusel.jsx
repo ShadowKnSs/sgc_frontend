@@ -1,4 +1,3 @@
-// src/views/NewsCarousel.js
 import React from 'react';
 import { Card, CardContent, CardActions, CardMedia, Typography, Button } from '@mui/material';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,7 +5,13 @@ import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-const NewsCarousel = ({ newsData , onViewMore}) => {
+// Función para truncar texto
+function truncate(str, maxLength) {
+  if (!str) return '';
+  return str.length > maxLength ? str.slice(0, maxLength) + '...' : str;
+}
+
+const NewsCarousel = ({ newsData, onViewMore }) => {
   return (
     <Swiper
       modules={[Navigation]}
@@ -18,24 +23,29 @@ const NewsCarousel = ({ newsData , onViewMore}) => {
     >
       {newsData.map(item => (
         <SwiperSlide key={item.id}>
-          <Card sx={{maxWidth: 260, margin: '0 auto'}}>
+          <Card sx={{ maxWidth: 260, margin: '0 auto' }}>
             <CardMedia
               component="img"
               height="140"
               image={item.image}
               alt={item.title}
-
             />
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 {item.title}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {item.description}
+              {/* Truncamos el contenido a 50 caracteres */}
+              <Typography variant="body2" color="text.secondary"sx={{textAlign:"justify"}}>
+                {truncate(item.description, 180)}
               </Typography>
             </CardContent>
             <CardActions sx={{ justifyContent: 'center', mb: 1 }}>
-              <Button variant="contained" size="small" sx={{ background: "#F9B800" }} onClick={() => onViewMore(item)}>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{ background: "#F9B800"}}
+                onClick={() => onViewMore(item)}
+              >
                 Ver Más
               </Button>
             </CardActions>

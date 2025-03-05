@@ -2,13 +2,13 @@ import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
 import DialogActionButtons from './DialogActionButtons';
 
-const ConfirmDeleteDialog = ({ open, onClose, onConfirm, indicatorName }) => {
+const ConfirmDeleteDialog = ({ open, onClose, onConfirm, itemName }) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Confirmar Eliminación</DialogTitle>
       <DialogContent>
         <Typography>
-          ¿Estás seguro de que deseas eliminar el indicador <strong>{indicatorName}</strong>?
+          ¿Estás seguro de que deseas eliminar <strong>{itemName}</strong>?
         </Typography>
       </DialogContent>
       <DialogActions>

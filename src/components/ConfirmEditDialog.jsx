@@ -2,13 +2,13 @@ import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
 import DialogActionButtons from './DialogActionButtons';
 
-const ConfirmEditDialog = ({ open, onClose, onConfirm, indicatorName }) => {
+const ConfirmEditDialog = ({ open, onClose, onConfirm, itemName }) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Confirmar Edición</DialogTitle>
       <DialogContent>
         <Typography>
-          ¿Estás seguro de que deseas guardar los cambios en el indicador <strong>{indicatorName}</strong>?
+          ¿Estás seguro de que deseas guardar los cambios <strong>{itemName}</strong>?
         </Typography>
       </DialogContent>
       <DialogActions>
@@ -17,7 +17,7 @@ const ConfirmEditDialog = ({ open, onClose, onConfirm, indicatorName }) => {
           onSave={onConfirm} 
           saveText="Confirmar"
           cancelText="Cancelar"
-          saveColor="#F9B800"  // Por ejemplo, rojo para eliminar
+          saveColor="#F9B800"  
           cancelColor="#0056b3"
         />
       </DialogActions>
