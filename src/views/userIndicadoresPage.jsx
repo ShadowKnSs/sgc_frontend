@@ -218,6 +218,10 @@ const UserIndicatorPage = () => {
           onChange={handleStateChange}
           aria-label="Filtro de indicadores"
           sx={{
+            display: "flex",
+            justifyContent: "space-around",
+            gap: "100px",
+            borderRadius: "20px",
             border: "none",
             "& .MuiToggleButton-root": {
               border: "1px solid #ccc",

@@ -22,16 +22,16 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
   // Al abrir el modal, precargar los valores guardados o usar defaultState
   useEffect(() => {
     if (open && indicator) {
-      if (indicator.periodicidad === "Semestral") {
+      if (indicator.periodicidad === "Semestral" && fields.length > 0) {
         setResultEneJun({
           [fields[0].name]:
-            savedResult && savedResult.resultadoSemestral1 !== null
+            savedResult && savedResult.resultadoSemestral1 != null
               ? savedResult.resultadoSemestral1.toString()
               : ''
         });
         setResultJulDic({
           [fields[0].name]:
-            savedResult && savedResult.resultadoSemestral2 !== null
+            savedResult && savedResult.resultadoSemestral2 != null
               ? savedResult.resultadoSemestral2.toString()
               : ''
         });
