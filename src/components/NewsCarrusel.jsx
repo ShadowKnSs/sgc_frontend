@@ -12,21 +12,24 @@ function truncate(str, maxLength) {
 }
 
 const NewsCarousel = ({ newsData, onViewMore }) => {
+
+  const hasEnoughSlides = newsData.length >= 4;
   return (
     <Swiper
       modules={[Navigation]}
-      navigation
-      loop
-      spaceBetween={15}
+      navigation={hasEnoughSlides}
       slidesPerView={4}
+      // Centra slides si hay menos de 4
+      centerInsufficientSlides
+      spaceBetween={15}
       style={{ padding: '20px 0' }}
     >
       {newsData.map(item => (
         <SwiperSlide key={item.id}>
-          <Card sx={{ maxWidth: 260, margin: '0 auto' }}>
+          <Card sx={{ height: 390, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',width: 300,  margin: '0 auto' }}>
             <CardMedia
               component="img"
-              height="140"
+              height="150"
               image={item.image}
               alt={item.title}
             />

@@ -17,11 +17,11 @@ const IndicatorCard = ({
     <Card 
       onClick={userType !== 'admin' ? () => onCardClick(indicator) : undefined} 
       sx={{
-        backgroundColor: cardColor || '#f5f5f5',
+        backgroundColor: cardColor || 'white',
         width: '100%',
         height: 120,
-        borderRadius: 5,
-        transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s',
+        borderRadius: 3,
+        transition: 'transform 0.3s, box-shadow 0.3s ease ',
         cursor: userType !== 'admin' ? 'pointer' : 'default',
         m: 1,
         p: 2,
@@ -31,12 +31,10 @@ const IndicatorCard = ({
         '&:hover': userType === 'admin'
           ? {
             transform: 'scale(1.03)',
-            boxShadow: 6,
-            background: '#69cfe3',
-            color: 'white',
+            boxShadow: '0 4px 12px #2dc1df'
+            
           }
           : {
-              
             transform: 'scale(1.03)',
             boxShadow: 6,
           },

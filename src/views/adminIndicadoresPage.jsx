@@ -4,6 +4,7 @@ import { Grid, Typography, Box } from "@mui/material";
 import IndicatorCard from "../components/CardIndicador";
 import NewIndicatorButton from "../components/NewCardButtom";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
+import ConfirmEditDialog from "../components/ConfirmEditDialog";
 import AddIndicatorForm from "../components/Forms/AddIndicatorForm";
 import axios from "axios";
 
@@ -14,6 +15,10 @@ const AdminIndicatorPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [editIndicator, setEditIndicator] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState(null);
+
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [indicatorToDelete, setIndicatorToDelete] = useState(null);
 
@@ -58,24 +63,15 @@ const AdminIndicatorPage = () => {
   }, [indicators]);
 
 
-  const handleEdit = useCallback((id) => {
-    const indicator = indicators.find(ind => ind.idIndicadorConsolidado === id);
-    if (indicator) {
-      setEditIndicator(indicator);
-      setEditFormOpen(true);
-    }
-  }, [indicators]);
-
-  const handleDeleteClick = useCallback((indicator) => {
-    setIndicatorToDelete(indicator);
-    setDeleteDialogOpen(true);
-  }, []);
-
+  //Crear
   const handleAddIndicator = useCallback(() => {
+    console.log("Abriendo formulario de creación");
     setFormOpen(true);
   }, []);
-
+ 
+  //Guardar Indicador
   const handleSaveNewIndicator = useCallback((newIndicatorData) => {
+    console.log("Guardando indicador nuevo:", newIndicatorData);
     axios.post("http://127.0.0.1:8000/api/indicadoresconsolidados", newIndicatorData)
       .then(response => {
         const newInd = response.data.indicador;
@@ -86,8 +82,37 @@ const AdminIndicatorPage = () => {
       .catch(error => console.error("Error saving new indicator:", error));
   }, []);
 
-  const handleSaveEditedIndicator = useCallback((editedData) => {
-    axios.put(`http://127.0.0.1:8000/api/indicadoresconsolidados/${editIndicator.idIndicadorConsolidado}`, editedData)
+  // Editar
+   const handleEdit = useCallback((id) => {
+    console.log("handleEdit -> ID:", id);
+    const indicator = indicators.find(ind => ind.idIndicadorConsolidado === id);
+    if (indicator) {
+      setEditIndicator(indicator);
+      setEditFormOpen(true);
+    }
+  }, [indicators]);
+
+  const handleRequestEditIndicator = (editedData) => {
+    console.log("handleRequestEditIndicator ->", editedData);
+    // Guardamos la data que el usuario llenó
+    setPendingChanges({
+      ...editedData,
+      idIndicadorConsolidado: editIndicator.idIndicadorConsolidado,
+    });
+
+    // Cerramos el form
+    setEditFormOpen(false);
+
+    console.log("Abriendo diálogo de confirmación de edición");
+
+    // Abrimos el dialog de confirmación
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEditedIndicator = (editedData) => {
+    const indicadorId = editedData.idIndicadorConsolidado;
+
+    axios.put(`http://127.0.0.1:8000/api/indicadoresconsolidados/${indicadorId}`, editedData)
       .then(response => {
         const updatedIndicator = response.data.indicador;
         updatedIndicator.name = updatedIndicator.nombreIndicador;
@@ -95,10 +120,28 @@ const AdminIndicatorPage = () => {
           prev.map(ind => ind.idIndicadorConsolidado === updatedIndicator.idIndicadorConsolidado ? updatedIndicator : ind)
         );
         setEditFormOpen(false);
-        setEditIndicator(null);
       })
       .catch(error => console.error("Error updating indicator:", error));
-  }, [editIndicator]);
+  };
+
+  const confirmEdit = () => {
+    console.log("confirmEdit -> pendingChanges:", pendingChanges, "editIndicator:", editIndicator);
+    if (!pendingChanges) return;
+
+    // Llamamos a la lógica real de PUT
+    handleSaveEditedIndicator(pendingChanges);
+
+    // Cerramos el confirm
+    setEditDialogOpen(false);
+    setPendingChanges(null);
+    setEditIndicator(null);
+
+  };
+
+  const handleDeleteClick = useCallback((indicator) => {
+    setIndicatorToDelete(indicator);
+    setDeleteDialogOpen(true);
+  }, []);
 
   const confirmDelete = useCallback(() => {
     axios.delete(`http://127.0.0.1:8000/api/indicadoresconsolidados/${indicatorToDelete.idIndicadorConsolidado}`)
@@ -119,47 +162,65 @@ const AdminIndicatorPage = () => {
       <Typography variant="h3" sx={{ mb: 3, textAlign: "center", color: "primary.main" }}>
         Indicadores - Administración
       </Typography>
+
       <Grid container spacing={4} columnSpacing={10}>
         {indicators.map(ind => (
           <Grid item xs={12} sm={6} md={3} key={ind.idIndicadorConsolidado}>
-          
             <IndicatorCard
               indicator={ind}
               userType="admin"
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
-              cardColor= "white"//{getCardBackgroundColor(ind)}
-        
             />
-            
           </Grid>
         ))}
       </Grid>
-      <NewIndicatorButton sx={{}} onClick={handleAddIndicator} />
-      {deleteDialogOpen && indicatorToDelete && (
-        <ConfirmDeleteDialog
-          open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-          onConfirm={confirmDelete}
-          indicatorName={indicatorToDelete.nombreIndicador}
-        />
-      )}
-      <AddIndicatorForm 
-        open={formOpen} 
-        onClose={() => setFormOpen(false)} 
-        onSave={handleSaveNewIndicator} 
+
+      <NewIndicatorButton onClick={handleAddIndicator} />
+
+      {/* Form para Crear */}
+      <AddIndicatorForm
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSave={handleSaveNewIndicator}
       />
+
+      {/* Form para Editar */}
       {editFormOpen && editIndicator && (
         <AddIndicatorForm
           open={editFormOpen}
-          onClose={() => { setEditFormOpen(false); setEditIndicator(null); }}
-          onSave={handleSaveEditedIndicator}
+          onClose={() => {
+            setEditFormOpen(false);
+            setEditIndicator(null);
+          }}
+          // En vez de "onSave={handleSaveEditedIndicator}", usamos "handleRequestEditIndicator"
+          onSave={handleRequestEditIndicator}
           initialValues={{
             nombre: editIndicator.nombreIndicador,
             tipo: editIndicator.origenIndicador,
             periodicidad: editIndicator.periodicidad,
             meta: editIndicator.meta || "",
           }}
+        />
+      )}
+
+      {/* Confirmar Eliminación */}
+      {deleteDialogOpen && indicatorToDelete && (
+        <ConfirmDeleteDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={confirmDelete}
+          itemName={indicatorToDelete.nombreIndicador}
+        />
+      )}
+
+      {/* Confirmar Edición */}
+      {editDialogOpen && (
+        <ConfirmEditDialog
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onConfirm={confirmEdit}
+          itemName={editIndicator?.nombreIndicador || "Este indicador"}
         />
       )}
     </Box>

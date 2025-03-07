@@ -11,8 +11,8 @@ const ImageModal = ({ open, imageUrl, onClose }) => {
         onClick={onClose}
         sx={{
           position: 'absolute',
-          right: 8,
-          top: 8,
+          right: 5,
+          top: 5,
           color: (theme) => theme.palette.grey[500],
         }}
       >
@@ -23,7 +23,8 @@ const ImageModal = ({ open, imageUrl, onClose }) => {
           <img
             src={imageUrl}
             alt="Ampliada"
-            style={{ maxWidth: '90%', borderRadius: '5px' }}
+            style={{ width: '680px',
+              height: '400px', borderRadius: '5px', padding: '10px 15px' }}
           />
         )}
       </DialogContent>
