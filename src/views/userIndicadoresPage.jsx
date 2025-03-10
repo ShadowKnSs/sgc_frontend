@@ -11,6 +11,9 @@ import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvalua
 import axios from "axios";
 
 const UserIndicatorPage = () => {
+  const [retroVirtualId, setRetroVirtualId] = useState(null);
+  const [retroEncuestaId, setRetroEncuestaId] = useState(null);
+  const [retroFisicaId, setRetroFisicaId] = useState(null);
   const [indicators, setIndicators] = useState([]);
   const [results, setResults] = useState({});
   const [selectedIndicator, setSelectedIndicator] = useState(null);
@@ -24,6 +27,9 @@ const UserIndicatorPage = () => {
     incomplete: { label: "Incompleto", items: [], color: "yellow" },
     complete: { label: "Completo", items: [], color: "lightGreen" },
   };
+
+
+  // Guardar el id del idicador de la encuesta
 
   // Cargar indicadores desde el backend
   useEffect(() => {
@@ -54,6 +60,12 @@ const UserIndicatorPage = () => {
           }
           return axios.get(endpoint)
             .then(response => {
+              if (ind.origenIndicador === "Encuesta") {
+                return response.data.encuesta;
+              }
+              if (ind.origenIndicador === "Retroalimentacion") {
+                return response.data.retroalimentacion;
+              }
               if (ind.origenIndicador === "EvaluaProveedores") {
                 return response.data.evaluacion;
               }
@@ -76,30 +88,119 @@ const UserIndicatorPage = () => {
     }
   }, [indicators]);
 
+
+  useEffect(() => {
+
+    if (indicators.length > 0) {
+      // Filtrar indicadores de retroalimentación
+      const retroIndicators = indicators.filter(
+        ind => ind.origenIndicador?.toLowerCase().trim() === "retroalimentacion"
+      );
+      console.log("Indicadores de retroalimentación:", retroIndicators);
+
+      const retroVirtualIndicator = indicators.find(
+        ind => ind.nombreIndicador === "Retro Buzon Virtual"
+      );
+      const retroEncuestaIndicator = indicators.find(
+        ind => ind.nombreIndicador === "Retro Encuesta"
+      );
+      const retroFisicaIndicator = indicators.find(
+        ind => ind.nombreIndicador === "Retro Buzon Fisico"
+      );
+
+      console.log("Retro Virtual Indicator:", retroVirtualIndicator);
+      console.log("Retro Encuesta Indicator:", retroEncuestaIndicator);
+      console.log("Retro Física Indicator:", retroFisicaIndicator);
+
+
+// Enviar directamente el idIndicadorConsolidado
+      if (retroVirtualIndicator) {
+        setRetroVirtualId(retroVirtualIndicator.idIndicadorConsolidado);
+        console.log("ID Retro Virtual:", retroVirtualIndicator.idIndicadorConsolidado);
+      }
+      if (retroEncuestaIndicator) {
+        setRetroEncuestaId(retroEncuestaIndicator.idIndicadorConsolidado);
+        console.log("ID Retro Encuesta:", retroEncuestaIndicator.idIndicadorConsolidado);
+      }
+      if (retroFisicaIndicator) {
+        setRetroFisicaId(retroFisicaIndicator.idIndicadorConsolidado);
+        console.log("ID Retro Física:", retroFisicaIndicator.idIndicadorConsolidado);
+      }
+    }
+  }, [indicators]);
   // Función para determinar el estado de registro del indicador
-  const getStatus = (indicator) => {
-    const res = results[indicator.idIndicadorConsolidado];
-    if (!res || Object.keys(res).length === 0) return "noRecord";
-    if (indicator.origenIndicador === "EvaluaProveedores") {
+  function getStatus(indicator) {
+    // resultsMap es tu estado global de resultados, 
+    // con la forma: { [idConsolidado]: { ...result } }
+    const res = results[indicator?.idIndicadorConsolidado];
+
+    // Si no hay datos, retornamos 'noRecord'
+    if (!res) return 'noRecord';
+
+    // CASO: Encuesta
+    if (indicator.origenIndicador === 'Encuesta') {
+      // res = { malo, regular, excelenteBueno, noEncuestas }
+      const { malo, regular, bueno, excelente, noEncuestas } = res;
+      // Verificamos si cualquiera de ellos es null, undefined o ''
+      const fields = [malo, regular, bueno, excelente, noEncuestas];
+      const allFilled = fields.every((val) => val !== null && val !== undefined && val !== '');
+      return allFilled ? 'complete' : 'incomplete';
+    }
+
+    // CASO: EvaluaProveedores
+    if (indicator.origenIndicador === 'EvaluaProveedores') {
+      // res = { confiable, condicionado, noConfiable }
       const { confiable, condicionado, noConfiable } = res;
-      return (confiable !== null && condicionado !== null && noConfiable !== null)
-        ? "complete"
-        : "incomplete";
+      const fields = [confiable, condicionado, noConfiable];
+      const allFilled = fields.every((val) => val !== null && val !== undefined && val !== '');
+      return allFilled ? 'complete' : 'incomplete';
     }
-    const period = indicator.periodicidad.toLowerCase().trim();
-    if (period === "anual") {
-      return res.resultadoSemestral1 ? "complete" : "noRecord";
-    } else if (period === "semestral") {
-      const r1 = res.resultadoSemestral1;
-      const r2 = res.resultadoSemestral2;
-      const hasR1 = r1 !== null && r1 !== undefined && r1 !== "";
-      const hasR2 = r2 !== null && r2 !== undefined && r2 !== "";
-      if (hasR1 && hasR2) return "complete";
-      if (hasR1 || hasR2) return "incomplete";
-      return "noRecord";
+
+    // CASO: Retroalimentacion
+    if (indicator.origenIndicador === 'Retroalimentacion') {
+      // res = { metodo, cantidadFelicitacion, cantidadSugerencia, cantidadQueja }
+      const { cantidadFelicitacion, cantidadSugerencia, cantidadQueja } = res;
+      const f = cantidadFelicitacion || 0;
+      const s = cantidadSugerencia   || 0;
+      const q = cantidadQueja        || 0;
+      // Si quieres ignorar `metodo`, no lo incluyas en la lógica de “completo/incompleto”
+
+      const isAllZero = (f === 0 && s === 0 && q === 0);
+      const isAllNonZero = (f > 0 && s > 0 && q > 0);
+
+      if (isAllZero) {
+        return 'noRecord';
+      } else if (isAllNonZero) {
+        return 'complete';
+      } else {
+        return 'incomplete';
+      }
+      
     }
-    return "noRecord";
-  };
+
+    // CASO: ActividadControl / MapaProceso / GestionRiesgo / etc.
+    // Aquí asumimos que en res tenemos { resultadoSemestral1, resultadoSemestral2, ... }
+    const period = indicator.periodicidad?.toLowerCase().trim() || '';
+    const r1 = res.resultadoSemestral1 ?? '';
+    const r2 = res.resultadoSemestral2 ?? '';
+
+    if (period === 'anual') {
+      // si con un solo semestral1 es "complete"
+      return r1 ? 'complete' : 'noRecord';
+    } else if (period === 'semestral') {
+      // si hay dos semestres, ambos deben estar llenos
+      const hasR1 = r1 !== null && r1 !== undefined && r1 !== '';
+      const hasR2 = r2 !== null && r2 !== undefined && r2 !== '';
+      if (hasR1 && hasR2) return 'complete';
+      if (hasR1 || hasR2) return 'incomplete';
+      return 'noRecord';
+    }
+
+    // Por defecto, si no matchea nada, asumimos que no hay datos
+    return 'noRecord';
+  }
+
+
 
   // Actualizar stateMap con los indicadores filtrados
   stateMap.noRecord.items = indicators.filter(ind => getStatus(ind) === "noRecord");
@@ -120,25 +221,56 @@ const UserIndicatorPage = () => {
   }, []);
 
   // Handler para registrar resultados (manteniendo la lógica anterior)
-  const handleResultRegister = useCallback((id, resultValue) => {
-    let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${id}/resultados`;
-    if (selectedIndicator.origenIndicador === "Encuesta") {
-      endpoint = `http://127.0.0.1:8000/api/encuesta/${id}/resultados`;
-    } else if (selectedIndicator.origenIndicador === "EvaluaProveedores") {
-      return axios.post(`http://127.0.0.1:8000/api/evalua-proveedores/${id}/resultados`, resultValue)
-        .then(response => {
-          setResults(prev => ({ ...prev, [id]: response.data.evaluacion }));
+  const handleResultRegister = useCallback(
+    (idConsolidado, resultValue) => {
+
+      let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${idConsolidado}/resultados`;
+
+      // Si es una Encuesta, redirigimos a /api/encuesta/{idConsolidado}/resultados
+      if (selectedIndicator.origenIndicador === 'Encuesta') {
+        endpoint = `http://127.0.0.1:8000/api/encuesta/${idConsolidado}/resultados`;
+      } else if (selectedIndicator.origenIndicador === 'EvaluaProveedores') {
+        endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${idConsolidado}/resultados`;
+      } else if (selectedIndicator.origenIndicador === 'Retroalimentacion') {
+        endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${idConsolidado}/resultados`;
+      }
+
+      axios
+        .post(endpoint, resultValue)
+        .then((resp) => {
+
+          if (selectedIndicator.origenIndicador === 'Encuesta') {
+            // Guardamos en results
+            setResults((prev) => ({
+              ...prev,
+              [idConsolidado]: resp.data.encuesta,
+            }));
+          } else if (selectedIndicator.origenIndicador === 'EvaluaProveedores') {
+            setResults((prev) => ({
+              ...prev,
+              [idConsolidado]: resp.data.evaluacion, // sueles llamarle evaluacion
+            }));
+          } else if (selectedIndicator.origenIndicador === 'Retroalimentacion') {
+            setResults((prev) => ({
+              ...prev,
+              [idConsolidado]: resp.data.retroalimentacion, // o la propiedad que devuelva tu backend
+            }));
+          } else {
+            // ActividadControl, MapaProceso => analisis
+            setResults((prev) => ({
+              ...prev,
+              [idConsolidado]: resp.data.analisis,
+            }));
+          }
+          setModalOpen(false);
+
         })
-        .catch(error => console.error("Error registering evaluacion result:", error));
-    } else if (selectedIndicator.origenIndicador === "Retroalimentacion") {
-      endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${id}/resultados`;
-    }
-    axios.post(endpoint, resultValue)
-      .then(response => {
-        setResults(prev => ({ ...prev, [id]: response.data.analisis || response.data.evaluacion }));
-      })
-      .catch(error => console.error("Error registering result:", error));
-  }, [selectedIndicator]);
+        .catch((error) => {
+          console.error('Error registering result:', error);
+        });
+    },
+    [selectedIndicator]
+  );
 
   // Renderizar columna única: cuando se selecciona un único estado, se muestra un grid de 4 columnas
   const renderColumn = () => {
@@ -204,6 +336,17 @@ const UserIndicatorPage = () => {
     }
   };
 
+  //Funciones para enviar el id de la encuesta
+  const encuestaIndicator = indicators.find(
+    ind => ind.origenIndicador?.toLowerCase().trim() === "encuesta"
+  );
+  console.log("Encuesta indicator:", encuestaIndicator);
+
+  const encuestaId = encuestaIndicator ? encuestaIndicator.idIndicadorConsolidado : null;
+  console.log("ID del indicador de encuesta:", encuestaId);
+
+
+
   return (
     <Box sx={{ padding: "16px", margin: "0 auto", maxWidth: "1200px" }}>
       <Typography variant="h3" sx={{ mb: 3, textAlign: "center", color: "primary.main" }}>
@@ -214,7 +357,7 @@ const UserIndicatorPage = () => {
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         <ToggleButtonGroup
           exclusive
-          value={selectedState}s
+          value={selectedState}
           onChange={handleStateChange}
           aria-label="Filtro de indicadores"
           sx={{
@@ -257,7 +400,12 @@ const UserIndicatorPage = () => {
       <Grid container spacing={3} columnSpacing={18}>
         {renderColumn()}
       </Grid>
-      <IrGraficasBoton />
+      <IrGraficasBoton
+        encuestaId={encuestaId}
+        retroVirtualId={retroVirtualId}
+        retroEncuestaId={retroEncuestaId}
+        retroFisicaId={retroFisicaId}
+      />
       {renderModal()}
     </Box>
   );
