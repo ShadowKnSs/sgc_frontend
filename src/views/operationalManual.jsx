@@ -6,6 +6,7 @@ import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
 import ControlDocuments from "../views/controlDocuments";
 import MapaProceso from "./processMap";
+import ControlCambios from "./controlCambios";
 
 const sections = [
   "Caratula",
@@ -25,7 +26,7 @@ const ProcessView = () => {
       case "Caratula":
         return <Caratula />;
       case "Control de Cambios":
-        return <h2>Contenido de Control de Cambios</h2>;
+        return <ControlCambios />;
       case "Mapa de Proceso":
         return <MapaProceso />;
       case "Diagrama de Flujo":
@@ -41,7 +42,6 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      {/* Contenedor del navbar con botones de desplazamiento */}
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2 }}>
         <Box
           ref={navbarRef}
@@ -54,7 +54,7 @@ const ProcessView = () => {
             overflowX: "auto",
             scrollBehavior: "smooth",
             whiteSpace: "nowrap",
-            "&::-webkit-scrollbar": { display: "none" } // Ocultar scrollbar en navegadores webkit
+            "&::-webkit-scrollbar": { display: "none" }
           }}
         >
           {sections.map((section, index) => (
@@ -73,7 +73,7 @@ const ProcessView = () => {
                 fontSize: "1rem",
                 fontWeight: "normal",
                 boxShadow: selectedTab === index ? "0px 4px 10px rgba(0, 0, 0, 0.3)" : "none",
-                whiteSpace: "nowrap", // Evita que el texto se divida en varias líneas
+                whiteSpace: "nowrap",
               }}
             >
               {section}
@@ -82,7 +82,6 @@ const ProcessView = () => {
         </Box>
       </Box>
 
-      {/* Contenido dinámico según la pestaña seleccionada */}
       <Box
         sx={{
           padding: "20px",
