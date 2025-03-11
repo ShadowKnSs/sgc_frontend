@@ -23,6 +23,7 @@ import FormSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import EventosNotAv from "../views/eventNotAv";
 import AdminEventos from "../views/adminEventos";
+import InformeAuditoria from "../views/informeAditoriaInterna";
 
 
 const AppRoutes = () => {
@@ -55,6 +56,7 @@ const AppRoutes = () => {
           <Route path="eventos" element={<EventosNotAv />} />
           <Route path="admin-eventos" element={<AdminEventos />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
+          <Route path="informe-auditoria" element={<InformeAuditoria />}/>
 
         </Route>
       </Routes>
