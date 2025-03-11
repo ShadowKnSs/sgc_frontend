@@ -31,6 +31,7 @@ const initialUsers = [
 
 function ProcessMapView() {
     const [users, setUsers] = useState(initialUsers);
+    const [errors, setErrors] = useState({});
     const [activeCards, setActiveCards] = useState([]);
     const [allExpanded, setAllExpanded] = useState(false);
     const [openForm, setOpenForm] = useState(false);
@@ -66,23 +67,41 @@ function ProcessMapView() {
         setAllExpanded(!allExpanded);
     };
 
-    const handleAddUser = () => {
-        const newEntry = { id: users.length + 1, ...newUser };
-        setUsers([...users, newEntry]);
-        setNewUser({
-            actividadControl: "",
-            procedimiento: "",
-            criterioAceptacion: "",
-            caracteristicasVerificar: "",
-            frecuencia: "",
-            identificacionSalida: "",
-            registroNoConforme: "",
-            responsableLiberacion: "",
-            tratamiento: ""
-        });
-        setOpenForm(false);
+    const validateFields = () => {
+        let tempErrors = {};
+        if (!newUser.actividadControl.trim()) tempErrors.actividadControl = "Este campo es obligatorio";
+        if (!newUser.procedimiento.trim()) tempErrors.procedimiento = "Este campo es obligatorio";
+        if (!newUser.criterioAceptacion.trim()) tempErrors.criterioAceptacion = "Este campo es obligatorio";
+        if (!newUser.caracteristicasVerificar.trim()) tempErrors.caracteristicasVerificar = "Este campo es obligatorio";
+        if (!newUser.frecuencia.trim()) tempErrors.frecuencia = "Este campo es obligatorio";
+        if (!newUser.identificacionSalida.trim()) tempErrors.identificacionSalida = "Este campo es obligatorio";
+        if (!newUser.registroNoConforme.trim()) tempErrors.registroNoConforme = "Este campo es obligatorio";
+        if (!newUser.responsableLiberacion.trim()) tempErrors.responsableLiberacion = "Este campo es obligatorio";
+        if (!newUser.tratamiento.trim()) tempErrors.tratamiento = "Este campo es obligatorio";
+    
+        setErrors(tempErrors);
+        return Object.keys(tempErrors).length === 0;
     };    
 
+    const handleAddUser = () => {
+        if (validateFields()) {
+            setUsers([...users, { id: users.length + 1, ...newUser }]);
+            setOpenForm(false);
+            setNewUser({
+                actividadControl: "",
+                procedimiento: "",
+                criterioAceptacion: "",
+                caracteristicasVerificar: "",
+                frecuencia: "",
+                identificacionSalida: "",
+                registroNoConforme: "",
+                responsableLiberacion: "",
+                tratamiento: ""
+            });
+            setErrors({});
+        }
+    };
+ 
     return (
         <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 8 }}>
             {activeCards.length > 0 && (
@@ -140,85 +159,105 @@ function ProcessMapView() {
                 <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
                     <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>Agregar Nuevo Plan de Control</DialogTitle>
                     <DialogContent>
-                    <TextField 
-                        label="Actividad de Control" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Actividad de Control"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.actividadControl}
                         onChange={(e) => setNewUser({ ...newUser, actividadControl: e.target.value })}
+                        error={!!errors.actividadControl}
+                        helperText={errors.actividadControl}
                     />
-                    <TextField 
-                        label="Procedimiento" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+
+                    <TextField
+                        label="Procedimiento"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.procedimiento}
                         onChange={(e) => setNewUser({ ...newUser, procedimiento: e.target.value })}
+                        error={!!errors.procedimiento}
+                        helperText={errors.procedimiento}
                     />
 
-                    <TextField 
-                        label="Criterio de Aceptación" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Criterio de Aceptación"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.criterioAceptacion}
                         onChange={(e) => setNewUser({ ...newUser, criterioAceptacion: e.target.value })}
+                        error={!!errors.criterioAceptacion}
+                        helperText={errors.criterioAceptacion}
                     />
 
-                    <TextField 
-                        label="Características a Verificar" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Características a Verificar"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.caracteristicasVerificar}
                         onChange={(e) => setNewUser({ ...newUser, caracteristicasVerificar: e.target.value })}
+                        error={!!errors.caracteristicasVerificar}
+                        helperText={errors.caracteristicasVerificar}
                     />
 
-                    <TextField 
-                        label="Frecuencia" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Frecuencia"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.frecuencia}
                         onChange={(e) => setNewUser({ ...newUser, frecuencia: e.target.value })}
+                        error={!!errors.frecuencia}
+                        helperText={errors.frecuencia}
                     />
 
-                    <TextField 
-                        label="Identificación de Salida" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Identificación de Salida"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.identificacionSalida}
                         onChange={(e) => setNewUser({ ...newUser, identificacionSalida: e.target.value })}
+                        error={!!errors.identificacionSalida}
+                        helperText={errors.identificacionSalida}
                     />
 
-                    <TextField 
-                        label="Registro de Salidas" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Registro de Salidas"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.registroNoConforme}
                         onChange={(e) => setNewUser({ ...newUser, registroNoConforme: e.target.value })}
+                        error={!!errors.registroNoConforme}
+                        helperText={errors.registroNoConforme}
                     />
 
-                    <TextField 
-                        label="Responsable de Liberación" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Responsable de Liberación"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.responsableLiberacion}
                         onChange={(e) => setNewUser({ ...newUser, responsableLiberacion: e.target.value })}
+                        error={!!errors.responsableLiberacion}
+                        helperText={errors.responsableLiberacion}
                     />
 
-                    <TextField 
-                        label="Tratamiento" 
-                        fullWidth 
-                        variant="outlined" 
-                        sx={{ mb: 2 }} 
+                    <TextField
+                        label="Tratamiento"
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
                         value={newUser.tratamiento}
                         onChange={(e) => setNewUser({ ...newUser, tratamiento: e.target.value })}
+                        error={!!errors.tratamiento}
+                        helperText={errors.tratamiento}
                     />
+
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenForm(false)} sx={{ bgcolor: "#D3D3D3", color: "black" }}>Cancelar</Button>

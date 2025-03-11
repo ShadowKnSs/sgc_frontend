@@ -3,9 +3,9 @@ import {
     Box, Fab, Stack, Card, CardContent, Typography, IconButton, 
     Table, TableBody, TableCell, TableContainer, TableRow, Paper, 
     Button, Dialog, DialogTitle, DialogContent, DialogActions, 
-    TextField, MenuItem 
+    TextField, MenuItem, Grid, Divider
   } from "@mui/material";  
-import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
+import { Add, Close, ExpandMore, ExpandLess, Edit } from "@mui/icons-material";
 
 const initialUsers = [
     { id: 1, docRelacionados: "Doc A", fuenteEntrada: "Fuente X", materialEntrada: "Material 1", requisitoEntrada: "Requisito A", salidas: "Salida A", receptores: "Receptor 1" },
@@ -13,9 +13,22 @@ const initialUsers = [
 
 function ProcessMapView() {
     const [users, setUsers] = useState(initialUsers);
+    const [errors, setErrors] = useState({});
     const [activeCards, setActiveCards] = useState([]);
     const [allExpanded, setAllExpanded] = useState(false);
-    const [openForm, setOpenForm] = useState(false);
+    const [openForm, setOpenForm] = useState(false);    const [editMode, setEditMode] = useState(false);
+
+    const [infoGeneral, setInfoGeneral] = useState({
+        documentos: "Documentos relacionados con el mapa de procesos.",
+        fuente: "Fuentes de entrada utilizadas en el proceso.",
+        material: "Materiales e información involucrados en el proceso.",
+        requisitos: "Requisitos necesarios para el proceso.",
+        salidas: "Resultados esperados del proceso.",
+        receptores: "Destinatarios de los resultados del proceso.",
+        puestosInvolucrados: "Lista de roles y posiciones clave dentro del proceso."
+    });
+
+    const handleEditToggle = () => setEditMode(!editMode);
 
     const [newUser, setNewUser] = useState({
         descripcion: "",
@@ -42,18 +55,114 @@ function ProcessMapView() {
         setAllExpanded(!allExpanded);
     };
 
-    const handleAddUser = () => {
-        setUsers([...users, { id: users.length + 1, ...newUser }]);
-        setOpenForm(false);
-        setNewUser({
-            descripcion: "",
-            formula: "",
-            periodo: "",
-        });
+    const validateFields = () => {
+        let tempErrors = {};
+        if (!newUser.descripcion.trim()) tempErrors.descripcion = "Este campo es obligatorio";
+        if (!newUser.formula.trim()) tempErrors.formula = "Este campo es obligatorio";
+        if (!newUser.periodo.trim()) tempErrors.periodo = "Debe seleccionar un período";
+    
+        setErrors(tempErrors);
+        return Object.keys(tempErrors).length === 0;
     };    
+
+    const handleAddUser = () => {
+        if (validateFields()) {
+            setUsers([...users, { 
+                id: users.length + 1, 
+                descripcion: newUser.descripcion, 
+                formula: newUser.formula, 
+                periodo: newUser.periodo 
+            }]);
+            setOpenForm(false);
+            setNewUser({ descripcion: "", formula: "", periodo: "" });
+            setErrors({});
+        }
+    };          
 
     return (
         <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
+            <Box sx={{ mb: 4, p: 3, backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 2 }}>
+                <Typography variant="h6" fontWeight="bold" color="#003366" mb={2}>
+                    Información del Proceso
+                </Typography>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                        <Typography fontWeight="bold" color="#333">Objetivo:</Typography>
+                        <Typography color="#666">Objetivo del proceso.</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Typography fontWeight="bold" color="#333">Alcance:</Typography>
+                        <Typography color="#666">Alcance del proceso.</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Typography fontWeight="bold" color="#333">Año de Certificación:</Typography>
+                        <Typography color="#666">Año en que el proceso obtuvo certificación.</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Typography fontWeight="bold" color="#333">Norma:</Typography>
+                        <Typography color="#666">Norma bajo la cual el proceso está certificado.</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Typography fontWeight="bold" color="#333">Duración del Certificado:</Typography>
+                        <Typography color="#666">Duración en años de la certificación.</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Typography fontWeight="bold" color="#333">Estado:</Typography>
+                        <Typography color="#666">Estado actual del proceso.</Typography>
+                    </Grid>
+                </Grid>
+            </Box>
+            <Box sx={{ mb: 3, p: 3, backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 2, position: "relative" }}>
+                <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+                    <Button startIcon={<Edit />} sx={{ color: "#0056b3", fontWeight: "bold" }} onClick={handleEditToggle}>
+                        {editMode ? "GUARDAR" : "EDITAR"}
+                    </Button>
+                </Box>
+
+                <Typography variant="h6" fontWeight="bold" color="#004A98" mb={2}>
+                    Información General del Mapa de Procesos
+                </Typography>
+
+                <Grid container spacing={2}>
+                    {Object.entries(infoGeneral).map(([key, value], index) => (
+                        <Grid item xs={12} md={6} key={key}>
+                            <Typography fontWeight="bold" color="#333" sx={{ fontSize: "1.1rem", mb: 0.5 }}>
+                                {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, " $1") + ":"}
+                            </Typography>
+
+                            {editMode ? (
+                                <TextField
+                                    fullWidth
+                                    variant="outlined"
+                                    multiline
+                                    minRows={1}
+                                    maxRows={6}
+                                    sx={{
+                                        wordBreak: "break-word",
+                                        backgroundColor: "#f8f9fa",
+                                        borderRadius: 1
+                                    }}
+                                    value={value}
+                                    onChange={(e) => setInfoGeneral({ ...infoGeneral, [key]: e.target.value })}
+                                />
+                            ) : (
+                                <Typography 
+                                    color="#666" 
+                                    sx={{ 
+                                        wordBreak: "break-word", 
+                                        whiteSpace: "pre-wrap", 
+                                        backgroundColor: "#f8f9fa",
+                                        p: 1, 
+                                        borderRadius: 1 
+                                    }}
+                                >
+                                    {value}
+                                </Typography>
+                            )}
+                        </Grid>
+                    ))}
+                </Grid>
+            </Box>
             {activeCards.length > 0 && (
                 <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
                     <Stack spacing={2}>
@@ -104,66 +213,77 @@ function ProcessMapView() {
                 <Add />
             </Fab>
             {openForm && (
-    <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
-            Agregar Nuevo Indicador
-        </DialogTitle>
-        <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
-                <TextField
-                    label="Descripción"
-                    fullWidth
-                    variant="outlined"
-                    sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
-                    value={newUser.descripcion}
-                    onChange={(e) => setNewUser({ ...newUser, descripcion: e.target.value })}
-                />
-                <TextField
-                    label="Fórmula"
-                    fullWidth
-                    variant="outlined"
-                    sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
-                    value={newUser.formula}
-                    onChange={(e) => setNewUser({ ...newUser, formula: e.target.value })}
-                />
-                <TextField
-                    label="Período"
-                    fullWidth
-                    select
-                    variant="outlined"
-                    sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
-                    value={newUser.periodo}
-                    onChange={(e) => setNewUser({ ...newUser, periodo: e.target.value })}
-                >
-                    <MenuItem value="Mensual">Mensual</MenuItem>
-                    <MenuItem value="Trimestral">Trimestral</MenuItem>
-                    <MenuItem value="Anual">Anual</MenuItem>
-                </TextField>
-            </Box>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-            <Button
-                onClick={() => setOpenForm(false)}
-                variant="outlined"
-                sx={{
-                    borderColor: "#d32f2f",
-                    color: "#d32f2f",
-                    "&:hover": { backgroundColor: "#ffebee", borderColor: "#d32f2f" },
-                }}
-            >
-                CANCELAR
-            </Button>
-            <Button
-                onClick={handleAddUser}
-                variant="contained"
-                sx={{ backgroundColor: "#F9B800", color: "#000", "&:hover": { backgroundColor: "#c79100" } }}
-            >
-                GUARDAR
-            </Button>
-        </DialogActions>
-    </Dialog>
-)}
+                <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
+                    <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+                        Agregar Nuevo Indicador
+                    </DialogTitle>
+                    <DialogContent>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+                            <TextField
+                                label="Descripción"
+                                fullWidth
+                                variant="outlined"
+                                sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                                value={newUser.descripcion}
+                                onChange={(e) => setNewUser({ ...newUser, descripcion: e.target.value })}
+                                error={!!errors.descripcion}
+                                helperText={errors.descripcion}
+                            />
 
+                            <TextField
+                                label="Fórmula"
+                                fullWidth
+                                variant="outlined"
+                                sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                                value={newUser.formula}
+                                onChange={(e) => setNewUser({ ...newUser, formula: e.target.value })}
+                                error={!!errors.formula}
+                                helperText={errors.formula}
+                            />
+
+                            <TextField
+                                label="Período"
+                                fullWidth
+                                select
+                                variant="outlined"
+                                sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                                value={newUser.periodo}
+                                onChange={(e) => setNewUser({ ...newUser, periodo: e.target.value })}
+                                error={!!errors.periodo}
+                                helperText={errors.periodo}
+                            >
+                                <MenuItem value="Mensual">Mensual</MenuItem>
+                                <MenuItem value="Trimestral">Trimestral</MenuItem>
+                                <MenuItem value="Anual">Anual</MenuItem>
+                            </TextField>
+                        </Box>
+                        </DialogContent>
+                        <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
+                            <Button
+                                onClick={() => setOpenForm(false)}
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#D3D3D3",
+                                    color: "black",
+                                    "&:hover": { backgroundColor: "#B0B0B0" }
+                                }}
+                            >
+                                CANCELAR
+                            </Button>
+                            <Button
+                                onClick={handleAddUser}
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#F9B800",
+                                    color: "black",
+                                    "&:hover": { backgroundColor: "#E0A500" }
+                                }}
+                            >
+                                GUARDAR
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                )}
             </Box>
         </Box>
     );
@@ -202,9 +322,9 @@ function UserCard({ user, onSelect, onClose, isActive }) {
                     <CardContent>
                         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
                             {[
-                                { title: "Descripcion", value: user.Descripcion },
-                                { title: "Formula", value: user.Formula },
-                                { title: "Periodo", value: user.Periodo },
+                                { title: "Descripcion", value: user.descripcion },
+                                { title: "Formula", value: user.formula },
+                                { title: "Periodo", value: user.periodo },
                             ].map((field, index) => (
                                 <TableContainer key={index} component={Paper} sx={{ width: "28%", minWidth: "180px", boxShadow: 1 }}>
                                     <Table>

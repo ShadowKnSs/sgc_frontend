@@ -38,19 +38,21 @@ const initialUsers = [
 
 function ProcessMapView() {
   const [users, setUsers] = useState(initialUsers);
+  const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
   const [allExpanded, setAllExpanded] = useState(false);
   const [openForm, setOpenForm] = useState(false);
 
   const [newUser, setNewUser] = useState({
     nombreDocumento: "",
-    tipo: "",
+    tipoDocumento: "",
     fechaRevision: "",
-    responsable: "",
-    medioAlmacenamiento: "",
+    fechaVersion: "",
+    noRevision: 0,
+    noCopias: 0,
+    tiempoRetencion: 0,
     lugarAlmacenamiento: "",
-    numeroCopias: "",
-    tipoAlmacenamiento: "",
+    medioAlmacenamiento: "",
     disposicion: "",
     usuarios: []
   });
@@ -74,22 +76,55 @@ function ProcessMapView() {
     setAllExpanded(!allExpanded);
   };
 
+  const validateFields = () => {
+    let tempErrors = {};
+
+    if (!newUser.nombreDocumento?.trim()) tempErrors.nombreDocumento = "Este campo es obligatorio";
+    if (!newUser.tipoDocumento) tempErrors.tipoDocumento = "Debe seleccionar un tipo de documento";
+    if (!newUser.fechaRevision) tempErrors.fechaRevision = "Debe seleccionar una fecha";
+    if (!newUser.fechaVersion) tempErrors.fechaVersion = "Debe seleccionar una fecha";
+    if (!newUser.lugarAlmacenamiento?.trim()) tempErrors.lugarAlmacenamiento = "Este campo es obligatorio";
+    if (!newUser.medioAlmacenamiento) tempErrors.medioAlmacenamiento = "Debe seleccionar un medio de almacenamiento";
+    if (!newUser.disposicion?.trim()) tempErrors.disposicion = "Este campo es obligatorio";
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+
   const handleAddUser = () => {
-    setUsers([...users, { id: users.length + 1, ...newUser }]);
-    setOpenForm(false);
-    setNewUser({
-      nombreDocumento: "",
-      tipo: "",
-      fechaRevision: "",
-      responsable: "",
-      medioAlmacenamiento: "",
-      lugarAlmacenamiento: "",
-      numeroCopias: "",
-      tipoAlmacenamiento: "",
-      disposicion: "",
-      usuarios: []
-    });
-  };  
+    if (validateFields()) {
+        setUsers([...users, { 
+            id: users.length + 1, 
+            nombreDocumento: newUser.nombreDocumento, 
+            tipoDocumento: newUser.tipoDocumento || "Sin especificar", 
+            fechaRevision: newUser.fechaRevision || "Sin especificar", 
+            fechaVersion: newUser.fechaVersion || "Sin especificar", 
+            noRevision: newUser.noRevision || "Sin especificar", 
+            noCopias: newUser.noCopias || "Sin especificar", 
+            tiempoRetencion: newUser.tiempoRetencion || "Sin especificar", 
+            lugarAlmacenamiento: newUser.lugarAlmacenamiento || "Sin especificar", 
+            medioAlmacenamiento: newUser.medioAlmacenamiento || "Sin especificar", 
+            disposicion: newUser.disposicion || "Sin especificar", 
+            usuarios: newUser.usuarios.length > 0 ? newUser.usuarios : ["Sin especificar"]
+        }]);
+
+        setOpenForm(false);
+        setNewUser({
+            nombreDocumento: "",
+            tipoDocumento: "",
+            fechaRevision: "",
+            fechaVersion: "",
+            noRevision: "",
+            noCopias: "",
+            tiempoRetencion: "",
+            lugarAlmacenamiento: "",
+            medioAlmacenamiento: "",
+            disposicion: "",
+            usuarios: []
+        });
+        setErrors({});
+    }
+  };
 
   return (
     <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 8 }}>
@@ -136,25 +171,31 @@ function ProcessMapView() {
             </DialogTitle>
             <DialogContent>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
-                <TextField
+              <TextField
                   label="Nombre del Documento"
                   fullWidth
                   variant="outlined"
                   value={newUser.nombreDocumento}
                   onChange={(e) => setNewUser({ ...newUser, nombreDocumento: e.target.value })}
-                />
-                <TextField
-                  label="Tipo"
+                  error={!!errors.nombreDocumento}
+                  helperText={errors.nombreDocumento}
+              />
+
+              <TextField
+                  label="Tipo de Documento"
                   fullWidth
                   select
                   variant="outlined"
-                  value={newUser.tipo}
-                  onChange={(e) => setNewUser({ ...newUser, tipo: e.target.value })}
-                >
+                  value={newUser.tipoDocumento}
+                  onChange={(e) => setNewUser({ ...newUser, tipoDocumento: e.target.value })}
+                  error={!!errors.tipoDocumento}
+                  helperText={errors.tipoDocumento}
+              >
                   <MenuItem value="Interno">Interno</MenuItem>
                   <MenuItem value="Externo">Externo</MenuItem>
-                </TextField>
-                <TextField
+              </TextField>
+
+              <TextField
                   label="Fecha de Revisión"
                   fullWidth
                   type="date"
@@ -162,59 +203,92 @@ function ProcessMapView() {
                   variant="outlined"
                   value={newUser.fechaRevision}
                   onChange={(e) => setNewUser({ ...newUser, fechaRevision: e.target.value })}
-                />
-                <TextField
-                  label="Responsable"
+                  error={!!errors.fechaRevision}
+                  helperText={errors.fechaRevision}
+              />
+
+              <TextField
+                  label="Fecha de Versión"
                   fullWidth
-                  select
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
                   variant="outlined"
-                  value={newUser.responsable}
-                  onChange={(e) => setNewUser({ ...newUser, responsable: e.target.value })}
-                >
-                  <MenuItem value="Auditor">Auditor</MenuItem>
-                  <MenuItem value="Líder de Proceso">Líder de Proceso</MenuItem>
-                  <MenuItem value="Supervisor">Supervisor</MenuItem>
-                </TextField>
-                <TextField
-                  label="Medio de Almacenamiento"
+                  value={newUser.fechaVersion}
+                  onChange={(e) => setNewUser({ ...newUser, fechaVersion: e.target.value })}
+                  error={!!errors.fechaVersion}
+                  helperText={errors.fechaVersion}
+              />
+
+              <TextField
+                  label="Número de Revisiones"
                   fullWidth
+                  type="number"
                   variant="outlined"
-                  value={newUser.medioAlmacenamiento}
-                  onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
-                />
-                <TextField
+                  value={newUser.noRevision}
+                  onChange={(e) => setNewUser({ ...newUser, noRevision: parseInt(e.target.value) || 0 })}
+                  error={!!errors.noRevision}
+                  helperText={errors.noRevision}
+                  inputProps={{ min: 0 }}
+              />
+
+              <TextField
+                  label="Número de Copias"
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  value={newUser.noCopias}
+                  onChange={(e) => setNewUser({ ...newUser, noCopias: parseInt(e.target.value) || 0 })}
+                  error={!!errors.noCopias}
+                  helperText={errors.noCopias}
+                  inputProps={{ min: 0 }}
+              />
+
+              <TextField
+                  label="Tiempo de Retención (años)"
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  value={newUser.tiempoRetencion}
+                  onChange={(e) => setNewUser({ ...newUser, tiempoRetencion: parseInt(e.target.value) || 0 })}
+                  error={!!errors.tiempoRetencion}
+                  helperText={errors.tiempoRetencion}
+                  inputProps={{ min: 0 }}
+              />
+
+              <TextField
                   label="Lugar de Almacenamiento"
                   fullWidth
                   variant="outlined"
                   value={newUser.lugarAlmacenamiento}
                   onChange={(e) => setNewUser({ ...newUser, lugarAlmacenamiento: e.target.value })}
-                />
-                <TextField
-                  label="Número de Copias"
-                  fullWidth
-                  variant="outlined"
-                  value={newUser.numeroCopias}
-                  onChange={(e) => setNewUser({ ...newUser, numeroCopias: e.target.value })}
-                />
-                <TextField
-                  label="Tipo de Almacenamiento"
+                  error={!!errors.lugarAlmacenamiento}
+                  helperText={errors.lugarAlmacenamiento}
+              />
+
+              <TextField
+                  label="Medio de Almacenamiento"
                   fullWidth
                   select
                   variant="outlined"
-                  value={newUser.tipoAlmacenamiento}
-                  onChange={(e) => setNewUser({ ...newUser, tipoAlmacenamiento: e.target.value })}
-                >
+                  value={newUser.medioAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
+                  error={!!errors.medioAlmacenamiento}
+                  helperText={errors.medioAlmacenamiento}
+              >
                   <MenuItem value="Físico">Físico</MenuItem>
                   <MenuItem value="Digital">Digital</MenuItem>
                   <MenuItem value="Ambos">Ambos</MenuItem>
-                </TextField>
-                <TextField
+              </TextField>
+
+              <TextField
                   label="Disposición"
                   fullWidth
                   variant="outlined"
                   value={newUser.disposicion}
                   onChange={(e) => setNewUser({ ...newUser, disposicion: e.target.value })}
-                />
+                  error={!!errors.disposicion}
+                  helperText={errors.disposicion}
+              />
                 <Box>
                   <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
                   <FormGroup row>
@@ -309,38 +383,32 @@ function UserCard({ user, onSelect, onClose, isActive }) {
             >
               {[
                 { title: "Nombre del Documento", value: user.nombreDocumento || "Sin especificar" },
-                { title: "Tipo", value: user.tipo || "Sin especificar" },
+                { title: "Tipo", value: user.tipoDocumento || "Sin especificar" },
                 { title: "Fecha de Revisión", value: user.fechaRevision || "Sin especificar" },
-                { title: "Responsable", value: user.responsable || "Sin especificar" },
-                { title: "Medio de Almacenamiento", value: user.medioAlmacenamiento || "Sin especificar" },
+                { title: "Fecha de Versión", value: user.fechaVersion || "Sin especificar" },
+                { title: "Número de Revisiones", value: user.noRevision || "Sin especificar" },
+                { title: "Número de Copias", value: user.noCopias || "Sin especificar" },
+                { title: "Tiempo de Retención (años)", value: user.tiempoRetencion || "Sin especificar" },
                 { title: "Lugar de Almacenamiento", value: user.lugarAlmacenamiento || "Sin especificar" },
-                { title: "Número de Copias", value: user.numeroCopias || "Sin especificar" },
-                { title: "Tipo de Almacenamiento", value: user.tipoAlmacenamiento || "Sin especificar" },
+                { title: "Medio de Almacenamiento", value: user.medioAlmacenamiento || "Sin especificar" },
                 { title: "Disposición", value: user.disposicion || "Sin especificar" },
-                { title: "Usuarios", value: Array.isArray(user.usuarios) ? user.usuarios.join(", ") : "Sin especificar" },
-              ].map((field, index) => (
+                { title: "Usuarios", value: Array.isArray(user.usuarios) && user.usuarios.length > 0 ? user.usuarios.join(", ") : "Sin especificar" },
+            ].map((field, index) => (
                 <TableContainer key={index} component={Paper} sx={{ width: "100%", minWidth: "180px", boxShadow: 1 }}>
-                  <Table>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell
-                          sx={{
-                            fontWeight: "bold",
-                            textAlign: "center",
-                            backgroundColor: "#e0e0e0",
-                            borderBottom: "2px solid #004A98",
-                          }}
-                        >
-                          {field.title}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell sx={{ textAlign: "center", padding: "8px" }}>{field.value}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                    <Table>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: "#e0e0e0", borderBottom: "2px solid #004A98" }}>
+                                    {field.title}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell sx={{ textAlign: "center", padding: "8px" }}>{field.value}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </TableContainer>
-              ))}
+            ))}
             </Box>
           </CardContent>
         </>
