@@ -9,9 +9,6 @@ import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
 import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
 import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
 
-
-
-// Función para normalizar cadenas
 const GraficasPage = () => {
   const [encuestaId, setEncuestaId] = useState(null);
   const [evaluacionId, setEvaluacionId] = useState(null);
@@ -32,9 +29,9 @@ const GraficasPage = () => {
         if (encuestaIndicator) {
           setEncuestaId(encuestaIndicator.idIndicadorConsolidado);
           console.log("Encuesta Indicator:", encuestaIndicator);
-        } else {
-          setError("No se encontró indicador de encuesta.");
-        }
+        } //else {
+        //   setError("No se encontró indicador de encuesta.");
+        // }
 
         // Indicador de Evaluación de Proveedores
         const evaluacionIndicator = indicators.find(ind =>
@@ -43,9 +40,9 @@ const GraficasPage = () => {
         if (evaluacionIndicator) {
           setEvaluacionId(evaluacionIndicator.idIndicadorConsolidado);
           console.log("Evaluación Indicator:", evaluacionIndicator);
-        } else {
-          setError("No se encontró indicador de evaluación de proveedores.");
-        }
+         } //else {
+        //   setError("No se encontró indicador de evaluación de proveedores.");
+        // }
 
         const retroIndicators = indicators.filter(ind =>
           ind.origenIndicador?.toLowerCase().trim() === "retroalimentacion"

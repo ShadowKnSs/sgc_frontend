@@ -1,6 +1,6 @@
 // src/views/UserIndicatorPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { Grid, Typography, Box, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Grid, Typography, Box, ToggleButton, ToggleButtonGroup, CircularProgress} from "@mui/material";
 import IndicatorCard from "../components/CardIndicador";
 import IrGraficasBoton from "../components/Modals/BotonGraficas";
 import ResultModalSimple from "../components/Modals/ResultModalSimple";
@@ -20,6 +20,9 @@ const UserIndicatorPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   // Modo exclusivo: solo se puede elegir un estado
   const [selectedState, setSelectedState] = useState("noRecord");
+
+
+  const [loading, setLoading] = useState(true);
 
   // Estados fijos y asignación de colores
   const stateMap = {
@@ -49,7 +52,7 @@ const UserIndicatorPage = () => {
   useEffect(() => {
     if (indicators.length > 0) {
       Promise.all(
-        indicators.map(ind => {
+        indicators.map((ind) => {
           let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${ind.idIndicadorConsolidado}/resultados`;
           if (ind.origenIndicador === "Encuesta") {
             endpoint = `http://127.0.0.1:8000/api/encuesta/${ind.idIndicadorConsolidado}/resultados`;
@@ -58,8 +61,9 @@ const UserIndicatorPage = () => {
           } else if (ind.origenIndicador === "EvaluaProveedores") {
             endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${ind.idIndicadorConsolidado}/resultados`;
           }
-          return axios.get(endpoint)
-            .then(response => {
+          return axios
+            .get(endpoint)
+            .then((response) => {
               if (ind.origenIndicador === "Encuesta") {
                 return response.data.encuesta;
               }
@@ -71,20 +75,56 @@ const UserIndicatorPage = () => {
               }
               return response.data.analisis;
             })
-            .catch(error => {
-              console.error(`Error fetching result for ${ind.idIndicadorConsolidado}:`, error);
+            .catch((error) => {
+              console.error(
+                `Error fetching result for ${ind.idIndicadorConsolidado}:`,
+                error
+              );
               return null;
             });
         })
-      ).then(resultsArray => {
-        const newResults = {};
-        indicators.forEach((ind, index) => {
-          if (resultsArray[index]) {
-            newResults[ind.idIndicadorConsolidado] = resultsArray[index];
-          }
+      )
+        .then((resultsArray) => {
+          const newResults = {};
+          indicators.forEach((ind, index) => {
+            if (resultsArray[index]) {
+              newResults[ind.idIndicadorConsolidado] = resultsArray[index];
+            }
+          });
+          setResults(newResults);
+        })
+        .finally(() => {
+          // <-- al terminar la carga, quitamos el spinner
+          setLoading(false);
         });
-        setResults(newResults);
-      });
+    } else {
+      // Si no hay indicadores, igualmente quitamos el spinner
+      setLoading(false);
+    }
+  }, [indicators]);
+
+  // 3) Extraer IDs especiales (ej. retroVirtual, retroFisica, etc.)
+  useEffect(() => {
+    if (indicators.length > 0) {
+      const retroVirtualIndicator = indicators.find(
+        (ind) => ind.nombreIndicador === "Retro Buzon Virtual"
+      );
+      const retroEncuestaIndicator = indicators.find(
+        (ind) => ind.nombreIndicador === "Retro Encuesta"
+      );
+      const retroFisicaIndicator = indicators.find(
+        (ind) => ind.nombreIndicador === "Retro Buzon Fisico"
+      );
+
+      if (retroVirtualIndicator) {
+        setRetroVirtualId(retroVirtualIndicator.idIndicadorConsolidado);
+      }
+      if (retroEncuestaIndicator) {
+        setRetroEncuestaId(retroEncuestaIndicator.idIndicadorConsolidado);
+      }
+      if (retroFisicaIndicator) {
+        setRetroFisicaId(retroFisicaIndicator.idIndicadorConsolidado);
+      }
     }
   }, [indicators]);
 
@@ -352,6 +392,20 @@ const UserIndicatorPage = () => {
 
   const evaluacionId = evaluacionIndicator ? evaluacionIndicator.idIndicadorConsolidado : null;
   console.log("ID del indicador de evaluacion:", evaluacionId);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          mt: 8,
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ padding: "16px", margin: "0 auto", maxWidth: "1200px" }}>
