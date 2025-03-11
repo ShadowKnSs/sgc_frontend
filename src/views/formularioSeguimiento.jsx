@@ -1,285 +1,140 @@
 import React, { useState } from "react";
-import { Box, Grid, Typography, TextField, Button } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
-import AddAsistente from "../components/Forms/AddAsistente";
-import AddActividad from "../components/Forms/AddActividad";
-import AddCompromiso from "../components/Forms/AddCompromiso";
-import Registro from "../components/cardSeg";
+import { TextField, Button, Box, IconButton } from "@mui/material";
+import { Remove } from "@mui/icons-material";
+import axios from "axios";
 
-function FormularioSeguimiento() {
-    const [formData, setFormData] = useState({
-        lugar: "",
-        fecha: "",
-        duracion: "",
-    });
+const FormularioSeguimiento = ({ idRegistro }) => {
+  const [step, setStep] = useState(1);
+  const [lugar, setLugar] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [duracion, setDuracion] = useState("");
+  const [asistentes, setAsistentes] = useState([]);
+  const [actividades, setActividades] = useState([]);
+  const [compromisos, setCompromisos] = useState([{ descripcion: "", responsable: "", fechaCompromiso: "" }]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Evita envíos dobles
 
-    const [asistentes, setAsistentes] = useState([]);
-    const [actividades, setActividades] = useState([]);
-    const [compromisos, setCompromisos] = useState([]);
-
-    const [showAddAsistenteForm, setShowAddAsistenteForm] = useState(false);
-    const [showAddActividadForm, setShowAddActividadForm] = useState(false);
-    const [showAddCompromisoForm, setShowAddCompromisoForm] = useState(false);
-
-    const [asistenteData, setAsistenteData] = useState({
-        nombre: "",
-        apellidoPaterno: "",
-        apellidoMaterno: "",
-    });
-
-    const [actividadData, setActividadData] = useState({
-        actividad: "",
-        responsable: "",
-        fecha: "",
-    });
-
-    const [compromisoData, setCompromisoData] = useState({
-        compromiso: "",
-        responsable: "",
-        fecha: "",
-    });
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        if (name === "nombre" || name === "apellidoPaterno" || name === "apellidoMaterno") {
-            setAsistenteData({
-                ...asistenteData,
-                [name]: value,
-            });
-        } else if (name === "actividad" || name === "responsable" || name === "fecha") {
-            setActividadData({
-                ...actividadData,
-                [name]: value,
-            });
-        } else if (name === "compromiso" || name === "responsable" || name === "fecha") {
-            setCompromisoData({
-                ...compromisoData,
-                [name]: value,
-            });
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value,
-            });
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (isSubmitting) return; // Evita doble envío
+    setIsSubmitting(true);
+  
+    // Filtrar datos vacíos para evitar envíos incorrectos
+    const data = {
+      idRegistro: Number(idRegistro),
+      lugar,
+      fecha,
+      duracion,
+      asistentes: asistentes.filter(asistente => asistente.trim() !== ""),
+      actividades: actividades
+        .filter(actividad => actividad.trim() !== "")
+        .map(desc => ({ descripcion: desc })),
+      compromisos: compromisos.filter(c => c.descripcion.trim() !== ""), // Filtrar compromisos vacíos
     };
+  
+    console.log("Enviando datos:", data);
+  
+    try {
+      const response = await axios.post("http://localhost:8000/api/minutas", data, {
+        headers: { "Content-Type": "application/json" },
+      });
+      alert("Minuta creada exitosamente");
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error al crear la minuta:", error);
+      alert("Hubo un error al crear la minuta");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };  
 
-    const handleAddAsistente = () => {
-        setAsistentes([...asistentes, asistenteData]);
-        setAsistenteData({
-            nombre: "",
-            apellidoPaterno: "",
-            apellidoMaterno: "",
-        });
-        setShowAddAsistenteForm(false);
-    };
+  return (
+    <Box component="form" sx={{ padding: 2 }}>
+      <Box display="flex" flexDirection="column" gap={2}>
+        {step === 1 && (
+          <>
+            <TextField fullWidth label="Lugar" value={lugar} onChange={(e) => setLugar(e.target.value)} />
+            <TextField fullWidth label="Fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} InputLabelProps={{ shrink: true }} />
+            <TextField fullWidth label="Duración" value={duracion} onChange={(e) => setDuracion(e.target.value)} />
+          </>
+        )}
 
-    const handleAddActividad = () => {
-        setActividades([...actividades, actividadData]);
-        setActividadData({
-            actividad: "",
-            responsable: "",
-            fecha: "",
-        });
-        setShowAddActividadForm(false);
-    };
+        {step === 2 && (
+          <>
+            {asistentes.map((asistente, index) => (
+              <Box key={index} display="flex" alignItems="center" gap={1}>
+                <TextField fullWidth label="Nombre del asistente" value={asistente} onChange={(e) => {
+                  const updated = [...asistentes];
+                  updated[index] = e.target.value;
+                  setAsistentes(updated);
+                }} />
+                <IconButton onClick={() => setAsistentes(asistentes.filter((_, idx) => idx !== index))}>
+                  <Remove />
+                </IconButton>
+              </Box>
+            ))}
+            <Button onClick={() => setAsistentes([...asistentes, ""])} variant="outlined">Agregar asistente</Button>
+          </>
+        )}
 
-    const handleAddCompromiso = () => {
-        setCompromisos([...compromisos, compromisoData]);
-        setCompromisoData({
-            compromiso: "",
-            responsable: "",
-            fecha: "",
-        });
-        setShowAddCompromisoForm(false);
-    };
+        {step === 3 && (
+          <>
+            {actividades.map((actividad, index) => (
+              <Box key={index} display="flex" alignItems="center" gap={1}>
+                <TextField fullWidth label="Descripción de la actividad" value={actividad} onChange={(e) => {
+                  const updated = [...actividades];
+                  updated[index] = e.target.value;
+                  setActividades(updated);
+                }} />
+                <IconButton onClick={() => setActividades(actividades.filter((_, idx) => idx !== index))}>
+                  <Remove />
+                </IconButton>
+              </Box>
+            ))}
+            <Button onClick={() => setActividades([...actividades, ""])} variant="outlined">Agregar actividad</Button>
+          </>
+        )}
 
-    const handleCancel = () => {
-        setShowAddAsistenteForm(false);
-        setShowAddActividadForm(false);
-        setShowAddCompromisoForm(false); 
-    };
+        {step === 4 && (
+          <>
+            {compromisos.map((compromiso, index) => (
+              <Box key={index} display="flex" flexDirection="column" gap={1}>
+                <TextField fullWidth label="Descripción" value={compromiso.descripcion} onChange={(e) => {
+                  const updated = [...compromisos];
+                  updated[index].descripcion = e.target.value;
+                  setCompromisos(updated);
+                }} />
+                <TextField fullWidth label="Responsable" value={compromiso.responsable} onChange={(e) => {
+                  const updated = [...compromisos];
+                  updated[index].responsable = e.target.value;
+                  setCompromisos(updated);
+                }} />
+                <TextField fullWidth type="date" label="Fecha de entrega" InputLabelProps={{ shrink: true }} value={compromiso.fechaCompromiso} onChange={(e) => {
+                  const updated = [...compromisos];
+                  updated[index].fechaCompromiso = e.target.value;
+                  setCompromisos(updated);
+                }} />
+                <IconButton onClick={() => setCompromisos(compromisos.filter((_, idx) => idx !== index))}>
+                  <Remove />
+                </IconButton>
+              </Box>
+            ))}
+            <Button onClick={() => setCompromisos([...compromisos, { descripcion: "", responsable: "", fechaCompromiso: "" }])} variant="outlined">Agregar compromiso</Button>
+          </>
+        )}
 
-    return (
-        <Box sx={{ p: 4, display: "flex", flexDirection: "column", height: "100vh" }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Formulario de Seguimiento
-            </Typography>
-
-            <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                    <Box
-                        sx={{
-                            height: "200px",
-                            border: "1px solid #ccc",
-                            padding: 2,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                            backgroundColor: "#f7f7f7",
-                            borderRadius: "4px",
-                        }}
-                    >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                            <Box sx={{ display: "flex", alignItems: "center", width: "100%", position: "relative", paddingTop: 2 }}>
-                                <Typography variant="h6" sx={{ fontWeight: "bold", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
-                                    Asistentes
-                                </Typography>
-                                <AddIcon
-                                    sx={{ cursor: "pointer", position: "absolute", right: 0, top: 0 }}
-                                    onClick={() => setShowAddAsistenteForm(true)}
-                                />
-                            </Box>
-
-                            <Registro texto="Torres Gonzáles Paola Diana" />
-                        </Box>
-                    </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                    <Box
-                        sx={{
-                            height: "200px",
-                            border: "1px solid #ccc",
-                            padding: 2,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                            backgroundColor: "#f7f7f7",
-                            borderRadius: "4px",
-                        }}
-                    >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                            <Box sx={{ display: "flex", alignItems: "center", width: "100%", position: "relative", paddingTop: 2 }}>
-                                <Typography variant="h6" sx={{ fontWeight: "bold", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
-                                    Actividades Realizadas
-                                </Typography>
-                                <AddIcon
-                                    sx={{ cursor: "pointer", position: "absolute", right: 0, top: 0 }}
-                                    onClick={() => setShowAddActividadForm(true)}
-                                />
-                            </Box>
-
-                            <Registro texto="Actividad 1" />
-                        </Box>
-
-                    </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                    <Box
-                        sx={{
-                            height: "200px",
-                            border: "1px solid #ccc",
-                            padding: 2,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                            backgroundColor: "#f7f7f7",
-                            borderRadius: "4px",
-                        }}
-                    >
-                        <TextField
-                            fullWidth
-                            label="Lugar"
-                            name="lugar"
-                            value={formData.lugar}
-                            onChange={handleChange}
-                            sx={{ marginBottom: 2, backgroundColor: "white", borderRadius: "4px" }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Fecha"
-                            name="fecha"
-                            type="date"
-                            value={formData.fecha}
-                            onChange={handleChange}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            sx={{ marginBottom: 2, backgroundColor: "white", borderRadius: "4px" }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Duración"
-                            name="duracion"
-                            value={formData.duracion}
-                            onChange={handleChange}
-                            sx={{ marginBottom: 2, backgroundColor: "white", borderRadius: "4px" }}
-                        />
-                    </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                    <Box
-                        sx={{
-                            height: "200px",
-                            border: "1px solid #ccc",
-                            padding: 2,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                            backgroundColor: "#f7f7f7",
-                            borderRadius: "4px",
-                        }}
-                    >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                            <Box sx={{ display: "flex", alignItems: "center", width: "100%", position: "relative", paddingTop: 2 }}>
-                                <Typography variant="h6" sx={{ fontWeight: "bold", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
-                                    Compromisos
-                                </Typography>
-                                <AddIcon
-                                    sx={{ cursor: "pointer", position: "absolute", right: 0, top: 0 }}
-                                    onClick={() => setShowAddCompromisoForm(true)}
-                                />
-                            </Box>
-
-                            <Registro texto="Compromiso 1" />
-                            
-                        </Box>
-                    </Box>
-                </Grid>
-            </Grid>
-
-            <AddAsistente
-                showForm={showAddAsistenteForm}
-                handleCancel={handleCancel}
-                handleAdd={handleAddAsistente}
-                asistenteData={asistenteData}
-                handleChange={handleChange}
-            />
-
-            <AddActividad
-                showForm={showAddActividadForm}
-                handleCancel={handleCancel}
-                handleAdd={handleAddActividad}
-                actividadData={actividadData}
-                handleChange={handleChange}
-            />
-
-            <AddCompromiso
-                showForm={showAddCompromisoForm}
-                handleCancel={handleCancel}
-                handleAdd={handleAddCompromiso}
-                compromisoData={compromisoData}
-                handleChange={handleChange}
-            />
-
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
-                <Button 
-                    variant="contained" 
-                    sx={{ backgroundColor: "#1976d2", color: "white", mr: 2 }}
-                >
-                    Guardar
-                </Button>
-                <Button 
-                    variant="contained" 
-                    sx={{ backgroundColor: "#f39c12", color: "white" }}
-                >
-                    Generar Reporte
-                </Button>
-            </Box>
+        <Box display="flex" justifyContent="space-between" mt={2}>
+          {step > 1 && <Button onClick={() => setStep(step - 1)} variant="contained">Atrás</Button>}
+          {step < 4 ? (
+            <Button onClick={() => setStep(step + 1)} variant="contained">Siguiente</Button>
+          ) : (
+            <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}>Guardar Minuta</Button>
+          )}
         </Box>
-    );
-}
+      </Box>
+    </Box>
+  );
+};
 
 export default FormularioSeguimiento;
+

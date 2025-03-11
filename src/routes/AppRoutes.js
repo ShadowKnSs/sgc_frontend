@@ -19,10 +19,12 @@ import FormularioAnalisis from "../views/analisisDatosForm";
 import GestionRiesgosForm from "../views/gestionRiegosForm";
 import ActividadMejora from "../views/actividadMejora";
 import Seguimiento from "../views/seguimiento";
-import FormSeguimiento from "../views/formularioSeguimiento";
+import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import EventosNotAv from "../views/eventNotAv";
 import AdminEventos from "../views/adminEventos";
+import ProcessInEntity from "../views/processInEntity";
+import SeguimientoPrincipal from "../views/seguimientoPrincipal";
 
 
 const AppRoutes = () => {
@@ -37,24 +39,26 @@ const AppRoutes = () => {
           <Route path="procesos" element={<ProcessPage />} />
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
-          <Route path="indicadores" element={<IndicatorPage userType={userType} />}/>
+          <Route path="indicadores" element={<IndicatorPage userType={userType} />} />
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="gestion-riesgos" element={<GestionRiesgos />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
-          <Route path="estructura-procesos" element={<EstructuraProcesos />}/>
-          <Route path="analisis-Datos" element={<AnalisisDatos />}/>
-          <Route path="entidades" element={<Entity />}/>
+          <Route path="estructura-procesos/:idProceso" element={<EstructuraProcesos />} />
+          <Route path="analisis-Datos" element={<AnalisisDatos />} />
+          <Route path="entidades" element={<Entity />} />
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
-          <Route path="analisis-DatosForm" element={<FormularioAnalisis/>}/>
-          <Route path="gestion-riesgosForm" element={<GestionRiesgosForm/>}/>
+          <Route path="analisis-DatosForm" element={<FormularioAnalisis />} />
+          <Route path="gestion-riesgosForm" element={<GestionRiesgosForm />} />
           <Route path="actividad-mejora" element={<ActividadMejora />} />
-          <Route path="seguimiento" element={<Seguimiento />} />
-          <Route path="formulario-seguimiento" element={<FormSeguimiento />} />
+          <Route path="seguimiento/:idProceso" element={<Seguimiento />} />
+          {/*<Route path="formulario-seguimiento" element={<FormSeguimiento />} />*/}
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="eventos" element={<EventosNotAv />} />
           <Route path="admin-eventos" element={<AdminEventos />} />
-          <Route path="manual-operativo" element={<ManualOperativo />}/>
+          <Route path="manual-operativo" element={<ManualOperativo />} />
+          <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
+          <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
 
         </Route>
       </Routes>
