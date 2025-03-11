@@ -9,7 +9,7 @@ import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroaliment
 // Función para normalizar cadenas
 const GraficasPage = () => {
   const [encuestaId, setEncuestaId] = useState(null);
-  const [retroMapped, setRetroMapped] = useState([]);
+  const [retroList, setRetroList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -30,26 +30,16 @@ const GraficasPage = () => {
           setError("No se encontró indicador de encuesta.");
         }
 
-        // Filtrar indicadores de retroalimentación
         const retroIndicators = indicators.filter(ind =>
           ind.origenIndicador?.toLowerCase().trim() === "retroalimentacion"
         );
-        console.log("Retro indicadores sin mapear:", retroIndicators);
+        console.log("Retro indicadores sin ordenar:", retroIndicators);
 
-        // Mapear cada indicador de retro a un objeto con su id y label, normalizando el nombre
-        const mapped = retroIndicators.map(ind => ({
-          id: ind.idIndicadorConsolidado,
-          // Normalizamos para poder comparar y ordenarlos según el nombre real
-          normalizedName: ind.nombreIndicador,
-          label: ind.nombreIndicador,
-        }));
+        // Ordenarlos dinámicamente (por ejemplo, por idIndicadorConsolidado)
+        const ordered = retroIndicators.sort((a, b) => a.idIndicadorConsolidado - b.idIndicadorConsolidado);
+        console.log("Retro indicadores ordenados:", ordered);
+        setRetroList(ordered);
 
-        // Si se desea un orden fijo, por ejemplo: virtual, fisico, encuesta, se puede definir:
-        const order = ["Retro Buzon Virtual", "Retro Buzon Fisico", "Retro Encuesta"];
-        mapped.sort((a, b) => order.indexOf(a.normalizedName) - order.indexOf(b.normalizedName));
-
-        console.log("Retro indicadores mapeados y ordenados:", mapped);
-        setRetroMapped(mapped);
         setLoading(false);
       })
       .catch(error => {
@@ -69,14 +59,6 @@ const GraficasPage = () => {
   if (error) {
     return <Alert severity="error">{error}</Alert>;
   }
-
-  // Extraer IDs a partir del array ordenado (asumiendo que debe haber tres)
-  const retroVirtualId = retroMapped.find(item => item.normalizedName === "Retro Buzon Virtual")?.id || null;
-  const retroFisicaId = retroMapped.find(item => item.normalizedName === "Retro Buzon Fisico")?.id || null;
-  const retroEncuestaId = retroMapped.find(item => item.normalizedName === "Retro Encuesta")?.id || null;
-  console.log("Retro Virtual ID:", retroVirtualId);
-  console.log("Retro Física ID:", retroFisicaId);
-  console.log("Retro Encuesta ID:", retroEncuestaId);
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -109,11 +91,9 @@ const GraficasPage = () => {
         <Typography variant="h5" gutterBottom>
           Retroalimentación
         </Typography>
-        {retroVirtualId  && retroEncuestaId ? (
+        {retroList && retroList.length > 0 ? (
           <GraficaRetroalimentacion
-            retroVirtualId={retroVirtualId}
-            retroFisicaId={retroFisicaId}
-            retroEncuestaId={retroEncuestaId}
+            retroList={retroList}
           />
         ) : (
           <Alert severity="info">
@@ -125,4 +105,4 @@ const GraficasPage = () => {
   );
 };
 
-export default GraficasPage;
+export default GraficasPage;

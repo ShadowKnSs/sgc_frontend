@@ -92,7 +92,7 @@ const PlanControlBarChart = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+    <Box sx={{ maxWidth: '70%', mx: 'auto', mt: 4}}>
       <Bar data={chartData} options={options} />
     </Box>
   );

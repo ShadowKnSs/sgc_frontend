@@ -15,7 +15,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const GraficaRetroalimentacionConjunta = ({ retroVirtualId, retroFisicaId, retroEncuestaId }) => {
+const GraficaRetroalimentacionConjunta = ({ retroList }) => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,39 +26,31 @@ const GraficaRetroalimentacionConjunta = ({ retroVirtualId, retroFisicaId, retro
     //   return;
     // }
 
+    if (!retroList || retroList.length === 0) {
+      console.warn("No se encontraron indicadores de retroalimentación en retroList:", retroList);
+      setError("No se encontraron indicadores de retroalimentación.");
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
-        console.log("Realizando peticiones para retroalimentación conjunta...");
-        const [virtualRes, encuestaRes] = await Promise.all([
-          axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${retroVirtualId}/resultados`),
-          //axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${retroFisicaId}/resultados`),
-          axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${retroEncuestaId}/resultados`)
-        ]);
+        console.log("Realizando peticiones para cada indicador de retroalimentación...");
+        // Para cada indicador de retro en el array, hacemos la petición al endpoint de retroalimentación
+        const requests = retroList.map(ind =>
+          axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${ind.idIndicadorConsolidado}/resultados`)
+        );
+        const responses = await Promise.all(requests);
+        const retroDataArray = responses.map(res => res.data.retroalimentacion);
+        console.log("Datos de retroalimentación obtenidos:", retroDataArray);
 
-        console.log("Respuesta Virtual:", virtualRes.data);
-        //console.log("Respuesta Física:", fisicaRes.data);
-        console.log("Respuesta Encuesta:", encuestaRes.data);
+        // Construir labels dinámicamente a partir del array retroList (usando el nombre original)
+        const labels = retroList.map(ind => ind.nombreIndicador);
 
-        const virtualData = virtualRes.data.retroalimentacion;
-        //const fisicaData = fisicaRes.data.retroalimentacion;
-        const encuestaData = encuestaRes.data.retroalimentacion;
-
-        const labels = ["Retro Virtual", "Retro Física", "Retro Encuesta"];
-        const datasetFelicitaciones = [
-          virtualData.cantidadFelicitacion,
-          //fisicaData.cantidadFelicitacion,
-          encuestaData.cantidadFelicitacion
-        ];
-        const datasetSugerencias = [
-          virtualData.cantidadSugerencia,
-          //fisicaData.cantidadSugerencia,
-          encuestaData.cantidadSugerencia
-        ];
-        const datasetQuejas = [
-          virtualData.cantidadQueja,
-          //fisicaData.cantidadQueja,
-          encuestaData.cantidadQueja
-        ];
+        // Construir datasets para cada categoría:
+        const datasetFelicitaciones = retroDataArray.map(data => data.cantidadFelicitacion);
+        const datasetSugerencias = retroDataArray.map(data => data.cantidadSugerencia);
+        const datasetQuejas = retroDataArray.map(data => data.cantidadQueja);
 
         const formattedData = {
           labels,
@@ -92,7 +84,7 @@ const GraficaRetroalimentacionConjunta = ({ retroVirtualId, retroFisicaId, retro
     };
 
     fetchData();
-  }, [retroVirtualId, retroFisicaId, retroEncuestaId]);
+  }, [retroList]);
 
   if (loading) {
     return (
