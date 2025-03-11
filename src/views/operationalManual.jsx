@@ -105,9 +105,10 @@ const ProcessView = () => {
           fontWeight: "bold",
           fontSize: "1.4rem",
           color: "#004A98",
+          left: "0px",
           borderBottom: "2px solid #ddd",
           boxShadow: isFixed ? "0px 4px 10px rgba(0, 0, 0, 0.1)" : "none",
-          transition: "all 0.3s ease-in-out",
+          transition: "all 0.1s ease-in-out",
         }}
       >
         Nombre del Proceso
