@@ -4,7 +4,7 @@ import { Fab } from '@mui/material';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useNavigate } from 'react-router-dom';
 
-const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncuestaId }) => {
+const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncuestaId, evaluacionId }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -13,12 +13,14 @@ const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncue
         encuestaId, 
         retroVirtualId, 
         retroFisicaId, 
-        retroEncuestaId 
+        retroEncuestaId,
+        evaluacionId
       } 
     });
     console.log("Los id virtual:", retroVirtualId);
     console.log("Los id fisica:", retroFisicaId);
     console.log("Los id enc:", retroEncuestaId);
+    console.log("Los id evaluacion:", evaluacionId);
 
   };
 

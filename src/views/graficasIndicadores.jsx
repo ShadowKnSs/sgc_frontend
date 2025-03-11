@@ -7,12 +7,14 @@ import GraficaEncuesta from '../components/Graficas/GraficaEncuesta';
 import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroalimentacion';
 import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
 import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
+import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
 
 
 
 // Función para normalizar cadenas
 const GraficasPage = () => {
   const [encuestaId, setEncuestaId] = useState(null);
+  const [evaluacionId, setEvaluacionId] = useState(null);
   const [retroList, setRetroList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,6 +34,17 @@ const GraficasPage = () => {
           console.log("Encuesta Indicator:", encuestaIndicator);
         } else {
           setError("No se encontró indicador de encuesta.");
+        }
+
+        // Indicador de Evaluación de Proveedores
+        const evaluacionIndicator = indicators.find(ind =>
+          ind.origenIndicador?.toLowerCase().trim() === "evaluaproveedores"
+        );
+        if (evaluacionIndicator) {
+          setEvaluacionId(evaluacionIndicator.idIndicadorConsolidado);
+          console.log("Evaluación Indicator:", evaluacionIndicator);
+        } else {
+          setError("No se encontró indicador de evaluación de proveedores.");
         }
 
         const retroIndicators = indicators.filter(ind =>
@@ -120,6 +133,18 @@ const GraficasPage = () => {
           Gestion de Riesgos
         </Typography>
         <GraficaRiesgos />
+      </Box>
+
+      {/* Gráfica de Evaluación de Proveedores */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Evaluación de Proveedores
+        </Typography>
+        {evaluacionId ? (
+          <GraficaEvaluacionProveedores id={evaluacionId} />
+        ) : (
+          <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>
+        )}
       </Box>
     </Container>
   );

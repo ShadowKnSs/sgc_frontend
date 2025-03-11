@@ -345,7 +345,13 @@ const UserIndicatorPage = () => {
   const encuestaId = encuestaIndicator ? encuestaIndicator.idIndicadorConsolidado : null;
   console.log("ID del indicador de encuesta:", encuestaId);
 
+  const evaluacionIndicator = indicators.find(
+    ind => ind.origenIndicador?.toLowerCase().trim() === "evaluaproveedores"
+  );
+  console.log("Evaluacion indicator:", evaluacionIndicator);
 
+  const evaluacionId = evaluacionIndicator ? evaluacionIndicator.idIndicadorConsolidado : null;
+  console.log("ID del indicador de evaluacion:", evaluacionId);
 
   return (
     <Box sx={{ padding: "16px", margin: "0 auto", maxWidth: "1200px" }}>
@@ -405,6 +411,7 @@ const UserIndicatorPage = () => {
         retroVirtualId={retroVirtualId}
         retroEncuestaId={retroEncuestaId}
         retroFisicaId={retroFisicaId}
+        evaluacionId={evaluacionId}
       />
       {renderModal()}
     </Box>
