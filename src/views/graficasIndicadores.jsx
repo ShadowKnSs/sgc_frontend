@@ -5,6 +5,9 @@ import axios from 'axios';
 import PlanControlBarChart from '../components/Graficas/GraficaPlanControl';
 import GraficaEncuesta from '../components/Graficas/GraficaEncuesta';
 import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroalimentacion';
+import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
+
+
 
 // Función para normalizar cadenas
 const GraficasPage = () => {
@@ -101,8 +104,16 @@ const GraficasPage = () => {
           </Alert>
         )}
       </Box>
+
+      {/* Gráfica de Mapa de Proceso */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Mapa de Proceso
+        </Typography>
+        <GraficaMapaProceso />
+      </Box>
     </Container>
   );
 };
 
-export default GraficasPage;
+export default GraficasPage;
