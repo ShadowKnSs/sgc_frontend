@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Box, Container, Button } from "@mui/material";
+import React, { useState, useRef, useEffect } from "react";
+import { Box, Container, Button, Typography } from "@mui/material";
 
 // Importar vistas
 import Caratula from "../views/caratula";
@@ -20,7 +20,17 @@ const sections = [
 
 const ProcessView = () => {
   const [selectedTab, setSelectedTab] = useState(0);
+  const [isFixed, setIsFixed] = useState(false);
   const navbarRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsFixed(window.scrollY > 150);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
@@ -55,7 +65,7 @@ const ProcessView = () => {
             overflowX: "auto",
             scrollBehavior: "smooth",
             whiteSpace: "nowrap",
-            "&::-webkit-scrollbar": { display: "none" }
+            "&::-webkit-scrollbar": { display: "none" },
           }}
         >
           {sections.map((section, index) => (
@@ -85,6 +95,26 @@ const ProcessView = () => {
 
       <Box
         sx={{
+          position: isFixed ? "fixed" : "sticky",
+          top: isFixed ? 0 : "80px",
+          zIndex: 20,
+          width: "100%",
+          backgroundColor: "#ffffff",
+          padding: "10px",
+          textAlign: "center",
+          fontWeight: "bold",
+          fontSize: "1.4rem",
+          color: "#004A98",
+          borderBottom: "2px solid #ddd",
+          boxShadow: isFixed ? "0px 4px 10px rgba(0, 0, 0, 0.1)" : "none",
+          transition: "all 0.3s ease-in-out",
+        }}
+      >
+        Nombre del Proceso
+      </Box>
+
+      <Box
+        sx={{
           padding: "20px",
           minHeight: "500px",
           display: "flex",
@@ -96,7 +126,8 @@ const ProcessView = () => {
           textAlign: "center",
           borderRadius: "20px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-          transition: "all 0.3s ease-in-out"
+          transition: "all 0.3s ease-in-out",
+          marginTop: isFixed ? "70px" : "20px",
         }}
       >
         {renderContent()}

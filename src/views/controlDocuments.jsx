@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, Fab, Stack, Card, CardContent, Typography, IconButton, 
   Table, TableBody, TableCell, TableContainer, TableRow, Paper, 
@@ -42,6 +42,20 @@ function ProcessMapView() {
   const [activeCards, setActiveCards] = useState([]);
   const [allExpanded, setAllExpanded] = useState(false);
   const [openForm, setOpenForm] = useState(false);
+  const [isFixed, setIsFixed] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsFixed(true);
+      } else {
+        setIsFixed(false);
+      }
+    };
+  
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const [newUser, setNewUser] = useState({
     nombreDocumento: "",
@@ -145,10 +159,26 @@ function ProcessMapView() {
         ))}
       </Box>
 
-      <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10, paddingRight: 5, paddingTop: 3 }}>
-        <Button 
+      <Box 
+        sx={{ 
+          position: "fixed",
+          top: isFixed ? 5 : 202,
+          right: 30, 
+          zIndex: 50,
+          paddingRight: 5, 
+          transition: "top 0.1s ease-in-out"
+        }}
+      >
+      <Button 
           variant="contained" 
-          sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "secondary.main", color: "#fff", "&:hover": { backgroundColor: "primary.main" }}} 
+          sx={{ 
+            width: 140, 
+            height: 40, 
+            borderRadius: 2, 
+            backgroundColor: "secondary.main", 
+            color: "#fff", 
+            "&:hover": { backgroundColor: "primary.main" }
+          }} 
           onClick={handleToggleAll} 
           startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
         >
