@@ -6,6 +6,7 @@ import PlanControlBarChart from '../components/Graficas/GraficaPlanControl';
 import GraficaEncuesta from '../components/Graficas/GraficaEncuesta';
 import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroalimentacion';
 import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
+import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
 
 
 
@@ -111,6 +112,14 @@ const GraficasPage = () => {
           Mapa de Proceso
         </Typography>
         <GraficaMapaProceso />
+      </Box>
+
+      {/* Gráfica de Gestion de Riesgos */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Gestion de Riesgos
+        </Typography>
+        <GraficaRiesgos />
       </Box>
     </Container>
   );

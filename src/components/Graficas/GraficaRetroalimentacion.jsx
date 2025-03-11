@@ -101,7 +101,7 @@ const GraficaRetroalimentacionConjunta = ({ retroList }) => {
     responsive: true,
     plugins: {
       legend: { position: "top" },
-      title: { display: true, text: "Retroalimentación Conjunta" }
+      title: { display: true, text: "Retroalimentación" }
     },
     scales: {
       y: {
