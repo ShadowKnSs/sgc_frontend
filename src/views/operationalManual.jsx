@@ -7,6 +7,7 @@ import PlanControl from "../views/planControl";
 import ControlDocuments from "../views/controlDocuments";
 import MapaProceso from "./processMap";
 import ControlCambios from "./controlCambios";
+import DiagramaFlujo from "./diagramaFlujo";
 
 const sections = [
   "Caratula",
@@ -30,7 +31,7 @@ const ProcessView = () => {
       case "Mapa de Proceso":
         return <MapaProceso />;
       case "Diagrama de Flujo":
-        return <h2>Contenido de Diagrama de Flujo</h2>;
+        return <DiagramaFlujo />;
       case "Plan de Control":
         return <PlanControl />;
       case "Control de documentos":

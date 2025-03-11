@@ -130,142 +130,140 @@ function ProcessMapView() {
           <Add />
         </Fab>
         {openForm && (
-  <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
-    <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
-      Agregar Nuevo Plan de Control
-    </DialogTitle>
-    <DialogContent>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
-        <TextField
-          label="Nombre del Documento"
-          fullWidth
-          variant="outlined"
-          value={newUser.nombreDocumento}
-          onChange={(e) => setNewUser({ ...newUser, nombreDocumento: e.target.value })}
-        />
-        <TextField
-          label="Tipo"
-          fullWidth
-          select
-          variant="outlined"
-          value={newUser.tipo}
-          onChange={(e) => setNewUser({ ...newUser, tipo: e.target.value })}
-        >
-          <MenuItem value="Interno">Interno</MenuItem>
-          <MenuItem value="Externo">Externo</MenuItem>
-        </TextField>
-        <TextField
-          label="Fecha de Revisión"
-          fullWidth
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          variant="outlined"
-          value={newUser.fechaRevision}
-          onChange={(e) => setNewUser({ ...newUser, fechaRevision: e.target.value })}
-        />
-        <TextField
-          label="Responsable"
-          fullWidth
-          select
-          variant="outlined"
-          value={newUser.responsable}
-          onChange={(e) => setNewUser({ ...newUser, responsable: e.target.value })}
-        >
-          <MenuItem value="Auditor">Auditor</MenuItem>
-          <MenuItem value="Líder de Proceso">Líder de Proceso</MenuItem>
-          <MenuItem value="Supervisor">Supervisor</MenuItem>
-        </TextField>
-        <TextField
-          label="Medio de Almacenamiento"
-          fullWidth
-          variant="outlined"
-          value={newUser.medioAlmacenamiento}
-          onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
-        />
-        <TextField
-          label="Lugar de Almacenamiento"
-          fullWidth
-          variant="outlined"
-          value={newUser.lugarAlmacenamiento}
-          onChange={(e) => setNewUser({ ...newUser, lugarAlmacenamiento: e.target.value })}
-        />
-        <TextField
-          label="Número de Copias"
-          fullWidth
-          variant="outlined"
-          value={newUser.numeroCopias}
-          onChange={(e) => setNewUser({ ...newUser, numeroCopias: e.target.value })}
-        />
-        <TextField
-          label="Tipo de Almacenamiento"
-          fullWidth
-          select
-          variant="outlined"
-          value={newUser.tipoAlmacenamiento}
-          onChange={(e) => setNewUser({ ...newUser, tipoAlmacenamiento: e.target.value })}
-        >
-          <MenuItem value="Físico">Físico</MenuItem>
-          <MenuItem value="Digital">Digital</MenuItem>
-          <MenuItem value="Ambos">Ambos</MenuItem>
-        </TextField>
-        <TextField
-          label="Disposición"
-          fullWidth
-          variant="outlined"
-          value={newUser.disposicion}
-          onChange={(e) => setNewUser({ ...newUser, disposicion: e.target.value })}
-        />
-        <Box>
-          <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
-          <FormGroup row>
-            {["Alumnos", "Personal Administrativo", "Funcionariado", "Coordinadores"].map(user => (
-              <FormControlLabel
-                key={user}
-                control={
-                  <Checkbox
-                    checked={newUser.usuarios.includes(user)}
-                    onChange={(e) => {
-                      setNewUser((prev) => ({
-                        ...prev,
-                        usuarios: e.target.checked
-                          ? [...prev.usuarios, user]
-                          : prev.usuarios.filter(u => u !== user)
-                      }));
-                    }}
-                  />
-                }
-                label={user}
-              />
-            ))}
-          </FormGroup>
-        </Box>
+          <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+              Agregar Nuevo Documento
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+                <TextField
+                  label="Nombre del Documento"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.nombreDocumento}
+                  onChange={(e) => setNewUser({ ...newUser, nombreDocumento: e.target.value })}
+                />
+                <TextField
+                  label="Tipo"
+                  fullWidth
+                  select
+                  variant="outlined"
+                  value={newUser.tipo}
+                  onChange={(e) => setNewUser({ ...newUser, tipo: e.target.value })}
+                >
+                  <MenuItem value="Interno">Interno</MenuItem>
+                  <MenuItem value="Externo">Externo</MenuItem>
+                </TextField>
+                <TextField
+                  label="Fecha de Revisión"
+                  fullWidth
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  variant="outlined"
+                  value={newUser.fechaRevision}
+                  onChange={(e) => setNewUser({ ...newUser, fechaRevision: e.target.value })}
+                />
+                <TextField
+                  label="Responsable"
+                  fullWidth
+                  select
+                  variant="outlined"
+                  value={newUser.responsable}
+                  onChange={(e) => setNewUser({ ...newUser, responsable: e.target.value })}
+                >
+                  <MenuItem value="Auditor">Auditor</MenuItem>
+                  <MenuItem value="Líder de Proceso">Líder de Proceso</MenuItem>
+                  <MenuItem value="Supervisor">Supervisor</MenuItem>
+                </TextField>
+                <TextField
+                  label="Medio de Almacenamiento"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.medioAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
+                />
+                <TextField
+                  label="Lugar de Almacenamiento"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.lugarAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, lugarAlmacenamiento: e.target.value })}
+                />
+                <TextField
+                  label="Número de Copias"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.numeroCopias}
+                  onChange={(e) => setNewUser({ ...newUser, numeroCopias: e.target.value })}
+                />
+                <TextField
+                  label="Tipo de Almacenamiento"
+                  fullWidth
+                  select
+                  variant="outlined"
+                  value={newUser.tipoAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, tipoAlmacenamiento: e.target.value })}
+                >
+                  <MenuItem value="Físico">Físico</MenuItem>
+                  <MenuItem value="Digital">Digital</MenuItem>
+                  <MenuItem value="Ambos">Ambos</MenuItem>
+                </TextField>
+                <TextField
+                  label="Disposición"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.disposicion}
+                  onChange={(e) => setNewUser({ ...newUser, disposicion: e.target.value })}
+                />
+                <Box>
+                  <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
+                  <FormGroup row>
+                    {["Alumnos", "Personal Administrativo", "Funcionariado", "Coordinadores"].map(user => (
+                      <FormControlLabel
+                        key={user}
+                        control={
+                          <Checkbox
+                            checked={newUser.usuarios.includes(user)}
+                            onChange={(e) => {
+                              setNewUser((prev) => ({
+                                ...prev,
+                                usuarios: e.target.checked
+                                  ? [...prev.usuarios, user]
+                                  : prev.usuarios.filter(u => u !== user)
+                              }));
+                            }}
+                          />
+                        }
+                        label={user}
+                      />
+                    ))}
+                  </FormGroup>
+                </Box>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
+              <Button
+                onClick={() => setOpenForm(false)}
+                variant="outlined"
+                sx={{
+                  borderColor: "#d32f2f",
+                  color: "#d32f2f",
+                  "&:hover": { backgroundColor: "#ffebee", borderColor: "#d32f2f" },
+                }}
+              >
+                CANCELAR
+              </Button>
+              <Button
+                onClick={handleAddUser}
+                variant="contained"
+                sx={{ backgroundColor: "#F9B800", color: "#000", "&:hover": { backgroundColor: "#c79100" } }}
+              >
+                GUARDAR
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
       </Box>
-    </DialogContent>
-    <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-      <Button
-        onClick={() => setOpenForm(false)}
-        variant="outlined"
-        sx={{
-          borderColor: "#d32f2f",
-          color: "#d32f2f",
-          "&:hover": { backgroundColor: "#ffebee", borderColor: "#d32f2f" },
-        }}
-      >
-        CANCELAR
-      </Button>
-      <Button
-        onClick={handleAddUser}
-        variant="contained"
-        sx={{ backgroundColor: "#F9B800", color: "#000", "&:hover": { backgroundColor: "#c79100" } }}
-      >
-        GUARDAR
-      </Button>
-    </DialogActions>
-  </Dialog>
-)}
-
-      </Box>
-
     </Box>
   );
 }

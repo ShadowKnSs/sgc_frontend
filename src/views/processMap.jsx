@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { Box, Fab, Stack, Card, CardContent, Typography, IconButton, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Select } from "@mui/material";
+import { 
+    Box, Fab, Stack, Card, CardContent, Typography, IconButton, 
+    Table, TableBody, TableCell, TableContainer, TableRow, Paper, 
+    Button, Dialog, DialogTitle, DialogContent, DialogActions, 
+    TextField, MenuItem 
+  } from "@mui/material";  
 import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 
 const initialUsers = [
@@ -8,14 +13,15 @@ const initialUsers = [
 
 function ProcessMapView() {
     const [users, setUsers] = useState(initialUsers);
-    const [openForm, setOpenForm] = useState(false);
     const [activeCards, setActiveCards] = useState([]);
     const [allExpanded, setAllExpanded] = useState(false);
+    const [openForm, setOpenForm] = useState(false);
 
-    const handleAddUser = (newUser) => {
-        setUsers([...users, { id: users.length + 1, ...newUser }]);
-        setOpenForm(false);
-    };
+    const [newUser, setNewUser] = useState({
+        descripcion: "",
+        formula: "",
+        periodo: "",
+    });    
 
     const handleSelectCard = (user) => {
         if (!activeCards.some(u => u.id === user.id)) {
@@ -36,36 +42,18 @@ function ProcessMapView() {
         setAllExpanded(!allExpanded);
     };
 
-    return (
-        
-        <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, p: 2, mb: 4 }}>
-                <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>Documentos Relacionados:</Typography>
-                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                </Box>
-                <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>Fuentes de Entrada:</Typography>
-                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                </Box>
-                <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>Material de Entrada:</Typography>
-                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                </Box>
-                <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>Requisitos de Entrada:</Typography>
-                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                </Box>
-                <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>Salidas:</Typography>
-                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                </Box>
-            <Box>
-        <Typography sx={{ fontWeight: "bold" }}>Receptores:</Typography>
-        <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-    </Box>
-</Box>
+    const handleAddUser = () => {
+        setUsers([...users, { id: users.length + 1, ...newUser }]);
+        setOpenForm(false);
+        setNewUser({
+            descripcion: "",
+            formula: "",
+            periodo: "",
+        });
+    };    
 
+    return (
+        <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
             {activeCards.length > 0 && (
                 <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
                     <Stack spacing={2}>
@@ -108,51 +96,75 @@ function ProcessMapView() {
             </Box>
 
             <Box sx={{ position: "fixed", bottom: 16, right: 30, paddingRight: 5 }}>
-                <Fab 
+            <Fab 
                 color="primary" 
                 sx={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "secondary.main", "&:hover": { backgroundColor: "primary.main" } }} 
                 onClick={() => setOpenForm(true)}
-                >
+            >
                 <Add />
-                </Fab>
-            </Box>
-
+            </Fab>
             {openForm && (
-                <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="lg" fullWidth>
-                    <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>Agregar Nuevo Indicador</DialogTitle>
-                    <DialogContent>
-                        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, p: 2 }}>
-                            {/* Primera fila */}
-                            <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Descripcion:</Typography>
-                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                            </Box>
-                            <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Formula:</Typography>
-                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                            </Box>
-                            {/* Segunda fila */}
-                            <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Periodo</Typography>
-                                <Select fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }}>
-                                    <MenuItem value="2023">Mensual</MenuItem>
-                                    <MenuItem value="2024">Trimestral</MenuItem>
-                                    <MenuItem value="2025">Anual</MenuItem>
-                                </Select>
-                            </Box>
-                        </Box>
-                    </DialogContent>
+    <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+            Agregar Nuevo Indicador
+        </DialogTitle>
+        <DialogContent>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+                <TextField
+                    label="Descripción"
+                    fullWidth
+                    variant="outlined"
+                    sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                    value={newUser.descripcion}
+                    onChange={(e) => setNewUser({ ...newUser, descripcion: e.target.value })}
+                />
+                <TextField
+                    label="Fórmula"
+                    fullWidth
+                    variant="outlined"
+                    sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                    value={newUser.formula}
+                    onChange={(e) => setNewUser({ ...newUser, formula: e.target.value })}
+                />
+                <TextField
+                    label="Período"
+                    fullWidth
+                    select
+                    variant="outlined"
+                    sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                    value={newUser.periodo}
+                    onChange={(e) => setNewUser({ ...newUser, periodo: e.target.value })}
+                >
+                    <MenuItem value="Mensual">Mensual</MenuItem>
+                    <MenuItem value="Trimestral">Trimestral</MenuItem>
+                    <MenuItem value="Anual">Anual</MenuItem>
+                </TextField>
+            </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
+            <Button
+                onClick={() => setOpenForm(false)}
+                variant="outlined"
+                sx={{
+                    borderColor: "#d32f2f",
+                    color: "#d32f2f",
+                    "&:hover": { backgroundColor: "#ffebee", borderColor: "#d32f2f" },
+                }}
+            >
+                CANCELAR
+            </Button>
+            <Button
+                onClick={handleAddUser}
+                variant="contained"
+                sx={{ backgroundColor: "#F9B800", color: "#000", "&:hover": { backgroundColor: "#c79100" } }}
+            >
+                GUARDAR
+            </Button>
+        </DialogActions>
+    </Dialog>
+)}
 
-                    <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-                        <Button onClick={() => setOpenForm(false)} variant="outlined" color="error">
-                            Cancelar
-                        </Button>
-                        <Button onClick={handleAddUser} variant="contained" color="primary">
-                            Guardar
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            )}
+            </Box>
         </Box>
     );
 }
