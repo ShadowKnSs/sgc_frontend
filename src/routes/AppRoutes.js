@@ -24,6 +24,7 @@ import Archivos from "../views/archivosSeg";
 import EventosNotAv from "../views/eventNotAv";
 import AdminEventos from "../views/adminEventos";
 import InformeAuditoria from "../views/informeAditoriaInterna";
+import Cronograma from "../views/cronograma";
 
 
 const AppRoutes = () => {
@@ -57,6 +58,7 @@ const AppRoutes = () => {
           <Route path="admin-eventos" element={<AdminEventos />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
           <Route path="informe-auditoria" element={<InformeAuditoria />}/>
+          <Route path="cronograma" element={<Cronograma />}/>
 
         </Route>
       </Routes>

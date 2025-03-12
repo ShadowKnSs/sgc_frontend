@@ -48,6 +48,41 @@ function InformeAud() {
     }
   };
 
+  const [puntosMejora, setPuntosMejora] = useState([{ id: 1 }]);
+
+  const agregarPuntoMejora = () => {
+    setPuntosMejora([...puntosMejora, { numero: "", reqISO: "", descripcion: "", evidencia: "" }]);
+  };
+  
+  const eliminarPuntoMejora = (index) => {
+    if (puntosMejora.length > 1) {
+      setPuntosMejora(puntosMejora.filter((_, i) => i !== index));
+    }
+  };
+
+  const [conclusiones, setConclusiones] = useState([{ id: 1 }]);
+
+  const agregarConclusion = () => {
+    setConclusiones([...conclusiones, { nombre: "", observaciones: "" }]);
+  };
+
+  const eliminarConclusion = (index) => {
+    setConclusiones(conclusiones.filter((_, i) => i !== index));
+  };
+
+  // Estado para Plazos y Consideraciones
+  const [plazos, setPlazos] = useState([""]);
+
+  const agregarPlazo = () => {
+    setPlazos([...plazos, ""]); 
+  };
+
+  const eliminarPlazo = (index) => {
+    if (plazos.length > 1) {
+      setPlazos(plazos.filter((_, i) => i !== index));
+    }
+  };
+
   return (
     <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
       <Box sx={{ width: "100%", maxWidth: "900px", backgroundColor: "white", padding: 4, borderRadius: "8px" }}>
@@ -84,6 +119,11 @@ function InformeAud() {
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Objetivo:</strong></Typography>
           <TextField fullWidth multiline rows={2} variant="outlined" />
+        </Box>
+
+        <Box mt={3}>
+          <Typography variant="body1" gutterBottom><strong>Alcance:</strong></Typography>
+          <TextField fullWidth multiline rows={1} variant="outlined" />
         </Box>
         
         <Box mt={3}>
@@ -182,30 +222,44 @@ function InformeAud() {
           <Typography variant="h6" gutterBottom>
             <strong>Verificación de Ruta de Auditoría</strong>
           </Typography>
+          <Box width="100%" mt={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={2}>
+                <Typography variant="body1" gutterBottom><strong>Criterio</strong></Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography variant="body1" gutterBottom><strong>Req. Asociado</strong></Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography variant="body1" gutterBottom><strong>Observaciones</strong></Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography variant="body1" gutterBottom><strong>Evidencia Objetiva</strong></Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography variant="body1" gutterBottom><strong>Tipo de Hallazgo</strong></Typography>
+              </Grid>
+            </Grid>
+          </Box>
           {verificaciones.map((verificacion, index) => (
             <Box key={index} width="100%" mt={2}>
               <Grid container spacing={2}>
                 <Grid item xs={2}>
-                <Typography variant="body1" gutterBottom><strong>Criterio</strong></Typography>
                   <TextField fullWidth variant="outlined" size="small" />
                 </Grid>
                 <Grid item xs={2}>
-                <Typography variant="body1" gutterBottom><strong>Req. Asociado</strong></Typography>
                   <TextField fullWidth variant="outlined" size="small" />
                 </Grid>
                 <Grid item xs={3}>
-                <Typography variant="body1" gutterBottom><strong>Observaciones</strong></Typography>
                   <TextField fullWidth variant="outlined" size="small" />
                 </Grid>
                 <Grid item xs={3}>
-                <Typography variant="body1" gutterBottom><strong>Evidencia Objetiva</strong></Typography>
                   <TextField fullWidth variant="outlined" size="small" />
                 </Grid>
                 <Grid item xs={2}>
-                <Typography variant="body1" gutterBottom><strong>Tipo de Hallazgo</strong></Typography>
                   <TextField select fullWidth variant="outlined" size="small">
-                    <MenuItem value="Menor">opción</MenuItem>
-                    <MenuItem value="Mayor">opción</MenuItem>
+                    <MenuItem value="Menor">Opción</MenuItem>
+                    <MenuItem value="Mayor">Opción</MenuItem>
                     <MenuItem value="Oportunidad">Opción</MenuItem>
                   </TextField>
                 </Grid>
@@ -230,6 +284,185 @@ function InformeAud() {
                   </Typography>
                 )}
               </Box>
+            </Box>
+          ))}
+        </Box>
+
+        <Box mt={3}>
+          <Typography variant="body1" gutterBottom><strong>Fortalezas:</strong></Typography>
+          <TextField fullWidth multiline rows={2} variant="outlined" />
+        </Box>
+
+        <Box mt={3}>
+          <Typography variant="body1" gutterBottom><strong>Debilidades:</strong></Typography>
+          <TextField fullWidth multiline rows={2} variant="outlined" />
+        </Box>
+
+        <Box mt={4} display="flex" flexDirection="column" alignItems="center">
+          <Typography variant="h6" gutterBottom>
+            <strong>Puntos de Mejora Detectados</strong>
+          </Typography>
+          <Box width="100%" mt={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={2}>
+                <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <strong>No.</strong>
+                </Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <strong>Req. ISO 9001:2015</strong>
+                </Typography>
+              </Grid>
+              <Grid item xs={5}>
+                <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <strong>Descripción del Punto de Mejora</strong>
+                </Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <strong>Evidencia Objetiva</strong>
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          {puntosMejora.map((puntoMejora, index) => (
+            <Box key={index} width="100%" mt={2}>
+              <Grid container spacing={2}>
+                <Grid item xs={2}>
+                  <TextField fullWidth variant="outlined" size="small" />
+                </Grid>
+                <Grid item xs={2}>
+                  <TextField fullWidth variant="outlined" size="small" />
+                </Grid>
+                <Grid item xs={5}>
+                  <TextField fullWidth variant="outlined" size="small" />
+                </Grid>
+                <Grid item xs={3}>
+                  <TextField fullWidth variant="outlined" size="small" />
+                </Grid>
+              </Grid>
+              <Box display="flex" justifyContent="flex-end" mt={1}>
+                <Typography 
+                  variant="body2" 
+                  color="primary" 
+                  sx={{ cursor: "pointer", mr: 2 }} 
+                  onClick={agregarPuntoMejora}
+                >
+                  Agregar
+                </Typography>
+                {puntosMejora.length > 1 && (
+                  <Typography 
+                    variant="body2" 
+                    color="secondary" 
+                    sx={{ cursor: "pointer" }} 
+                    onClick={() => eliminarPuntoMejora(index)}
+                  >
+                    Eliminar
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+
+        <Box mt={3}>
+          <Typography variant="body1" gutterBottom>
+            <strong>Conclusiones Generales:</strong>
+          </Typography>
+
+          {conclusiones.map((conclusion, index) => (
+            <Box key={index} mt={2} p={2} sx={{ border: "1px solid #ccc", borderRadius: "8px" }}>
+              <TextField
+                fullWidth
+                label="Nombre de la conclusión"
+                variant="outlined"
+                size="small"
+                value={conclusion.nombre}
+                onChange={(e) => {
+                  const nuevasConclusiones = [...conclusiones];
+                  nuevasConclusiones[index].nombre = e.target.value;
+                  setConclusiones(nuevasConclusiones);
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Observaciones"
+                variant="outlined"
+                size="small"
+                multiline
+                rows={3}
+                sx={{ mt: 2 }}
+                value={conclusion.observaciones}
+                onChange={(e) => {
+                  const nuevasConclusiones = [...conclusiones];
+                  nuevasConclusiones[index].observaciones = e.target.value;
+                  setConclusiones(nuevasConclusiones);
+                }}
+              />
+              {conclusiones.length > 1 && (
+                <Box display="flex" justifyContent="flex-end" mt={1}>
+                  <Typography
+                    variant="body2"
+                    color="secondary"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => eliminarConclusion(index)}
+                  >
+                    Eliminar
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          ))}
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Typography
+              variant="body2"
+              color="primary"
+              sx={{ cursor: "pointer" }}
+              onClick={agregarConclusion}
+            >
+              Agregar Conclusión
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box mt={3}>
+          <Typography variant="body1" gutterBottom><strong>Plazos y Consideraciones:</strong></Typography>
+
+          {plazos.map((plazo, index) => (
+            <Box key={index} display="flex" alignItems="center" mt={1}>
+              <TextField 
+                fullWidth 
+                multiline 
+                rows={1} 
+                variant="outlined" 
+                value={plazo} 
+                onChange={(e) => {
+                  const nuevosPlazos = [...plazos];
+                  nuevosPlazos[index] = e.target.value;
+                  setPlazos(nuevosPlazos);
+                }}
+              />
+              <Typography 
+                variant="body2" 
+                color="primary" 
+                sx={{ cursor: "pointer", ml: 2 }} 
+                onClick={agregarPlazo}
+              >
+                Agregar
+              </Typography>
+
+              {plazos.length > 1 && (
+                <Typography 
+                  variant="body2" 
+                  color="secondary" 
+                  sx={{ cursor: "pointer", ml: 2 }} 
+                  onClick={() => eliminarPlazo(index)}
+                >
+                  Eliminar
+                </Typography>
+              )}
             </Box>
           ))}
         </Box>
