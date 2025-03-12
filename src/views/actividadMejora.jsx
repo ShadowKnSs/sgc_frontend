@@ -1,16 +1,13 @@
 import React, { useState } from "react";
 import { Box, Container, Button, IconButton } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
-import Caratula from "../views/caratula";
-import PlanCorrectivo from "./correctivePlan";
+import PlanCorrectivoContainer from "../components/PlanCorrectivoContainer"; // Asegúrate de la ruta correcta
 import FormProyMejora from "../components/Forms/FormProyMejora";
 import PlanTrabajo from "../views/planTrabajoForm";
 
 const ProcessView = () => {
   const [selectedTab, setSelectedTab] = useState(0);
-
   const sections = [
-    "Caratula",
     "Plan de Acción Correctivo",
     "Plan de Trabajo",
     "Proyecto de Mejora",
@@ -18,14 +15,13 @@ const ProcessView = () => {
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
-      case "Caratula":
-        return <Caratula />;
       case "Plan de Acción Correctivo":
-        return <PlanCorrectivo />;
+        // Aquí invocas el PlanCorrectivoContainer en lugar de PlanCorrectivoForm
+        return <PlanCorrectivoContainer />;
       case "Plan de Trabajo":
         return (
           <Box>
-              <PlanTrabajo/>
+            <PlanTrabajo />
           </Box>
         );
       case "Proyecto de Mejora":
@@ -40,7 +36,7 @@ const ProcessView = () => {
   };
 
   const scrollNav = (direction) => {
-    // Implementa la lógica de desplazamiento aquí
+    // Implementa la lógica de desplazamiento según lo necesites
   };
 
   return (
@@ -56,11 +52,11 @@ const ProcessView = () => {
             backgroundColor: "#0056b3",
             borderRadius: "40px",
             padding: "5px",
-            width: "auto", 
+            width: "auto",
             overflowX: "auto",
             scrollBehavior: "smooth",
             whiteSpace: "nowrap",
-            "&::-webkit-scrollbar": { display: "none" } 
+            "&::-webkit-scrollbar": { display: "none" }
           }}
         >
           {sections.map((section, index) => (
@@ -79,7 +75,7 @@ const ProcessView = () => {
                 fontSize: "1rem",
                 fontWeight: "normal",
                 boxShadow: selectedTab === index ? "0px 4px 10px rgba(0, 0, 0, 0.3)" : "none",
-                whiteSpace: "nowrap", 
+                whiteSpace: "nowrap"
               }}
             >
               {section}
