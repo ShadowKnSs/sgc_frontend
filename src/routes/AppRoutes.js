@@ -26,6 +26,7 @@ import AdminEventos from "../views/adminEventNot";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
+import CarpetasActividadMejora from "../views/carpetasActividadMejora";
 
 
 const AppRoutes = () => {
@@ -49,6 +50,7 @@ const AppRoutes = () => {
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
           <Route path="analisis-DatosForm" element={<FormularioAnalisis />} />
           <Route path="gestion-riesgosForm" element={<GestionRiesgosForm />} />
+          {/* <Route path="actividad-mejora/idPlanCorrectivo" element={<ActividadMejora />} /> */}
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="seguimiento/:idProceso" element={<Seguimiento />} />
           {/*<Route path="formulario-seguimiento" element={<FormSeguimiento />} />*/}
@@ -58,6 +60,7 @@ const AppRoutes = () => {
           <Route path="manual-operativo" element={<ManualOperativo />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
+          <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} />
 
         </Route>
       </Routes>
