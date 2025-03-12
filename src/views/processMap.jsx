@@ -96,7 +96,7 @@ function ProcessMapView() {
 
     return (
         <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
-            <Box sx={{ mb: 4, p: 3, backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 2 }}>
+            <Box sx={{ mb: 4, p: 3, backgroundColor: "#ffffff", borderRadius: 2, boxShadow: 2 }}>
                 <Typography variant="h6" fontWeight="bold" color="#003366" mb={2}>
                     Información del Proceso
                 </Typography>
