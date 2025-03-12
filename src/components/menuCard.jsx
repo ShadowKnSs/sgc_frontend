@@ -1,10 +1,16 @@
 import React from "react";
 import { Card, CardContent, Typography } from "@mui/material";
 
-const MenuCard = ({ icon, title, onClick }) => {
+const MenuCard = ({ icon, title, onClick, idProceso }) => {
+  const handleClick = () => {
+    if (onClick) {
+      onClick(idProceso); // Pasar idProceso cuando se haga clic
+    }
+  };
+
   return (
     <Card
-      onClick={onClick}
+      onClick={handleClick}
       role="button"
       sx={{
         display: "flex",
@@ -19,7 +25,7 @@ const MenuCard = ({ icon, title, onClick }) => {
         backgroundColor: "primary.main",
         transition: "transform 0.3s ease-in-out, background-color 0.3s ease-in-out",
         "&:hover": {
-          transform: "scale(1.05)", // se mueve hacia abajo y se agranda un poco
+          transform: "scale(1.05)",
           backgroundColor: "secondary.main",
           boxShadow: 6,
         }
