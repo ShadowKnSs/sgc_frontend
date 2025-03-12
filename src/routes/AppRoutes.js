@@ -39,7 +39,6 @@ const AppRoutes = () => {
           <Route path="procesos" element={<ProcessPage />} />
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
-          <Route path="indicadores" element={<IndicatorPage userType={userType} />} />
           <Route path="/admin-indicadores" element={<AdminIndicatorPage />} />
           <Route path="/user-indicadores" element={<UserIndicatorPage />} />
           <Route path="graficas" element={<GraficasPage />} />
