@@ -20,8 +20,6 @@ import ActividadMejora from "../views/actividadMejora";
 import Seguimiento from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
-import EventosNotAv from "../views/eventNotAv";
-import AdminEventos from "../views/adminEventos";
 import ProcessInEntity from "../views/processInEntity";
 import SeguimientoPrincipal from "../views/seguimientoPrincipal";
 import AdminEventos from "../views/adminEventNot";
