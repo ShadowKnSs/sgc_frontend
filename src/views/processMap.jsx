@@ -81,17 +81,7 @@ function ProcessMapView() {
         
             window.addEventListener("scroll", handleScroll);
             return () => window.removeEventListener("scroll", handleScroll);
-    }, []);    
-
-    const [infoGeneral, setInfoGeneral] = useState({
-        documentos: "Documentos relacionados con el mapa de procesos.",
-        fuente: "Fuentes de entrada utilizadas en el proceso.",
-        material: "Materiales e información involucrados en el proceso.",
-        requisitos: "Requisitos necesarios para el proceso.",
-        salidas: "Resultados esperados del proceso.",
-        receptores: "Destinatarios de los resultados del proceso.",
-        puestosInvolucrados: "Lista de roles y posiciones clave dentro del proceso."
-    });
+    }, []);
 
     const handleEditToggle = () => setEditMode(!editMode);
 
