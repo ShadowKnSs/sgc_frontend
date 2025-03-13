@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { Box, Fab, Stack, Card, CardContent, Typography, IconButton, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
+import { Box, Fab, Stack, Card, CardContent, Typography, IconButton, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Select } from "@mui/material";
 import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 
 const initialUsers = [
     { id: 1, docRelacionados: "Doc A", fuenteEntrada: "Fuente X", materialEntrada: "Material 1", requisitoEntrada: "Requisito A", salidas: "Salida A", receptores: "Receptor 1" },
-    { id: 2, docRelacionados: "Doc B", fuenteEntrada: "Fuente Y", materialEntrada: "Material 2", requisitoEntrada: "Requisito B", salidas: "Salida B", receptores: "Receptor 2" },
-    { id: 3, docRelacionados: "Doc C", fuenteEntrada: "Fuente Z", materialEntrada: "Material 3", requisitoEntrada: "Requisito C", salidas: "Salida C", receptores: "Receptor 3" },
 ];
 
 function ProcessMapView() {
@@ -39,7 +37,35 @@ function ProcessMapView() {
     };
 
     return (
+        
         <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, p: 2, mb: 4 }}>
+                <Box>
+                    <Typography sx={{ fontWeight: "bold" }}>Documentos Relacionados:</Typography>
+                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                </Box>
+                <Box>
+                    <Typography sx={{ fontWeight: "bold" }}>Fuentes de Entrada:</Typography>
+                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                </Box>
+                <Box>
+                    <Typography sx={{ fontWeight: "bold" }}>Material de Entrada:</Typography>
+                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                </Box>
+                <Box>
+                    <Typography sx={{ fontWeight: "bold" }}>Requisitos de Entrada:</Typography>
+                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                </Box>
+                <Box>
+                    <Typography sx={{ fontWeight: "bold" }}>Salidas:</Typography>
+                    <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                </Box>
+            <Box>
+        <Typography sx={{ fontWeight: "bold" }}>Receptores:</Typography>
+        <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+    </Box>
+</Box>
+
             {activeCards.length > 0 && (
                 <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
                     <Stack spacing={2}>
@@ -70,10 +96,10 @@ function ProcessMapView() {
                     ))}
             </Box>
 
-            <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10 }}>
+            <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10 , paddingRight: 5, paddingTop: 2}}>
                 <Button 
                 variant="contained" 
-                sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "#0056B3", color: "#fff", "&:hover": { backgroundColor: "#003366" }}} 
+                sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "secondary.main", color: "#fff", "&:hover": { backgroundColor: "primary.main" }}} 
                 onClick={handleToggleAll} 
                 startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
                 >
@@ -81,10 +107,10 @@ function ProcessMapView() {
                 </Button>
             </Box>
 
-            <Box sx={{ position: "fixed", bottom: 16, right: 30 }}>
+            <Box sx={{ position: "fixed", bottom: 16, right: 30, paddingRight: 5 }}>
                 <Fab 
                 color="primary" 
-                sx={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "#0056B3", "&:hover": { backgroundColor: "#003366" } }} 
+                sx={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "secondary.main", "&:hover": { backgroundColor: "primary.main" } }} 
                 onClick={() => setOpenForm(true)}
                 >
                 <Add />
@@ -93,37 +119,26 @@ function ProcessMapView() {
 
             {openForm && (
                 <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="lg" fullWidth>
-                    <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>Agregar Nuevo Registro</DialogTitle>
+                    <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>Agregar Nuevo Indicador</DialogTitle>
                     <DialogContent>
                         <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, p: 2 }}>
                             {/* Primera fila */}
                             <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Documentos Relacionados:</Typography>
+                                <Typography sx={{ fontWeight: "bold" }}>Descripcion:</Typography>
                                 <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
                             </Box>
                             <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Fuentes de Entrada:</Typography>
+                                <Typography sx={{ fontWeight: "bold" }}>Formula:</Typography>
                                 <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
                             </Box>
-
                             {/* Segunda fila */}
                             <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Material de Entrada:</Typography>
-                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                            </Box>
-                            <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Requisitos de Entrada:</Typography>
-                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                            </Box>
-
-                            {/* Tercera fila */}
-                            <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Salidas:</Typography>
-                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                            </Box>
-                            <Box>
-                                <Typography sx={{ fontWeight: "bold" }}>Receptores:</Typography>
-                                <TextField fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
+                                <Typography sx={{ fontWeight: "bold" }}>Periodo</Typography>
+                                <Select fullWidth variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }}>
+                                    <MenuItem value="2023">Mensual</MenuItem>
+                                    <MenuItem value="2024">Trimestral</MenuItem>
+                                    <MenuItem value="2025">Anual</MenuItem>
+                                </Select>
                             </Box>
                         </Box>
                     </DialogContent>
@@ -175,12 +190,9 @@ function UserCard({ user, onSelect, onClose, isActive }) {
                     <CardContent>
                         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
                             {[
-                                { title: "Documento Relacionado", value: user.docRelacionados },
-                                { title: "Fuente de Entrada", value: user.fuenteEntrada },
-                                { title: "Material de Entrada", value: user.materialEntrada },
-                                { title: "Requisito de Entrada", value: user.requisitoEntrada },
-                                { title: "Salidas", value: user.salidas },
-                                { title: "Receptores", value: user.receptores },
+                                { title: "Descripcion", value: user.Descripcion },
+                                { title: "Formula", value: user.Formula },
+                                { title: "Periodo", value: user.Periodo },
                             ].map((field, index) => (
                                 <TableContainer key={index} component={Paper} sx={{ width: "28%", minWidth: "180px", boxShadow: 1 }}>
                                     <Table>
@@ -202,7 +214,7 @@ function UserCard({ user, onSelect, onClose, isActive }) {
                 </>
             ) : (
                 <Typography variant="h6" fontWeight="bold" color="#004A98">
-                    Mapa Proceso {user.id}
+                    Indicador
                 </Typography>
             )}
         </Card>

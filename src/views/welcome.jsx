@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import MenuCard from "../components/MenuCard";
+import MenuCard from "../components/menuCard";
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 const Welcome = () => {
   const navigate = useNavigate(); 
   const menuItems = [
-    { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/operational-manual" },
+    { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },
     { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manual-sitio" },
     { icon: <GroupAddOutlinedIcon />, title: "Usuarios", path: "/usuarios" },
     { icon: <AccountTreeOutlinedIcon />, title: "Procesos", path: "/procesos" },

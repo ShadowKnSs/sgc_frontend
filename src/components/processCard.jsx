@@ -14,6 +14,7 @@ const ProcessCard = ({ process, onEdit, onDelete }) => {
         p: 2,
         borderRadius: 2,
         boxShadow: 3,
+        cursor: "pointer",
         transition: "transform 0.3s, box-shadow 0.3s",
         "&:hover": {
           transform: "scale(1.02)",

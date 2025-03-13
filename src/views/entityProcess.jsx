@@ -12,7 +12,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 
 const EntityP = () => {
   const menuItems = [
-    { icon: <BookIcon />, title: "Facultad de Enfermería " },
+    { icon: <BookIcon />, title: "Facultad de Enfermería ", path: "/estructura-procesos" },
     { icon: <LanguageIcon />, title: "Facultad de Economía " },
     { icon: <PeopleIcon />, title: "Facultad de Ingeniería " },
     { icon: <AccountTreeIcon />, title: "Facultad de Ciencias Sociales y Humanidades" },
