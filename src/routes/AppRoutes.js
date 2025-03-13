@@ -72,7 +72,7 @@ const AppRoutes = () => {
           <Route path="manualDelSitio" element={<ManualDelSitio />} />
           <Route path="admin-eventos" element={<AdminEventos/>} />
           <Route path="user-eventos" element={<UserEvent/>} />
-          <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} />
+          {/* <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} /> */}
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
 
