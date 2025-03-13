@@ -62,7 +62,7 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
             }}
           >
             <Typography variant="h4" sx={{ fontWeight:"normal", color: "000000" }}>
-              {record.numero}
+              {record.nombreFuente}
             </Typography>
           </CardContent>
 
