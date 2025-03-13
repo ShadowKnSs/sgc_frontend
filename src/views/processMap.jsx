@@ -8,9 +8,7 @@ import {
   } from "@mui/material";  
 import { Add, Close, ExpandMore, ExpandLess, Edit } from "@mui/icons-material";
 
-const initialUsers = [
-    { id: 1, docRelacionados: "Doc A", fuenteEntrada: "Fuente X", materialEntrada: "Material 1", requisitoEntrada: "Requisito A", salidas: "Salida A", receptores: "Receptor 1" },
-];
+const initialUsers = [];
 
 function ProcessMapView() {
     const [users, setUsers] = useState(initialUsers);
@@ -63,10 +61,20 @@ function ProcessMapView() {
                 
                 if (response.data.length > 0) {
                     setMapaProceso(response.data[0]); // Tomamos el primer registro
+                    return axios.get(`http://localhost:8000/api/indmapaproceso/${response.data[0].idMapaProceso}`);
                 } else {
                     console.error("No se encontraron datos de mapa de procesos.");
                 }
             })
+            .then(response => {
+                if (response && response.data) {
+                    const data = Array.isArray(response.data) ? response.data : [response.data]; // Convertir en array si es un objeto
+                    setUsers(data);
+                    console.log("Usuarios cargados:", data);
+                } else {
+                    console.error("No se encontraron indicadores.");
+                }
+            })            
             .catch(error => {
                 console.error("Error al obtener los datos del mapa de procesos:", error);
             });
@@ -122,17 +130,22 @@ function ProcessMapView() {
 
     const handleAddUser = () => {
         if (validateFields()) {
-            setUsers([...users, { 
-                id: users.length + 1, 
+            axios.post("http://localhost:8000/api/indmapaproceso", {
+                idMapaProceso: mapaProceso.idMapaProceso, 
+                idResponsable: 1, // Ajusta esto con el id correcto del usuario
                 descripcion: newUser.descripcion, 
                 formula: newUser.formula, 
-                periodo: newUser.periodo 
-            }]);
-            setOpenForm(false);
-            setNewUser({ descripcion: "", formula: "", periodo: "" });
-            setErrors({});
+                periodoMed: newUser.periodo 
+            })
+            .then(response => {
+                setUsers([...users, response.data]); // Agregar el nuevo usuario a la lista
+                setOpenForm(false);
+                setNewUser({ descripcion: "", formula: "", periodo: "" });
+                setErrors({});
+            })
+            .catch(error => console.error("Error al agregar indicador:", error));
         }
-    };         
+    };              
     
     const handleSaveChanges = () => {
         if (!mapaProceso.idMapaProceso) {
@@ -420,7 +433,7 @@ function UserCard({ user, onSelect, onClose, isActive }) {
                             {[
                                 { title: "Descripcion", value: user.descripcion },
                                 { title: "Formula", value: user.formula },
-                                { title: "Periodo", value: user.periodo },
+                                { title: "Periodo", value: user.periodoMed },
                             ].map((field, index) => (
                                 <TableContainer key={index} component={Paper} sx={{ width: "28%", minWidth: "180px", boxShadow: 1 }}>
                                     <Table>
