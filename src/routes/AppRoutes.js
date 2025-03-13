@@ -27,6 +27,7 @@ import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import CarpetasActividadMejora from "../views/carpetasActividadMejora";
+import ManualDelSitio from "../views/manualSitio";
 
 
 const AppRoutes = () => {
@@ -51,8 +52,7 @@ const AppRoutes = () => {
           <Route path="analisis-DatosForm" element={<FormularioAnalisis />} />
           <Route path="gestion-riesgosForm" element={<GestionRiesgosForm />} />
           {/* <Route path="actividad-mejora/idPlanCorrectivo" element={<ActividadMejora />} /> */}
-          <Route path="actividad-mejora" element={<ActividadMejora />} />
-          <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
+c          <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
           {/*<Route path="formulario-seguimiento" element={<FormSeguimiento />} />*/}
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="user-eventos" element={<UserEvent />} />
@@ -62,6 +62,10 @@ const AppRoutes = () => {
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
           <Route path="manualDelSitio" element={<ManualDelSitio />} />
           <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} />
+          <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
+          <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
+
+
 
         </Route>
       </Routes>

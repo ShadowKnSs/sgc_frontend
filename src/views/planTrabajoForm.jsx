@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Para obtener idRegistro desde la URL
+import { useParams } from "react-router-dom"; // Para extraer idRegistro desde la URL
 import { Box, Button, Switch, FormControlLabel, Typography } from "@mui/material";
 import axios from "axios";
 import PTForm from "../components/Forms/PTForm";
@@ -9,33 +9,56 @@ import ModalForm from "../components/Modals/ModalForm";
 import DetailsModal from "../components/Modals/DetailsModal";
 
 const PlanTrabajoFormV = () => {
-  // Extraemos el idRegistro desde la URL
+  // Extraemos idRegistro de la URL
   const { idRegistro } = useParams();
   console.log("ID Registro recibido:", idRegistro);
 
-  // Datos principales para planTrabajo; inicializamos con valores predeterminados
+  // Estado del formulario principal (se llenará con datos desde el backend)
   const [formData, setFormData] = useState({
-    responsable: "Juan Pérez", // Puedes modificar este valor por defecto si lo deseas
+    responsable: "", // Vacío, se llenará con los datos de la base
     fechaElaboracion: "",
-    objetivo: "Mejorar la productividad en el departamento.",
-    revisadoPor: "Ana Gómez"
+    objetivo: "",
+    revisadoPor: ""
   });
   const [formSaved, setFormSaved] = useState(false);
 
-  // Asignar la fecha actual automáticamente en el campo fechaElaboracion
+  // Consulta el backend para traer el plan de trabajo existente para este idRegistro
   useEffect(() => {
-    if (!formData.fechaElaboracion) {
-      const currentDate = new Date().toISOString().slice(0, 10);
-      console.log("Asignando fecha de elaboración:", currentDate);
-      setFormData(prev => ({ ...prev, fechaElaboracion: currentDate }));
-    }
-  }, [formData.fechaElaboracion]);
+    const fetchPlanTrabajo = async () => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/api/plantrabajo/registro/${idRegistro}`);
+        console.log("Plan de trabajo obtenido del backend:", response.data);
+        const plan = response.data;
+        if (plan) {
+          setFormData({
+            responsable: plan.responsable || "",
+            fechaElaboracion: plan.fechaElaboracion || new Date().toISOString().slice(0, 10),
+            objetivo: plan.objetivo || "",
+            revisadoPor: plan.revisadoPor || ""
+          });
+          if (plan.fuentes && plan.fuentes.length > 0) {
+            setRecords(plan.fuentes);
+          }
+        } else {
+          // Si no existe plan, asigna la fecha actual
+          const currentDate = new Date().toISOString().slice(0, 10);
+          setFormData(prev => ({ ...prev, fechaElaboracion: currentDate }));
+        }
+      } catch (error) {
+        console.error("Error al obtener el plan de trabajo:", error);
+        const currentDate = new Date().toISOString().slice(0, 10);
+        setFormData(prev => ({ ...prev, fechaElaboracion: currentDate }));
+      }
+    };
 
-  // Estado para controlar el modal de fuente
+    if (idRegistro) {
+      fetchPlanTrabajo();
+    }
+  }, [idRegistro]);
+
+  // Estados para el modal y fuentes
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-
-  // Datos para cada fuente (tabla fuentept)
   const [additionalFormData, setAdditionalFormData] = useState({
     numero: "",
     responsable: "",
@@ -47,28 +70,22 @@ const PlanTrabajoFormV = () => {
     descripcion: "",
     entregable: ""
   });
-
-  // Arreglo de registros (fuentes) agregados localmente
   const [records, setRecords] = useState([]);
   const [viewMode, setViewMode] = useState("table");
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  // Manejo del formulario principal
   const handleChange = (e) => {
     console.log("Cambio en formulario principal:", e.target.name, e.target.value);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Manejo de cambios en el formulario de fuentes
   const handleAdditionalChange = (e) => {
     console.log("Cambio en fuente:", e.target.name, e.target.value);
     setAdditionalFormData({ ...additionalFormData, [e.target.name]: e.target.value });
   };
 
-  // Validación del formulario principal
   const isFormValid = () =>
     Object.values(formData).every((value) => value.trim() !== "");
-  // Validación de los campos de fuente; se ignora "numero" que es autoasignado
   const isAdditionalFormValid = () =>
     additionalFormData.responsable.trim() !== "" &&
     additionalFormData.fechaInicio.trim() !== "" &&
@@ -79,34 +96,13 @@ const PlanTrabajoFormV = () => {
     additionalFormData.descripcion.trim() !== "" &&
     additionalFormData.entregable.trim() !== "";
 
-  const handleSave = () => {
-    if (!isFormValid()) {
-      console.log("El formulario principal no es válido");
-      return;
-    }
-    setFormSaved(true);
-    console.log("Formulario principal guardado");
-  };
-
-  const handleClear = () => {
-    console.log("Limpiando formulario principal");
-    setFormData({
-      responsable: "",
-      fechaElaboracion: "",
-      objetivo: "",
-      revisadoPor: ""
-    });
-    setFormSaved(false);
-  };
-
-  // Abre el modal para agregar o editar una fuente
   const handleOpenModal = (index = null) => {
     if (index !== null) {
-      console.log("Editando registro en el índice:", index);
+      console.log("Editando fuente en el índice:", index);
       setEditIndex(index);
       setAdditionalFormData(records[index]);
     } else {
-      console.log("Agregando nuevo registro de fuente");
+      console.log("Agregando nueva fuente");
       setEditIndex(null);
       setAdditionalFormData({
         numero: records.length + 1,
@@ -123,15 +119,13 @@ const PlanTrabajoFormV = () => {
     setShowModal(true);
   };
 
-  // Agrega o actualiza la fuente en la lista local
   const handleAddOrUpdateRecord = () => {
     if (!isAdditionalFormValid()) {
       console.log("El formulario de fuente no es válido");
       return;
     }
-
     if (editIndex !== null) {
-      console.log("Actualizando registro de fuente en el índice:", editIndex, additionalFormData);
+      console.log("Actualizando fuente en el índice:", editIndex, additionalFormData);
       const updatedRecords = [...records];
       updatedRecords[editIndex] = additionalFormData;
       setRecords(updatedRecords);
@@ -139,11 +133,9 @@ const PlanTrabajoFormV = () => {
       console.log("Agregando nueva fuente:", additionalFormData);
       setRecords([...records, additionalFormData]);
     }
-
     setShowModal(false);
   };
 
-  // Elimina una fuente de la lista local
   const handleDeleteRecord = (index) => {
     console.log("Eliminando fuente en el índice:", index);
     const updatedRecords = records.filter((_, i) => i !== index);
@@ -160,12 +152,13 @@ const PlanTrabajoFormV = () => {
     console.log("Abriendo modal de detalles para:", record);
     setSelectedRecord(record);
   };
+
   const handleCloseCardModal = () => {
     console.log("Cerrando modal de detalles");
     setSelectedRecord(null);
   };
 
-  // Función para enviar el plan de trabajo completo al backend
+  // Construye el payload y lo envía al backend
   const handleSubmit = () => {
     if (!isFormValid()) {
       alert("Complete el formulario principal.");
@@ -174,17 +167,18 @@ const PlanTrabajoFormV = () => {
     }
     if (records.length === 0) {
       alert("Agregue al menos un registro de fuente.");
-      console.log("Error: No se han agregado fuentes");
+      console.log("Error: no se han agregado fuentes");
       return;
     }
 
     const payload = {
       planTrabajo: {
+        responsable: formData.responsable, // Se agrega el responsable aquí
         fechaElaboracion: formData.fechaElaboracion,
         objetivo: formData.objetivo,
         revisadoPor: formData.revisadoPor,
         actividadMejora: {
-          idRegistro: idRegistro
+          idRegistro: idRegistro // Se utiliza el idRegistro recibido de la vista Carpetas
         }
       },
       fuentes: records.map((record) => ({
@@ -201,11 +195,17 @@ const PlanTrabajoFormV = () => {
 
     console.log("Enviando payload al backend:", payload);
     axios
-      .post("/api/plantrabajo", payload)
+      .post("http://127.0.0.1:8000/api/plantrabajo", payload)
       .then((response) => {
         console.log("Respuesta del backend:", response.data);
         alert("Plan de trabajo guardado exitosamente");
-        handleClear();
+        // Reiniciar formulario principal y fuentes
+        setFormData({
+          responsable: "",
+          fechaElaboracion: new Date().toISOString().slice(0, 10),
+          objetivo: "",
+          revisadoPor: ""
+        });
         setRecords([]);
       })
       .catch((error) => {
@@ -228,17 +228,10 @@ const PlanTrabajoFormV = () => {
         />
       </Box>
 
-      <PTForm
-        formData={formData}
-        handleChange={handleChange}
-      />
+      <PTForm formData={formData} handleChange={handleChange} />
 
       {records.length > 0 && viewMode === "table" && (
-        <TablaRegistros
-          records={records}
-          handleOpenModal={handleOpenModal}
-          handleDeleteRecord={handleDeleteRecord}
-        />
+        <TablaRegistros records={records} handleOpenModal={handleOpenModal} handleDeleteRecord={handleDeleteRecord} />
       )}
 
       {records.length > 0 && viewMode === "cards" && (
@@ -260,10 +253,7 @@ const PlanTrabajoFormV = () => {
         editIndex={editIndex}
       />
 
-      <DetailsModal
-        selectedRecord={selectedRecord}
-        handleCloseCardModal={handleCloseCardModal}
-      />
+      <DetailsModal selectedRecord={selectedRecord} handleCloseCardModal={handleCloseCardModal} />
 
       <Box sx={{ mt: 2, display: "flex", marginLeft: "auto", padding: "5px" }}>
         <Button
@@ -279,7 +269,7 @@ const PlanTrabajoFormV = () => {
             fontSize: 30,
             minWidth: "auto",
             backgroundColor: "#00B2E3",
-            "&:hover": { backgroundColor: "#0099C3" },
+            "&:hover": { backgroundColor: "#0099C3" }
           }}
         >
           +
