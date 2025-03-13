@@ -9,9 +9,9 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) =>
   useEffect(() => {
     if (open && indicator) {
       // Para indicadores anuales se utiliza "resultadoSemestral1"
-      if (indicator.periodicidad === "Anual" && savedResult && savedResult.resultadoSemestral1 !== null) {
+      if (indicator.periodicidad === "Anual" && savedResult && savedResult.resultadoSemestral1 != null) {
         setResult(savedResult.resultadoSemestral1.toString());
-      } else if (savedResult && savedResult.result !== undefined) {
+      } else if (savedResult && savedResult.result != null) {
         setResult(savedResult.result.toString());
       } else {
         setResult('');

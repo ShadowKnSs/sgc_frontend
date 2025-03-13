@@ -4,28 +4,25 @@ import MenuCard from "../components/menuCard";
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
-import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
-import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
-import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
 import AssuredWorkloadOutlinedIcon from '@mui/icons-material/AssuredWorkloadOutlined';
-// import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import { useNavigate } from "react-router-dom";
-
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
+import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 
 const Welcome = () => {
   const navigate = useNavigate(); 
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },
-    { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manual-sitio" },
+    { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manualDelSitio" },
     { icon: <GroupAddOutlinedIcon />, title: "Usuarios", path: "/usuarios" },
     { icon: <AccountTreeOutlinedIcon />, title: "Procesos", path: "/procesos" },
-    { icon: <VerifiedUserOutlinedIcon />, title: "Auditores", path: "/auditores" },
-    { icon: <SupervisorAccountOutlinedIcon />, title: "Supervisores", path: "/indicadores" },
-    { icon: <InsertChartOutlinedIcon />, title: "Reportes", path: "/reportes" },
+    { icon: <CampaignOutlinedIcon />, title: "Noticias", path: "/user-eventos" },
+    { icon: <NewspaperOutlinedIcon />, title: "Gestión Noticias", path: "/admin-eventos" },
+    { icon: <CalendarMonthOutlinedIcon />, title: "Cronograma", path: "/cronograma" },
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
   ];
-
   return (
     <Box
       sx={{

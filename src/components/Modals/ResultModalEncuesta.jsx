@@ -72,32 +72,22 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) 
   useEffect(() => {
     if (open && savedResult) {
       setFormData({
-        encuestas: (savedResult.encuestas !== undefined && savedResult.encuestas !== null)
-          ? savedResult.encuestas.toString()
-          : "",
-        malas: (savedResult.malas !== undefined && savedResult.malas !== null)
-          ? savedResult.malas.toString()
-          : "",
-        regulares: (savedResult.regulares !== undefined && savedResult.regulares !== null)
-          ? savedResult.regulares.toString()
-          : "",
-        buenas: (savedResult.buenas !== undefined && savedResult.buenas !== null)
-          ? savedResult.buenas.toString()
-          : "",
-        excelentes: (savedResult.excelentes !== undefined && savedResult.excelentes !== null)
-          ? savedResult.excelentes.toString()
-          : ""
+        encuestas: savedResult.noEncuestas?.toString() ?? "",
+        malas: savedResult.malo?.toString() ?? "",
+        regulares: savedResult.regular?.toString() ?? "",
+        buenas: savedResult.bueno?.toString() ?? "",
+        excelentes: savedResult.excelente?.toString() ?? ""
       });
     }
   }, [open, savedResult]);
 
   const handleSave = () => {
     const resultData = {
-      encuestas: Number(formData.encuestas),
-      malas: Number(formData.malas),
-      regulares: Number(formData.regulares),
-      buenas: Number(formData.buenas),
-      excelentes: Number(formData.excelentes)
+      noEncuestas: Number(formData.encuestas),
+      malo: Number(formData.malas),
+      regular: Number(formData.regulares),
+      bueno: Number(formData.buenas),
+      excelente: Number(formData.excelentes)
     };
     onSave(indicator.idIndicadorConsolidado, { result: resultData });
     onClose();
