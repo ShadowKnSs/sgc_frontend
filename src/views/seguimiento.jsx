@@ -1,80 +1,98 @@
 import { useState, useEffect } from "react";
-import { Box, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Button, Fab } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import { Link } from "react-router-dom";
-import CardArchivos from "../components/CardArchivos";
-import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios"; // Asegúrate de importar Axios
+import { useParams,Link } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import Title from "../components/Title"; // Importamos el componente Title
+import CardArchivos from "../components/CardArchivos";
+import { Box, Grid, Fab, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Snackbar, Alert } from "@mui/material";
 
-function Seguimiento() {
-  const [carpetas, setCarpetas] = useState([]); // Inicializamos como vacío
+function Carpetas() {
+  const [carpetas, setCarpetas] = useState([]);
   const [open, setOpen] = useState(false);
   const [nuevoAnio, setNuevoAnio] = useState("");
-  const { idProceso } = useParams();
-  console.log("id del proceso en seguimiento", idProceso);
+  const [error, setError] = useState(null);
+  const { idProceso, title } = useParams();
 
-  // Obtener los registros (carpetas) del backend
+  // Mapeo de rutas según el título
+  const rutas = {
+    "Gestión de Riesgo": "gestion-riesgos",
+    "Análisis de Datos": "analisis-Datos",
+    "Acciones de Mejora": "/actividad-mejora",
+    "Generar informe de auditoría": "informe-adutoria",
+    "Seguimiento": "seguimientoPrincipal",
+    "Indicadores": "/user-indicadores"
+  };
+
+  console.log("titulo", title);
+
   useEffect(() => {
-    // Hacemos la solicitud GET para obtener los registros
-    axios
-      .get(`http://127.0.0.1:8000/api/registros/${idProceso}`)
-      .then((response) => {
-        console.log("Registros obtenidos: ", response.data); // Verifica si el `idRegistro` está en los registros
-        setCarpetas(response.data); // Suponiendo que cada registro tiene un idRegistro
-      })
-      .catch((error) => {
-        console.error("Error al obtener los registros:", error);
-      });
-  }, [idProceso]);
+    obtenerRegistros();
+  }, []);
 
-  // Función para abrir/cerrar el diálogo
+  const obtenerRegistros = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/registros/filtrar", {
+        idProceso,
+        Apartado: title,
+      });
+
+      // Ordenar las carpetas por año de menor a mayor
+      const carpetasOrdenadas = response.data.sort((a, b) => a.año - b.año);
+      setCarpetas(carpetasOrdenadas);
+    } catch (error) {
+      console.error("Error al obtener registros:", error);
+    }
+  };
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
-    setNuevoAnio(""); // Limpiar input
+    setNuevoAnio("");
     setOpen(false);
   };
 
-  // Función para añadir una nueva carpeta
-  const handleAddCarpeta = () => {
+  const handleAddCarpeta = async () => {
     const anio = parseInt(nuevoAnio);
-    if (!isNaN(anio) && !carpetas.includes(anio)) {
-      // Agregar el año al backend
-      axios
-        .post("http://127.0.0.1:8000/api/registros", { idProceso, año: anio })
-        .then((response) => {
-          console.log("Nuevo registro agregado:", response.data);
-          setCarpetas([anio, ...carpetas]); // Actualizar el estado local con el nuevo año
-        })
-        .catch((error) => {
-          console.error("Error al agregar registro:", error);
-        });
+    if (isNaN(anio)) return;
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/registros", {
+        idProceso,
+        año: anio,
+        Apartado: title,
+      });
+
+      console.log("Nuevo registro agregado:", response.data);
+      setCarpetas([...carpetas, response.data]);
+      setError(null);
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Error al agregar la carpeta.");
+      }
     }
     handleClose();
   };
 
   return (
     <Box sx={{ p: 4 }}>
-      <h1
-        style={{
-          textAlign: "center",
-          marginBottom: "32px",
-          fontFamily: "'Roboto', sans-serif",
-          color: "#004A98",
-        }}
-      >
-        Seguimiento
-      </h1>
+      {/* Título */}
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+        <Title text={title} sx={{ textAlign: "center", mb: 4 }} />
+      </Box>
 
-      <Grid container spacing={3} justifyContent="left" paddingLeft={20}>
+      {/* Cards */}
+      <Grid container spacing={4} justifyContent="left" paddingLeft={10} sx={{ mt: 4 }}>
         {carpetas.map((registro) => (
-          <Link
-            key={registro.idRegistro}  // Cambié esto para usar `idRegistro` como clave
-            to={`/seguimientoPrincipal/${registro.idRegistro}`}  // Cambié esto para pasar el idRegistro en la URL
-            style={{ textDecoration: "none", color: "inherit" }}
-            onClick={() => console.log(`Navegando a /seguimientoPrincipal/${registro.idRegistro}`)} // Verificación en el clic
-          >
-            <CardArchivos nombreCarpeta={registro.año.toString()} />
-          </Link>
+          <Grid item key={registro.idRegistro}>
+            <Link
+              to={`/${rutas[title]}/${registro.idRegistro}`}  // Aquí redirige según el title
+              style={{ textDecoration: "none", color: "inherit" }}
+              onClick={() => console.log(`Navegando a /${rutas[title]}/${registro.idRegistro}`)}
+            >
+              <CardArchivos nombreCarpeta={registro.año.toString()} />
+            </Link>
+          </Grid>
         ))}
       </Grid>
 
@@ -83,14 +101,14 @@ function Seguimiento() {
         <AddIcon />
       </Fab>
 
-      {/* Diálogo para añadir una nueva carpeta */}
+      {/* Diálogo */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Nueva Carpeta</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="año"
+            label="Año"
             type="number"
             fullWidth
             variant="outlined"
@@ -103,8 +121,17 @@ function Seguimiento() {
           <Button onClick={handleAddCarpeta} color="primary">Aceptar</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar para mostrar errores */}
+      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)}>
+        <Alert severity="error">{error}</Alert>
+      </Snackbar>
     </Box>
   );
 }
 
-export default Seguimiento;
+export default Carpetas;
+
+
+
+
