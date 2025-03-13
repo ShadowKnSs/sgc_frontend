@@ -6,7 +6,7 @@ import {
     Button, Dialog, DialogTitle, DialogContent, DialogActions, 
     TextField, MenuItem, Grid, Divider
   } from "@mui/material";  
-import { Add, Close, ExpandMore, ExpandLess, Edit } from "@mui/icons-material";
+import { Add, Close, ExpandMore, ExpandLess, Edit, Delete } from "@mui/icons-material";
 
 const initialUsers = [];
 
@@ -18,6 +18,10 @@ function ProcessMapView() {
     const [openForm, setOpenForm] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [isFixed, setIsFixed] = useState(false);
+    const [editUser, setEditUser] = useState(null);
+    const [editFormOpen, setEditFormOpen] = useState(false);
+    
+    const newIdIndicador = users.length > 0 ? Math.max(...users.map(u => u.idIndicador)) + 1 : 1;
 
     const [proceso, setProceso] = useState({
         objetivo: "",
@@ -53,6 +57,12 @@ function ProcessMapView() {
             .catch(error => {
                 console.error("Error al obtener los datos del proceso:", error);
             });
+
+        axios.get("http://localhost:8000/api/indmapaproceso")
+            .then(response => {
+                setUsers(response.data);
+            })
+            .catch(error => console.error("Error al cargar indicadores:", error));
     
         // Obtener datos del mapa de procesos
         axios.get("http://localhost:8000/api/mapaproceso")
@@ -61,7 +71,6 @@ function ProcessMapView() {
                 
                 if (response.data.length > 0) {
                     setMapaProceso(response.data[0]); // Tomamos el primer registro
-                    return axios.get(`http://localhost:8000/api/indmapaproceso/${response.data[0].idMapaProceso}`);
                 } else {
                     console.error("No se encontraron datos de mapa de procesos.");
                 }
@@ -132,15 +141,16 @@ function ProcessMapView() {
         if (validateFields()) {
             axios.post("http://localhost:8000/api/indmapaproceso", {
                 idMapaProceso: mapaProceso.idMapaProceso, 
-                idResponsable: 1, // Ajusta esto con el id correcto del usuario
+                idIndicador: newIdIndicador,
+                idResponsable: 1, // Ajusta esto con el id correcto
                 descripcion: newUser.descripcion, 
                 formula: newUser.formula, 
                 periodoMed: newUser.periodo 
             })
             .then(response => {
-                setUsers([...users, response.data]); // Agregar el nuevo usuario a la lista
-                setOpenForm(false);
-                setNewUser({ descripcion: "", formula: "", periodo: "" });
+                setUsers([...users, response.data]); // Agrega el nuevo indicador a la lista
+                setOpenForm(false); // Cierra el formulario
+                setNewUser({ descripcion: "", formula: "", periodo: "" }); // Resetea los valores
                 setErrors({});
             })
             .catch(error => console.error("Error al agregar indicador:", error));
@@ -162,6 +172,37 @@ function ProcessMapView() {
                 console.error("Error al actualizar el mapa de procesos:", error);
             });
     };      
+
+    const handleDeleteUser = (idIndicador) => {
+        axios.delete(`http://localhost:8000/api/indmapaproceso/${idIndicador}`)
+            .then(() => {
+                setUsers(users.filter(user => user.idIndicador !== idIndicador));
+            })
+            .catch(error => console.error("Error al eliminar el indicador:", error));
+    };
+    
+    const handleEditUser = (user) => {
+        setEditUser(user);
+        setEditFormOpen(true);
+    };
+
+    const handleSaveEditUser = () => {
+        if (!editUser) return;
+    
+        axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicador}`, {
+            idMapaProceso: mapaProceso.idMapaProceso,
+            idIndicador: editUser.idIndicador,
+            descripcion: editUser.descripcion,
+            formula: editUser.formula,
+            periodoMed: editUser.periodo
+        })
+        .then(response => {
+            setUsers(users.map(user => user.idIndicador === editUser.idIndicador ? response.data : user));
+            setEditFormOpen(false);
+            setEditUser(null);
+        })
+        .catch(error => console.error("Error al actualizar indicador:", error));
+    };
 
     return (
         <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
@@ -259,9 +300,16 @@ function ProcessMapView() {
             {activeCards.length > 0 && (
                 <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
                     <Stack spacing={2}>
-                        {activeCards.map((user) => (
-                            <UserCard key={user.id} user={user} isActive onClose={handleCloseCard} />
-                        ))}
+                    {activeCards.map((user) => (
+                        <UserCard 
+                            key={user.id} 
+                            user={user} 
+                            isActive 
+                            onClose={handleCloseCard} 
+                            onDelete={handleDeleteUser}
+                            onEdit={handleEditUser}
+                        />
+                    ))}
                     </Stack>
                 </Box>
             )}
@@ -282,7 +330,14 @@ function ProcessMapView() {
                 {users
                     .filter((user) => !activeCards.some(u => u.id === user.id))
                     .map((user) => (
-                        <UserCard key={user.id} user={user} onSelect={handleSelectCard} isSmall={activeCards.length > 0} />
+                        <UserCard 
+                            key={user.id} 
+                            user={user} 
+                            onSelect={handleSelectCard} 
+                            onDelete={handleDeleteUser}
+                            onEdit={handleEditUser}
+                            isSmall={activeCards.length > 0} 
+                        />
                     ))}
             </Box>
 
@@ -323,82 +378,145 @@ function ProcessMapView() {
             </Fab>
             {openForm && (
                 <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
-                    <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
-                        Agregar Nuevo Indicador
-                    </DialogTitle>
-                    <DialogContent>
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
-                            <TextField
-                                label="Descripción"
-                                fullWidth
-                                variant="outlined"
-                                sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
-                                value={newUser.descripcion}
-                                onChange={(e) => setNewUser({ ...newUser, descripcion: e.target.value })}
-                                error={!!errors.descripcion}
-                                helperText={errors.descripcion}
-                            />
-
-                            <TextField
-                                label="Fórmula"
-                                fullWidth
-                                variant="outlined"
-                                sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
-                                value={newUser.formula}
-                                onChange={(e) => setNewUser({ ...newUser, formula: e.target.value })}
-                                error={!!errors.formula}
-                                helperText={errors.formula}
-                            />
-
-                            <TextField
-                                label="Período"
-                                fullWidth
-                                select
-                                variant="outlined"
-                                sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
-                                value={newUser.periodo}
-                                onChange={(e) => setNewUser({ ...newUser, periodo: e.target.value })}
-                                error={!!errors.periodo}
-                                helperText={errors.periodo}
-                            >
-                                <MenuItem value="Mensual">Mensual</MenuItem>
-                                <MenuItem value="Trimestral">Trimestral</MenuItem>
-                                <MenuItem value="Anual">Anual</MenuItem>
-                            </TextField>
-                        </Box>
-                        </DialogContent>
-                        <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-                            <Button
-                                onClick={() => setOpenForm(false)}
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: "#D3D3D3",
-                                    color: "black",
-                                    "&:hover": { backgroundColor: "#B0B0B0" }
-                                }}
-                            >
-                                CANCELAR
-                            </Button>
-                            <Button
-                                onClick={handleAddUser}
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: "#F9B800",
-                                    color: "black",
-                                    "&:hover": { backgroundColor: "#E0A500" }
-                                }}
-                            >
-                                GUARDAR
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
+                <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+                    Agregar Nuevo Indicador
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+                        <TextField
+                            label="Descripción"
+                            fullWidth
+                            variant="outlined"
+                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                            value={newUser.descripcion}
+                            onChange={(e) => setNewUser({ ...newUser, descripcion: e.target.value })}
+                            error={!!errors.descripcion}
+                            helperText={errors.descripcion}
+                        />
+            
+                        <TextField
+                            label="Fórmula"
+                            fullWidth
+                            variant="outlined"
+                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                            value={newUser.formula}
+                            onChange={(e) => setNewUser({ ...newUser, formula: e.target.value })}
+                            error={!!errors.formula}
+                            helperText={errors.formula}
+                        />
+            
+                        <TextField
+                            label="Período"
+                            fullWidth
+                            select
+                            variant="outlined"
+                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                            value={newUser.periodo}
+                            onChange={(e) => setNewUser({ ...newUser, periodo: e.target.value })}
+                            error={!!errors.periodo}
+                            helperText={errors.periodo}
+                        >
+                            <MenuItem value="Mensual">Mensual</MenuItem>
+                            <MenuItem value="Trimestral">Trimestral</MenuItem>
+                            <MenuItem value="Anual">Anual</MenuItem>
+                        </TextField>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
+                    <Button
+                        onClick={() => setOpenForm(false)}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#D3D3D3",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#B0B0B0" }
+                        }}
+                    >
+                        CANCELAR
+                    </Button>
+                    <Button
+                        onClick={handleAddUser}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#F9B800",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#E0A500" }
+                        }}
+                    >
+                        GUARDAR
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            
                 )}
             </Box>
+            <Dialog open={editFormOpen} onClose={() => setEditFormOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+                    Editar Indicador
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+                        <TextField
+                            label="Descripción"
+                            fullWidth
+                            variant="outlined"
+                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                            value={editUser?.descripcion || ""}
+                            onChange={(e) => setEditUser({ ...editUser, descripcion: e.target.value })}
+                        />
+                        <TextField
+                            label="Fórmula"
+                            fullWidth
+                            variant="outlined"
+                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                            value={editUser?.formula || ""}
+                            onChange={(e) => setEditUser({ ...editUser, formula: e.target.value })}
+                        />
+                        <TextField
+                            label="Período"
+                            fullWidth
+                            select
+                            variant="outlined"
+                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                            value={editUser?.periodo || ""}
+                            onChange={(e) => setEditUser({ ...editUser, periodo: e.target.value })}
+                        >
+                            <MenuItem value="Mensual">Mensual</MenuItem>
+                            <MenuItem value="Trimestral">Trimestral</MenuItem>
+                            <MenuItem value="Anual">Anual</MenuItem>
+                        </TextField>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
+                    <Button
+                        onClick={() => setEditFormOpen(false)}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#D3D3D3",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#B0B0B0" }
+                        }}
+                    >
+                        CANCELAR
+                    </Button>
+                    <Button
+                        onClick={handleSaveEditUser}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#F9B800",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#E0A500" }
+                        }}
+                    >
+                        GUARDAR
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
 
-function UserCard({ user, onSelect, onClose, isActive }) {
+function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit }) {
     return (
         <Card
             sx={{
@@ -427,6 +545,24 @@ function UserCard({ user, onSelect, onClose, isActive }) {
                     >
                         <Close />
                     </IconButton>
+
+                    {onEdit && (
+                        <IconButton
+                            onClick={() => onEdit(user)}
+                            sx={{ color: "blue", position: "absolute", top: "5px", right: "80px", zIndex: 10 }}
+                        >
+                            <Edit />
+                        </IconButton>
+                    )}
+
+                    {onDelete && (
+                        <IconButton
+                            onClick={() => onDelete(user.idIndicador)}
+                            sx={{ color: "red", position: "absolute", top: "5px", right: "40px", zIndex: 10 }}
+                        >
+                            <Delete />  {/* 👈 Cambia Close por Delete */}
+                        </IconButton>
+                    )}
 
                     <CardContent>
                         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
