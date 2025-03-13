@@ -20,18 +20,16 @@ import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
-import EventosNotAv from "../views/eventNotAv";
 import AdminEventos from "../views/adminEventos";
 import InformeAuditoria from "../views/informeAditoriaInterna";
 import Cronograma from "../views/cronograma";
-
 import ManualCalidad from "../views/manualCalidad";
 import ProcessInEntity from "../views/processInEntity";
 import SeguimientoPrincipal from "../views/seguimientoPrincipal";
-import AdminEventos from "../views/adminEventNot";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
+import ManualDelSitio from "../views/manualDelSitio";
 
 
 const AppRoutes = () => {
@@ -43,7 +41,6 @@ const AppRoutes = () => {
           <Route path="procesos" element={<ProcessPage />} />
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
-          <Route path="indicadores" element={<IndicatorPage userType={userType} />} />
           <Route path="/admin-indicadores" element={<AdminIndicatorPage />} />
           <Route path="/user-indicadores" element={<UserIndicatorPage />} />
           <Route path="graficas" element={<GraficasPage />} />
@@ -69,6 +66,8 @@ const AppRoutes = () => {
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
           <Route path="manualDelSitio" element={<ManualDelSitio />} />
+          <Route path="admin-eventos" element={<AdminEventos/>} />
+          <Route path="user-eventos" element={<UserEvent/>} />
 
         </Route>
       </Routes>
