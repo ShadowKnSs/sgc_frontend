@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "moment/locale/es";
+import axios from 'axios';
 
 moment.locale("es");
 
@@ -12,10 +13,54 @@ const localizer = momentLocalizer(moment);
 function Cronograma() {
 
   const [events, setEvents] = useState([ ]);
+  const [entidades, setEntidades] = useState([]);
+  const [procesos, setProcesos] = useState([]);
 
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:8000/api/cronograma')
+      .then(response => {
+        const auditorias = response.data.map(auditoria => ({
+          id: auditoria.idAuditoria,
+          title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
+          start: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
+          end: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
+          descripcion: auditoria.descripcion,
+          estado: auditoria.estado,
+          tipo: auditoria.tipoAuditoria,
+          proceso: auditoria.nombreProceso,
+          entidad: auditoria.nombreEntidad,
+          hora: auditoria.horaProgramada,
+        }));
+        setEvents(auditorias);
+      })
+      .catch(error => {
+        console.error("Error al obtener las auditorías:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:8000/api/entidad-nombres')
+        .then(response => {
+            setEntidades(response.data.nombres);
+        })
+        .catch(error => {
+            console.error("Hubo un error al obtener las entidades:", error);
+        });
+  }, []);
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/procesos-nombres")
+      .then((response) => {
+        setProcesos(response.data.procesos);
+      })
+      .catch((error) => {
+        console.error("Error al obtener los nombres de los procesos:", error);
+      });
+  }, []);
 
   const formats = {
     monthHeaderFormat: (date) =>
@@ -43,6 +88,7 @@ function Cronograma() {
 
   // Abrir modal de detalles
   const handleOpenDetails = (event) => {
+    console.log("Evento seleccionado:", event);
     setSelectedEvent(event);
     setOpenDetails(true);
   };
@@ -53,8 +99,8 @@ function Cronograma() {
     setFormData({
       entidad: selectedEvent.entidad,
       proceso: selectedEvent.proceso,
-      fecha: moment(selectedEvent.fecha).format("YYYY-MM-DD"),
-      hora: selectedEvent.hora,
+      fecha: moment(selectedEvent.start).format("YYYY-MM-DD"),
+      hora: moment(selectedEvent.start).format("HH:mm"),
       tipo: selectedEvent.tipo,
       estado: selectedEvent.estado,
       descripcion: selectedEvent.descripcion,
@@ -62,7 +108,7 @@ function Cronograma() {
     setOpenDetails(false);
     setOpenForm(true);
   };
-
+  
   // Cerrar modales
   const handleCloseForm = () => setOpenForm(false);
   const handleCloseDetails = () => setOpenDetails(false);
@@ -73,33 +119,69 @@ function Cronograma() {
   };
 
   // Guardar nueva auditoría o actualizar existente
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (formData.entidad && formData.proceso && formData.fecha && formData.hora && formData.tipo && formData.estado && formData.descripcion) {
-      const fechaHora = new Date(`${formData.fecha}T${formData.hora}`);
-      const nuevoEvento = {
-        title: `${formData.proceso} - ${formData.tipo}`,
-        start: fechaHora,
-        end: fechaHora,
-        entidad: formData.entidad,
-        proceso: formData.proceso,
-        fecha: formData.fecha,
-        hora: formData.hora,
-        tipo: formData.tipo,
-        estado: formData.estado,
-        descripcion: formData.descripcion,
-      };
-      if (isEditing) {
-        setEvents(events.map((ev) => (ev === selectedEvent ? nuevoEvento : ev)));
-      } else {
-        setEvents([...events, nuevoEvento]);
+      try {
+        if (isEditing) {
+          const response = await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
+            fechaProgramada: formData.fecha,
+            horaProgramada: formData.hora,
+            tipoAuditoria: formData.tipo,
+            estado: formData.estado,
+            descripcion: formData.descripcion,
+            nombreProceso: formData.proceso,
+            nombreEntidad: formData.entidad
+          });
+          setEvents(events.map(event =>
+            event.id === selectedEvent.id ? {
+              ...event,
+              start: new Date(`${formData.fecha}T${formData.hora}`),
+              end: new Date(`${formData.fecha}T${formData.hora}`),
+              descripcion: formData.descripcion,
+              estado: formData.estado,
+              tipo: formData.tipo,
+              proceso: formData.proceso,
+              entidad: formData.entidad,
+              hora: formData.hora
+            } : event
+          ));
+          alert("Auditoría actualizada correctamente.");
+        } else {
+          const response = await axios.post("http://127.0.0.1:8000/api/cronograma", {
+            fechaProgramada: formData.fecha,
+            horaProgramada: formData.hora,
+            tipoAuditoria: formData.tipo,
+            estado: formData.estado,
+            descripcion: formData.descripcion,
+            nombreProceso: formData.proceso,
+            nombreEntidad: formData.entidad
+          });
+          const nuevaAuditoria = {
+            id: response.data.auditoria.idAuditoria,
+            title: `${response.data.auditoria.nombreProceso} - ${response.data.auditoria.tipoAuditoria}`,
+            start: new Date(`${response.data.auditoria.fechaProgramada}T${response.data.auditoria.horaProgramada}`),
+            end: new Date(`${response.data.auditoria.fechaProgramada}T${response.data.auditoria.horaProgramada}`),
+            descripcion: response.data.auditoria.descripcion,
+            estado: response.data.auditoria.estado,
+            tipo: response.data.auditoria.tipoAuditoria,
+            proceso: response.data.auditoria.nombreProceso,
+            entidad: response.data.auditoria.nombreEntidad,
+            hora: response.data.auditoria.horaProgramada
+          };
+          setEvents([...events, nuevaAuditoria]);
+          alert("Auditoría creada exitosamente.");
+        }
+        setFormData({ entidad: "", proceso: "", fecha: "", hora: "", tipo: "", estado: "", descripcion: "" });
+        handleCloseForm();
+      } catch (error) {
+        console.error("Error al guardar la auditoría:", error.response ? error.response.data : error.message);
+        alert("Hubo un error al guardar la auditoría.");
       }
-      setFormData({ entidad: "", proceso: "", fecha: "", hora: "", tipo: "", estado: "", descripcion: "", });
-      handleCloseForm();
     } else {
       alert("Todos los campos son obligatorios.");
     }
   };
-
+  
   return (
     <Box
       sx={{ p: 4, height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", backgroundColor: "#f4f4f4", paddingTop: "20px", position: "relative", }}
@@ -115,7 +197,7 @@ function Cronograma() {
           events={events}
           startAccessor="start"
           endAccessor="end"
-          defaultView="week"
+          defaultView="month" 
           views={["month", "week", "day"]}
           messages={{
             today: "Hoy",
@@ -136,25 +218,36 @@ function Cronograma() {
         </Button>
       </Box>
 
-      {/* Formulario (Crear o Editar) */}
       <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
         <DialogTitle>{isEditing ? "Editar Auditoría" : "Crear Auditoría"}</DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: '100%' }}>
             <FormControl fullWidth margin="dense">
               <InputLabel>Entidad</InputLabel>
-              <Select name="entidad" value={formData.entidad} onChange={handleChange}>
-                <MenuItem value="Entidad 1">Entidad 1</MenuItem>
-                <MenuItem value="Entidad 2">Entidad 2</MenuItem>
-                <MenuItem value="Entidad 3">Entidad 3</MenuItem>
+              <Select
+                name="entidad"
+                value={formData.entidad}
+                onChange={handleChange}
+              >
+                {entidades.length > 0 ? (
+                  entidades.map((entidad, index) => (
+                    <MenuItem key={index} value={entidad}>{entidad}</MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="">Cargando...</MenuItem>
+                )}
               </Select>
             </FormControl>
             <FormControl fullWidth margin="dense">
               <InputLabel>Proceso</InputLabel>
               <Select name="proceso" value={formData.proceso} onChange={handleChange}>
-                <MenuItem value="Proceso 1">Proceso 1</MenuItem>
-                <MenuItem value="Proceso 2">Proceso 2</MenuItem>
-                <MenuItem value="Proceso 3">Proceso 3</MenuItem>
+                {procesos.length > 0 ? (
+                  procesos.map((proceso, index) => (
+                    <MenuItem key={index} value={proceso}>{proceso}</MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="">Cargando...</MenuItem>
+                )}
               </Select>
             </FormControl>
           </Box>
@@ -182,18 +275,18 @@ function Cronograma() {
           </Box>
           <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: '100%', mt: 2 }}>
             <FormControl fullWidth margin="dense">
-              <InputLabel>Tipo</InputLabel>
+              <InputLabel>Tipo de Auditoría</InputLabel>
               <Select name="tipo" value={formData.tipo} onChange={handleChange}>
-                <MenuItem value="Interna">Interna</MenuItem>
-                <MenuItem value="Externa">Externa</MenuItem>
+                <MenuItem value="interna">Interna</MenuItem>
+                <MenuItem value="externa">Externa</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth margin="dense">
               <InputLabel>Estado</InputLabel>
               <Select name="estado" value={formData.estado} onChange={handleChange}>
                 <MenuItem value="Pendiente">Pendiente</MenuItem>
-                <MenuItem value="En proceso">En proceso</MenuItem>
                 <MenuItem value="Finalizada">Finalizada</MenuItem>
+                <MenuItem value="Cancelada">Cancelada</MenuItem>
               </Select>
             </FormControl>
           </Box>
