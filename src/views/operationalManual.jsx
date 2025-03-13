@@ -1,11 +1,13 @@
-import React, { useState, useRef } from "react";
-import { Box, Container, Button } from "@mui/material";
+import React, { useState, useRef, useEffect } from "react";
+import { Box, Container, Button, Typography } from "@mui/material";
 
 // Importar vistas
 import Caratula from "../views/caratula";
 import PlanControl from "../views/planControl";
 import ControlDocuments from "../views/controlDocuments";
 import MapaProceso from "./processMap";
+import ControlCambios from "./controlCambios";
+import DiagramaFlujo from "./diagramaFlujo";
 
 const sections = [
   "Caratula",
@@ -18,18 +20,28 @@ const sections = [
 
 const ProcessView = () => {
   const [selectedTab, setSelectedTab] = useState(0);
+  const [isFixed, setIsFixed] = useState(false);
   const navbarRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsFixed(window.scrollY > 150);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
       case "Caratula":
         return <Caratula />;
       case "Control de Cambios":
-        return <h2>Contenido de Control de Cambios</h2>;
+        return <ControlCambios />;
       case "Mapa de Proceso":
         return <MapaProceso />;
       case "Diagrama de Flujo":
-        return <h2>Contenido de Diagrama de Flujo</h2>;
+        return <DiagramaFlujo />;
       case "Plan de Control":
         return <PlanControl />;
       case "Control de documentos":
@@ -41,7 +53,6 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      {/* Contenedor del navbar con botones de desplazamiento */}
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2 }}>
         <Box
           ref={navbarRef}
@@ -54,7 +65,7 @@ const ProcessView = () => {
             overflowX: "auto",
             scrollBehavior: "smooth",
             whiteSpace: "nowrap",
-            "&::-webkit-scrollbar": { display: "none" } // Ocultar scrollbar en navegadores webkit
+            "&::-webkit-scrollbar": { display: "none" },
           }}
         >
           {sections.map((section, index) => (
@@ -73,7 +84,7 @@ const ProcessView = () => {
                 fontSize: "1rem",
                 fontWeight: "normal",
                 boxShadow: selectedTab === index ? "0px 4px 10px rgba(0, 0, 0, 0.3)" : "none",
-                whiteSpace: "nowrap", // Evita que el texto se divida en varias líneas
+                whiteSpace: "nowrap",
               }}
             >
               {section}
@@ -82,7 +93,27 @@ const ProcessView = () => {
         </Box>
       </Box>
 
-      {/* Contenido dinámico según la pestaña seleccionada */}
+      <Box
+        sx={{
+          position: isFixed ? "fixed" : "sticky",
+          top: isFixed ? 0 : "80px",
+          zIndex: 20,
+          width: "100%",
+          backgroundColor: "#ffffff",
+          padding: "10px",
+          textAlign: "center",
+          fontWeight: "bold",
+          fontSize: "1.4rem",
+          color: "#004A98",
+          left: "0px",
+          borderBottom: "2px solid #ddd",
+          boxShadow: isFixed ? "0px 4px 10px rgba(0, 0, 0, 0.1)" : "none",
+          transition: "all 0.1s ease-in-out",
+        }}
+      >
+        Nombre del Proceso
+      </Box>
+
       <Box
         sx={{
           padding: "20px",
@@ -96,7 +127,8 @@ const ProcessView = () => {
           textAlign: "center",
           borderRadius: "20px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-          transition: "all 0.3s ease-in-out"
+          transition: "all 0.3s ease-in-out",
+          marginTop: isFixed ? "70px" : "20px",
         }}
       >
         {renderContent()}

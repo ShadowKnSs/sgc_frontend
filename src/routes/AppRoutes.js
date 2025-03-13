@@ -29,6 +29,7 @@ import SeguimientoPrincipal from "../views/seguimientoPrincipal";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
+import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
 import ManualDelSitio from "../views/manualDelSitio";
 
 
@@ -59,6 +60,7 @@ const AppRoutes = () => {
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="user-eventos" element={<UserEvent />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
+          <Route path="informe-auditoria" element={<InformeAuditoriaInterna />}/>
           <Route path="informe-auditoria" element={<InformeAuditoria />}/>
           <Route path="cronograma" element={<Cronograma />}/>
           <Route path="manual-calidad" element={<ManualCalidad />}/>
