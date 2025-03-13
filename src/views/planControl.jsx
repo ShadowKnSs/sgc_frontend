@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Box, Fab, Stack, Card, CardContent, Typography, IconButton, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@mui/material";
 import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 
@@ -30,7 +31,7 @@ const initialUsers = [
 ];
 
 function ProcessMapView() {
-    const [users, setUsers] = useState(initialUsers);
+    const [users, setUsers] = useState([]); // Se llenará con los datos del backend
     const [errors, setErrors] = useState({});
     const [activeCards, setActiveCards] = useState([]);
     const [allExpanded, setAllExpanded] = useState(false);
@@ -38,6 +39,13 @@ function ProcessMapView() {
     const [isFixed, setIsFixed] = useState(false);
 
     useEffect(() => {
+        axios.get("http://localhost:8000/api/actividadcontrol") // Ajusta la URL si es necesario
+        .then(response => {
+            setUsers(response.data); // Guardar los datos en el estado
+        })
+        .catch(error => {
+            console.error("Error al obtener datos:", error);
+        });
         const handleScroll = () => {
           if (window.scrollY > 100) {
             setIsFixed(true);
@@ -141,11 +149,15 @@ function ProcessMapView() {
                     marginBottom: "310px",
                 }}
             >
-                {users
-                    .filter((user) => !activeCards.some(u => u.id === user.id))
+            {users.length > 0 ? (
+                users
+                    .filter((user) => !activeCards.some(u => u.id === user.id)) // Filtra los usuarios activos
                     .map((user) => (
-                        <UserCard key={user.id} user={user} onSelect={handleSelectCard} isSmall={activeCards.length > 0} />
-                    ))}
+                        <UserCard key={user.idActividad} user={user} onSelect={handleSelectCard} isSmall={activeCards.length > 0} />
+                    ))
+            ) : (
+                <Typography variant="h6" sx={{ textAlign: "center", color: "#666" }}>Cargando datos...</Typography>
+            )}
             </Box>
 
             <Box 
@@ -340,15 +352,15 @@ function UserCard({ user, onSelect, onClose, isActive }) {
                           }}
                       >
                           {[
-                              { title: "Actividad de Control", value: user.actividadControl },
-                              { title: "Procedimiento", value: user.procedimiento },
-                              { title: "Criterio de Aceptación", value: user.criterioAceptacion },
-                              { title: "Características a Verificar", value: user.caracteristicasVerificar },
-                              { title: "Frecuencia", value: user.frecuencia },
-                              { title: "Identificación de Salida", value: user.identificacionSalida },
-                              { title: "Registro de Salidas", value: user.registroNoConforme },
-                              { title: "Responsable de Liberación", value: user.responsableLiberacion },
-                              { title: "Tratamiento", value: user.tratamiento },
+                            { title: "Actividad de Control", value: user.nombreActividad },
+                            { title: "Procedimiento", value: user.procedimiento },
+                            { title: "Criterio de Aceptación", value: user.criterioAceptacion },
+                            { title: "Características a Verificar", value: user.caracteriticasVerificar },
+                            { title: "Frecuencia", value: user.frecuencia },
+                            { title: "Identificación de Salida", value: user.identificacionSalida },
+                            { title: "Registro de Salidas", value: user.registroSalida },
+                            { title: "Responsable de Liberación", value: user.idResponsable },
+                            { title: "Tratamiento", value: user.tratameinto }
                           ].map((field, index) => (
                               <TableContainer key={index} component={Paper} 
                                   sx={{ 
