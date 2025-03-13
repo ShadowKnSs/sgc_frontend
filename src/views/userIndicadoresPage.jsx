@@ -1,5 +1,6 @@
 // src/views/UserIndicatorPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import { Grid, Typography, Box, ToggleButton, ToggleButtonGroup, CircularProgress} from "@mui/material";
 import IndicatorCard from "../components/CardIndicador";
 import IrGraficasBoton from "../components/Modals/BotonGraficas";
@@ -11,6 +12,9 @@ import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvalua
 import axios from "axios";
 
 const UserIndicatorPage = () => {
+  const { idRegistro } = useParams();
+  console.log("UserIndicatorPage - idRegistro recibido:", idRegistro);
+
   const [retroVirtualId, setRetroVirtualId] = useState(null);
   const [retroEncuestaId, setRetroEncuestaId] = useState(null);
   const [retroFisicaId, setRetroFisicaId] = useState(null);

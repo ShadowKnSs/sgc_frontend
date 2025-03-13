@@ -17,10 +17,10 @@ function Carpetas() {
   const rutas = {
     "Gestión de Riesgo": "gestion-riesgos",
     "Análisis de Datos": "analisis-Datos",
-    "Acciones de Mejora": "/actividad-mejora",
+    "Acciones de Mejora": "actividad-mejora",
     "Generar informe de auditoría": "informe-adutoria",
     "Seguimiento": "seguimientoPrincipal",
-    "Indicadores": "/user-indicadores"
+    "Indicadores": "user-indicadores"
   };
 
   console.log("titulo", title);

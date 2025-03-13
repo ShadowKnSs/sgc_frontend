@@ -20,7 +20,7 @@ import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
-import AdminEventos from "../views/adminEventos";
+import AdminEventos from "../views/adminEventNot";
 import InformeAuditoria from "../views/informeAditoriaInterna";
 import Cronograma from "../views/cronograma";
 import ManualCalidad from "../views/manualCalidad";
@@ -30,7 +30,7 @@ import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
-import ManualDelSitio from "../views/manualDelSitio";
+import ManualDelSitio from "../views/manualSitio";
 
 
 const AppRoutes = () => {
@@ -43,7 +43,8 @@ const AppRoutes = () => {
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
           <Route path="/admin-indicadores" element={<AdminIndicatorPage />} />
-          <Route path="/user-indicadores" element={<UserIndicatorPage />} />
+          <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
+          <Route path="user-indicadores" element={<UserIndicatorPage />} />
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="gestion-riesgos" element={<GestionRiesgos />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
@@ -54,6 +55,7 @@ const AppRoutes = () => {
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
           <Route path="analisis-DatosForm" element={<FormularioAnalisis />} />
           <Route path="gestion-riesgosForm" element={<GestionRiesgosForm />} />
+          <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
           {/*<Route path="formulario-seguimiento" element={<FormSeguimiento />} />*/}
