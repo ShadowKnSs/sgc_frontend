@@ -16,14 +16,13 @@ const ProcessStructure = () => {
   console.log("id del proceso", idProceso);
 
   const menuItems = [
-    { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
-    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/gestion-riesgosForm/${idProceso}` },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/analisis-DatosForm/${idProceso}` },
-    // { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpeta-ActividadMejora/${idProceso}` },
-    { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/actividad-mejora` },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/manual-operativo/${idProceso}` },
-    { icon: <LinkIcon />, title: "Seguimiento", path: `/seguimiento/${idProceso}` },
-    { icon: <BarChartIcon />, title: "Indicadores", path: `/indicadores/${idProceso}` },
+    { icon: <BookIcon />, title: "Manual Operativo", path: `manual-operativo` },
+    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos`},
+    { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
+    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/carpetas/${idProceso}/Generar informe de auditoría` },
+    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento`},
+    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores`},
   ];
 
   return (

@@ -1,28 +1,42 @@
 import React from "react";
-import { Card, CardContent, Typography, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const MinutaCard = ({ fecha, onEdit, onDelete }) => {
+import { Card, CardContent, Typography, Box } from "@mui/material";
+
+const MinutaCard = ({ fecha, lugar, duracion, onClick }) => {
   return (
-    <Card sx={{ maxWidth: 300, m: 2, boxShadow: 3 }}>
+    <Card
+      onClick={onClick}
+      sx={{
+        cursor: "pointer",
+        maxWidth: 320,
+        borderRadius: 3,
+        boxShadow: 3,
+        transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+        "&:hover": {
+          transform: "scale(1.05)",
+          boxShadow: 6,
+        },
+      }}
+    >
       <CardContent>
-        <Typography variant="h6" component="div">
-          Minuta
-        </Typography>
-        <Typography color="text.secondary">Fecha: {fecha}</Typography>
+        <Box display="flex" flexDirection="column" gap={1}>
+          <Typography variant="h6" fontWeight="bold">
+            📅 {fecha}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            📍 {lugar}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ⏳ Duración: {duracion} min
+          </Typography>
+        </Box>
       </CardContent>
-      {/* Agregamos los iconos de editar y eliminar */}
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: 8 }}>
-        <IconButton onClick={onEdit}>
-          <EditIcon />
-        </IconButton>
-        <IconButton onClick={onDelete}>
-          <DeleteIcon />
-        </IconButton>
-      </div>
     </Card>
   );
 };
 
 export default MinutaCard;
+
+

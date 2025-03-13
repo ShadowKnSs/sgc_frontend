@@ -17,7 +17,7 @@ import PlanTrabajoForm from "../views/planTrabajoForm";
 import FormularioAnalisis from "../views/analisisDatosForm";
 import GestionRiesgosForm from "../views/gestionRiegosForm";
 import ActividadMejora from "../views/actividadMejora";
-import Seguimiento from "../views/seguimiento";
+import Carpetas from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import ProcessInEntity from "../views/processInEntity";
@@ -52,7 +52,7 @@ const AppRoutes = () => {
           <Route path="gestion-riesgosForm" element={<GestionRiesgosForm />} />
           {/* <Route path="actividad-mejora/idPlanCorrectivo" element={<ActividadMejora />} /> */}
           <Route path="actividad-mejora" element={<ActividadMejora />} />
-          <Route path="seguimiento/:idProceso" element={<Seguimiento />} />
+          <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
           {/*<Route path="formulario-seguimiento" element={<FormSeguimiento />} />*/}
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="user-eventos" element={<UserEvent />} />
@@ -60,6 +60,7 @@ const AppRoutes = () => {
           <Route path="manual-operativo" element={<ManualOperativo />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
+          <Route path="manualDelSitio" element={<ManualDelSitio />} />
           <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} />
 
         </Route>
