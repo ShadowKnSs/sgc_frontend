@@ -66,7 +66,7 @@ const ProcessInEntity = () => {
                                 key={proceso.idProceso}
                                 icon={<WorkIcon />} 
                                 title={proceso.nombreProceso}
-                                onClick={() => navigate(`/estructura-procesos/${proceso.idProceso}`)}
+                                onClick={() => navigate(`/estructura-procesos/${proceso.idProceso}`)} //Se envia el id Proceso
                             />
                         ))
                     )}

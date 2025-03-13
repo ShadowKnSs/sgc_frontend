@@ -7,13 +7,11 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
   const [openModal, setOpenModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  // Abrir modal con un registro seleccionado
   const handleOpenCardModal = (record) => {
     setSelectedRecord(record);
     setOpenModal(true);
   };
 
-  // Cerrar modal
   const handleCloseCardModal = () => {
     setOpenModal(false);
     setSelectedRecord(null);
@@ -34,13 +32,12 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
         <Card
           key={index}
           sx={{
-            width: 180,
-            height: 220,
+            width: 250,
+            height: 250,
             boxShadow: 5,
             borderRadius: 3,
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
             justifyContent: "space-between",
             transition: "transform 0.2s ease-in-out",
             cursor: "pointer",
@@ -51,22 +48,27 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
           }}
           onClick={() => handleOpenCardModal(record)}
         >
-          <CardContent
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              textAlign: "center",
-            }}
-          >
-            <Typography variant="h4" sx={{ fontWeight:"normal", color: "000000" }}>
-              {record.numero}
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+              {record.nombreFuente}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Número:</strong> {record.numero}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Responsable:</strong> {record.responsable}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Estado:</strong> {record.estado}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Inicio:</strong> {record.fechaInicio}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Término:</strong> {record.fechaTermino}
             </Typography>
           </CardContent>
 
-          {/* Botones de editar y borrar */}
           <Box
             sx={{
               width: "100%",
@@ -78,11 +80,7 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
             }}
           >
             <IconButton
-              sx={{
-                color: "#1976d2",
-                fontSize: "1.5rem",
-                "&:hover": { color: "#125aa0" },
-              }}
+              sx={{ color: "#1976d2", "&:hover": { color: "#125aa0" } }}
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenModal(index);
@@ -91,11 +89,7 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
               <Edit fontSize="large" />
             </IconButton>
             <IconButton
-              sx={{
-                color: "error.main",
-                fontSize: "1.5rem",
-                "&:hover": { color: "red" },
-              }}
+              sx={{ color: "error.main", "&:hover": { color: "red" } }}
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteRecord(index);
@@ -107,7 +101,6 @@ const CardRegistros = ({ records = [], handleOpenModal, handleDeleteRecord }) =>
         </Card>
       ))}
 
-      {/* Modal de detalles */}
       <DetailsModal
         open={openModal}
         selectedRecord={selectedRecord}

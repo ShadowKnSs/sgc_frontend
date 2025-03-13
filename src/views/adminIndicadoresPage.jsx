@@ -10,6 +10,7 @@ import axios from "axios";
 
 
 const AdminIndicatorPage = () => {
+  
   const [indicators, setIndicators] = useState([]);
   const [results, setResults] = useState({});
   const [formOpen, setFormOpen] = useState(false);
