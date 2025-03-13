@@ -136,8 +136,8 @@ const FormularioGestionRiesgos = () => {
 
     try {
       const url = isEditing
-        ? `http://127.0.0.1:8000/api/gestionriesgos/5/riesgos/${editingRow.idRiesgo}`
-        : "http://127.0.0.1:8000/api/gestionriesgos/5/riesgos";
+        ? `http://127.0.0.1:8000/api/gestionriesgos/4/riesgos/${editingRow.idRiesgo}`
+        : "http://127.0.0.1:8000/api/gestionriesgos/4/riesgos";
 
       const method = isEditing ? "PUT" : "POST";
 
