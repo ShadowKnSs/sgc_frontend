@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Tabs,
   Tab,
   Box,
   Typography,
+  Modal,
+  Paper,
+  IconButton,
   TextField,
   Table,
   TableBody,
@@ -13,12 +16,9 @@ import {
   TableHead,
   TableRow,
   Button,
-  Grid,
-  Snackbar,
-  Alert,
-  Paper,
+  Grid
 } from "@mui/material";
-import axios from "axios";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 const FormularioAnalisis = () => {
   const [formData, setFormData] = useState({
@@ -28,279 +28,40 @@ const FormularioAnalisis = () => {
     periodoEvaluacion: "2024 - Primer Trimestre",
   });
 
-  const [indicadores, setIndicadores] = useState({
-    conformidad: [],
-    desempeno: [],
-    eficacia: [],
-    encuesta: [],
-    retroalimentacion: [],
-    evaluacion: [],
-  });
-
-  const [necesidadInterpretacion, setNecesidadInterpretacion] = useState({
-    conformidad: { necesidad: "", interpretacion: "" },
-    desempeno: { necesidad: "", interpretacion: "" },
-    eficacia: { necesidad: "", interpretacion: "" },
-    encuesta: { necesidad: "", interpretacion: "" },
-    retroalimentacion: { necesidad: "", interpretacion: "" },
-    evaluacion: { necesidad: "", interpretacion: "" },
-  });
-
+  const [savedData, setSavedData] = useState({});
+  const [openModal, setOpenModal] = useState({ type: null, index: null });
+  const [tempValue, setTempValue] = useState("");
   const [selectedTab, setSelectedTab] = useState(0);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Función para manejar cambios en el formulario
   const handleChange = (e) => {
-    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [e.target.name]: e.target.value
     });
   };
 
-  // Función para mostrar notificaciones
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
+  const handleOpenModal = (type, index) => {
+    setOpenModal({ type, index });
+    setTempValue(savedData[selectedTab]?.[index]?.[type] || "");
   };
 
-  // Cerrar notificación
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
+  const handleCloseModal = () => {
+    setOpenModal({ type: null, index: null });
+    setTempValue("");
   };
 
-  // Obtener datos de la API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://127.0.0.1:8000/api/analisisDatos/1/analisis");
-        const data = response.data;
-
-        // Filtrar indicadores por origen
-        const conformidad = data.Indicadores.filter((ind) => ind.origenIndicador === "ActividadControl");
-        const desempeno = data.Indicadores.filter((ind) => ind.origenIndicador === "MapaProceso");
-        const eficacia = data.Indicadores.filter((ind) => ind.origenIndicador === "GestionRiesgo");
-
-        // Asignar datos de Encuesta y Retroalimentación
-        const encuesta = data.Encuesta;
-        const retroalimentacion = data.Retroalimentacion;
-
-        // Asignar datos de Evaluación a Desempeño de Proveedores
-        const evaluacion = data.Evaluacion;
-
-        setIndicadores({
-          conformidad,
-          desempeno,
-          eficacia,
-          encuesta,
-          retroalimentacion,
-          evaluacion,
-        });
-
-        // Asignar valores de necesidad e interpretación desde NeceInter
-        const neceInterData = data.NeceInter;
-        const newNecesidadInterpretacion = {
-          conformidad: { necesidad: "", interpretacion: "" },
-          desempeno: { necesidad: "", interpretacion: "" },
-          eficacia: { necesidad: "", interpretacion: "" },
-          encuesta: { necesidad: "", interpretacion: "" },
-          retroalimentacion: { necesidad: "", interpretacion: "" },
-          evaluacion: { necesidad: "", interpretacion: "" },
-        };
-
-        neceInterData.forEach((item) => {
-          switch (item.pestana) {
-            case "Conformidad":
-              newNecesidadInterpretacion.conformidad = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
-              break;
-            case "Desempeno":
-              newNecesidadInterpretacion.desempeno = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
-              break;
-            case "Eficacia":
-              newNecesidadInterpretacion.eficacia = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
-              break;
-            case "Satisfaccion":
-              newNecesidadInterpretacion.encuesta = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
-              break;
-            case "Evaluacion":
-              newNecesidadInterpretacion.evaluacion = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
-              break;
-            default:
-              break;
-          }
-        });
-
-        setNecesidadInterpretacion(newNecesidadInterpretacion);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-        showSnackbar("Error al cargar los datos", "error");
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Función para actualizar necesidad e interpretación en el backend
-  const updateNecesidadInterpretacion = async (pestana, campo, valor) => {
-    try {
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/analisisDatos/1/necesidad-interpretacion`,
-        {
-          pestana,
-          campo,
-          valor,
+  const handleSaveModal = () => {
+    setSavedData((prevData) => ({
+      ...prevData,
+      [selectedTab]: {
+        ...prevData[selectedTab],
+        [openModal.index]: {
+          ...prevData[selectedTab]?.[openModal.index],
+          [openModal.type]: tempValue
         }
-      );
-      console.log("Campo actualizado:", response.data);
-      showSnackbar("Campo actualizado correctamente", "success");
-    } catch (error) {
-      console.error("Error al actualizar el campo:", error);
-      showSnackbar("Error al actualizar el campo", "error");
-    }
-  };
-
-  // Manejar cambios en los campos de necesidad e interpretación
-  const handleNecesidadInterpretacionChange = (pestana, campo, valor) => {
-    setNecesidadInterpretacion((prev) => ({
-      ...prev,
-      [pestana]: {
-        ...prev[pestana],
-        [campo]: valor,
-      },
+      }
     }));
-  };
-
-  // Guardar cambios en necesidad e interpretación
-  const handleSaveNecesidadInterpretacion = async (pestana) => {
-    const { necesidad, interpretacion } = necesidadInterpretacion[pestana];
-    await updateNecesidadInterpretacion(pestana, "necesidad", necesidad);
-    await updateNecesidadInterpretacion(pestana, "interpretacion", interpretacion);
-  };
-
-  // Obtener los indicadores actuales según la pestaña seleccionada
-  const getCurrentIndicators = () => {
-    switch (selectedTab) {
-      case 0:
-        return indicadores.conformidad;
-      case 1:
-        return indicadores.desempeno;
-      case 2:
-        return indicadores.eficacia;
-      case 3:
-        return indicadores.encuesta;
-      case 4:
-        return indicadores.retroalimentacion;
-      case 5:
-        return indicadores.evaluacion;
-      default:
-        return [];
-    }
-  };
-
-  // Obtener las columnas de la tabla según la pestaña seleccionada
-  const getTableHeaders = () => {
-    switch (selectedTab) {
-      case 0: // Conformidad
-      case 1: // Desempeño
-        return ["Descripción", "Meta", "Periodo Ene-Jun", "Periodo Jul-Ago"];
-      case 2: // Eficacia
-        return ["Descripción", "Meta", "ResultadoSemestral2"];
-      case 3: // Encuesta
-        return ["Malo", "Regular", "Bueno", "Excelente", "No Encuestas"];
-      case 4: // Retroalimentación
-        return ["Método", "Felicitaciones", "Sugerencias", "Quejas"];
-      case 5: // Desempeño de Proveedores
-        return ["Confiable", "No Confiable", "Condicionado"];
-      default:
-        return [];
-    }
-  };
-
-  // Renderizar una fila de la tabla
-  const renderTableRow = (indicator, index) => {
-    switch (selectedTab) {
-      case 0: // Conformidad
-      case 1: // Desempeño
-        return (
-          <TableRow key={index}>
-            <TableCell>{indicator.descripcionIndicador || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.meta || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.resultadoSemestral1 || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.resultadoSemestral2 || "N/A"}</TableCell>
-          </TableRow>
-        );
-      case 2: // Eficacia
-        return (
-          <TableRow key={index}>
-            <TableCell>{indicator.descripcionIndicador || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.meta || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.resultadoSemestral2 || "N/A"}</TableCell>
-          </TableRow>
-        );
-      case 3: // Encuesta
-        return (
-          <TableRow key={index}>
-            <TableCell align="center">{indicator.malo || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.regular || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.bueno || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.excelente || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.noEncuestas || "N/A"}</TableCell>
-          </TableRow>
-        );
-      case 4: // Retroalimentación
-        return (
-          <TableRow key={index}>
-            <TableCell>{indicator.metodo || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.cantidadFelicitacion || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.cantidadSugerencia || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.cantidadQueja || "N/A"}</TableCell>
-          </TableRow>
-        );
-      case 5: // Desempeño de Proveedores
-        return (
-          <TableRow key={index}>
-            <TableCell align="center">{indicator.confiable || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.noConfiable || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.condicionado || "N/A"}</TableCell>
-          </TableRow>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Obtener el nombre de la pestaña actual
-  const getCurrentPestana = () => {
-    switch (selectedTab) {
-      case 0:
-        return "conformidad";
-      case 1:
-        return "desempeno";
-      case 2:
-        return "eficacia";
-      case 3:
-        return "encuesta";
-      case 4:
-        return "retroalimentacion";
-      case 5:
-        return "evaluacion";
-      default:
-        return "";
-    }
+    handleCloseModal();
   };
 
   return (
@@ -358,13 +119,7 @@ const FormularioAnalisis = () => {
           TabIndicatorProps={{ style: { display: "none" } }}
           sx={{ display: "flex", justifyContent: "center" }}
         >
-          {[
-            "Conformidad del Producto o Servicio",
-            "Desempeño del Proceso",
-            "Eficacia de los riesgos y oportunidades",
-            "Satisfacción del Cliente",
-            "Desempeño de Proveedores",
-          ].map((section, index) => (
+          {["Desempeño del Proceso", "Conformidad del Producto o Servicio", "Satisfacción del Cliente"].map((section, index) => (
             <Tab
               key={index}
               label={section}
@@ -384,138 +139,72 @@ const FormularioAnalisis = () => {
       </AppBar>
 
       {/* Tabla de Indicadores */}
-      <Box sx={{ mt: 3 }}>
-        {selectedTab === 3 ? ( // Satisfacción del Cliente
-          <>
-            {/* Tabla de Encuesta */}
-            <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#0056b3" }}>
-              Encuesta
-            </Typography>
-            <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3, mb: 4 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    {["Malo", "Regular", "Bueno", "Excelente", "No Encuestas"].map((header, i) => (
-                      <TableCell key={i} sx={{ fontWeight: "bold", textAlign: "center", bgcolor: "#0056b3", color: "white" }}>
-                        {header}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {indicadores.encuesta.map((encuesta, index) => (
-                    <TableRow key={index}>
-                      <TableCell align="center">{encuesta.malo || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.regular || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.bueno || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.excelente || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.noEncuestas || "N/A"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+      <TableContainer component={Paper} sx={{ mt: 3, borderRadius: 3, boxShadow: 3 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              {["Descripción", "Meta", "Periodo", "Interpretación", "Necesidad de Mejora"].map((header, i) => (
+                <TableCell key={i} sx={{ fontWeight: "bold", textAlign: "center", bgcolor: "#0056b3", color: "white" }}>
+                  {header}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {[{ description: "Indicador 1", meta: "90%", period: "Mensual", result: "85%" }].map((indicator, index) => (
+              <TableRow key={index}>
+                <TableCell>{indicator.description}</TableCell>
+                <TableCell align="center">{indicator.meta}</TableCell>
+                <TableCell align="center">{indicator.period} | {indicator.result}</TableCell>
+                <TableCell align="center">
+                  {savedData[selectedTab]?.[index]?.interpretacion || (
+                    <IconButton color="primary" onClick={() => handleOpenModal("interpretacion", index)}>
+                      <AddCircleOutlineIcon />
+                    </IconButton>
+                  )}
+                </TableCell>
+                <TableCell align="center">
+                  {savedData[selectedTab]?.[index]?.necesidad || (
+                    <IconButton color="primary" onClick={() => handleOpenModal("necesidad", index)}>
+                      <AddCircleOutlineIcon />
+                    </IconButton>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-            {/* Tabla de Retroalimentación */}
-            <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#0056b3" }}>
-              Retroalimentación
-            </Typography>
-            <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    {["Método", "Felicitaciones", "Sugerencias", "Quejas"].map((header, i) => (
-                      <TableCell key={i} sx={{ fontWeight: "bold", textAlign: "center", bgcolor: "#0056b3", color: "white" }}>
-                        {header}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {indicadores.retroalimentacion.map((retro, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{retro.metodo || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadFelicitacion || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadSugerencia || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadQueja || "N/A"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </>
-        ) : (
-          // Otras secciones
-          <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {getTableHeaders().map((header, i) => (
-                    <TableCell key={i} sx={{ fontWeight: "bold", textAlign: "center", bgcolor: "#0056b3", color: "white" }}>
-                      {header}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {getCurrentIndicators().map((indicator, index) => renderTableRow(indicator, index))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Box>
-
-      {/* Campos de Necesidad e Interpretación */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#0056b3" }}>
-          Necesidad e Interpretación
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <TextField
-              label="Necesidad"
-              fullWidth
-              multiline
-              rows={4}
-              value={necesidadInterpretacion[getCurrentPestana()].necesidad}
-              onChange={(e) =>
-                handleNecesidadInterpretacionChange(getCurrentPestana(), "necesidad", e.target.value)
-              }
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Interpretación"
-              fullWidth
-              multiline
-              rows={4}
-              value={necesidadInterpretacion[getCurrentPestana()].interpretacion}
-              onChange={(e) =>
-                handleNecesidadInterpretacionChange(getCurrentPestana(), "interpretacion", e.target.value)
-              }
-            />
-          </Grid>
-        </Grid>
-        <Button
-          variant="contained"
-          sx={{ mt: 2, backgroundColor: "#F9B800", color: "#000000" }}
-          onClick={() => handleSaveNecesidadInterpretacion(getCurrentPestana())}
-        >
-          Guardar
-        </Button>
-      </Box>
-
-      {/* Notificación (Snackbar) */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {/* Modal para Interpretación y Necesidad */}
+      <Modal open={Boolean(openModal.type)} onClose={handleCloseModal}>
+        <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, bgcolor: "background.paper", p: 4, boxShadow: 24, borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+            {openModal.type === "interpretacion" ? "Agregar Interpretación" : "Agregar Necesidad de Mejora"}
+          </Typography>
+          <TextField fullWidth multiline rows={4} value={tempValue} onChange={(e) => setTempValue(e.target.value)} sx={{ borderRadius: 3 }} />
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+            <Button sx={{
+            backgroundColor: "#CCCCCC", 
+            color: "#000000", 
+            '&:hover': {
+              backgroundColor: "#B3B3B3", 
+            },
+          }} onClick={handleCloseModal}>Cancelar</Button>
+            <Button sx={{
+            backgroundColor: "#F9B800", 
+            color: "#000000", 
+            '&:hover': {
+              backgroundColor: "#E0A500", 
+            },
+            '&:disabled': {
+              backgroundColor: "#CCCCCC", 
+              color: "#666666", 
+            },
+          }} onClick={handleSaveModal}>Guardar</Button>
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 };

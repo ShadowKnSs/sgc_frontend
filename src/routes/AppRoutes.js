@@ -47,7 +47,7 @@ const AppRoutes = () => {
           <Route path="entidades" element={<Entity />}/>
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
-          <Route path="analisis-DatosForm" element={<FormularioAnalisis/>}/>
+          <Route path="analisis-DatosForm/:idRegistro" element={<FormularioAnalisis/>}/>
           <Route path="gestion-riesgosForm" element={<GestionRiesgosForm/>}/>
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="seguimiento" element={<Seguimiento />} />
