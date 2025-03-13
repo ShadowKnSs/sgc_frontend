@@ -63,7 +63,6 @@ const FormularioGestionRiesgos = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
 
-  // Cargar datos iniciales desde la API
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/gestionriesgos/4/riesgos")
       .then((response) => response.json())
@@ -84,7 +83,6 @@ const FormularioGestionRiesgos = () => {
       .catch((error) => console.error("Error al obtener datos:", error));
   }, []);
 
-  // Organizar los datos por secciones
   const organizeData = (apiData) => {
     return {
       0: apiData.map((item) => ({
@@ -115,7 +113,6 @@ const FormularioGestionRiesgos = () => {
     };
   };
 
-  // Manejar la adición o edición de un registro
   const handleAddRow = async () => {
     if (
       !newRow.responsable ||
@@ -128,7 +125,7 @@ const FormularioGestionRiesgos = () => {
       alert("Por favor, complete todos los campos requeridos.");
       return;
     }
-  
+
     if (
       newRow.valorSeveridad < 1 || newRow.valorSeveridad > 10 ||
       newRow.valorOcurrencia < 1 || newRow.valorOcurrencia > 10
@@ -136,32 +133,24 @@ const FormularioGestionRiesgos = () => {
       alert("Los valores de Severidad y Ocurrencia deben estar entre 1 y 10.");
       return;
     }
-  
-    console.log("Objeto que se enviará en la solicitud POST:", newRow); // Agregar esta línea
-  
+
     try {
       const url = isEditing
         ? `http://127.0.0.1:8000/api/gestionriesgos/4/riesgos/${editingRow.idRiesgo}`
-        : `http://127.0.0.1:8000/api/gestionriesgos/4`;
-  
+        : "http://127.0.0.1:8000/api/gestionriesgos/4/riesgos";
+
       const method = isEditing ? "PUT" : "POST";
-  
+
       const response = await fetch(url, {
         method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRow),
       });
-  
-      console.log("Respuesta del servidor:", response); // Para verificar la respuesta
-  
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error en la petición:", errorText);
-        throw new Error("Error en la petición");
-      }
-  
+
+      if (!response.ok) throw new Error("Error en la petición");
+
       const result = await response.json();
-  
+
       if (isEditing) {
         const updatedData = data.map((item) =>
           item.idRiesgo === editingRow.idRiesgo ? result : item
@@ -172,8 +161,7 @@ const FormularioGestionRiesgos = () => {
         setData([...data, result]);
         setSavedData(organizeData([...data, result]));
       }
-  
-      // Reiniciar el estado del nuevo registro
+
       setNewRow({
         idRiesgo: null,
         idGesRies: 4,
@@ -195,7 +183,7 @@ const FormularioGestionRiesgos = () => {
         reevaluacionEfectividad: '',
         analisisEfectividad: '',
       });
-  
+
       setOpenModal(false);
       setCurrentSection(0);
       setIsEditing(false);
@@ -204,9 +192,7 @@ const FormularioGestionRiesgos = () => {
       console.error("Error al guardar el registro:", error);
     }
   };
-  
 
-  // Manejar cambios en los campos del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (
@@ -218,7 +204,7 @@ const FormularioGestionRiesgos = () => {
       name === "reevaluacionNRP" ||
       name === "reevaluacionEfectividad"
     ) {
-      if (value === "" || (Number.isInteger(Number(value)) && Number(value) >= 0)) {
+      if (value === "" || (Number.isInteger(Number(value)) && Number(value) >= 0) ){
         setNewRow({ ...newRow, [name]: value === "" ? "" : Number(value) });
       }
     } else {
@@ -226,7 +212,6 @@ const FormularioGestionRiesgos = () => {
     }
   };
 
-  // Navegar entre secciones del modal
   const handleNextSection = () => {
     if (currentSection < 3) {
       setCurrentSection(currentSection + 1);
@@ -239,7 +224,6 @@ const FormularioGestionRiesgos = () => {
     }
   };
 
-  // Editar un registro existente
   const handleEditRow = (row) => {
     setEditingRow(row);
     setNewRow(row);
@@ -247,7 +231,6 @@ const FormularioGestionRiesgos = () => {
     setOpenModal(true);
   };
 
-  // Eliminar un registro
   const handleDeleteRow = (idRiesgo) => {
     setRowToDelete(idRiesgo);
     setConfirmDelete(true);
@@ -272,7 +255,6 @@ const FormularioGestionRiesgos = () => {
     }
   };
 
-  // Renderizar la sección actual del modal
   const renderModalSection = () => {
     switch (currentSection) {
       case 0:
