@@ -70,7 +70,17 @@ function ProcessMapView() {
             .catch(error => {
                 console.error("Error al obtener los datos del mapa de procesos:", error);
             });
-    
+
+        const handleScroll = () => {
+            if (window.scrollY > 100) {
+                setIsFixed(true);
+            } else {
+                setIsFixed(false);
+            }
+            };
+        
+            window.addEventListener("scroll", handleScroll);
+            return () => window.removeEventListener("scroll", handleScroll);
     }, []);    
 
     const [infoGeneral, setInfoGeneral] = useState({
