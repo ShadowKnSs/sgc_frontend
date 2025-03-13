@@ -20,19 +20,31 @@ function ProcessMapView() {
     const [openForm, setOpenForm] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [isFixed, setIsFixed] = useState(false);
+
     const [proceso, setProceso] = useState({
         objetivo: "",
         alcance: "",
-        anoCertificacion: "",
+        anioCertificado: "",
         norma: "",
-        duracionCertificado: "",
+        duracionCetificado: "",
         estado: ""
     });
 
+    const [mapaProceso, setMapaProceso] = useState({
+        documentos: "",
+        fuente: "",
+        material: "",
+        requisitos: "",
+        salidas: "",
+        receptores: "",
+        puestosInvolucrados: ""
+    });
+
     useEffect(() => {
+        // Obtener datos del proceso
         axios.get("http://localhost:8000/api/procesos")
             .then(response => {
-                console.log("Datos recibidos:", response.data);  
+                console.log("Datos recibidos (procesos):", response.data);
                 
                 if (response.data.procesos && response.data.procesos.length > 0) {
                     setProceso(response.data.procesos[0]);  // Tomamos el primer proceso
@@ -43,7 +55,23 @@ function ProcessMapView() {
             .catch(error => {
                 console.error("Error al obtener los datos del proceso:", error);
             });
-    }, []);
+    
+        // Obtener datos del mapa de procesos
+        axios.get("http://localhost:8000/api/mapaproceso")
+            .then(response => {
+                console.log("Datos recibidos (mapaProceso):", response.data);
+                
+                if (response.data.length > 0) {
+                    setMapaProceso(response.data[0]); // Tomamos el primer registro
+                } else {
+                    console.error("No se encontraron datos de mapa de procesos.");
+                }
+            })
+            .catch(error => {
+                console.error("Error al obtener los datos del mapa de procesos:", error);
+            });
+    
+    }, []);    
 
     const [infoGeneral, setInfoGeneral] = useState({
         documentos: "Documentos relacionados con el mapa de procesos.",
@@ -104,7 +132,23 @@ function ProcessMapView() {
             setNewUser({ descripcion: "", formula: "", periodo: "" });
             setErrors({});
         }
-    };          
+    };         
+    
+    const handleSaveChanges = () => {
+        if (!mapaProceso.idMapaProceso) {
+            console.error("Error: No hay un idMapaProceso disponible para actualizar.");
+            return;
+        }
+    
+        axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, mapaProceso)
+            .then(response => {
+                console.log("Mapa de procesos actualizado correctamente:", response.data);
+                setEditMode(false); // Salir del modo edición después de guardar
+            })
+            .catch(error => {
+                console.error("Error al actualizar el mapa de procesos:", error);
+            });
+    };      
 
     return (
         <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
@@ -140,22 +184,31 @@ function ProcessMapView() {
                 </Grid>
             </Box>
             <Box sx={{ mb: 3, p: 3, backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 2, position: "relative" }}>
-                <Box sx={{ position: "absolute", top: 12, right: 12 }}>
-                    <Button startIcon={<Edit />} sx={{ color: "#0056b3", fontWeight: "bold" }} onClick={handleEditToggle}>
-                        {editMode ? "GUARDAR" : "EDITAR"}
-                    </Button>
-                </Box>
-
+            <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+            <Button 
+                startIcon={<Edit />} 
+                sx={{ color: "#0056b3", fontWeight: "bold" }} 
+                onClick={editMode ? handleSaveChanges : handleEditToggle}
+            >
+                {editMode ? "GUARDAR" : "EDITAR"}
+            </Button>
+            </Box>
                 <Typography variant="h6" fontWeight="bold" color="#004A98" mb={2}>
                     Información General del Mapa de Procesos
                 </Typography>
 
                 <Grid container spacing={2}>
-                    {Object.entries(infoGeneral).map(([key, value], index) => (
-                        <Grid item xs={12} md={6} key={key}>
-                            <Typography fontWeight="bold" color="#333" sx={{ fontSize: "1.1rem", mb: 0.5 }}>
-                                {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, " $1") + ":"}
-                            </Typography>
+                    {[
+                        { label: "Documentos", key: "documentos" },
+                        { label: "Fuente", key: "fuente" },
+                        { label: "Material", key: "material" },
+                        { label: "Requisitos", key: "requisitos" },
+                        { label: "Salidas", key: "salidas" },
+                        { label: "Receptores", key: "receptores" },
+                        { label: "Puestos Involucrados", key: "puestosInvolucrados" }
+                    ].map((item, index) => (
+                        <Grid item xs={12} md={6} key={index}>
+                            <Typography fontWeight="bold" color="#333">{item.label}:</Typography>
 
                             {editMode ? (
                                 <TextField
@@ -169,21 +222,21 @@ function ProcessMapView() {
                                         backgroundColor: "#f8f9fa",
                                         borderRadius: 1
                                     }}
-                                    value={value}
-                                    onChange={(e) => setInfoGeneral({ ...infoGeneral, [key]: e.target.value })}
+                                    value={mapaProceso[item.key] || ""}
+                                    onChange={(e) => setMapaProceso({ ...mapaProceso, [item.key]: e.target.value })}
                                 />
                             ) : (
                                 <Typography 
-                                    color="#666" 
-                                    sx={{ 
-                                        wordBreak: "break-word", 
-                                        whiteSpace: "pre-wrap", 
+                                    color="#666"
+                                    sx={{
+                                        wordBreak: "break-word",
+                                        whiteSpace: "pre-wrap",
                                         backgroundColor: "#f8f9fa",
-                                        p: 1, 
-                                        borderRadius: 1 
+                                        p: 1,
+                                        borderRadius: 1
                                     }}
                                 >
-                                    {value}
+                                    {mapaProceso[item.key] ? mapaProceso[item.key] : "No disponible"}
                                 </Typography>
                             )}
                         </Grid>
