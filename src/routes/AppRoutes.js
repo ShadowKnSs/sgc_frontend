@@ -20,12 +20,16 @@ import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
+import AdminEventos from "../views/adminEventos";
+import InformeAuditoria from "../views/informeAditoriaInterna";
+import Cronograma from "../views/cronograma";
+import ManualCalidad from "../views/manualCalidad";
 import ProcessInEntity from "../views/processInEntity";
 import SeguimientoPrincipal from "../views/seguimientoPrincipal";
-import AdminEventos from "../views/adminEventNot";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
+import ManualDelSitio from "../views/manualDelSitio";
 import CarpetasActividadMejora from "../views/carpetasActividadMejora";
 import ManualDelSitio from "../views/manualSitio";
 
@@ -56,11 +60,16 @@ c          <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
           {/*<Route path="formulario-seguimiento" element={<FormSeguimiento />} />*/}
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="user-eventos" element={<UserEvent />} />
-          <Route path="admin-eventos" element={<AdminEventos />} />
+          <Route path="manual-operativo" element={<ManualOperativo />}/>
+          <Route path="informe-auditoria" element={<InformeAuditoria />}/>
+          <Route path="cronograma" element={<Cronograma />}/>
+          <Route path="manual-calidad" element={<ManualCalidad />}/>
           <Route path="manual-operativo" element={<ManualOperativo />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
           <Route path="manualDelSitio" element={<ManualDelSitio />} />
+          <Route path="admin-eventos" element={<AdminEventos/>} />
+          <Route path="user-eventos" element={<UserEvent/>} />
           <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} />
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
