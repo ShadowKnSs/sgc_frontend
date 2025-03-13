@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { 
     Box, Fab, Stack, Card, CardContent, Typography, IconButton, 
     Table, TableBody, TableCell, TableContainer, TableRow, Paper, 
@@ -19,18 +20,29 @@ function ProcessMapView() {
     const [openForm, setOpenForm] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [isFixed, setIsFixed] = useState(false);
+    const [proceso, setProceso] = useState({
+        objetivo: "",
+        alcance: "",
+        anoCertificacion: "",
+        norma: "",
+        duracionCertificado: "",
+        estado: ""
+    });
 
     useEffect(() => {
-        const handleScroll = () => {
-          if (window.scrollY > 100) {
-            setIsFixed(true);
-          } else {
-            setIsFixed(false);
-          }
-        };
-      
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
+        axios.get("http://localhost:8000/api/procesos")
+            .then(response => {
+                console.log("Datos recibidos:", response.data);  
+                
+                if (response.data.procesos && response.data.procesos.length > 0) {
+                    setProceso(response.data.procesos[0]);  // Tomamos el primer proceso
+                } else {
+                    console.error("No se encontraron procesos en la respuesta de la API.");
+                }
+            })
+            .catch(error => {
+                console.error("Error al obtener los datos del proceso:", error);
+            });
     }, []);
 
     const [infoGeneral, setInfoGeneral] = useState({
@@ -103,27 +115,27 @@ function ProcessMapView() {
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
                         <Typography fontWeight="bold" color="#333">Objetivo:</Typography>
-                        <Typography color="#666">Objetivo del proceso.</Typography>
+                        <Typography color="#666">{proceso.objetivo || "Cargando..."}</Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Typography fontWeight="bold" color="#333">Alcance:</Typography>
-                        <Typography color="#666">Alcance del proceso.</Typography>
+                        <Typography color="#666">{proceso.alcance || "Cargando..."}</Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Typography fontWeight="bold" color="#333">Año de Certificación:</Typography>
-                        <Typography color="#666">Año en que el proceso obtuvo certificación.</Typography>
+                        <Typography color="#666">{proceso.anioCertificado || "Cargando..."}</Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Typography fontWeight="bold" color="#333">Norma:</Typography>
-                        <Typography color="#666">Norma bajo la cual el proceso está certificado.</Typography>
+                        <Typography color="#666">{proceso.norma || "Cargando..."}</Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Typography fontWeight="bold" color="#333">Duración del Certificado:</Typography>
-                        <Typography color="#666">Duración en años de la certificación.</Typography>
+                        <Typography color="#666">{proceso.duracionCetificado || "Cargando..."}</Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Typography fontWeight="bold" color="#333">Estado:</Typography>
-                        <Typography color="#666">Estado actual del proceso.</Typography>
+                        <Typography color="#666">{proceso.estado || "Cargando..."}</Typography>
                     </Grid>
                 </Grid>
             </Box>
