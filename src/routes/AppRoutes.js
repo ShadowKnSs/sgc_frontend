@@ -20,7 +20,7 @@ import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
-import AdminEventos from "../views/adminEventos";
+import AdminEventos from "../views/adminEventNot.jsx";
 import InformeAuditoria from "../views/informeAditoriaInterna";
 import Cronograma from "../views/cronograma";
 import ManualCalidad from "../views/manualCalidad";
@@ -29,7 +29,7 @@ import SeguimientoPrincipal from "../views/seguimientoPrincipal";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
-import ManualDelSitio from "../views/manualDelSitio";
+import ManualDelSitio from "../views/manualSitio";
 import CarpetasActividadMejora from "../views/carpetasActividadMejora";
 
 
