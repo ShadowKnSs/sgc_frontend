@@ -21,6 +21,9 @@ import Carpetas from "../views/seguimiento";
 import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import EventosNotAv from "../views/eventNotAv";
+import AdminEventos from "../views/adminEventos";
+import InformeAuditoria from "../views/informeAditoriaInterna";
+import Cronograma from "../views/cronograma";
 
 import ManualCalidad from "../views/manualCalidad";
 import ProcessInEntity from "../views/processInEntity";
@@ -59,6 +62,8 @@ const AppRoutes = () => {
           <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
           <Route path="user-eventos" element={<UserEvent />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
+          <Route path="informe-auditoria" element={<InformeAuditoria />}/>
+          <Route path="cronograma" element={<Cronograma />}/>
           <Route path="manual-calidad" element={<ManualCalidad />}/>
           <Route path="manual-operativo" element={<ManualOperativo />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
