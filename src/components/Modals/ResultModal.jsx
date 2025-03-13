@@ -24,14 +24,14 @@ const ResultModal = ({ open, onClose, onSave, indicator, savedResult }) => {
       if (indicator.periodicidad === "Anual") {
         setLocalState({
           result:
-            savedResult && savedResult.resultadoSemestral1 !== undefined
+            savedResult && savedResult.resultadoSemestral1 !== null
               ? savedResult.resultadoSemestral1.toString()
               : ''
         });
       } else {
         // Para otros casos (p.ej., si usas el modal simple para indicadores no anuales)
         setLocalState(
-          savedResult && savedResult.result !== undefined
+          savedResult && savedResult.result !== null
             ? { result: savedResult.result.toString() }
             : { result: '' }
         );

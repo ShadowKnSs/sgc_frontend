@@ -9,10 +9,10 @@ const NewIndicatorButton = ({ onClick }) => {
         onClick={onClick} 
         sx={{
          
-          backgroundColor: '#2dc1df', // color de acuerdo a tu paleta (ejemplo: púrpura)
+          backgroundColor: 'secondary.main', // color de acuerdo a tu paleta (ejemplo: púrpura)
           color: 'white',
           '&:hover': {
-            backgroundColor: '#3700B3',
+            backgroundColor: 'primary.main',
           },
           zIndex: 1100,
         }}
