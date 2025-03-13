@@ -31,7 +31,6 @@ import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import ManualDelSitio from "../views/manualDelSitio";
 import CarpetasActividadMejora from "../views/carpetasActividadMejora";
-import ManualDelSitio from "../views/manualSitio";
 
 
 const AppRoutes = () => {
