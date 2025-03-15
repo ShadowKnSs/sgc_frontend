@@ -76,8 +76,6 @@ const AppRoutes = () => {
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
 
-
-
         </Route>
       </Routes>
     </BrowserRouter>
