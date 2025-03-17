@@ -1,154 +1,148 @@
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  TextField, 
-  Button, 
-  Alert, 
-  CircularProgress 
-} from '@mui/material';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-
-// Registrar los componentes de Chart.js
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+// src/views/GraficasPage.jsx
+import React, { useEffect, useState } from 'react';
+import { Container, Typography, Box, Alert, CircularProgress } from '@mui/material';
+import axios from 'axios';
+import PlanControlBarChart from '../components/Graficas/GraficaPlanControl';
+import GraficaEncuesta from '../components/Graficas/GraficaEncuesta';
+import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroalimentacion';
+import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
+import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
+import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
 
 const GraficasPage = () => {
-  // Datos de muestra locales para el gráfico
-  const sampleData = {
-    labels: ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06"],
-    datasets: [
-      {
-        label: "Indicador de Calidad",
-        data: [65, 59, 80, 81, 56, 55],
-        borderColor: "#F9B800",
-        backgroundColor: "rgba(249, 184, 0, 0.2)",
-        tension: 0.4
-      },
-      {
-        label: "Indicador de Desempeño",
-        data: [28, 48, 40, 19, 86, 27],
-        borderColor: "#00B2E3",
-        backgroundColor: "rgba(0, 178, 227, 0.2)",
-        tension: 0.4
-      }
-    ]
-  };
+  const [encuestaId, setEncuestaId] = useState(null);
+  const [evaluacionId, setEvaluacionId] = useState(null);
+  const [retroList, setRetroList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Estados para el rango de fechas (de ejemplo)
-  const [startDate, setStartDate] = useState("2024-01-01");
-  const [endDate, setEndDate] = useState("2024-06-01");
-  const [error, setError] = useState("");
-  const [data, setData] = useState(sampleData);
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/indicadoresconsolidados")
+      .then(response => {
+        const indicators = response.data.indicadores || [];
+        console.log("Indicadores consolidados:", indicators);
 
-  // Función de ejemplo para "actualizar" datos con base en un rango de fechas
-  const handleUpdate = () => {
-    // Validación simple del rango de fechas
-    if (new Date(endDate) < new Date(startDate)) {
-      setError("La fecha de fin no puede ser anterior a la fecha de inicio.");
-      return;
-    }
-    setError("");
-    setLoading(true);
+        // Indicador de Encuesta
+        const encuestaIndicator = indicators.find(ind =>
+          ind.origenIndicador?.toLowerCase().trim() === "encuesta"
+        );
+        if (encuestaIndicator) {
+          setEncuestaId(encuestaIndicator.idIndicadorConsolidado);
+          console.log("Encuesta Indicator:", encuestaIndicator);
+        } //else {
+        //   setError("No se encontró indicador de encuesta.");
+        // }
 
-    // Simular una espera para actualizar los datos
-    setTimeout(() => {
-      // Aquí podrías filtrar o modificar los datos según el rango seleccionado.
-      // En este ejemplo, simplemente se mantiene el sampleData.
-      setData(sampleData);
-      setLoading(false);
-    }, 1000);
-  };
+        // Indicador de Evaluación de Proveedores
+        const evaluacionIndicator = indicators.find(ind =>
+          ind.origenIndicador?.toLowerCase().trim() === "evaluaproveedores"
+        );
+        if (evaluacionIndicator) {
+          setEvaluacionId(evaluacionIndicator.idIndicadorConsolidado);
+          console.log("Evaluación Indicator:", evaluacionIndicator);
+         } //else {
+        //   setError("No se encontró indicador de evaluación de proveedores.");
+        // }
+
+        const retroIndicators = indicators.filter(ind =>
+          ind.origenIndicador?.toLowerCase().trim() === "retroalimentacion"
+        );
+        console.log("Retro indicadores sin ordenar:", retroIndicators);
+
+        // Ordenarlos dinámicamente (por ejemplo, por idIndicadorConsolidado)
+        const ordered = retroIndicators.sort((a, b) => a.idIndicadorConsolidado - b.idIndicadorConsolidado);
+        console.log("Retro indicadores ordenados:", ordered);
+        setRetroList(ordered);
+
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error("Error fetching indicadores:", error);
+        setError("Error al cargar indicadores consolidados.");
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Typography 
-        variant="h4" 
-        align="center" 
-        gutterBottom 
-        sx={{ fontFamily: "'Roboto', sans-serif", color: "primary.main", fontWeight: "bold" }}
-      >
-        Gráficas de Indicadores
+      <Typography variant="h4" align="center" gutterBottom sx={{ fontFamily: "'Roboto', sans-serif", color: "primary.main", fontWeight: "bold" }}>
+        Vista de Gráficas
       </Typography>
 
-      {/* Controles para el rango de fechas */}
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 4, flexWrap: "wrap" }}>
-        <TextField
-          label="Fecha de inicio"
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="Fecha de fin"
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
-        <Button variant="contained" onClick={handleUpdate} sx={{ height: "56px" }}>
-          Actualizar
-        </Button>
+      {/* Gráfica de Plan de Control */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Indicadores de Plan de Control
+        </Typography>
+        <PlanControlBarChart />
       </Box>
 
-      {/* Mensaje de error si ocurre */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      {/* Gráfica de Encuesta de Satisfacción */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Encuesta de Satisfacción
+        </Typography>
+        {encuestaId ? (
+          <GraficaEncuesta id={encuestaId} />
+        ) : (
+          <Alert severity="info">No se encontró indicador de encuesta.</Alert>
+        )}
+      </Box>
 
-      {/* Mostrar spinner de carga o el gráfico */}
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Box sx={{ maxWidth: "100%", overflowX: "auto" }}>
-          <Line
-            data={data}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: { position: "top" },
-                title: { display: true, text: "Resultados de Indicadores" },
-              },
-              interaction: {
-                mode: "index",
-                intersect: false,
-              },
-              scales: {
-                x: {
-                  title: { display: true, text: "Mes" },
-                },
-                y: {
-                  title: { display: true, text: "Valor" },
-                },
-              },
-              animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
-              }
-            }}
+      {/* Gráfica única para Retroalimentación Conjunta */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Retroalimentación
+        </Typography>
+        {retroList && retroList.length > 0 ? (
+          <GraficaRetroalimentacion
+            retroList={retroList}
           />
-        </Box>
-      )}
+        ) : (
+          <Alert severity="info">
+            No se encontraron todos los indicadores de retroalimentación.
+          </Alert>
+        )}
+      </Box>
 
-      <Typography variant="body1" align="center" sx={{ mt: 4 }}>
-        Aquí se mostrarán las gráficas de los resultados de los indicadores.
-      </Typography>
+      {/* Gráfica de Mapa de Proceso */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Mapa de Proceso
+        </Typography>
+        <GraficaMapaProceso />
+      </Box>
+
+      {/* Gráfica de Gestion de Riesgos */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Gestion de Riesgos
+        </Typography>
+        <GraficaRiesgos />
+      </Box>
+
+      {/* Gráfica de Evaluación de Proveedores */}
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Evaluación de Proveedores
+        </Typography>
+        {evaluacionId ? (
+          <GraficaEvaluacionProveedores id={evaluacionId} />
+        ) : (
+          <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>
+        )}
+      </Box>
     </Container>
   );
 };

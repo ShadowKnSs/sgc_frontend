@@ -31,9 +31,9 @@ const AddIndicatorFormContent = ({ formData, setFormData }) => {
             label="Método"
             onChange={(e) => setFormData({ ...formData, metodo: e.target.value })}
           >
-            <MenuItem value="Encuesta de Satisfacción">Encuesta de Satisfacción</MenuItem>
-            <MenuItem value="Buzón Virtual">Buzón Virtual</MenuItem>
-            <MenuItem value="Buzón Físico">Buzón Físico</MenuItem>
+            <MenuItem value="Encuesta">Encuesta de Satisfacción</MenuItem>
+            <MenuItem value="Buzon Virtual">Buzón Virtual</MenuItem>
+            <MenuItem value="Buzon Fisico">Buzón Físico</MenuItem>
           </Select>
         </FormControl>
       )}
@@ -67,6 +67,9 @@ const AddIndicatorForm = ({ open, onClose, onSave }) => {
       meta: "" // O meta, si lo necesitas
     };
 
+    if (data.tipo === "Retroalimentacion") {
+      payload.metodo = data.metodo; // Se envía el método seleccionado
+    }
     console.log("Payload para crear indicador:", payload);
     onSave(payload);
   };

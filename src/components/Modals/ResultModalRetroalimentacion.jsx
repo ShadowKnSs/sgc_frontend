@@ -50,27 +50,30 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
   useEffect(() => {
     if (open && savedResult) {
       setFormData({
-        felicitaciones: (savedResult.felicitaciones !== undefined && savedResult.felicitaciones !== null)
-          ? savedResult.felicitaciones.toString()
+        felicitaciones:
+        savedResult.cantidadFelicitacion && savedResult.cantidadFelicitacion > 0
+          ? savedResult.cantidadFelicitacion.toString()
           : "",
-        quejas: (savedResult.quejas !== undefined && savedResult.quejas !== null)
-          ? savedResult.quejas.toString()
+      quejas:
+        savedResult.cantidadQueja && savedResult.cantidadQueja > 0
+          ? savedResult.cantidadQueja.toString()
           : "",
-        sugerencias: (savedResult.sugerencias !== undefined && savedResult.sugerencias !== null)
-          ? savedResult.sugerencias.toString()
-          : ""
+      sugerencias:
+        savedResult.cantidadSugerencia && savedResult.cantidadSugerencia > 0
+          ? savedResult.cantidadSugerencia.toString()
+          : "",
       });
     }
   }, [open, savedResult]);
-
   const handleSave = () => {
     const resultData = {
-      felicitaciones: Number(formData.felicitaciones),
-      quejas: Number(formData.quejas),
-      sugerencias: Number(formData.sugerencias),
+      cantidadFelicitacion: Number(formData.felicitaciones),
+      cantidadSugerencia: Number(formData.sugerencias),
+      cantidadQueja: Number(formData.quejas),
     };
+    console.log("Payload que se enviará:", resultData);
     onSave(indicator.idIndicadorConsolidado, { result: resultData });
-    onClose();
+    
   };
 
   const title = (
