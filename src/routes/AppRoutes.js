@@ -6,7 +6,6 @@ import ProcessPage from "../views/processList";
 import GraficasPage from "../views/graficasIndicadores";
 import NewProcess from "../views/newProcess";
 import EditProcess from "../views/editProcess";
-import GestionRiesgos from "../views/gestionRiesgos";
 import FilesGestRiesgos from "../views/filesGestRiesgos";
 import EstructuraProcesos from "../views/procesStructure";
 import AnalisisDatos from "../views/analisisDatos";
@@ -46,7 +45,6 @@ const AppRoutes = () => {
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
           <Route path="user-indicadores" element={<UserIndicatorPage />} />
           <Route path="graficas" element={<GraficasPage />} />
-          <Route path="gestion-riesgos" element={<GestionRiesgos />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
           <Route path="estructura-procesos/:idProceso" element={<EstructuraProcesos />} />
           <Route path="analisis-Datos" element={<AnalisisDatos />} />
@@ -54,7 +52,8 @@ const AppRoutes = () => {
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
           <Route path="analisis-DatosForm" element={<FormularioAnalisis />} />
-          <Route path="gestion-riesgosForm" element={<GestionRiesgosForm />} />
+          <Route path="gestion-riesgos" element={<GestionRiesgosForm />} />
+          <Route path="gestion-riesgos/:idRegistro" element={<GestionRiesgosForm />} />
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
@@ -67,6 +66,7 @@ const AppRoutes = () => {
           <Route path="cronograma" element={<Cronograma />}/>
           <Route path="manual-calidad" element={<ManualCalidad />}/>
           <Route path="manual-operativo" element={<ManualOperativo />} />
+          <Route path="manual-operativo/:idProceso" element={<ManualOperativo />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
           <Route path="manualDelSitio" element={<ManualDelSitio />} />

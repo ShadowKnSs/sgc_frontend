@@ -1,7 +1,6 @@
-// src/components/Modals/ResultModalRetroalimentacion.jsx
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from '@mui/material';
-import DialogActionButtons from '../DialogActionButtons';
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from "@mui/material";
+import DialogActionButtons from "../DialogActionButtons";
 
 const RetroalimentacionContent = ({ formData, setFormData }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -40,66 +39,59 @@ const RetroalimentacionContent = ({ formData, setFormData }) => (
   </Box>
 );
 
-const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedResult }) => {
+const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedResult = {} }) => {
   const [formData, setFormData] = useState({
     felicitaciones: "",
     quejas: "",
-    sugerencias: ""
+    sugerencias: "",
   });
 
   useEffect(() => {
-    if (open && savedResult) {
-      setFormData({
-        felicitaciones:
-        savedResult.cantidadFelicitacion && savedResult.cantidadFelicitacion > 0
-          ? savedResult.cantidadFelicitacion.toString()
-          : "",
-      quejas:
-        savedResult.cantidadQueja && savedResult.cantidadQueja > 0
-          ? savedResult.cantidadQueja.toString()
-          : "",
-      sugerencias:
-        savedResult.cantidadSugerencia && savedResult.cantidadSugerencia > 0
-          ? savedResult.cantidadSugerencia.toString()
-          : "",
-      });
+    if (open) {
+      console.log("🔍 Modal abierto, datos en `savedResult`:", savedResult);
+      if (savedResult) {
+        setFormData({
+          felicitaciones: savedResult.cantidadFelicitacion?.toString() ?? "",
+          quejas: savedResult.cantidadQueja?.toString() ?? "",
+          sugerencias: savedResult.cantidadSugerencia?.toString() ?? "",
+        });
+      } else {
+        console.log("⚠️ No hay datos previos, estableciendo valores vacíos.");
+        setFormData({ felicitaciones: "", quejas: "", sugerencias: "" });
+      }
     }
   }, [open, savedResult]);
+
   const handleSave = () => {
     const resultData = {
       cantidadFelicitacion: Number(formData.felicitaciones),
       cantidadSugerencia: Number(formData.sugerencias),
       cantidadQueja: Number(formData.quejas),
     };
-    console.log("Payload que se enviará:", resultData);
-    onSave(indicator.idIndicadorConsolidado, { result: resultData });
-    
-  };
 
-  const title = (
-    <>
-      Registrar Retroalimentación para: {indicator ? indicator.name : ''}
-      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-        Origen: {indicator ? indicator.origenIndicador : 'Sin origen'}
-      </Typography>
-    </>
-  );
+    console.log("📌 Payload que se enviará:", resultData);
+    if (!indicator || !indicator.idIndicador) {
+      console.error("❌ Error: idIndicador está indefinido.");
+      return;
+    }
+
+    onSave(indicator.idIndicador, { result: resultData });
+    onClose();
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle>
+        Registrar Retroalimentación - {indicator ? indicator.name : ""}
+        <Typography variant="caption" sx={{ display: "block", color: "text.secondary" }}>
+          Origen: {indicator ? indicator.origenIndicador : "Sin origen"}
+        </Typography>
+      </DialogTitle>
       <DialogContent>
         <RetroalimentacionContent formData={formData} setFormData={setFormData} />
       </DialogContent>
       <DialogActions>
-        <DialogActionButtons
-          onCancel={onClose}
-          onSave={handleSave}
-          saveText="Guardar"
-          cancelText="Cancelar"
-          saveColor="terciary.main"
-          cancelColor="primary.main"
-        />
+        <DialogActionButtons onCancel={onClose} onSave={handleSave} saveText="Guardar" cancelText="Cancelar" />
       </DialogActions>
     </Dialog>
   );

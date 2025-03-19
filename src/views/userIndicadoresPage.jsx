@@ -1,423 +1,350 @@
-// src/views/UserIndicatorPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Grid, Typography, Box, ToggleButton, ToggleButtonGroup, CircularProgress} from "@mui/material";
+import {
+  Grid,
+  Typography,
+  Box,
+  ToggleButton,
+  ToggleButtonGroup,
+  CircularProgress,
+  Fab,
+  Snackbar
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import axios from "axios";
+
+// Componentes reutilizados
 import IndicatorCard from "../components/CardIndicador";
+import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
+import ConfirmEditDialog from "../components/ConfirmEditDialog";
+import AddIndicatorForm from "../components/Forms/AddIndicatorForm";
 import IrGraficasBoton from "../components/Modals/BotonGraficas";
+// Modales para registrar resultados según el origen
 import ResultModalSimple from "../components/Modals/ResultModalSimple";
 import ResultModalEncuesta from "../components/Modals/ResultModalEncuesta";
 import ResultModalRetroalimentacion from "../components/Modals/ResultModalRetroalimentacion";
 import ResultModalSemestralDual from "../components/Modals/ResultModalSemestralDual";
 import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvaluacion";
-import axios from "axios";
 
-const UserIndicatorPage = () => {
+const UnifiedIndicatorPage = () => {
   const { idRegistro } = useParams();
-  console.log("UserIndicatorPage - idRegistro recibido:", idRegistro);
+  console.log("UnifiedIndicatorPage - idRegistro:", idRegistro);
 
-  const [retroVirtualId, setRetroVirtualId] = useState(null);
-  const [retroEncuestaId, setRetroEncuestaId] = useState(null);
-  const [retroFisicaId, setRetroFisicaId] = useState(null);
+  // Estados principales
   const [indicators, setIndicators] = useState([]);
   const [results, setResults] = useState({});
-  const [selectedIndicator, setSelectedIndicator] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  // Modo exclusivo: solo se puede elegir un estado
-  const [selectedState, setSelectedState] = useState("noRecord");
-
-
   const [loading, setLoading] = useState(true);
 
-  // Estados fijos y asignación de colores
+  // Estados para modales
+  const [formOpen, setFormOpen] = useState(false);
+  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [editIndicator, setEditIndicator] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [indicatorToDelete, setIndicatorToDelete] = useState(null);
+  const [resultModalOpen, setResultModalOpen] = useState(false);
+
+  // Estado para filtrar por estado
+  const [selectedState, setSelectedState] = useState("noRecord");
+
+  // Snackbar para errores
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  // Mapeo de estados para filtro y asignación de colores
   const stateMap = {
     noRecord: { label: "Sin registrar", items: [], color: "white" },
     incomplete: { label: "Incompleto", items: [], color: "yellow" },
     complete: { label: "Completo", items: [], color: "lightGreen" },
   };
 
-
-  // Guardar el id del idicador de la encuesta
-
-  // Cargar indicadores desde el backend
+  // Cargar indicadores
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/indicadoresconsolidados")
-      .then(response => {
-        const data = response.data.indicadores || [];
-        const transformed = data.map(ind => ({
-          ...ind,
-          name: ind.nombreIndicador,
-        }));
-        setIndicators(transformed);
+    setLoading(true);
+    axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados?idRegistro=${idRegistro}`)
+      .then((response) => {
+        setIndicators(response.data.indicadores || []);
       })
-      .catch(error => console.error("Error fetching indicators:", error));
-  }, []);
+      .catch((error) => {
+        console.error("Error fetching indicators:", error);
+      })
+      .finally(() => setLoading(false));
+  }, [idRegistro]);
 
-  // Obtener resultados para cada indicador
+  // Obtener resultados para cada indicador, según su origen
   useEffect(() => {
     if (indicators.length > 0) {
+      setLoading(true);
       Promise.all(
         indicators.map((ind) => {
-          let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${ind.idIndicadorConsolidado}/resultados`;
+          let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${ind.idIndicador}/resultados`;
           if (ind.origenIndicador === "Encuesta") {
-            endpoint = `http://127.0.0.1:8000/api/encuesta/${ind.idIndicadorConsolidado}/resultados`;
+            endpoint = `http://127.0.0.1:8000/api/encuesta/${ind.idIndicador}/resultados`;
           } else if (ind.origenIndicador === "Retroalimentacion") {
-            endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${ind.idIndicadorConsolidado}/resultados`;
+            endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${ind.idIndicador}/resultados`;
           } else if (ind.origenIndicador === "EvaluaProveedores") {
-            endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${ind.idIndicadorConsolidado}/resultados`;
+            endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${ind.idIndicador}/resultados`;
           }
-          return axios
-            .get(endpoint)
+          return axios.get(endpoint)
             .then((response) => {
-              if (ind.origenIndicador === "Encuesta") {
-                return response.data.encuesta;
-              }
-              if (ind.origenIndicador === "Retroalimentacion") {
-                return response.data.retroalimentacion;
-              }
-              if (ind.origenIndicador === "EvaluaProveedores") {
-                return response.data.evaluacion;
-              }
+              if (ind.origenIndicador === "Encuesta") return response.data.encuesta;
+              if (ind.origenIndicador === "Retroalimentacion") return response.data.retroalimentacion;
+              if (ind.origenIndicador === "EvaluaProveedores") return response.data.evaluacion;
               return response.data.analisis;
             })
             .catch((error) => {
-              console.error(
-                `Error fetching result for ${ind.idIndicadorConsolidado}:`,
-                error
-              );
+              console.error(`Error fetching result for ${ind.idIndicador}:`, error);
               return null;
             });
         })
-      )
-        .then((resultsArray) => {
-          const newResults = {};
-          indicators.forEach((ind, index) => {
-            if (resultsArray[index]) {
-              newResults[ind.idIndicadorConsolidado] = resultsArray[index];
-            }
-          });
-          setResults(newResults);
-        })
-        .finally(() => {
-          // <-- al terminar la carga, quitamos el spinner
-          setLoading(false);
+      ).then((resultsArray) => {
+        const newResults = {};
+        indicators.forEach((ind, index) => {
+          if (resultsArray[index]) {
+            newResults[ind.idIndicador] = resultsArray[index];
+          }
         });
+        setResults(newResults);
+      }).finally(() => setLoading(false));
     } else {
-      // Si no hay indicadores, igualmente quitamos el spinner
       setLoading(false);
     }
   }, [indicators]);
 
-  // 3) Extraer IDs especiales (ej. retroVirtual, retroFisica, etc.)
-  useEffect(() => {
-    if (indicators.length > 0) {
-      const retroVirtualIndicator = indicators.find(
-        (ind) => ind.nombreIndicador === "Retro Buzon Virtual"
-      );
-      const retroEncuestaIndicator = indicators.find(
-        (ind) => ind.nombreIndicador === "Retro Encuesta"
-      );
-      const retroFisicaIndicator = indicators.find(
-        (ind) => ind.nombreIndicador === "Retro Buzon Fisico"
-      );
-
-      if (retroVirtualIndicator) {
-        setRetroVirtualId(retroVirtualIndicator.idIndicadorConsolidado);
-      }
-      if (retroEncuestaIndicator) {
-        setRetroEncuestaId(retroEncuestaIndicator.idIndicadorConsolidado);
-      }
-      if (retroFisicaIndicator) {
-        setRetroFisicaId(retroFisicaIndicator.idIndicadorConsolidado);
-      }
-    }
-  }, [indicators]);
-
-
-  useEffect(() => {
-
-    if (indicators.length > 0) {
-      // Filtrar indicadores de retroalimentación
-      const retroIndicators = indicators.filter(
-        ind => ind.origenIndicador?.toLowerCase().trim() === "retroalimentacion"
-      );
-      console.log("Indicadores de retroalimentación:", retroIndicators);
-
-      const retroVirtualIndicator = indicators.find(
-        ind => ind.nombreIndicador === "Retro Buzon Virtual"
-      );
-      const retroEncuestaIndicator = indicators.find(
-        ind => ind.nombreIndicador === "Retro Encuesta"
-      );
-      const retroFisicaIndicator = indicators.find(
-        ind => ind.nombreIndicador === "Retro Buzon Fisico"
-      );
-
-      console.log("Retro Virtual Indicator:", retroVirtualIndicator);
-      console.log("Retro Encuesta Indicator:", retroEncuestaIndicator);
-      console.log("Retro Física Indicator:", retroFisicaIndicator);
-
-
-// Enviar directamente el idIndicadorConsolidado
-      if (retroVirtualIndicator) {
-        setRetroVirtualId(retroVirtualIndicator.idIndicadorConsolidado);
-        console.log("ID Retro Virtual:", retroVirtualIndicator.idIndicadorConsolidado);
-      }
-      if (retroEncuestaIndicator) {
-        setRetroEncuestaId(retroEncuestaIndicator.idIndicadorConsolidado);
-        console.log("ID Retro Encuesta:", retroEncuestaIndicator.idIndicadorConsolidado);
-      }
-      if (retroFisicaIndicator) {
-        setRetroFisicaId(retroFisicaIndicator.idIndicadorConsolidado);
-        console.log("ID Retro Física:", retroFisicaIndicator.idIndicadorConsolidado);
-      }
-    }
-  }, [indicators]);
-  // Función para determinar el estado de registro del indicador
+  // Función para determinar el estado del indicador
   function getStatus(indicator) {
-    // resultsMap es tu estado global de resultados, 
-    // con la forma: { [idConsolidado]: { ...result } }
-    const res = results[indicator?.idIndicadorConsolidado];
+    const res = results[indicator?.idIndicador];
+    if (!res) return "noRecord";
 
-    // Si no hay datos, retornamos 'noRecord'
-    if (!res) return 'noRecord';
-
-    // CASO: Encuesta
-    if (indicator.origenIndicador === 'Encuesta') {
-      // res = { malo, regular, excelenteBueno, noEncuestas }
+    if (indicator.origenIndicador === "Encuesta") {
       const { malo, regular, bueno, excelente, noEncuestas } = res;
-      // Verificamos si cualquiera de ellos es null, undefined o ''
       const fields = [malo, regular, bueno, excelente, noEncuestas];
-      const allFilled = fields.every((val) => val !== null && val !== undefined && val !== '');
-      return allFilled ? 'complete' : 'incomplete';
+      const allFilled = fields.every(val => val !== null && val !== undefined && val !== "");
+      return allFilled ? "complete" : "incomplete";
     }
-
-    // CASO: EvaluaProveedores
-    if (indicator.origenIndicador === 'EvaluaProveedores') {
-      // res = { confiable, condicionado, noConfiable }
+    if (indicator.origenIndicador === "EvaluaProveedores") {
       const { confiable, condicionado, noConfiable } = res;
       const fields = [confiable, condicionado, noConfiable];
-      const allFilled = fields.every((val) => val !== null && val !== undefined && val !== '');
-      return allFilled ? 'complete' : 'incomplete';
+      const allFilled = fields.every(val => val !== null && val !== undefined && val !== "");
+      return allFilled ? "complete" : "incomplete";
     }
-
-    // CASO: Retroalimentacion
-    if (indicator.origenIndicador === 'Retroalimentacion') {
-      // res = { metodo, cantidadFelicitacion, cantidadSugerencia, cantidadQueja }
+    if (indicator.origenIndicador === "Retroalimentacion") {
       const { cantidadFelicitacion, cantidadSugerencia, cantidadQueja } = res;
       const f = cantidadFelicitacion || 0;
-      const s = cantidadSugerencia   || 0;
-      const q = cantidadQueja        || 0;
-      // Si quieres ignorar `metodo`, no lo incluyas en la lógica de “completo/incompleto”
-
-      const isAllZero = (f === 0 && s === 0 && q === 0);
-      const isAllNonZero = (f > 0 && s > 0 && q > 0);
-
-      if (isAllZero) {
-        return 'noRecord';
-      } else if (isAllNonZero) {
-        return 'complete';
-      } else {
-        return 'incomplete';
-      }
-      
+      const s = cantidadSugerencia || 0;
+      const q = cantidadQueja || 0;
+      if (f === 0 && s === 0 && q === 0) return "noRecord";
+      if (f > 0 && s > 0 && q > 0) return "complete";
+      return "incomplete";
     }
-
-    // CASO: ActividadControl / MapaProceso / GestionRiesgo / etc.
-    // Aquí asumimos que en res tenemos { resultadoSemestral1, resultadoSemestral2, ... }
-    const period = indicator.periodicidad?.toLowerCase().trim() || '';
-    const r1 = res.resultadoSemestral1 ?? '';
-    const r2 = res.resultadoSemestral2 ?? '';
-
-    if (period === 'anual') {
-      // si con un solo semestral1 es "complete"
-      return r1 ? 'complete' : 'noRecord';
-    } else if (period === 'semestral') {
-      // si hay dos semestres, ambos deben estar llenos
-      const hasR1 = r1 !== null && r1 !== undefined && r1 !== '';
-      const hasR2 = r2 !== null && r2 !== undefined && r2 !== '';
-      if (hasR1 && hasR2) return 'complete';
-      if (hasR1 || hasR2) return 'incomplete';
-      return 'noRecord';
+    const period = indicator.periodicidad?.toLowerCase().trim() || "";
+    const r1 = res.resultadoSemestral1 ?? "";
+    const r2 = res.resultadoSemestral2 ?? "";
+    if (period === "anual") {
+      return r1 ? "complete" : "noRecord";
+    } else if (period === "semestral") {
+      const hasR1 = r1 !== "";
+      const hasR2 = r2 !== "";
+      if (hasR1 && hasR2) return "complete";
+      if (hasR1 || hasR2) return "incomplete";
+      return "noRecord";
     }
-
-    // Por defecto, si no matchea nada, asumimos que no hay datos
-    return 'noRecord';
+    return "noRecord";
   }
 
-
-
-  // Actualizar stateMap con los indicadores filtrados
   stateMap.noRecord.items = indicators.filter(ind => getStatus(ind) === "noRecord");
   stateMap.incomplete.items = indicators.filter(ind => getStatus(ind) === "incomplete");
   stateMap.complete.items = indicators.filter(ind => getStatus(ind) === "complete");
 
-  // Handler para el ToggleButtonGroup (modo exclusivo)
   const handleStateChange = (event, newState) => {
     if (newState !== null) {
       setSelectedState(newState);
     }
   };
 
-  // Handler para abrir modal
-  const handleCardClick = useCallback((indicator) => {
-    setSelectedIndicator(indicator);
-    setModalOpen(true);
+  const handleEdit = useCallback((id) => {
+    const found = indicators.find(i => i.idIndicador === id);
+    if (found) {
+      setEditIndicator(found);
+      setEditFormOpen(true);
+    }
+  }, [indicators]);
+
+  const handleDelete = useCallback((ind) => {
+    setIndicatorToDelete(ind);
+    setDeleteDialogOpen(true);
   }, []);
 
-  // Handler para registrar resultados (manteniendo la lógica anterior)
-  const handleResultRegister = useCallback(
-    (idConsolidado, resultValue) => {
-
-      let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${idConsolidado}/resultados`;
-
-      // Si es una Encuesta, redirigimos a /api/encuesta/{idConsolidado}/resultados
-      if (selectedIndicator.origenIndicador === 'Encuesta') {
-        endpoint = `http://127.0.0.1:8000/api/encuesta/${idConsolidado}/resultados`;
-      } else if (selectedIndicator.origenIndicador === 'EvaluaProveedores') {
-        endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${idConsolidado}/resultados`;
-      } else if (selectedIndicator.origenIndicador === 'Retroalimentacion') {
-        endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${idConsolidado}/resultados`;
-      }
-
-      axios
-        .post(endpoint, resultValue)
-        .then((resp) => {
-
-          if (selectedIndicator.origenIndicador === 'Encuesta') {
-            // Guardamos en results
-            setResults((prev) => ({
-              ...prev,
-              [idConsolidado]: resp.data.encuesta,
-            }));
-          } else if (selectedIndicator.origenIndicador === 'EvaluaProveedores') {
-            setResults((prev) => ({
-              ...prev,
-              [idConsolidado]: resp.data.evaluacion, // sueles llamarle evaluacion
-            }));
-          } else if (selectedIndicator.origenIndicador === 'Retroalimentacion') {
-            setResults((prev) => ({
-              ...prev,
-              [idConsolidado]: resp.data.retroalimentacion, // o la propiedad que devuelva tu backend
-            }));
-          } else {
-            // ActividadControl, MapaProceso => analisis
-            setResults((prev) => ({
-              ...prev,
-              [idConsolidado]: resp.data.analisis,
-            }));
-          }
-          setModalOpen(false);
-
-        })
-        .catch((error) => {
-          console.error('Error registering result:', error);
-        });
-    },
-    [selectedIndicator]
-  );
-
-  // Renderizar columna única: cuando se selecciona un único estado, se muestra un grid de 4 columnas
-  const renderColumn = () => {
-    const items = stateMap[selectedState].items;
-    return (
-      <Grid item xs={12}>
-        <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
-          {stateMap[selectedState].label}
-        </Typography>
-        <Grid container spacing={3} columnSpacing={12}>
-          {items.map(ind => (
-            <Grid item key={ind.idIndicadorConsolidado} xs={12} sm={6} md={3}>
-              <IndicatorCard
-                indicator={ind}
-                userType="user"
-                onCardClick={handleCardClick}
-                cardColor={stateMap[selectedState].color}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Grid>
-    );
-  };
-
-  // Render del modal para registrar resultados
-  const renderModal = () => {
-    if (!selectedIndicator) return null;
-    const periodicidad = selectedIndicator.periodicidad ? selectedIndicator.periodicidad.toLowerCase().trim() : "";
-    const savedResult =
-      periodicidad === "semestral"
-        ? results[selectedIndicator.idIndicadorConsolidado] || { "Ene-Jun": {}, "Jul-Dic": {} }
-        : results[selectedIndicator.idIndicadorConsolidado] || {};
-    const modalProps = {
-      open: modalOpen,
-      onClose: () => setModalOpen(false),
-      onSave: handleResultRegister,
-      indicator: selectedIndicator,
-      savedResult,
-    };
-
-    switch (selectedIndicator.origenIndicador) {
-      case "Encuesta":
-        return <ResultModalEncuesta {...modalProps} />;
-      case "Retroalimentacion":
-        return <ResultModalRetroalimentacion {...modalProps} />;
-      case "EvaluaProveedores":
-        return <ResultModalEvaluaProveedores {...modalProps} />;
-      case "ActividadControl":
-      case "MapaProceso":
-      case "GestionRiesgo":
-        if (periodicidad === "semestral") {
-          return (
-            <ResultModalSemestralDual
-              {...modalProps}
-              fields={[{ name: "resultado", label: "Resultado" }]}
-            />
-          );
-        }
-        return <ResultModalSimple {...modalProps} />;
-      default:
-        return <ResultModalSimple {...modalProps} />;
+  const handleRegisterResult = useCallback((id) => {
+    const found = indicators.find(i => i.idIndicador === id);
+    if (found) {
+      console.log("Abriendo modal para el indicador:", found);
+      setEditIndicator(found);
+      setResultModalOpen(true);
+    } else {
+      console.warn("No se encontró el indicador con ID:", id);
     }
+  }, [indicators]);
+
+
+
+  const handleResultRegister = useCallback((idIndicador, resultValue) => {
+    let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${idIndicador}/resultados`;
+
+    if (editIndicator.origenIndicador === "Encuesta") {
+        endpoint = `http://127.0.0.1:8000/api/encuesta/${idIndicador}/resultados`;
+    } else if (editIndicator.origenIndicador === "Retroalimentacion") {
+        endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${idIndicador}/resultados`;
+    } else if (editIndicator.origenIndicador === "EvaluaProveedores") {
+        endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${idIndicador}/resultados`;
+    }
+
+    console.log("📌 Enviando datos al backend:", endpoint, "Payload:", resultValue);
+
+    axios.post(endpoint, resultValue)
+      .then((resp) => {
+        // 🔥 Después de guardar, obtener los datos actualizados
+        axios.get(endpoint)
+          .then((newData) => {
+            console.log("✅ Datos actualizados obtenidos:", newData.data);
+            setResults(prev => ({
+              ...prev,
+              [idIndicador]: newData.data.resultado
+            }));
+          })
+          .catch((error) => {
+            console.error("❌ Error al obtener datos actualizados:", error);
+          });
+
+        setResultModalOpen(false);
+      })
+      .catch((error) => {
+        console.error("❌ Error al registrar el resultado:", error);
+        setSnackbar({ open: true, message: "Error al registrar el resultado" });
+      });
+}, [editIndicator]);
+
+
+  const renderResultModal = () => {
+    if (!resultModalOpen || !editIndicator) return null;
+
+    console.log("🔍 Abriendo modal para indicador:", editIndicator);
+
+    if (!editIndicator.idIndicador) {
+      console.error("❌ Error: idIndicador es undefined.");
+      return null;
+    }
+    const savedResult = results[editIndicator.idIndicador] || {}; // ✅ Asegurar que no sea undefined
+
+    const periodicidad = editIndicator.periodicidad?.toLowerCase().trim();
+    const tipoIndicador = editIndicator.origenIndicador?.toLowerCase().trim();
+
+    console.log("Abriendo modal para:", editIndicator.name, "Tipo:", tipoIndicador, "Periodicidad:", periodicidad);
+
+    if (tipoIndicador === "encuesta") {
+      return (
+        <ResultModalEncuesta
+          open={resultModalOpen}
+          onClose={() => setResultModalOpen(false)}
+          indicator={editIndicator}
+          savedResult={results[editIndicator.idIndicador] || {}}
+          onSave={handleResultRegister}
+        />
+      );
+    }
+
+    if (tipoIndicador === "retroalimentacion") {
+      return (
+        <ResultModalRetroalimentacion
+          open={resultModalOpen}
+          onClose={() => setResultModalOpen(false)}
+          indicator={editIndicator}
+          savedResult={results[editIndicator.idIndicador] || {}}
+          onSave={handleResultRegister}
+        />
+      );
+    }
+
+    if (tipoIndicador === "evaluaproveedores") {
+      return (
+        <ResultModalEvaluaProveedores
+          open={resultModalOpen}
+          onClose={() => setResultModalOpen(false)}
+          indicator={editIndicator}
+          savedResult={savedResult}
+          onSave={handleResultRegister}
+        />
+      );
+    }
+
+    if (tipoIndicador === "actividadcontrol" || tipoIndicador === "mapaproceso") {
+      return (
+        <ResultModalSemestralDual
+          open={resultModalOpen}
+          onClose={() => setResultModalOpen(false)}
+          indicator={editIndicator}
+          savedResult={results[editIndicator.idIndicador] || {}}
+          onSave={handleResultRegister}
+          fields={[{ name: "resultado", label: "Resultado" }]}
+        />
+      );
+    }
+
+    if (tipoIndicador === "gestionriesgo") {
+      return (
+        <ResultModalSimple
+          open={resultModalOpen}
+          onClose={() => setResultModalOpen(false)}
+          indicator={editIndicator}
+          savedResult={results[editIndicator.idIndicador] || {}}
+          onSave={handleResultRegister}
+        />
+      );
+    }
+
+    return (
+      <ResultModalSimple
+        open={resultModalOpen}
+        onClose={() => setResultModalOpen(false)}
+        indicator={editIndicator}
+        savedResult={results[editIndicator.idIndicador] || {}}
+        onSave={handleResultRegister}
+      />
+    );
   };
 
-  //Funciones para enviar el id de la encuesta
-  const encuestaIndicator = indicators.find(
-    ind => ind.origenIndicador?.toLowerCase().trim() === "encuesta"
-  );
-  console.log("Encuesta indicator:", encuestaIndicator);
-
-  const encuestaId = encuestaIndicator ? encuestaIndicator.idIndicadorConsolidado : null;
-  console.log("ID del indicador de encuesta:", encuestaId);
-
-  const evaluacionIndicator = indicators.find(
-    ind => ind.origenIndicador?.toLowerCase().trim() === "evaluaproveedores"
-  );
-  console.log("Evaluacion indicator:", evaluacionIndicator);
-
-  const evaluacionId = evaluacionIndicator ? evaluacionIndicator.idIndicadorConsolidado : null;
-  console.log("ID del indicador de evaluacion:", evaluacionId);
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          mt: 8,
-        }}
-      >
-        <CircularProgress size={60} />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ padding: "16px", margin: "0 auto", maxWidth: "1200px" }}>
-      <Typography variant="h3" sx={{ mb: 3, textAlign: "center", color: "primary.main" }}>
-        Indicadores - Usuario
-      </Typography>
-
-      {/* Botones de filtro (modo exclusivo) */}
+      {/* Header: Título y botón de gráficas en la esquina superior derecha */}
+      <Box sx={{ position: "relative", mb: 3 }}>
+        <Typography variant="h3" color="primary.main">
+          Indicadores
+        </Typography>
+        <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 999 }}>
+          <IrGraficasBoton
+            encuestaId={
+              indicators.find(ind => ind.origenIndicador?.toLowerCase() === "encuesta")
+                ?.idIndicador || null
+            }
+            retroVirtualId={
+              indicators.find(ind => ind.nombreIndicador?.includes("Buzon Virtual"))
+                ?.idIndicador || null
+            }
+            retroEncuestaId={
+              indicators.find(ind => ind.nombreIndicador?.includes("Encuesta"))
+                ?.idIndicador || null
+            }
+            retroFisicaId={
+              indicators.find(ind => ind.nombreIndicador?.includes("Buzon Fisico"))
+                ?.idIndicador || null
+            }
+            evaluacionId={
+              indicators.find(ind => ind.origenIndicador?.toLowerCase() === "evaluaproveedores")
+                ?.idIndicador || null
+            }
+          />
+        </Box>
+      </Box>
+      {/* Filtro de estados */}
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         <ToggleButtonGroup
           exclusive
@@ -425,11 +352,8 @@ const UserIndicatorPage = () => {
           onChange={handleStateChange}
           aria-label="Filtro de indicadores"
           sx={{
-            display: "flex",
-            justifyContent: "space-around",
             gap: "100px",
             borderRadius: "20px",
-            border: "none",
             "& .MuiToggleButton-root": {
               border: "1px solid #ccc",
               borderRadius: "20px",
@@ -448,32 +372,148 @@ const UserIndicatorPage = () => {
             },
           }}
         >
-          <ToggleButton value="noRecord" aria-label="Sin registrar">
-            Sin registrar
-          </ToggleButton>
-          <ToggleButton value="incomplete" aria-label="Incompleto">
-            Incompleto
-          </ToggleButton>
-          <ToggleButton value="complete" aria-label="Completo">
-            Completo
-          </ToggleButton>
+          <ToggleButton value="noRecord">Sin registrar</ToggleButton>
+          <ToggleButton value="incomplete">Incompleto</ToggleButton>
+          <ToggleButton value="complete">Completo</ToggleButton>
         </ToggleButtonGroup>
       </Box>
-
-      {/* Render de la columna única */}
-      <Grid container spacing={3} columnSpacing={18}>
-        {renderColumn()}
+      {/* Listado de tarjetas */}
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+      <Grid container spacing={3} columnSpacing={12}>
+        {stateMap[selectedState].items.map((ind) => (
+          <Grid item key={ind.idIndicador} xs={12} sm={6} md={3}>
+            <IndicatorCard
+              indicator={ind}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onRegisterResult={() => handleRegisterResult(ind.idIndicador)}
+              cardColor={stateMap[selectedState].color}
+            />
+          </Grid>
+        ))}
       </Grid>
-      <IrGraficasBoton
-        encuestaId={encuestaId}
-        retroVirtualId={retroVirtualId}
-        retroEncuestaId={retroEncuestaId}
-        retroFisicaId={retroFisicaId}
-        evaluacionId={evaluacionId}
+      )}
+      {/* Botón FAB para agregar indicador */}
+      <Box sx={{ position: "fixed", bottom: 40, right: 40 }}>
+        <Fab color="primary" aria-label="Agregar" onClick={() => setFormOpen(true)}>
+          <AddIcon />
+        </Fab>
+      </Box>
+      {formOpen && (
+        <AddIndicatorForm
+          open={formOpen}
+          onClose={() => setFormOpen(false)}
+          onSave={(payload) => {
+            axios.post("http://127.0.0.1:8000/api/indicadoresconsolidados", payload)
+              .then((response) => {
+                const newInd = response.data.indicador;
+                newInd.name = newInd.nombreIndicador;
+                setIndicators(prev => [...prev, newInd]);
+                setFormOpen(false);
+              })
+              .catch((error) => {
+                console.error("Error saving new indicator:", error);
+                setSnackbar({ open: true, message: "Error al guardar el indicador" });
+              });
+          }}
+          idRegistro={idRegistro} // Se pasa el idRegistro
+          initialValues={{ idRegistro: idRegistro }}
+        />
+      )}
+      {editFormOpen && editIndicator && (
+        <AddIndicatorForm
+          open={editFormOpen}
+          onClose={() => {
+            setEditFormOpen(false);
+            setEditIndicator(null);
+          }}
+          onSave={(editedData) => {
+            const id = editIndicator.idIndicador;
+
+            // Corregir estructura del payload
+            const payload = {
+              nombreIndicador: editedData.origenIndicador, // Usar campo correcto
+              meta: editedData.meta,
+              periodicidad: editedData.periodicidad,
+              idRegistro: parseInt(editedData.idRegistro), // Asegurar número
+            };
+
+            // Agregar método solo para Retroalimentación
+            if (editedData.origenIndicador === 'Retroalimentacion') {
+              payload.metodo = editedData.metodo;
+            }
+
+            axios.put(`http://127.0.0.1:8000/api/indicadoresconsolidados/${id}`, payload)
+              .then((response) => {
+                const updated = response.data.indicador;
+                // Mapear correctamente las propiedades
+                setIndicators(prev =>
+                  prev.map(ind =>
+                    ind.idIndicador === updated.idIndicador
+                      ? {
+                        ...updated,
+                        nombreIndicador: updated.nombreIndicador,
+                        origenIndicador: updated.nombreIndicador // Asignar según lógica de negocio
+                      }
+                      : ind
+                  )
+                );
+                setEditFormOpen(false);
+              })
+              .catch((error) => {
+                console.error("Error updating indicator:", error);
+                setSnackbar({ open: true, message: "Error al actualizar el indicador" });
+              });
+          }}
+          initialValues={{
+            // Corregir mapeo de valores iniciales
+            origenIndicador: editIndicator.nombreIndicador, // Campo correcto para el select
+            meta: editIndicator.meta || "",
+            periodicidad: editIndicator.periodicidad,
+            metodo: editIndicator.metodo || "", // Agregar método si existe
+            idRegistro: idRegistro // Valor ya viene como número desde params
+          }}
+          idRegistro={idRegistro}
+        />
+      )}
+      {deleteDialogOpen && indicatorToDelete && (
+        <ConfirmDeleteDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={() => {
+            axios.delete(`http://127.0.0.1:8000/api/indicadoresconsolidados/${indicatorToDelete.idIndicador}`)
+              .then(() => {
+                setIndicators(prev =>
+                  prev.filter(ind => ind.idIndicador !== indicatorToDelete.idIndicador)
+                );
+                setResults(prev => {
+                  const updated = { ...prev };
+                  delete updated[indicatorToDelete.idIndicador];
+                  return updated;
+                });
+                setDeleteDialogOpen(false);
+              })
+              .catch((error) => {
+                console.error("Error deleting indicator:", error);
+                setSnackbar({ open: true, message: "Error al eliminar el indicador" });
+              });
+          }}
+          itemName={indicatorToDelete.nombreIndicador}
+        />
+      )}
+      {renderResultModal()}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
       />
-      {renderModal()}
     </Box>
   );
 };
 
-export default UserIndicatorPage;
+export default UnifiedIndicatorPage;

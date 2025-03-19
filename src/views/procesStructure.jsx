@@ -16,11 +16,11 @@ const ProcessStructure = () => {
   console.log("id del proceso", idProceso);
 
   const menuItems = [
-    { icon: <BookIcon />, title: "Manual Operativo", path: `manual-operativo` },
+    { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos`},
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/analisis-DatosForm` },
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/carpetas/${idProceso}/Generar informe de auditoría` },
+    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/informe-auditoria` },
     { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento`},
     { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores`},
   ];

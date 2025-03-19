@@ -1,4 +1,3 @@
-// src/components/Modals/ResultModalEncuesta.jsx
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
@@ -70,18 +69,25 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) 
   });
 
   useEffect(() => {
-    if (open && savedResult) {
+    if (open) {
+      console.log("📌 Modal Encuesta abierto, savedResult:", savedResult, "Indicator:", indicator);
+      
       setFormData({
-        encuestas: savedResult.noEncuestas?.toString() ?? "",
-        malas: savedResult.malo?.toString() ?? "",
-        regulares: savedResult.regular?.toString() ?? "",
-        buenas: savedResult.bueno?.toString() ?? "",
-        excelentes: savedResult.excelente?.toString() ?? ""
+        encuestas: savedResult?.noEncuestas?.toString() || "",
+        malas: savedResult?.malo?.toString() || "",
+        regulares: savedResult?.regular?.toString() || "",
+        buenas: savedResult?.bueno?.toString() || "",
+        excelentes: savedResult?.excelente?.toString() || ""
       });
     }
   }, [open, savedResult]);
 
   const handleSave = () => {
+    if (!indicator || !indicator.idIndicador) {
+      console.error("❌ Error: No se encontró idIndicador para registrar el resultado.");
+      return;
+    }
+
     const resultData = {
       noEncuestas: Number(formData.encuestas),
       malo: Number(formData.malas),
@@ -89,7 +95,10 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) 
       bueno: Number(formData.buenas),
       excelente: Number(formData.excelentes)
     };
-    onSave(indicator.idIndicadorConsolidado, { result: resultData });
+
+    console.log("📌 Guardando resultado Encuesta para indicador", indicator.idIndicador, "Payload:", resultData);
+
+    onSave(indicator.idIndicadorConsolidado, resultData);  // 🔥 Se elimina la envoltura extra
     onClose();
   };
 

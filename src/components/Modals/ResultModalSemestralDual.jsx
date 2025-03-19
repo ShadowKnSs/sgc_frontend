@@ -19,24 +19,33 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
   const [resultEneJun, setResultEneJun] = useState(defaultState);
   const [resultJulDic, setResultJulDic] = useState(defaultState);
 
-  // Al abrir el modal, precargar los valores guardados o usar defaultState
+  // Precargar valores guardados al abrir el modal
   useEffect(() => {
     if (open && indicator) {
+      console.log("📌 Modal abierto. Datos actuales:", savedResult);
+
       if (indicator.periodicidad === "Semestral" && fields.length > 0) {
         setResultEneJun({
           [fields[0].name]:
-            savedResult && savedResult.resultadoSemestral1 != null
+            savedResult?.resultadoSemestral1 != null
               ? savedResult.resultadoSemestral1.toString()
               : ''
         });
         setResultJulDic({
           [fields[0].name]:
-            savedResult && savedResult.resultadoSemestral2 != null
+            savedResult?.resultadoSemestral2 != null
               ? savedResult.resultadoSemestral2.toString()
               : ''
         });
+      } else if (indicator.periodicidad === "Anual") {
+        setResultEneJun({
+          [fields[0].name]:
+            savedResult?.resultadoAnual != null
+              ? savedResult.resultadoAnual.toString()
+              : ''
+        });
       }
-      console.log("ResultModalSemestralDual opened. savedResult:", savedResult);
+
       setTab(0);
     }
   }, [open, savedResult, indicator, fields, defaultState]);
@@ -44,7 +53,6 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
   };
-
 
   const handleFieldChange = (tabNumber, fieldName, value) => {
     if (tabNumber === 0) {
@@ -55,17 +63,25 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
   };
 
   const handleSave = () => {
-    // Construir el payload a enviar
+    if (!indicator?.idIndicador) {
+      console.error("❌ Error: No se pudo identificar el indicador.");
+      return;
+    }
+
     const payload = {
       periodicidad: indicator.periodicidad,
-      result: {
-        resultadoSemestral1: resultEneJun[fields[0].name],
-        resultadoSemestral2: resultJulDic[fields[0].name]
-      }
+      result: {},
     };
 
-    console.log("Guardando resultado para indicador", indicator.idIndicadorConsolidado, "payload:", payload);
-    onSave(indicator.idIndicadorConsolidado, payload);
+    if (indicator.periodicidad === "Anual") {
+      payload.result.resultadoAnual = resultEneJun[fields[0].name];
+    } else {
+      payload.result.resultadoSemestral1 = resultEneJun[fields[0].name];
+      payload.result.resultadoSemestral2 = resultJulDic[fields[0].name];
+    }
+
+    console.log("📌 Payload enviado al backend:", JSON.stringify(payload, null, 2));
+    onSave(indicator.idIndicador, payload);
     onClose();
   };
 
@@ -80,7 +96,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
       <DialogContent>
         <Tabs value={tab} onChange={handleTabChange} centered>
           <Tab label="Ene-Jun" />
-          <Tab label="Jul-Dic" />
+          <Tab label="Jul-Dic" disabled={indicator.periodicidad === "Anual"} />
         </Tabs>
         <Box sx={{ mt: 2 }}>
           {tab === 0 && (
@@ -99,7 +115,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
               ))}
             </Grid>
           )}
-          {tab === 1 && (
+          {tab === 1 && indicator.periodicidad === "Semestral" && (
             <Grid container spacing={2}>
               {fields.map(field => (
                 <Grid item xs={12} key={field.name}>
@@ -120,6 +136,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
       <DialogActions>
         <DialogActionButtons
           onCancel={onClose}
+          
           onSave={handleSave}
           saveText="Guardar"
           cancelText="Cancelar"

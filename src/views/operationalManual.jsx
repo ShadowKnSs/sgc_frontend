@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, Container, Button, Typography } from "@mui/material";
+import { useParams } from "react-router-dom";
+
+import { Box, Container, Button } from "@mui/material";
 
 // Importar vistas
 import Caratula from "../views/caratula";
@@ -22,6 +24,7 @@ const ProcessView = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed, setIsFixed] = useState(false);
   const navbarRef = useRef(null);
+  const { idProceso } = useParams(); 
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,11 +42,11 @@ const ProcessView = () => {
       case "Control de Cambios":
         return <ControlCambios />;
       case "Mapa de Proceso":
-        return <MapaProceso />;
+        return <MapaProceso idProceso={idProceso}/>;
       case "Diagrama de Flujo":
         return <DiagramaFlujo />;
       case "Plan de Control":
-        return <PlanControl />;
+        return <PlanControl idProceso={idProceso} />;
       case "Control de documentos":
         return <ControlDocuments />;
       default:
