@@ -1,94 +1,170 @@
-// src/components/Modals/ResultModalEvaluaProveedores.jsx
-import React from 'react';
-import { Box, TextField, Grid, Typography } from '@mui/material';
-import GenericModal from './GenericModal';
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid, Typography } from "@mui/material";
+import DialogActionButtons from "../DialogActionButtons";
 
-const EvaluaContent = ({ formData, setFormData }) => (
+const EvaluaContent = ({ formData, setFormData, activeTab }) => (
   <Box component="form" sx={{ mt: 2 }}>
     <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <TextField
-          label="Confiable"
-          type="number"
-          fullWidth
-          value={formData.confiable || ''}
-          onChange={(e) => {console.log("Valor actualizado:", e.target.value);setFormData({ ...formData, confiable: e.target.value });}}
-          margin="dense"
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          label="Condicionado"
-          type="number"
-          fullWidth
-          value={formData.condicionado || ''}
-          onChange={e => setFormData({ ...formData, condicionado: e.target.value })}
-          margin="dense"
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          label="No Confiable"
-          type="number"
-          fullWidth
-          value={formData.noConfiable || ''}
-          onChange={e => setFormData({ ...formData, noConfiable: e.target.value })}
-          margin="dense"
-        />
-      </Grid>
+      {/* 📌 Pestaña de Ene-Jun */}
+      {activeTab === 0 && (
+        <>
+          <Grid item xs={12}>
+            <TextField
+              label="Confiable (Ene-Jun)"
+              type="number"
+              fullWidth
+              value={formData.confiableSem1 || ""}
+              onChange={(e) => setFormData({ ...formData, confiableSem1: e.target.value })}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Condicionado (Ene-Jun)"
+              type="number"
+              fullWidth
+              value={formData.condicionadoSem1 || ""}
+              onChange={(e) => setFormData({ ...formData, condicionadoSem1: e.target.value })}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="No Confiable (Ene-Jun)"
+              type="number"
+              fullWidth
+              value={formData.noConfiableSem1 || ""}
+              onChange={(e) => setFormData({ ...formData, noConfiableSem1: e.target.value })}
+              margin="dense"
+            />
+          </Grid>
+        </>
+      )}
+
+      {/* 📌 Pestaña de Jul-Dic */}
+      {activeTab === 1 && (
+        <>
+          <Grid item xs={12}>
+            <TextField
+              label="Confiable (Jul-Dic)"
+              type="number"
+              fullWidth
+              value={formData.confiableSem2 || ""}
+              onChange={(e) => setFormData({ ...formData, confiableSem2: e.target.value })}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Condicionado (Jul-Dic)"
+              type="number"
+              fullWidth
+              value={formData.condicionadoSem2 || ""}
+              onChange={(e) => setFormData({ ...formData, condicionadoSem2: e.target.value })}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="No Confiable (Jul-Dic)"
+              type="number"
+              fullWidth
+              value={formData.noConfiableSem2 || ""}
+              onChange={(e) => setFormData({ ...formData, noConfiableSem2: e.target.value })}
+              margin="dense"
+            />
+          </Grid>
+        </>
+      )}
     </Grid>
   </Box>
 );
 
-const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedResult }) => {
-  const title = (
-    <>
-      Registrar Evaluación de Proveedores para: {indicator ? indicator.name : ''}
-      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-        Origen: {indicator ? indicator.origenIndicador : 'Sin origen'}
-      </Typography>
-    </>
-  );
+const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedResult = {} }) => {
+  const [activeTab, setActiveTab] = useState(0); // 📌 Controla la pestaña activa
 
-  // Estado inicial a pasar al modal
-  const initialState = {
-    confiable: savedResult && savedResult.confiable != null ? savedResult.confiable.toString() : '',
-    condicionado: savedResult && savedResult.condicionado != null ? savedResult.condicionado.toString() : '',
-    noConfiable: savedResult && savedResult.noConfiable != null ? savedResult.noConfiable.toString() : ''
+  const [formData, setFormData] = useState({
+    confiableSem1: savedResult?.confiableSem1 ?? "",
+    confiableSem2: savedResult?.confiableSem2 ?? "",
+    condicionadoSem1: savedResult?.condicionadoSem1 ?? "",
+    condicionadoSem2: savedResult?.condicionadoSem2 ?? "",
+    noConfiableSem1: savedResult?.noConfiableSem1 ?? "",
+    noConfiableSem2: savedResult?.noConfiableSem2 ?? "",
+  });
+
+  useEffect(() => {
+    if (open) {
+      console.log("🔍 Modal abierto, datos guardados en `savedResult`:", savedResult);
+      if (savedResult) {
+        setFormData({
+          confiableSem1: savedResult.resultadoConfiableSem1?.toString() ?? "0",
+          confiableSem2: savedResult.resultadoConfiableSem2?.toString() ?? "0",
+          condicionadoSem1: savedResult.resultadoCondicionadoSem1?.toString() ?? "0",
+          condicionadoSem2: savedResult.resultadoCondicionadoSem2?.toString() ?? "0",
+          noConfiableSem1: savedResult.resultadoNoConfiableSem1?.toString() ?? "0",
+          noConfiableSem2: savedResult.resultadoNoConfiableSem2?.toString() ?? "0"
+        });
+      }
+    }
+  }, [open, savedResult]);
+  
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
-  // Función para transformar valores vacíos en null y convertir a número si hay valor
-  const transformValue = (val) => (val === '' ? null : Number(val));
-
-  // handleSave ahora recibe "data" desde GenericModal, que ya es el estado actualizado
-  const handleSave = (data) => {
-    const payload = {
-      periodicidad: indicator.periodicidad,
-      result: {
-        confiable: transformValue(data.confiable),
-        condicionado: transformValue(data.condicionado),
-        noConfiable: transformValue(data.noConfiable)
-      }
+  const handleSave = () => {
+    const resultData = {
+      confiableSem1: Number(formData.confiableSem1),
+      confiableSem2: Number(formData.confiableSem2),
+      condicionadoSem1: Number(formData.condicionadoSem1),
+      condicionadoSem2: Number(formData.condicionadoSem2),
+      noConfiableSem1: Number(formData.noConfiableSem1),
+      noConfiableSem2: Number(formData.noConfiableSem2),
     };
-    console.log("Guardando evaluación de proveedores para indicador", indicator.idIndicadorConsolidado, "payload:", payload);
-    onSave(indicator.idIndicadorConsolidado, payload);
+  
+    console.log("📌 Payload enviado al backend:", resultData);
+  
+    if (!indicator || !indicator.idIndicador) {
+      console.error("❌ Error: idIndicador está indefinido.");
+      return;
+    }
+  
+    onSave(indicator.idIndicador, { result: resultData });
     onClose();
   };
+  
 
   return (
-    <GenericModal
-      open={open}
-      onClose={onClose}
-      onSave={handleSave}
-      title={title}
-      initialState={initialState}
-      saveColor="terciary.main"
-      cancelColor="primary.main"
-    >
-      <EvaluaContent />
-    </GenericModal>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>
+        Registrar Evaluación de Proveedores - {indicator ? indicator.name : ""}
+        <Typography variant="caption" sx={{ display: "block", color: "text.secondary" }}>
+          Origen: {indicator ? indicator.origenIndicador : "Sin origen"}
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        {/* 📌 Tabs para cambiar entre semestres */}
+        <Tabs value={activeTab} onChange={handleTabChange} centered>
+          <Tab label="Ene-Jun" />
+          <Tab label="Jul-Dic" />
+        </Tabs>
+
+        {/* 📌 Contenido dinámico de cada pestaña */}
+        <EvaluaContent formData={formData} setFormData={setFormData} activeTab={activeTab} />
+      </DialogContent>
+      <DialogActions>
+        <DialogActionButtons
+          onCancel={onClose}
+          onSave={handleSave}
+          saveText="Guardar"
+          cancelText="Cancelar"
+          saveColor="terciary.main"
+          cancelColor="primary.main"
+        />
+      </DialogActions>
+    </Dialog>
   );
 };
 
 export default ResultModalEvaluaProveedores;
-

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, Fab, Stack, Card, CardContent, Typography, IconButton, 
   Table, TableBody, TableCell, TableContainer, TableRow, Paper, 
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, 
-  MenuItem, FormGroup, FormControlLabel, Checkbox
+  Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, MenuItem, FormGroup, FormControlLabel, Checkbox
 } from "@mui/material";
 import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 
@@ -38,14 +38,38 @@ const initialUsers = [
 
 function ProcessMapView() {
   const [users, setUsers] = useState(initialUsers);
-  const [openForm, setOpenForm] = useState(false);
+  const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
   const [allExpanded, setAllExpanded] = useState(false);
+  const [openForm, setOpenForm] = useState(false);
+  const [isFixed, setIsFixed] = useState(false);
 
-  const handleAddUser = (newUser) => {
-    setUsers([...users, { id: users.length + 1, ...newUser }]);
-    setOpenForm(false);
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsFixed(true);
+      } else {
+        setIsFixed(false);
+      }
+    };
+  
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const [newUser, setNewUser] = useState({
+    nombreDocumento: "",
+    tipoDocumento: "",
+    fechaRevision: "",
+    fechaVersion: "",
+    noRevision: 0,
+    noCopias: 0,
+    tiempoRetencion: 0,
+    lugarAlmacenamiento: "",
+    medioAlmacenamiento: "",
+    disposicion: "",
+    usuarios: []
+  });
 
   const handleSelectCard = (user) => {
     if (!activeCards.some(u => u.id === user.id)) {
@@ -66,8 +90,58 @@ function ProcessMapView() {
     setAllExpanded(!allExpanded);
   };
 
+  const validateFields = () => {
+    let tempErrors = {};
+
+    if (!newUser.nombreDocumento?.trim()) tempErrors.nombreDocumento = "Este campo es obligatorio";
+    if (!newUser.tipoDocumento) tempErrors.tipoDocumento = "Debe seleccionar un tipo de documento";
+    if (!newUser.fechaRevision) tempErrors.fechaRevision = "Debe seleccionar una fecha";
+    if (!newUser.fechaVersion) tempErrors.fechaVersion = "Debe seleccionar una fecha";
+    if (!newUser.lugarAlmacenamiento?.trim()) tempErrors.lugarAlmacenamiento = "Este campo es obligatorio";
+    if (!newUser.medioAlmacenamiento) tempErrors.medioAlmacenamiento = "Debe seleccionar un medio de almacenamiento";
+    if (!newUser.disposicion?.trim()) tempErrors.disposicion = "Este campo es obligatorio";
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+
+  const handleAddUser = () => {
+    if (validateFields()) {
+        setUsers([...users, { 
+            id: users.length + 1, 
+            nombreDocumento: newUser.nombreDocumento, 
+            tipoDocumento: newUser.tipoDocumento || "Sin especificar", 
+            fechaRevision: newUser.fechaRevision || "Sin especificar", 
+            fechaVersion: newUser.fechaVersion || "Sin especificar", 
+            noRevision: newUser.noRevision || "Sin especificar", 
+            noCopias: newUser.noCopias || "Sin especificar", 
+            tiempoRetencion: newUser.tiempoRetencion || "Sin especificar", 
+            lugarAlmacenamiento: newUser.lugarAlmacenamiento || "Sin especificar", 
+            medioAlmacenamiento: newUser.medioAlmacenamiento || "Sin especificar", 
+            disposicion: newUser.disposicion || "Sin especificar", 
+            usuarios: newUser.usuarios.length > 0 ? newUser.usuarios : ["Sin especificar"]
+        }]);
+
+        setOpenForm(false);
+        setNewUser({
+            nombreDocumento: "",
+            tipoDocumento: "",
+            fechaRevision: "",
+            fechaVersion: "",
+            noRevision: "",
+            noCopias: "",
+            tiempoRetencion: "",
+            lugarAlmacenamiento: "",
+            medioAlmacenamiento: "",
+            disposicion: "",
+            usuarios: []
+        });
+        setErrors({});
+    }
+  };
+
   return (
-    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" , paddingTop: 8}}>
+    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 8 }}>
       
       {activeCards.length > 0 && (
         <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
@@ -85,10 +159,26 @@ function ProcessMapView() {
         ))}
       </Box>
 
-      <Box sx={{ position: "absolute", top: 210, right: 30, zIndex: 10, paddingRight: 5, paddingTop: 3}}>
-        <Button 
+      <Box 
+        sx={{ 
+          position: "fixed",
+          top: isFixed ? 5 : 202,
+          right: 30, 
+          zIndex: 50,
+          paddingRight: 5, 
+          transition: "top 0.1s ease-in-out"
+        }}
+      >
+      <Button 
           variant="contained" 
-          sx={{ width: 140, height: 40, borderRadius: 2, backgroundColor: "secondary.main", color: "#fff", "&:hover": { backgroundColor: "primary.main" }}} 
+          sx={{ 
+            width: 140, 
+            height: 40, 
+            borderRadius: 2, 
+            backgroundColor: "secondary.main", 
+            color: "#fff", 
+            "&:hover": { backgroundColor: "primary.main" }
+          }} 
           onClick={handleToggleAll} 
           startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
         >
@@ -104,60 +194,180 @@ function ProcessMapView() {
         >
           <Add />
         </Fab>
-      </Box>
+        {openForm && (
+          <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+              Agregar Nuevo Documento
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+              <TextField
+                  label="Nombre del Documento"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.nombreDocumento}
+                  onChange={(e) => setNewUser({ ...newUser, nombreDocumento: e.target.value })}
+                  error={!!errors.nombreDocumento}
+                  helperText={errors.nombreDocumento}
+              />
 
-      {openForm && (
-        <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="lg" fullWidth>
-          <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>Agregar Nuevo Registro</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, p: 2 }}>
-              
-              {[
-                { label: "Nombre del Documento", name: "nombreDocumento" },
-                { label: "Tipo", name: "tipo", options: ["Interno", "Externo"] },
-                { label: "Fecha de Revisión", name: "fechaRevision", type: "date" },
-                { label: "Responsable", name: "responsable", options: ["Auditor", "Líder de Proceso", "Supervisor"] },
-                { label: "Medio de Almacenamiento", name: "medioAlmacenamiento" },
-                { label: "Lugar de Almacenamiento", name: "lugarAlmacenamiento" },
-                { label: "Número de Copias", name: "numeroCopias" },
-                { label: "Tipo de Almacenamiento", name: "tipoAlmacenamiento", options: ["Físico", "Digital", "Ambos"] },
-                { label: "Disposición", name: "disposicion" },
-              ].map((field, index) => (
-                <Box key={index}>
-                  <Typography sx={{ fontWeight: "bold" }}>{field.label}:</Typography>
-                  {field.options ? (
-                    <TextField fullWidth select name={field.name} variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }}>
-                      {field.options.map(option => <MenuItem key={option} value={option}>{option}</MenuItem>)}
-                    </TextField>
-                  ) : (
-                    <TextField fullWidth type={field.type || "text"} name={field.name} variant="filled" sx={{ backgroundColor: "#E0E0E0", borderRadius: 1 }} />
-                  )}
+              <TextField
+                  label="Tipo de Documento"
+                  fullWidth
+                  select
+                  variant="outlined"
+                  value={newUser.tipoDocumento}
+                  onChange={(e) => setNewUser({ ...newUser, tipoDocumento: e.target.value })}
+                  error={!!errors.tipoDocumento}
+                  helperText={errors.tipoDocumento}
+              >
+                  <MenuItem value="Interno">Interno</MenuItem>
+                  <MenuItem value="Externo">Externo</MenuItem>
+              </TextField>
+
+              <TextField
+                  label="Fecha de Revisión"
+                  fullWidth
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  variant="outlined"
+                  value={newUser.fechaRevision}
+                  onChange={(e) => setNewUser({ ...newUser, fechaRevision: e.target.value })}
+                  error={!!errors.fechaRevision}
+                  helperText={errors.fechaRevision}
+              />
+
+              <TextField
+                  label="Fecha de Versión"
+                  fullWidth
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  variant="outlined"
+                  value={newUser.fechaVersion}
+                  onChange={(e) => setNewUser({ ...newUser, fechaVersion: e.target.value })}
+                  error={!!errors.fechaVersion}
+                  helperText={errors.fechaVersion}
+              />
+
+              <TextField
+                  label="Número de Revisiones"
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  value={newUser.noRevision}
+                  onChange={(e) => setNewUser({ ...newUser, noRevision: parseInt(e.target.value) || 0 })}
+                  error={!!errors.noRevision}
+                  helperText={errors.noRevision}
+                  inputProps={{ min: 0 }}
+              />
+
+              <TextField
+                  label="Número de Copias"
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  value={newUser.noCopias}
+                  onChange={(e) => setNewUser({ ...newUser, noCopias: parseInt(e.target.value) || 0 })}
+                  error={!!errors.noCopias}
+                  helperText={errors.noCopias}
+                  inputProps={{ min: 0 }}
+              />
+
+              <TextField
+                  label="Tiempo de Retención (años)"
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  value={newUser.tiempoRetencion}
+                  onChange={(e) => setNewUser({ ...newUser, tiempoRetencion: parseInt(e.target.value) || 0 })}
+                  error={!!errors.tiempoRetencion}
+                  helperText={errors.tiempoRetencion}
+                  inputProps={{ min: 0 }}
+              />
+
+              <TextField
+                  label="Lugar de Almacenamiento"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.lugarAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, lugarAlmacenamiento: e.target.value })}
+                  error={!!errors.lugarAlmacenamiento}
+                  helperText={errors.lugarAlmacenamiento}
+              />
+
+              <TextField
+                  label="Medio de Almacenamiento"
+                  fullWidth
+                  select
+                  variant="outlined"
+                  value={newUser.medioAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
+                  error={!!errors.medioAlmacenamiento}
+                  helperText={errors.medioAlmacenamiento}
+              >
+                  <MenuItem value="Físico">Físico</MenuItem>
+                  <MenuItem value="Digital">Digital</MenuItem>
+                  <MenuItem value="Ambos">Ambos</MenuItem>
+              </TextField>
+
+              <TextField
+                  label="Disposición"
+                  fullWidth
+                  variant="outlined"
+                  value={newUser.disposicion}
+                  onChange={(e) => setNewUser({ ...newUser, disposicion: e.target.value })}
+                  error={!!errors.disposicion}
+                  helperText={errors.disposicion}
+              />
+                <Box>
+                  <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
+                  <FormGroup row>
+                    {["Alumnos", "Personal Administrativo", "Funcionariado", "Coordinadores"].map(user => (
+                      <FormControlLabel
+                        key={user}
+                        control={
+                          <Checkbox
+                            checked={newUser.usuarios.includes(user)}
+                            onChange={(e) => {
+                              setNewUser((prev) => ({
+                                ...prev,
+                                usuarios: e.target.checked
+                                  ? [...prev.usuarios, user]
+                                  : prev.usuarios.filter(u => u !== user)
+                              }));
+                            }}
+                          />
+                        }
+                        label={user}
+                      />
+                    ))}
+                  </FormGroup>
                 </Box>
-              ))}
-
-              {/* Checkboxes de Usuarios */}
-              <Box sx={{ gridColumn: "span 2" }}>
-                <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
-                <FormGroup row>
-                  {["Alumnos", "Personal Administrativo", "Funcionariado", "Coordinadores"].map(user => (
-                    <FormControlLabel key={user} control={<Checkbox />} label={user} />
-                  ))}
-                </FormGroup>
               </Box>
-
-            </Box>
-          </DialogContent>
-
-          <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-            <Button onClick={() => setOpenForm(false)} variant="outlined" color="error">
-              Cancelar
-            </Button>
-            <Button onClick={handleAddUser} variant="contained" color="primary">
-              Guardar
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
+              <Button
+                onClick={() => setOpenForm(false)}
+                variant="outlined"
+                sx={{
+                  borderColor: "#d32f2f",
+                  color: "#d32f2f",
+                  "&:hover": { backgroundColor: "#ffebee", borderColor: "#d32f2f" },
+                }}
+              >
+                CANCELAR
+              </Button>
+              <Button
+                onClick={handleAddUser}
+                variant="contained"
+                sx={{ backgroundColor: "#F9B800", color: "#000", "&:hover": { backgroundColor: "#c79100" } }}
+              >
+                GUARDAR
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
+      </Box>
     </Box>
   );
 }
@@ -203,38 +413,32 @@ function UserCard({ user, onSelect, onClose, isActive }) {
             >
               {[
                 { title: "Nombre del Documento", value: user.nombreDocumento || "Sin especificar" },
-                { title: "Tipo", value: user.tipo || "Sin especificar" },
+                { title: "Tipo", value: user.tipoDocumento || "Sin especificar" },
                 { title: "Fecha de Revisión", value: user.fechaRevision || "Sin especificar" },
-                { title: "Responsable", value: user.responsable || "Sin especificar" },
-                { title: "Medio de Almacenamiento", value: user.medioAlmacenamiento || "Sin especificar" },
+                { title: "Fecha de Versión", value: user.fechaVersion || "Sin especificar" },
+                { title: "Número de Revisiones", value: user.noRevision || "Sin especificar" },
+                { title: "Número de Copias", value: user.noCopias || "Sin especificar" },
+                { title: "Tiempo de Retención (años)", value: user.tiempoRetencion || "Sin especificar" },
                 { title: "Lugar de Almacenamiento", value: user.lugarAlmacenamiento || "Sin especificar" },
-                { title: "Número de Copias", value: user.numeroCopias || "Sin especificar" },
-                { title: "Tipo de Almacenamiento", value: user.tipoAlmacenamiento || "Sin especificar" },
+                { title: "Medio de Almacenamiento", value: user.medioAlmacenamiento || "Sin especificar" },
                 { title: "Disposición", value: user.disposicion || "Sin especificar" },
-                { title: "Usuarios", value: Array.isArray(user.usuarios) ? user.usuarios.join(", ") : "Sin especificar" },
-              ].map((field, index) => (
+                { title: "Usuarios", value: Array.isArray(user.usuarios) && user.usuarios.length > 0 ? user.usuarios.join(", ") : "Sin especificar" },
+            ].map((field, index) => (
                 <TableContainer key={index} component={Paper} sx={{ width: "100%", minWidth: "180px", boxShadow: 1 }}>
-                  <Table>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell
-                          sx={{
-                            fontWeight: "bold",
-                            textAlign: "center",
-                            backgroundColor: "#e0e0e0",
-                            borderBottom: "2px solid #004A98",
-                          }}
-                        >
-                          {field.title}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell sx={{ textAlign: "center", padding: "8px" }}>{field.value}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                    <Table>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: "#e0e0e0", borderBottom: "2px solid #004A98" }}>
+                                    {field.title}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell sx={{ textAlign: "center", padding: "8px" }}>{field.value}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </TableContainer>
-              ))}
+            ))}
             </Box>
           </CardContent>
         </>

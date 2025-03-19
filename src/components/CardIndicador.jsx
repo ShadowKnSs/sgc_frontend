@@ -1,89 +1,54 @@
-// src/components/IndicatorCard.jsx
+// src/components/CardIndicador.jsx
 import React from 'react';
 import { Card, CardContent, Typography, IconButton, Box } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import HowToRegIcon from '@mui/icons-material/HowToReg'; // Icono para registrar (usuario)
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
-const IndicatorCard = ({ 
-  indicator, 
-  userType, 
-  onEdit, 
-  onDelete, 
-  onCardClick,
-  cardColor
-}) => {
+const IndicatorCard = ({ indicator, onEdit, onDelete, onRegisterResult, cardColor }) => {
   return (
     <Card 
-      onClick={userType !== 'admin' ? () => onCardClick(indicator) : undefined} 
       sx={{
-        backgroundColor: cardColor || 'white',
-        width: '100%',
-        height: 120,
-        borderRadius: 3,
-        transition: 'transform 0.3s, box-shadow 0.3s ease ',
-        cursor: userType !== 'admin' ? 'pointer' : 'default',
-        m: 1,
-        p: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        '&:hover': userType === 'admin'
-          ? {
-            transform: 'scale(1.03)',
-            boxShadow: '0 4px 12px #2dc1df'
-            
-          }
-          : {
-            transform: 'scale(1.03)',
-            boxShadow: 6,
-          },
+        backgroundColor: cardColor,
+        borderRadius: '12px',
+        transition: 'transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out',
+        '&:hover': {
+          transform: 'scale(1.03)',
+          boxShadow: '0px 4px 15px rgba(0, 123, 255, 0.6)',
+        }
       }}
     >
-      {/* Contenedor superior: nombre e origen, alineados a la derecha */}
-      <CardContent 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'flex-start',   
-          p: 0, 
-          m: 0, 
-          width: '100%' 
-        }}
-      >
-        <Typography variant="h6" sx={{ textAlign: 'left', width: '100%' }}>
-          {indicator.name}
+      <CardContent>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          {indicator.nombreIndicador}
         </Typography>
-        <Typography variant="subtitle2" sx={{ textAlign: 'left', width: '100%' }}>
+        <Typography variant="subtitle2" color="textSecondary">
           {indicator.origenIndicador}
         </Typography>
       </CardContent>
 
-      {/* Contenedor inferior: iconos de acción, alineados a la derecha */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-        {userType === 'admin' ? (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton 
-              onClick={(e) => { e.stopPropagation(); onEdit(indicator.idIndicadorConsolidado); }}
-              sx={{ color: 'royalblue' }}
-            >
-              <EditIcon fontSize="medium" />
-            </IconButton>
-            <IconButton 
-              onClick={(e) => { e.stopPropagation(); onDelete(indicator); }}
-              sx={{ color: 'gold' }}
-            >
-              <DeleteIcon fontSize="medium" />
-            </IconButton>
-          </Box>
-        ) : (
-          <IconButton 
-            onClick={() => onCardClick(indicator)}
-            sx={{ color: 'primary.main' }}
-          >
-            <HowToRegIcon fontSize="medium" />
-          </IconButton>
-        )}
+      {/* Contenedor de Iconos en la parte inferior */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          paddingBottom: 2
+        }}
+      >
+        {/* Botón de Registrar Resultado */}
+        <IconButton onClick={() => onRegisterResult(indicator.idIndicadorConsolidado)} sx={{ color: '#0275d8' }}>
+          <PlaylistAddCheckIcon />
+        </IconButton>
+
+        {/* Botón de Editar */}
+        <IconButton onClick={() => onEdit(indicator.idIndicadorConsolidado)} sx={{ color: '#f0ad4e' }}>
+          <EditIcon />
+        </IconButton>
+
+        {/* Botón de Eliminar */}
+        <IconButton onClick={() => onDelete(indicator)} sx={{ color: '#d9534f' }}>
+          <DeleteIcon />
+        </IconButton>
       </Box>
     </Card>
   );

@@ -1,6 +1,5 @@
-// src/components/Forms/AddIndicatorForm.jsx
-import React from 'react';
-import { FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
 import GenericModal from '../Modals/GenericModal';
 
 const AddIndicatorFormContent = ({ formData, setFormData }) => {
@@ -11,18 +10,39 @@ const AddIndicatorFormContent = ({ formData, setFormData }) => {
         <InputLabel id="tipo-indicador-label">Tipo de Indicador</InputLabel>
         <Select
           labelId="tipo-indicador-label"
-          value={formData.tipo || ''}
+          value={formData.origenIndicador || ''}
           label="Tipo de Indicador"
-          onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, origenIndicador: e.target.value })}
+          required
         >
           <MenuItem value="Encuesta">Encuesta</MenuItem>
-          <MenuItem value="EvaluaProveedores">Evaluacion</MenuItem>
-          <MenuItem value="Retroalimentacion">Retroalimentacion</MenuItem>
+          <MenuItem value="EvaluaProveedores">Evaluación de Proveedores</MenuItem>
+          <MenuItem value="Retroalimentacion">Retroalimentación</MenuItem>
         </Select>
       </FormControl>
 
-      {/* Si es Retroalimentacion, se muestra el campo para seleccionar el método */}
-      {formData.tipo === 'Retroalimentacion' && (
+      {/* Campo para Meta (Ahora se solicita en todos los tipos de indicador) */}
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Meta"
+        type="number"
+        value={formData.meta || ''}
+        onChange={(e) => setFormData({ ...formData, meta: parseInt(e.target.value, 10) })}
+        required
+      />
+
+      {/* Campos de meta solo para Evaluación de Proveedores */}
+      {formData.origenIndicador === 'EvaluaProveedores' && (
+        <>
+          <TextField fullWidth margin="normal" label="Meta Confiable" type="number" value={formData.metaConfiable || ''} onChange={(e) => setFormData({ ...formData, metaConfiable: parseInt(e.target.value, 10) })} required />
+          <TextField fullWidth margin="normal" label="Meta Condicionado" type="number" value={formData.metaCondicionado || ''} onChange={(e) => setFormData({ ...formData, metaCondicionado: parseInt(e.target.value, 10) })} required />
+          <TextField fullWidth margin="normal" label="Meta No Confiable" type="number" value={formData.metaNoConfiable || ''} onChange={(e) => setFormData({ ...formData, metaNoConfiable: parseInt(e.target.value, 10) })} required />
+        </>
+      )}
+
+      {/* Para Retroalimentación, se solicita el campo Método */}
+      {formData.origenIndicador === 'Retroalimentacion' && (
         <FormControl fullWidth margin="normal">
           <InputLabel id="metodo-label">Método</InputLabel>
           <Select
@@ -30,10 +50,11 @@ const AddIndicatorFormContent = ({ formData, setFormData }) => {
             value={formData.metodo || ''}
             label="Método"
             onChange={(e) => setFormData({ ...formData, metodo: e.target.value })}
+            required
           >
-            <MenuItem value="Encuesta">Encuesta de Satisfacción</MenuItem>
             <MenuItem value="Buzon Virtual">Buzón Virtual</MenuItem>
             <MenuItem value="Buzon Fisico">Buzón Físico</MenuItem>
+            <MenuItem value="Encuesta">Encuesta</MenuItem>
           </Select>
         </FormControl>
       )}
@@ -41,36 +62,64 @@ const AddIndicatorFormContent = ({ formData, setFormData }) => {
   );
 };
 
-const AddIndicatorForm = ({ open, onClose, onSave }) => {
-  const title = "Agregar Indicador";
-  // Agregamos periodicidad por defecto (Semestral)
-  const initialState = { tipo: '', metodo: '', periodicidad: 'Semestral' };
+const AddIndicatorForm = ({ open, onClose, onSave, idRegistro, initialValues = {} }) => {
+  const defaultState = {
+    idRegistro: idRegistro || "",
+    origenIndicador: "",
+    meta: "",
+    metaConfiable: "",
+    metaCondicionado: "",
+    metaNoConfiable: "",
+    metodo: "",
+  };
 
-  const handleSave = (data) => {
-    // Aseguramos que data.tipo tenga un valor
-    let indicadorNombre = "";
-    if (data.tipo === "Encuesta") {
-      indicadorNombre = "Encuesta de Satisfacción";
-    } else if (data.tipo === "EvaluaProveedores") {
-      indicadorNombre = "Evaluación de Proveedores";
-    } else if (data.tipo === "Retroalimentacion") {
-      indicadorNombre = `Retro ${data.metodo || "Sin Método"}`;
-    } else {
-      indicadorNombre = "Indicador sin nombre";
+  const [formData, setFormData] = useState({ ...defaultState, ...initialValues });
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, idRegistro }));
+  }, [idRegistro]);
+
+  const handleSave = () => {
+    console.log("Guardando indicador, payload antes de asignar periodicidad:", formData);
+
+    if (!formData.origenIndicador) {
+      alert("Debe seleccionar un tipo de indicador.");
+      return;
+    }
+
+    let periodicidad = "";
+    if (formData.origenIndicador === "Encuesta" || formData.origenIndicador === "Retroalimentacion") {
+      periodicidad = "Anual";
+    } else if (formData.origenIndicador === "EvaluaProveedores") {
+      periodicidad = "Semestral";
     }
 
     const payload = {
-      nombreIndicador: indicadorNombre,
-      origenIndicador: data.tipo, // Se enviará el tipo seleccionado
-      periodicidad: data.periodicidad, // Por ejemplo, "Semestral"
-      descripcionIndicador: "", // Puedes agregar descripción si lo requieres
-      meta: "" // O meta, si lo necesitas
+      origenIndicador: formData.origenIndicador,
+      nombreIndicador:
+        formData.origenIndicador === "Encuesta"
+          ? "Encuesta de Satisfacción"
+          : formData.origenIndicador === "Retroalimentacion"
+            ? `Retroalimentacion ${formData.metodo}`
+            : formData.origenIndicador === "EvaluaProveedores"
+              ? "Evaluación de proveedores"
+              : "",
+      periodicidad, // Se asigna directamente en base al tipo
+      idRegistro: parseInt(formData.idRegistro, 10),
+      meta: parseInt(formData.meta, 10),
     };
 
-    if (data.tipo === "Retroalimentacion") {
-      payload.metodo = data.metodo; // Se envía el método seleccionado
+    if (formData.origenIndicador === 'EvaluaProveedores') {
+      payload.metaConfiable = parseInt(formData.metaConfiable, 10);
+      payload.metaCondicionado = parseInt(formData.metaCondicionado, 10);
+      payload.metaNoConfiable = parseInt(formData.metaNoConfiable, 10);
     }
-    console.log("Payload para crear indicador:", payload);
+
+    if (formData.origenIndicador === 'Retroalimentacion') {
+      payload.metodo = formData.metodo;
+    }
+
+    console.log("Payload final antes de enviar:", payload);
     onSave(payload);
   };
 
@@ -79,12 +128,12 @@ const AddIndicatorForm = ({ open, onClose, onSave }) => {
       open={open}
       onClose={onClose}
       onSave={handleSave}
-      title={title}
-      initialState={initialState}
+      title="Agregar Indicador"
+      initialState={formData}
       saveColor="terciary.main"
       cancelColor="primary.main"
     >
-      <AddIndicatorFormContent />
+      <AddIndicatorFormContent formData={formData} setFormData={setFormData} />
     </GenericModal>
   );
 };

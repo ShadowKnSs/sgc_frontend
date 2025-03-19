@@ -21,21 +21,19 @@ const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncue
     console.log("Los id fisica:", retroFisicaId);
     console.log("Los id enc:", retroEncuestaId);
     console.log("Los id evaluacion:", evaluacionId);
-
   };
 
-  
   return (
     <Fab 
       onClick={handleClick}
       sx={{
         position: 'fixed',
-        bottom: 30,
-        right: 50,
+        top: 150,
+        right: 40,
         backgroundColor: '#2dc1df',
         color: 'white',
         '&:hover': { backgroundColor: '#0056b3' },
-        zIndex: 1100,
+        zIndex: 1500,
       }}
     >
       <BarChartIcon fontSize="large" />
