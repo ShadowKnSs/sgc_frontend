@@ -31,6 +31,9 @@ import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
 import ManualDelSitio from "../views/manualSitio";
+import TypesReports from "../views/typesReports";
+import PrincipalReportSem from "../views/principalReportSem";
+import ReporteSemestral from "../views/reporteSemestral";
 
 
 const AppRoutes = () => {
@@ -75,6 +78,9 @@ const AppRoutes = () => {
           {/* <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} /> */}
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
+          <Route path="typesReports" element={<TypesReports/>} />
+          <Route path="principalReportSem" element={<PrincipalReportSem/>} />
+          <Route path="reporteSemestral" element={<ReporteSemestral/>} />
 
         </Route>
       </Routes>
