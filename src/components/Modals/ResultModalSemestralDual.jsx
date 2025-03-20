@@ -1,9 +1,8 @@
-// src/components/Modals/ResultModalSemestralDual.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid, Typography } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
 
-const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult }) => {
+const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult = {} }) => {
   const [tab, setTab] = useState(0); // 0: Ene-Jun, 1: Jul-Dic
 
   // Estado por defecto usando los nombres de los campos
@@ -22,33 +21,34 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
   // Precargar valores guardados al abrir el modal
   useEffect(() => {
     if (open && indicator) {
-      console.log("📌 Modal abierto. Datos actuales:", savedResult);
+      console.log("📌 Modal Semestral abierto. Datos actuales:", savedResult);
 
       if (indicator.periodicidad === "Semestral" && fields.length > 0) {
-        setResultEneJun({
-          [fields[0].name]:
-            savedResult?.resultadoSemestral1 != null
-              ? savedResult.resultadoSemestral1.toString()
-              : ''
-        });
-        setResultJulDic({
-          [fields[0].name]:
-            savedResult?.resultadoSemestral2 != null
-              ? savedResult.resultadoSemestral2.toString()
-              : ''
-        });
+        setResultEneJun(prevState => ({
+          ...prevState,
+          [fields[0].name]: savedResult?.resultadoSemestral1 != null
+            ? savedResult.resultadoSemestral1.toString()
+            : prevState[fields[0].name]
+        }));
+
+        setResultJulDic(prevState => ({
+          ...prevState,
+          [fields[0].name]: savedResult?.resultadoSemestral2 != null
+            ? savedResult.resultadoSemestral2.toString()
+            : prevState[fields[0].name]
+        }));
       } else if (indicator.periodicidad === "Anual") {
-        setResultEneJun({
-          [fields[0].name]:
-            savedResult?.resultadoAnual != null
-              ? savedResult.resultadoAnual.toString()
-              : ''
-        });
+        setResultEneJun(prevState => ({
+          ...prevState,
+          [fields[0].name]: savedResult?.resultadoAnual != null
+            ? savedResult.resultadoAnual.toString()
+            : prevState[fields[0].name]
+        }));
       }
 
       setTab(0);
     }
-  }, [open, savedResult, indicator, fields, defaultState]);
+  }, [open, savedResult, indicator, fields]);
 
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
@@ -136,7 +136,6 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
       <DialogActions>
         <DialogActionButtons
           onCancel={onClose}
-          
           onSave={handleSave}
           saveText="Guardar"
           cancelText="Cancelar"

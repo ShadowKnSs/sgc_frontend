@@ -59,7 +59,7 @@ const EncuestaContent = ({ formData, setFormData }) => (
   </Box>
 );
 
-const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) => {
+const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {} }) => {
   const [formData, setFormData] = useState({
     encuestas: "",
     malas: "",
@@ -70,14 +70,16 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) 
 
   useEffect(() => {
     if (open) {
-      console.log("📌 Modal Encuesta abierto, savedResult:", savedResult, "Indicator:", indicator);
-      
+      console.log("📌 Modal Encuesta abierto, savedResult:", savedResult);
+
+      const resultado = savedResult.encuesta || {}; // 🔥 Extraemos correctamente los datos anidados
+
       setFormData({
-        encuestas: savedResult?.noEncuestas?.toString() || "",
-        malas: savedResult?.malo?.toString() || "",
-        regulares: savedResult?.regular?.toString() || "",
-        buenas: savedResult?.bueno?.toString() || "",
-        excelentes: savedResult?.excelente?.toString() || ""
+        encuestas: resultado.noEncuestas?.toString() || "",
+        malas: resultado.malo?.toString() || "",
+        regulares: resultado.regular?.toString() || "",
+        buenas: resultado.bueno?.toString() || "",
+        excelentes: resultado.excelente?.toString() || ""
       });
     }
   }, [open, savedResult]);
@@ -98,7 +100,7 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) 
 
     console.log("📌 Guardando resultado Encuesta para indicador", indicator.idIndicador, "Payload:", resultData);
 
-    onSave(indicator.idIndicadorConsolidado, resultData);  // 🔥 Se elimina la envoltura extra
+    onSave(indicator.idIndicador, { result: resultData });
     onClose();
   };
 
