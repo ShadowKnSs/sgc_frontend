@@ -79,7 +79,7 @@ const AppRoutes = () => {
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
 
-          <Route path="reporte-proceso/:idProceso" element={<ReporteProcesoPreview />} />
+          <Route path="/reporte-proceso/:idProceso/:year" element={<ReporteProcesoPreview />} />
           <Route path="reporte-proceso" element={<ReporteProcesoPreview />} />
           <Route path="listado-reportes-proceso" element={<ListaReportesProceso />} />
 

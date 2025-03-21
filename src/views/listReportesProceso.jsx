@@ -1,6 +1,7 @@
 // ReportesDeProceso.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Snackbar, Alert } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import Title from '../components/Title';
 import ReportCard from '../components/CardReport';
 import GenerateReportModal from '../components/Modals/GenerarReporteModal';
@@ -18,6 +19,7 @@ const ReportesDeProceso = () => {
   const [reportCard, setReportCard] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const navigate = useNavigate();
 
   // Función para obtener entidades (desde Laravel)
   const fetchEntities = async () => {
@@ -119,22 +121,36 @@ const ReportesDeProceso = () => {
     // Convertir a número para comparar
     const entity = entities.find((e) => e.idEntidadDependecia === Number(selectedEntity));
     const process = processes.find((p) => p.idProceso === Number(selectedProcess));
-    setReportCard({
+    console.log("Guardando reportCard con:", {
+      processId: Number(selectedProcess),
+      year: selectedYear,
+    });
+
+    const newReportCard = {
+      processId: Number(selectedProcess), // Guardar ID del proceso
+      year: selectedYear, // Guardar Año seleccionado
       entityName: entity ? entity.nombreEntidad : '',
       processName: process ? process.nombreProceso : '',
-      year: selectedYear
-    });
+    };
+
+    setReportCard(newReportCard);
     setOpenModal(false);
     setSelectedEntity('');
     setSelectedProcess('');
     setSelectedYear('');
-  };
-  
-  
 
-  const handleCardClick = () => {
-    alert('Navegar a la vista del PDF del reporte.');
   };
+  
+  const handleCardClick = () => {
+    if (!reportCard) return;
+  
+    const { processId, year } = reportCard;
+    console.log("🔍 ID Proceso:", processId);
+    console.log("🔍 Año:", year);
+  
+    navigate(`/reporte-proceso/${processId}/${year}`); // Redirigir a la nueva vista
+  };
+  
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
