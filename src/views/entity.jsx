@@ -1,60 +1,82 @@
-import React from "react";
-import { Box } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, CircularProgress } from "@mui/material";
 import MenuCard from "../components/menuCard";
-import BookIcon from "@mui/icons-material/Book";
-import LanguageIcon from "@mui/icons-material/Language";
-import PeopleIcon from "@mui/icons-material/People";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import DescriptionIcon from "@mui/icons-material/Description";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
-import BarChartIcon from "@mui/icons-material/BarChart";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+// Importar iconos de Material UI
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
+import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
+import EmergencyOutlinedIcon from "@mui/icons-material/EmergencyOutlined";
+import BloodtypeOutlinedIcon from "@mui/icons-material/BloodtypeOutlined";
+import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
+import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
+import BookIcon from "@mui/icons-material/Book";
+
+// Mapeo de iconos basado en el nombre de la entidad
+const iconos = {
+  "Departamento Administrativo": <InventoryOutlinedIcon />,
+  "Facultad de Ciencias": <ScienceOutlinedIcon />,
+  "Facultad de Ingeniería": <SettingsOutlinedIcon />,
+  "Departamento Universitario de Ingles": <TranslateOutlinedIcon />,
+  "División de Vinculación Universitaria": <LocationCityOutlinedIcon />,
+  "Facultad del Hábitat": <HomeWorkOutlinedIcon />,
+  "Facultad de Estomatología": <BloodtypeOutlinedIcon />,
+  "Facultad de Medicina": <EmergencyOutlinedIcon />,
+};
 
 const Entity = () => {
   const navigate = useNavigate();
-  const menuItems = [
-    { icon: <BookIcon />, title: "Facultad de Enfermería ", path: "/estructura-procesos" },
-    { icon: <LanguageIcon />, title: "Unidad Academica Multidisciplinaria Region Altiplano", path: "/estructura-procesos" },
-    { icon: <PeopleIcon />, title: "Facultad de Ingeniería ", path: "/estructura-procesos" },
-    { icon: <AccountTreeIcon />, title: "Facultad de Ciencias Sociales y Humanidades", path: "/estructura-procesos" },
-    { icon: <DescriptionIcon />, title: "Facultad de Agronomía y Veterinaria " , path: "/estructura-procesos"},
-    { icon: <VerifiedUserIcon />, title: "Facultad de Estudios Profesionales Zona Huasteca", path: "/estructura-procesos" },
-    { icon: <SupervisorAccountIcon />, title: "Facultad de Ciencias de la Comunicación", path: "/estructura-procesos" },
-    { icon: <BarChartIcon />, title: "Coordinación Académica Región Altiplano Oeste", path: "/estructura-procesos" },
-    { icon: <DescriptionIcon />, title: "Facultad de Agronomía y Veterinaria ", path: "/estructura-procesos" },
-    { icon: <VerifiedUserIcon />, title: "Facultad de Estudios Profesionales Zona Huasteca", path: "/estructura-procesos" },
-    { icon: <SupervisorAccountIcon />, title: "Facultad de Ciencias de la Comunicación", path: "/estructura-procesos" },
-    { icon: <BarChartIcon />, title: "Coordinación Académica Región Altiplano Oeste", path: "/estructura-procesos" },
-  ];
+  const [entidades, setEntidades] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/api/entidades")
+      .then((response) => {
+        console.log("Respuesta del backend:", response.data);
+
+        const entidadesConIcono = response.data.entidades.map((entidad) => ({
+          ...entidad,
+          icon: iconos[entidad.nombreEntidad] || <BookIcon />, // Icono predeterminado si no se encuentra
+        }));
+
+        setEntidades(entidadesConIcono);
+      })
+      .catch((error) => console.error("Error obteniendo entidades:", error))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "repeat(5, auto)",
-        gap: 8,
-        placeItems: "center",
+        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        gap: 4,
         justifyContent: "center",
+        alignItems: "start",
         textAlign: "center",
-        minHeight: "100vh",
-        paddingTop: "80px",
-        paddingBottom: "40px",
+        marginTop: "80px",
+        paddingX: "20px",
         width: "100%",
       }}
     >
-      {menuItems.map((item, index) => (
-        <MenuCard
-          key={index}
-          icon={item.icon}
-          title={item.title}
-          onClick={() => {
-            if (item.path) {
-              navigate(item.path);
-            }
-          }}
-        />
-      ))}
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        entidades.map((entidad) => (
+          <MenuCard
+            key={entidad.idEntidadDependecia}
+            icon={entidad.icon}
+            title={entidad.nombreEntidad}
+            onClick={() => navigate(`/procesos/${entidad.idEntidadDependecia}`)}
+          />
+        ))
+      )}
     </Box>
   );
 };

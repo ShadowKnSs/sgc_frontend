@@ -17,13 +17,10 @@ const GenericModal = ({
 }) => {
   const [formData, setFormData] = useState(initialState);
 
-  // Cada vez que se abra el modal, si initialState cambia (por ejemplo, si hay datos guardados),
-  // se actualiza el estado local.
+  // Actualizar el state solo cuando initialState cambia (no cada vez que se abra el modal)
   useEffect(() => {
-    if (open) {
-      setFormData(initialState);
-    }
-  }, [open, initialState]);
+    setFormData(initialState);
+  }, [initialState]);
 
   const handleSave = () => {
     onSave(formData);
@@ -33,9 +30,7 @@ const GenericModal = ({
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        {React.cloneElement(children, { formData, setFormData })}
-      </DialogContent>
+      <DialogContent>{children}</DialogContent>
       <DialogActions>
         <DialogActionButtons 
           onCancel={onClose} 

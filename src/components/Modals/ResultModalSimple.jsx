@@ -1,4 +1,3 @@
-// src/components/Modals/ResultModalSimple.jsx
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Typography } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
@@ -8,21 +7,35 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) =>
 
   useEffect(() => {
     if (open && indicator) {
-      // Para indicadores anuales se utiliza "resultadoSemestral1"
-      if (indicator.periodicidad === "Anual" && savedResult && savedResult.resultadoSemestral1 !== null) {
-        setResult(savedResult.resultadoSemestral1.toString());
-      } else if (savedResult && savedResult.result !== undefined) {
-        setResult(savedResult.result.toString());
+      console.log("📌 Modal abierto, savedResult:", savedResult);
+
+      // Determinar el campo correcto según periodicidad
+      if (indicator.periodicidad === "Anual") {
+        setResult(savedResult?.resultadoAnual?.toString() || "");
+      } else if (indicator.periodicidad === "Semestral") {
+        setResult(savedResult?.resultadoSemestral1?.toString() || "");
       } else {
-        setResult('');
+        setResult(savedResult?.result?.toString() || "");
       }
-      console.log("Modal abierto, savedResult:", savedResult);
     }
   }, [open, savedResult, indicator]);
 
   const handleSave = () => {
-    // Se prepara el payload a enviar; se usa el identificador idIndicadorConsolidado para el endpoint
-    onSave(indicator.idIndicadorConsolidado, { result });
+    if (!indicator || !indicator.idIndicador) {
+      console.error("❌ Error: No se encontró idIndicador para registrar el resultado.");
+      return;
+    }
+
+    // Construir el payload
+    const payload = {
+      periodicidad: indicator.periodicidad,
+      result: indicator.periodicidad === "Anual"
+        ? { resultadoAnual: result }
+        : { resultadoSemestral1: result }
+    };
+
+    console.log("📌 Guardando resultado para indicador", indicator.idIndicador, "Payload:", payload);
+    onSave(indicator.idIndicador, payload);
     onClose();
   };
 

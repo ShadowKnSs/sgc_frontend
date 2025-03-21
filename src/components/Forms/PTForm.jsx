@@ -1,62 +1,57 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { TextField, Box, Grid } from "@mui/material";
 
-const PTForm = () => {
-  // Valores estáticos predeterminados para los campos
-  const formData = {
-    responsable: "Juan Pérez",
-    fechaElaboracion: "2025-02-27",
-    objetivo: "Mejorar la productividad en el departamento.",
-    revisadoPor: "Ana Gómez",
-  };
-
+const PTForm = ({ formData, handleChange }) => {
+  // Si no se asigna la fecha de elaboración, podemos asignarla aquí o en el componente padre.
+  // En este ejemplo se asume que el componente padre ya se encarga de asignar la fecha.
   return (
-    <Box sx={{ p: 2, boxShadow: 3, borderRadius: 2, bgcolor: "background.paper", mb: 2, width: "70%" }}>
+    <Box
+      sx={{
+        p: 2,
+        boxShadow: 3,
+        borderRadius: 2,
+        bgcolor: "background.paper",
+        mb: 2,
+        width: "70%"
+      }}
+    >
       <Grid container spacing={3}>
         <Grid item xs={6}>
           <TextField
+            fullWidth
             label="Responsable"
             name="responsable"
             value={formData.responsable}
-            fullWidth
+            onChange={handleChange}
             margin="normal"
-            InputProps={{
-              readOnly: true,  
-            }}
           />
           <TextField
+            fullWidth
             label="Fecha de Elaboración"
             name="fechaElaboracion"
             type="date"
             value={formData.fechaElaboracion}
-            fullWidth
             margin="normal"
             InputLabelProps={{ shrink: true }}
-            InputProps={{
-              readOnly: true, 
-            }}
+            InputProps={{ readOnly: true }}
           />
         </Grid>
         <Grid item xs={6}>
           <TextField
+            fullWidth
             label="Objetivo"
             name="objetivo"
             value={formData.objetivo}
-            fullWidth
+            onChange={handleChange}
             margin="normal"
-            InputProps={{
-              readOnly: true,
-            }}
           />
           <TextField
+            fullWidth
             label="Revisado por"
             name="revisadoPor"
             value={formData.revisadoPor}
-            fullWidth
+            onChange={handleChange}
             margin="normal"
-            InputProps={{
-              readOnly: true,  
-            }}
           />
         </Grid>
       </Grid>

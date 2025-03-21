@@ -1,4 +1,3 @@
-// src/components/Modals/ResultModalEncuesta.jsx
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
@@ -60,7 +59,7 @@ const EncuestaContent = ({ formData, setFormData }) => (
   </Box>
 );
 
-const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) => {
+const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {} }) => {
   const [formData, setFormData] = useState({
     encuestas: "",
     malas: "",
@@ -70,36 +69,38 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult }) 
   });
 
   useEffect(() => {
-    if (open && savedResult) {
+    if (open) {
+      console.log("📌 Modal Encuesta abierto, savedResult:", savedResult);
+
+      const resultado = savedResult.encuesta || {}; // 🔥 Extraemos correctamente los datos anidados
+
       setFormData({
-        encuestas: (savedResult.encuestas !== undefined && savedResult.encuestas !== null)
-          ? savedResult.encuestas.toString()
-          : "",
-        malas: (savedResult.malas !== undefined && savedResult.malas !== null)
-          ? savedResult.malas.toString()
-          : "",
-        regulares: (savedResult.regulares !== undefined && savedResult.regulares !== null)
-          ? savedResult.regulares.toString()
-          : "",
-        buenas: (savedResult.buenas !== undefined && savedResult.buenas !== null)
-          ? savedResult.buenas.toString()
-          : "",
-        excelentes: (savedResult.excelentes !== undefined && savedResult.excelentes !== null)
-          ? savedResult.excelentes.toString()
-          : ""
+        encuestas: resultado.noEncuestas?.toString() || "",
+        malas: resultado.malo?.toString() || "",
+        regulares: resultado.regular?.toString() || "",
+        buenas: resultado.bueno?.toString() || "",
+        excelentes: resultado.excelente?.toString() || ""
       });
     }
   }, [open, savedResult]);
 
   const handleSave = () => {
+    if (!indicator || !indicator.idIndicador) {
+      console.error("❌ Error: No se encontró idIndicador para registrar el resultado.");
+      return;
+    }
+
     const resultData = {
-      encuestas: Number(formData.encuestas),
-      malas: Number(formData.malas),
-      regulares: Number(formData.regulares),
-      buenas: Number(formData.buenas),
-      excelentes: Number(formData.excelentes)
+      noEncuestas: Number(formData.encuestas),
+      malo: Number(formData.malas),
+      regular: Number(formData.regulares),
+      bueno: Number(formData.buenas),
+      excelente: Number(formData.excelentes)
     };
-    onSave(indicator.idIndicadorConsolidado, { result: resultData });
+
+    console.log("📌 Guardando resultado Encuesta para indicador", indicator.idIndicador, "Payload:", resultData);
+
+    onSave(indicator.idIndicador, { result: resultData });
     onClose();
   };
 

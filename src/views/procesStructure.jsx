@@ -8,18 +8,21 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import DescriptionIcon from "@mui/icons-material/Description";
 import LinkIcon from "@mui/icons-material/Link";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ProcessStructure = () => {
   const navigate = useNavigate();
+  const { idProceso } = useParams();
+  console.log("id del proceso", idProceso);
+
   const menuItems = [
-    { icon: <BookIcon />, title: "Manual Operativo", path: "/manual-operativo"  },
-    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: "/gestion-riesgosForm" },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: "/analisis-DatosForm" },
-    { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: "/actividad-mejora" },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoria", path: "/manual-operativo" },
-    { icon: <LinkIcon />, title: "Seguimiento", path: "/formulario-seguimiento" },
-    { icon: <BarChartIcon />, title: "Indicadores", path: "/indicadores" },
+    { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
+    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/analisis-DatosForm` },
+    { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
+    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/informe-auditoria` },
+    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento`},
+    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores`},
   ];
 
   return (

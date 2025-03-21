@@ -52,7 +52,7 @@ const CardAddFolder = () => {
           <TextField
             fullWidth
             variant="outlined"
-            label="Nombre"
+            label="Año"
             value={folderName}
             onChange={handleChange}
             autoFocus

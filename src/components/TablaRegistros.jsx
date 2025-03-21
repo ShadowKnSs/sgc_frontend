@@ -12,7 +12,18 @@ const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
         <Table>
           <TableHead>
             <TableRow sx={{ bgcolor: "primary.main" }}>
-              {["Número", "Fuente", "Elemento Entrada", "Descripción Actividad", "Entregable", "Responsable", "Fecha Inicio", "Fecha Término", "Estado", ""].map((header) => (
+              {[
+                "Número de Actividad",
+                "Nombre de la Fuente",
+                "Elemento de Entrada",
+                "Descripción",
+                "Entregable",
+                "Responsable",
+                "Fecha de Inicio",
+                "Fecha de Término",
+                "Estado",
+                ""
+              ].map((header) => (
                 <TableCell key={header} sx={{ color: "white", fontWeight: "bold" }}>
                   {header}
                 </TableCell>
@@ -22,9 +33,15 @@ const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
           <TableBody>
             {records.map((record, index) => (
               <TableRow key={index}>
-                {Object.values(record).map((value, i) => (
-                  <TableCell key={i}>{value}</TableCell>
-                ))}
+                <TableCell>{record.numero}</TableCell>
+                <TableCell>{record.nombreFuente}</TableCell>
+                <TableCell>{record.elementoEntrada}</TableCell>
+                <TableCell>{record.descripcion}</TableCell>
+                <TableCell>{record.entregable}</TableCell>
+                <TableCell>{record.responsable}</TableCell>
+                <TableCell>{record.fechaInicio}</TableCell>
+                <TableCell>{record.fechaTermino}</TableCell>
+                <TableCell>{record.estado}</TableCell>
                 <TableCell>
                   <IconButton sx={{ color: "orange" }} onClick={() => handleOpenModal(index)}>
                     <Edit />

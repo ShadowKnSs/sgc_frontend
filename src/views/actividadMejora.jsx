@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import { Box, Container, Button, IconButton } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
-import Caratula from "../views/caratula";
-import PlanCorrectivo from "./correctivePlan";
+import PlanCorrectivoContainer from "../components/PlanCorrectivoContainer"; // Asegúrate de la ruta correcta
 import FormProyMejora from "../components/Forms/FormProyMejora";
-import PlanTrabajo from "../views/planTrabajoForm";
+import PlanTrabajo from "../views/planTrabajoForm"; // Esta vista recibirá el idRegistro como prop
 
 const ProcessView = () => {
-  const [selectedTab, setSelectedTab] = useState(0);
+  // Recibimos parámetros de la URL: por ejemplo, idRegistro y title
+  const { idRegistro, title } = useParams();
+  console.log("ProcessView - idRegistro recibido:", idRegistro);
+  console.log("ProcessView - title recibido:", title);
 
+  const [selectedTab, setSelectedTab] = useState(0);
   const sections = [
-    "Caratula",
     "Plan de Acción Correctivo",
     "Plan de Trabajo",
     "Proyecto de Mejora",
@@ -18,20 +21,19 @@ const ProcessView = () => {
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
-      case "Caratula":
-        return <Caratula />;
       case "Plan de Acción Correctivo":
-        return <PlanCorrectivo />;
+        return <PlanCorrectivoContainer idRegistro={idRegistro}/>;
       case "Plan de Trabajo":
+        // Se pasa idRegistro como prop a PlanTrabajo
         return (
           <Box>
-              <PlanTrabajo/>
+            <PlanTrabajo idRegistro={idRegistro} />
           </Box>
         );
       case "Proyecto de Mejora":
         return (
           <Box>
-            <FormProyMejora />
+            <FormProyMejora idRegistro={idRegistro} />
           </Box>
         );
       default:
@@ -40,7 +42,7 @@ const ProcessView = () => {
   };
 
   const scrollNav = (direction) => {
-    // Implementa la lógica de desplazamiento aquí
+    // Implementa la lógica de desplazamiento según lo necesites
   };
 
   return (
@@ -56,11 +58,11 @@ const ProcessView = () => {
             backgroundColor: "#0056b3",
             borderRadius: "40px",
             padding: "5px",
-            width: "auto", 
+            width: "auto",
             overflowX: "auto",
             scrollBehavior: "smooth",
             whiteSpace: "nowrap",
-            "&::-webkit-scrollbar": { display: "none" } 
+            "&::-webkit-scrollbar": { display: "none" }
           }}
         >
           {sections.map((section, index) => (
@@ -79,7 +81,7 @@ const ProcessView = () => {
                 fontSize: "1rem",
                 fontWeight: "normal",
                 boxShadow: selectedTab === index ? "0px 4px 10px rgba(0, 0, 0, 0.3)" : "none",
-                whiteSpace: "nowrap", 
+                whiteSpace: "nowrap"
               }}
             >
               {section}
