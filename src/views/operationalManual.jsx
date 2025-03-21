@@ -44,7 +44,7 @@ const ProcessView = () => {
       case "Mapa de Proceso":
         return <MapaProceso idProceso={idProceso}/>;
       case "Diagrama de Flujo":
-        return <DiagramaFlujo />;
+        return <DiagramaFlujo idProceso={idProceso} />;
       case "Plan de Control":
         return <PlanControl idProceso={idProceso} />;
       case "Control de documentos":
