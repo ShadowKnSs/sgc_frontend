@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import axios from "axios";
-import GeneralInfo from "../components/ReporteProceso/GeneralInfo"; // Importamos el nuevo componente
+import GeneralInfo from "../components/ReporteProceso/GeneralInfo"; 
 import ManualOperativo from "../components/ReporteProceso/DRPManualOperativo";
+import GestionRiesgos  from "../components/ReporteProceso/DRPGestionRiesgos";
 const ReportView = () => {
   const { idProceso, year } = useParams();
   const [reportData, setReportData] = useState(null);
@@ -32,7 +33,7 @@ const ReportView = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
+      <Typography variant="h4" sx={{ fontWeight: "bold", textAlign: "center", mb: 2 }}>
         Reporte del Proceso
       </Typography>
 
@@ -41,6 +42,9 @@ const ReportView = () => {
 
       {/* Manual Operativo */}
       <ManualOperativo idProceso={idProceso} />
+
+      {/* Gestión de Riesgos */}
+      <GestionRiesgos idProceso={idProceso} anio={year} />
 
       {/* Botón para descargar el PDF */}
       <Box sx={{ textAlign: "center", mt: 3 }}>

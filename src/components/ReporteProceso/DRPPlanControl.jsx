@@ -35,15 +35,15 @@ const PlanControl = ({ idProceso }) => {
   }, [idProceso]);
 
   return (
-    <Box sx={{ mt: 5 , margin: 7}}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+    <Box sx={{mt: 3 ,borderRadius: 2, boxShadow: 3, backgroundColor: "#fff",p:3, marginLeft: 4, marginRight: 4}}>
+      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color:"primary.main"}}>
         Plan de Control
       </Typography>
 
       {loading ? (
         <CircularProgress />
       ) : actividades.length > 0 ? (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ mb: 3 }}>
           <Table size="small">
             <TableHead>
               <TableRow>
