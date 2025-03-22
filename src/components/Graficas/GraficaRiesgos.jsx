@@ -55,7 +55,7 @@ const GraficaGestionRiesgos = () => {
           <Grid item xs={12} sm={6} md={4} key={index}>
             <CircularProgressIndicator 
               label={item.nombreIndicador} 
-              value={item.resultadoSemestral1 || 0}
+              value={item.resultadoAnual || 0}
               color={colors[index % colors.length]}  // Asignación cíclica de colores
             />
           </Grid>

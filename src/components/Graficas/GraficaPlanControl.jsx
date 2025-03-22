@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect,  useRef, useState } from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
@@ -15,7 +15,8 @@ import {
 // Registrar componentes necesarios para el gráfico de barras
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const PlanControlBarChart = () => {
+const PlanControlBarChart = ({onImageReady}) => {
+  const chartRef = useRef(null);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,6 +59,21 @@ const PlanControlBarChart = () => {
         setLoading(false);
       });
   }, []);
+
+  // Cuando ya se haya renderizado, generar la imagen
+  useEffect(() => {
+    if (!loading && chartRef.current) {
+      const chartInstance = chartRef.current;
+      const imageBase64 = chartInstance.toBase64Image();
+      console.log("📸 Imagen base64 generada:", imageBase64);
+  
+      if (onImageReady) {
+        console.log("📤 Enviando imagen al padre");
+        onImageReady(imageBase64); // ✅ Esto debe funcionar ahora
+      }
+    }
+  }, [loading, chartData, onImageReady]);
+  
 
   if (loading) {
     return (

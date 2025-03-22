@@ -21,25 +21,41 @@ const GraficaEvaluacionProveedoresStacked = ({ id }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
     axios.get(`http://127.0.0.1:8000/api/evalua-proveedores/${id}/resultados`)
       .then(response => {
-        // Se asume que la respuesta tiene la forma:
-        // { evaluacion: { confiable: number, condicionado: number, noConfiable: number } }
-        const data = response.data.evaluacion;
-        console.log("Datos de evaluación de proveedores:", data);
+        console.log("Datos de evaluación de proveedores:", response.data);
 
-        if (!data) {
+        // Ojo: la forma real del payload
+        // { resultado: { ...campos... } }
+        const data = response.data;
+        if (!data || !data.resultado) {
           setError("No se encontraron datos de evaluación de proveedores.");
           setLoading(false);
           return;
         }
 
-        // Si solo tenemos un registro anual, duplicamos el mismo valor para dos periodos (Ejemplo: Ene-Jun y Jul-Dic)
-        const periodLabels = ["Ene-Jun"];
-        const confiableData = [data.confiable];
-        const condicionadoData = [data.condicionado];
-        const noConfiableData = [data.noConfiable];
+        const result = data.resultado;
+
+        // Periodos: Ene-Jun y Jul-Dic
+        const periodLabels = ["Ene-Jun", "Jul-Dic"];
+
+        const confiableData = [
+          result.resultadoConfiableSem1 ?? 0,
+          result.resultadoConfiableSem2 ?? 0
+        ];
+        const condicionadoData = [
+          result.resultadoCondicionadoSem1 ?? 0,
+          result.resultadoCondicionadoSem2 ?? 0
+        ];
+        const noConfiableData = [
+          result.resultadoNoConfiableSem1 ?? 0,
+          result.resultadoNoConfiableSem2 ?? 0
+        ];
 
         const formattedData = {
           labels: periodLabels,

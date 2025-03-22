@@ -428,7 +428,7 @@ function ProcessMapView({ idProceso }) {
               error={!!errors.periodo}
               helperText={errors.periodo}
             >
-              <MenuItem value="Mensual">Mensual</MenuItem>
+              <MenuItem value="Semestral">Semestral</MenuItem>
               <MenuItem value="Trimestral">Trimestral</MenuItem>
               <MenuItem value="Anual">Anual</MenuItem>
             </TextField>
@@ -489,7 +489,7 @@ function ProcessMapView({ idProceso }) {
               value={editUser?.periodo || ""}
               onChange={(e) => setEditUser({ ...editUser, periodo: e.target.value })}
             >
-              <MenuItem value="Mensual">Mensual</MenuItem>
+              <MenuItem value="Semestral">Semestral</MenuItem>
               <MenuItem value="Trimestral">Trimestral</MenuItem>
               <MenuItem value="Anual">Anual</MenuItem>
             </TextField>

@@ -16,7 +16,7 @@ function Carpetas() {
   // Mapeo de rutas según el título
   const rutas = {
     "Gestión de Riesgo": "gestion-riesgos",
-    "Análisis de Datos": "analisis-Datos",
+    "Análisis de Datos": "analisis-datos",
     "Acciones de Mejora": "actividad-mejora",
     "Generar informe de auditoría": "informe-adutoria",
     "Seguimiento": "seguimientoPrincipal",

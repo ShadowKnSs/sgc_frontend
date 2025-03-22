@@ -21,10 +21,6 @@ const GraficaRetroalimentacionConjunta = ({ retroList }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // if (!retroVirtualId || !retroFisicaId || !retroEncuestaId) {
-    //   console.warn("Faltan IDs de retroalimentación:", { retroVirtualId, retroFisicaId, retroEncuestaId });
-    //   return;
-    // }
 
     if (!retroList || retroList.length === 0) {
       console.warn("No se encontraron indicadores de retroalimentación en retroList:", retroList);
@@ -38,19 +34,19 @@ const GraficaRetroalimentacionConjunta = ({ retroList }) => {
         console.log("Realizando peticiones para cada indicador de retroalimentación...");
         // Para cada indicador de retro en el array, hacemos la petición al endpoint de retroalimentación
         const requests = retroList.map(ind =>
-          axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${ind.idIndicadorConsolidado}/resultados`)
+          axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${ind.idIndicador}/resultados`)
         );
         const responses = await Promise.all(requests);
-        const retroDataArray = responses.map(res => res.data.retroalimentacion);
+        const retroDataArray = responses.map(res => res.data);
         console.log("Datos de retroalimentación obtenidos:", retroDataArray);
 
         // Construir labels dinámicamente a partir del array retroList (usando el nombre original)
         const labels = retroList.map(ind => ind.nombreIndicador);
 
-        // Construir datasets para cada categoría:
-        const datasetFelicitaciones = retroDataArray.map(data => data.cantidadFelicitacion);
-        const datasetSugerencias = retroDataArray.map(data => data.cantidadSugerencia);
-        const datasetQuejas = retroDataArray.map(data => data.cantidadQueja);
+        // Extraer los valores correctos de cada 'resultado'
+        const datasetFelicitaciones = retroDataArray.map(item => item.resultado.cantidadFelicitacion ?? 0);
+        const datasetSugerencias = retroDataArray.map(item => item.resultado.cantidadSugerencia ?? 0);
+        const datasetQuejas = retroDataArray.map(item => item.resultado.cantidadQueja ?? 0);
 
         const formattedData = {
           labels,

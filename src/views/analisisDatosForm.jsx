@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams} from "react-router-dom";
 import {
   AppBar,
   Tabs,
@@ -21,6 +22,9 @@ import {
 import axios from "axios";
 
 const FormularioAnalisis = () => {
+  const { idRegistro } = useParams();
+    console.log("AnalisisDatos - idRegistro recibido:", idRegistro);
+   
   const [formData, setFormData] = useState({
     entidad: "Empresa XYZ",
     macroproceso: "Gestión de Calidad",

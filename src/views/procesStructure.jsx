@@ -18,7 +18,7 @@ const ProcessStructure = () => {
   const menuItems = [
     { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/analisis-DatosForm` },
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos`},
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
     { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/informe-auditoria` },
     { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento`},
