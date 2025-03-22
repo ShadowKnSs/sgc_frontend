@@ -94,19 +94,22 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
 
   useEffect(() => {
     if (open) {
-      console.log("🔍 Modal abierto, datos guardados en `savedResult`:", savedResult);
-      if (savedResult) {
-        setFormData({
-          confiableSem1: savedResult.resultadoConfiableSem1?.toString() ?? "0",
-          confiableSem2: savedResult.resultadoConfiableSem2?.toString() ?? "0",
-          condicionadoSem1: savedResult.resultadoCondicionadoSem1?.toString() ?? "0",
-          condicionadoSem2: savedResult.resultadoCondicionadoSem2?.toString() ?? "0",
-          noConfiableSem1: savedResult.resultadoNoConfiableSem1?.toString() ?? "0",
-          noConfiableSem2: savedResult.resultadoNoConfiableSem2?.toString() ?? "0"
-        });
-      }
+      console.log("📌 Modal Evaluación de Proveedores abierto, savedResult:", savedResult);
+  
+      const resultado = savedResult.resultado || {}; // Asegurar que extraemos los valores correctos
+  
+      setFormData({
+        confiableSem1: resultado.resultadoConfiableSem1?.toString() || "",
+        confiableSem2: resultado.resultadoConfiableSem2?.toString() || "",
+        condicionadoSem1: resultado.resultadoCondicionadoSem1?.toString() || "",
+        condicionadoSem2: resultado.resultadoCondicionadoSem2?.toString() || "",
+        noConfiableSem1: resultado.resultadoNoConfiableSem1?.toString() || "",
+        noConfiableSem2: resultado.resultadoNoConfiableSem2?.toString() || "",
+      });
     }
   }, [open, savedResult]);
+  
+  
   
 
   const handleTabChange = (event, newValue) => {

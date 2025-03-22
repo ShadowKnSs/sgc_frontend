@@ -2,14 +2,17 @@
 import React from 'react';
 import { Fab } from '@mui/material';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncuestaId, evaluacionId }) => {
   const navigate = useNavigate();
+  const { idRegistro } = useParams(); // 📌 Obtener `idRegistro` desde la URL
+
 
   const handleClick = () => {
-    navigate('/graficas', { 
+    navigate(`/graficas/${idRegistro}`, { 
       state: { 
+        idRegistro,
         encuestaId, 
         retroVirtualId, 
         retroFisicaId, 
@@ -17,6 +20,7 @@ const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncue
         evaluacionId
       } 
     });
+    console.log("Id Registro:", idRegistro)
     console.log("Los id virtual:", retroVirtualId);
     console.log("Los id fisica:", retroFisicaId);
     console.log("Los id enc:", retroEncuestaId);

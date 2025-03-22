@@ -11,6 +11,7 @@ const Title = ({ text }) => {
         paddingBottom: "10px",
         borderBottom: "4px solid #F9B800",
         display: "inline-block",
+        
       }}
     >
       {text}

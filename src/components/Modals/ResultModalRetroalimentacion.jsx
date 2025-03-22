@@ -48,19 +48,24 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
 
   useEffect(() => {
     if (open) {
-      console.log("🔍 Modal abierto, datos en `savedResult`:", savedResult);
-      if (savedResult) {
-        setFormData({
-          felicitaciones: savedResult.cantidadFelicitacion?.toString() ?? "",
-          quejas: savedResult.cantidadQueja?.toString() ?? "",
-          sugerencias: savedResult.cantidadSugerencia?.toString() ?? "",
-        });
-      } else {
-        console.log("⚠️ No hay datos previos, estableciendo valores vacíos.");
-        setFormData({ felicitaciones: "", quejas: "", sugerencias: "" });
+      console.log("📌 Datos recibidos en modal Retroalimentación:", savedResult);
+  
+      if (!savedResult || Object.keys(savedResult).length === 0) {
+        console.warn("⚠️ No se encontraron datos en savedResult.");
+        return;
       }
+  
+      const resultado = savedResult.resultado || {};
+  
+      setFormData({
+        felicitaciones: resultado.cantidadFelicitacion?.toString() ?? "",
+        quejas: resultado.cantidadQueja?.toString() ?? "",
+        sugerencias: resultado.cantidadSugerencia?.toString() ?? "",
+      });
     }
   }, [open, savedResult]);
+  
+  
 
   const handleSave = () => {
     const resultData = {

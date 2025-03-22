@@ -30,6 +30,8 @@ import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
 import ManualDelSitio from "../views/manualSitio";
+import ReporteProcesoPreview from "../views/reporteProceso";
+import ListaReportesProceso from "../views/listReportesProceso";
 
 
 const AppRoutes = () => {
@@ -45,6 +47,7 @@ const AppRoutes = () => {
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
           <Route path="user-indicadores" element={<UserIndicatorPage />} />
           <Route path="graficas" element={<GraficasPage />} />
+          <Route path="graficas/:idRegistro" element={<GraficasPage />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
           <Route path="estructura-procesos/:idProceso" element={<EstructuraProcesos />} />
           <Route path="analisis-Datos" element={<AnalisisDatos />} />
@@ -75,6 +78,14 @@ const AppRoutes = () => {
           {/* <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} /> */}
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
+
+          <Route path="/reporte-proceso/:idProceso/:year" element={<ReporteProcesoPreview />} />
+          <Route path="reporte-proceso" element={<ReporteProcesoPreview />} />
+          <Route path="listado-reportes-proceso" element={<ListaReportesProceso />} />
+
+
+
+          
 
         </Route>
       </Routes>

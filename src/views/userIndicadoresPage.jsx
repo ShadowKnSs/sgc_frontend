@@ -58,16 +58,39 @@ const UnifiedIndicatorPage = () => {
 
   // Cargar indicadores
   useEffect(() => {
+    if (!idRegistro) return;
+
     setLoading(true);
-    axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados?idRegistro=${idRegistro}`)
-      .then((response) => {
-        setIndicators(response.data.indicadores || []);
+
+    // 1️⃣ Obtener el idProceso desde la API
+    axios.get(`http://127.0.0.1:8000/api/registros/${idRegistro}`)
+      .then(response => {
+        if (!response.data || !response.data.idProceso) {
+          throw new Error("No se pudo obtener idProceso");
+        }
+        const idProceso = response.data.idProceso;
+        console.log("📌 idProceso obtenido:", idProceso);
+
+        // Ahora hacemos la solicitud de los indicadores con idRegistro e idProceso
+        return axios.get(`http://127.0.0.1:8000/api/indicadoresconsolidados`, {
+          params: {
+            idRegistro: idRegistro,
+            idProceso: idProceso
+          }
+        });
       })
-      .catch((error) => {
-        console.error("Error fetching indicators:", error);
+      .then(response => {
+        const data = response.data.indicadores || [];
+        console.log("📌 Indicadores obtenidos:", data);
+        setIndicators(data);
+      })
+      .catch(error => {
+        console.error("❌ Error en la carga de datos:", error);
       })
       .finally(() => setLoading(false));
   }, [idRegistro]);
+
+
 
   // Obtener resultados para cada indicador, según su origen
   useEffect(() => {
@@ -84,12 +107,7 @@ const UnifiedIndicatorPage = () => {
             endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${ind.idIndicador}/resultados`;
           }
           return axios.get(endpoint)
-            .then((response) => {
-              if (ind.origenIndicador === "Encuesta") return response.data.encuesta;
-              if (ind.origenIndicador === "Retroalimentacion") return response.data.retroalimentacion;
-              if (ind.origenIndicador === "EvaluaProveedores") return response.data.evaluacion;
-              return response.data.analisis;
-            })
+            .then((response) => response.data)
             .catch((error) => {
               console.error(`Error fetching result for ${ind.idIndicador}:`, error);
               return null;
@@ -109,46 +127,79 @@ const UnifiedIndicatorPage = () => {
     }
   }, [indicators]);
 
+
   // Función para determinar el estado del indicador
   function getStatus(indicator) {
     const res = results[indicator?.idIndicador];
-    if (!res) return "noRecord";
 
-    if (indicator.origenIndicador === "Encuesta") {
-      const { malo, regular, bueno, excelente, noEncuestas } = res;
-      const fields = [malo, regular, bueno, excelente, noEncuestas];
-      const allFilled = fields.every(val => val !== null && val !== undefined && val !== "");
-      return allFilled ? "complete" : "incomplete";
-    }
-    if (indicator.origenIndicador === "EvaluaProveedores") {
-      const { confiable, condicionado, noConfiable } = res;
-      const fields = [confiable, condicionado, noConfiable];
-      const allFilled = fields.every(val => val !== null && val !== undefined && val !== "");
-      return allFilled ? "complete" : "incomplete";
-    }
-    if (indicator.origenIndicador === "Retroalimentacion") {
-      const { cantidadFelicitacion, cantidadSugerencia, cantidadQueja } = res;
-      const f = cantidadFelicitacion || 0;
-      const s = cantidadSugerencia || 0;
-      const q = cantidadQueja || 0;
-      if (f === 0 && s === 0 && q === 0) return "noRecord";
-      if (f > 0 && s > 0 && q > 0) return "complete";
-      return "incomplete";
-    }
-    const period = indicator.periodicidad?.toLowerCase().trim() || "";
-    const r1 = res.resultadoSemestral1 ?? "";
-    const r2 = res.resultadoSemestral2 ?? "";
-    if (period === "anual") {
-      return r1 ? "complete" : "noRecord";
-    } else if (period === "semestral") {
-      const hasR1 = r1 !== "";
-      const hasR2 = r2 !== "";
-      if (hasR1 && hasR2) return "complete";
-      if (hasR1 || hasR2) return "incomplete";
+    if (!res || Object.keys(res).length === 0) {
+      console.warn(`⚠️ No hay datos en resultados para el indicador ${indicator?.idIndicador}.`);
       return "noRecord";
     }
+
+    const origen = indicator.origenIndicador?.toLowerCase().trim();
+    const periodicidad = indicator.periodicidad?.toLowerCase().trim() || "";
+
+    console.log(`📌 Evaluando estado del indicador ${indicator.idIndicador} (${origen})`, res);
+
+    // 🟢 Encuesta
+    if (origen === "encuesta" && res.encuesta) {
+      const { malo, regular, bueno, excelente, noEncuestas } = res.encuesta;
+      const fields = [malo, regular, bueno, excelente, noEncuestas];
+
+      if (fields.every(val => val !== null && val !== undefined)) {
+        return "complete";
+      }
+      return fields.some(val => val !== null && val !== undefined) ? "incomplete" : "noRecord";
+    }
+
+    // 🟠 Evaluación de Proveedores (Semestral)
+    if (origen === "evaluaproveedores" && res.resultado) {
+      const {
+        resultadoConfiableSem1, resultadoConfiableSem2,
+        resultadoCondicionadoSem1, resultadoCondicionadoSem2,
+        resultadoNoConfiableSem1, resultadoNoConfiableSem2
+      } = res.resultado;
+
+      const fields = [
+        resultadoConfiableSem1, resultadoConfiableSem2,
+        resultadoCondicionadoSem1, resultadoCondicionadoSem2,
+        resultadoNoConfiableSem1, resultadoNoConfiableSem2
+      ];
+
+      const filledFields = fields.filter(val => val !== null && val !== undefined);
+      return filledFields.length === fields.length ? "complete" : (filledFields.length > 0 ? "incomplete" : "noRecord");
+    }
+
+    // 🔴 Retroalimentación
+    if (origen === "retroalimentacion" && res.resultado) {
+      const { cantidadFelicitacion, cantidadSugerencia, cantidadQueja } = res.resultado;
+      const f = cantidadFelicitacion ?? 0;
+      const s = cantidadSugerencia ?? 0;
+      const q = cantidadQueja ?? 0;
+
+      if (f === 0 && s === 0 && q === 0) return "noRecord";
+      return (f > 0 && s > 0 && q > 0) ? "complete" : "incomplete";
+    }
+
+    // 🔵 Indicadores de Actividad de Control, Mapa de Proceso y Gestión de Riesgos
+    if (["actividadcontrol", "mapaproceso", "gestionriesgo"].includes(origen) && res.resultado) {
+      const { resultadoAnual, resultadoSemestral1, resultadoSemestral2 } = res.resultado;
+
+      if (periodicidad === "anual") {
+        return resultadoAnual !== null && resultadoAnual !== undefined ? "complete" : "noRecord";
+      } else if (periodicidad === "semestral") {
+        const hasR1 = resultadoSemestral1 !== null && resultadoSemestral1 !== undefined;
+        const hasR2 = resultadoSemestral2 !== null && resultadoSemestral2 !== undefined;
+        return hasR1 && hasR2 ? "complete" : (hasR1 || hasR2 ? "incomplete" : "noRecord");
+      }
+    }
+
     return "noRecord";
   }
+
+
+
 
   stateMap.noRecord.items = indicators.filter(ind => getStatus(ind) === "noRecord");
   stateMap.incomplete.items = indicators.filter(ind => getStatus(ind) === "incomplete");
@@ -190,11 +241,11 @@ const UnifiedIndicatorPage = () => {
     let endpoint = `http://127.0.0.1:8000/api/indicadoresconsolidados/${idIndicador}/resultados`;
 
     if (editIndicator.origenIndicador === "Encuesta") {
-        endpoint = `http://127.0.0.1:8000/api/encuesta/${idIndicador}/resultados`;
+      endpoint = `http://127.0.0.1:8000/api/encuesta/${idIndicador}/resultados`;
     } else if (editIndicator.origenIndicador === "Retroalimentacion") {
-        endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${idIndicador}/resultados`;
+      endpoint = `http://127.0.0.1:8000/api/retroalimentacion/${idIndicador}/resultados`;
     } else if (editIndicator.origenIndicador === "EvaluaProveedores") {
-        endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${idIndicador}/resultados`;
+      endpoint = `http://127.0.0.1:8000/api/evalua-proveedores/${idIndicador}/resultados`;
     }
 
     console.log("📌 Enviando datos al backend:", endpoint, "Payload:", resultValue);
@@ -220,7 +271,7 @@ const UnifiedIndicatorPage = () => {
         console.error("❌ Error al registrar el resultado:", error);
         setSnackbar({ open: true, message: "Error al registrar el resultado" });
       });
-}, [editIndicator]);
+  }, [editIndicator]);
 
 
   const renderResultModal = () => {
@@ -341,6 +392,7 @@ const UnifiedIndicatorPage = () => {
               indicators.find(ind => ind.origenIndicador?.toLowerCase() === "evaluaproveedores")
                 ?.idIndicador || null
             }
+            idRegistro={idRegistro}
           />
         </Box>
       </Box>
@@ -383,19 +435,19 @@ const UnifiedIndicatorPage = () => {
           <CircularProgress />
         </Box>
       ) : (
-      <Grid container spacing={3} columnSpacing={12}>
-        {stateMap[selectedState].items.map((ind) => (
-          <Grid item key={ind.idIndicador} xs={12} sm={6} md={3}>
-            <IndicatorCard
-              indicator={ind}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onRegisterResult={() => handleRegisterResult(ind.idIndicador)}
-              cardColor={stateMap[selectedState].color}
-            />
-          </Grid>
-        ))}
-      </Grid>
+        <Grid container spacing={3} columnSpacing={12}>
+          {stateMap[selectedState].items.map((ind) => (
+            <Grid item key={ind.idIndicador} xs={12} sm={6} md={3}>
+              <IndicatorCard
+                indicator={ind}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onRegisterResult={() => handleRegisterResult(ind.idIndicador)}
+                cardColor={stateMap[selectedState].color}
+              />
+            </Grid>
+          ))}
+        </Grid>
       )}
       {/* Botón FAB para agregar indicador */}
       <Box sx={{ position: "fixed", bottom: 40, right: 40 }}>
