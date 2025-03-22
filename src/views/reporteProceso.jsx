@@ -4,6 +4,8 @@ import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import axios from "axios";
 import GeneralInfo from "../components/ReporteProceso/GeneralInfo"; // Importamos el nuevo componente
 import ManualOperativo from "../components/ReporteProceso/DRPManualOperativo";
+import Auditoria from "../components/ReporteProceso/DRPAuditoria";
+
 const ReportView = () => {
   const { idProceso, year } = useParams();
   const [reportData, setReportData] = useState(null);
@@ -41,6 +43,9 @@ const ReportView = () => {
 
       {/* Manual Operativo */}
       <ManualOperativo idProceso={idProceso} />
+
+      {/* Auditoria */ }
+      <Auditoria idProceso={idProceso} />
 
       {/* Botón para descargar el PDF */}
       <Box sx={{ textAlign: "center", mt: 3 }}>
