@@ -25,9 +25,9 @@ const ManualOperativo = ({ idProceso }) => {
 
   return (
     <Box sx={{ mb: 4, p: 3, borderRadius: 2 }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 , textAlign: "center"}}>
+      {/* <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 , textAlign: "center"}}>
         Manual Operativo
-      </Typography>
+      </Typography> */}
 
       {loading ? (
         <CircularProgress />

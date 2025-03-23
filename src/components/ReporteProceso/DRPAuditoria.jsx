@@ -64,7 +64,7 @@ const Auditoria = ({ idProceso }) => {
                   <strong>Entidad</strong>
                 </TableCell>
               </TableRow>
-            </TableHead>
+            </TableHead>{}
             <TableBody>
               {auditorias.map((auditoria) => (
                 <TableRow key={auditoria.id}>

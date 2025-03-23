@@ -32,17 +32,17 @@ const GraficasPage = () => {
         console.log("📌 Indicadores recibidos:", indicators);
 
         // Encuesta
-        const encuestaIndicator = indicators.find(ind => ind.origenIndicador?.toLowerCase().trim() === "encuesta");
-        if (encuestaIndicator) setEncuestaId(encuestaIndicator.idIndicadorConsolidado);
+        const encuestaIndicator = indicators.find(ind => ind.origenIndicador === "Encuesta");
+        if (encuestaIndicator) setEncuestaId(encuestaIndicator.idIndicador);
+
 
         // Evaluación de Proveedores
-        const evaluacionIndicator = indicators.find(ind => ind.origenIndicador?.toLowerCase().trim() === "evaluaproveedores");
-        if (evaluacionIndicator) setEvaluacionId(evaluacionIndicator.idIndicadorConsolidado);
-
+        const evaluacionIndicator = indicators.find(ind => ind.origenIndicador === "EvaluaProveedores");
+        if (evaluacionIndicator) setEvaluacionId(evaluacionIndicator.idIndicador);
         // Retroalimentación
-        const retroIndicators = indicators.filter(ind => ind.origenIndicador?.toLowerCase().trim() === "retroalimentacion");
-        setRetroList(retroIndicators.sort((a, b) => a.idIndicadorConsolidado - b.idIndicadorConsolidado));
-
+        const retroIndicators = indicators.filter(ind => ind.origenIndicador === "Retroalimentacion");
+        setRetroList(retroIndicators.sort((a, b) => a.idIndicador - b.idIndicador));
+        console.log("Identificadores de Lista:", retroIndicators);
         setLoading(false);
       })
       .catch(error => {
@@ -55,10 +55,12 @@ const GraficasPage = () => {
   if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
 
+  
+
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" align="center" gutterBottom sx={{ fontFamily: "'Roboto', sans-serif", color: "primary.main", fontWeight: "bold" }}>
-        Vista de Gráficas - Registro {idRegistro}
+        Vista de Gráficas
       </Typography>
 
       <Box sx={{ my: 4 }}>
