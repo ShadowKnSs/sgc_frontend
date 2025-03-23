@@ -8,77 +8,100 @@ import GestionRiesgos from "../components/ReporteProceso/DRPGestionRiesgos";
 import AnalisisDatos from "../components/ReporteProceso/DRPAnalisisDatos";
 
 const ReportView = () => {
-  const [imagenPlanControl, setImagenPlanControl] = useState(null);
   const { idProceso, year } = useParams();
   const [reportData, setReportData] = useState(null);
+  const [imagenes, setImagenes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [idRegistro, setIdRegistro] = useState(null);
 
+
+  // ✅ Cargar datos generales del reporte
   useEffect(() => {
     axios.get(`http://localhost:8000/api/datos-reporte/${idProceso}/${year}`)
-      .then(response => {
-        setReportData(response.data);
+      .then(res => {
+        setReportData(res.data);
         setLoading(false);
       })
-      .catch(error => {
-        console.error("Error al obtener el reporte:", error);
+      .catch(err => {
+        console.error("❌ Error al obtener el reporte:", err);
         setError("No se pudo cargar el reporte.");
         setLoading(false);
       });
   }, [idProceso, year]);
 
-  const handleDownload = async () => {
-    try {
-      // Si ya tenemos la imagen generada
-      if (imagenPlanControl) {
-        await axios.post('http://localhost:8000/api/graficas/guardar', {
-          imagenBase64: imagenPlanControl,
-          nombre: `plan_control_${idProceso}_${year}`
-        });
-        console.log("✅ Imagen guardada antes de descargar el PDF.");
-      }
 
-      // Abrir PDF
-      window.open(`http://localhost:8000/api/generar-reporte/${idProceso}/${year}`, "_blank");
-    } catch (error) {
-      console.error("❌ Error al guardar la imagen antes del PDF:", error);
-      alert("No se pudo guardar la imagen antes de generar el PDF.");
-    }
+  useEffect(() => {
+    axios.get(`http://localhost:8000/api/registros/idRegistro`, {
+      params: {
+        proceso: idProceso,
+        año: year,
+        apartado: 'Indicadores'
+      }
+    })
+      .then(res => {
+        setIdRegistro(res.data.idRegistro);
+      })
+      .catch(err => {
+        console.error("❌ No se encontró el idRegistro:", err);
+      });
+  }, [idProceso, year]);
+
+
+  // ✅ Función para recibir cada imagen generada
+  const handleImagenGenerada = (tipo, base64) => {
+    console.log(`📥 Recibida imagen de tipo: ${tipo}, longitud: ${base64?.length}`);
+    console.log("🔍 Claves de imágenes generadas:", Object.keys(imagenes));
+    setImagenes(prev => ({ ...prev, [tipo]: base64 }));
   };
 
+  // ✅ Guardar imágenes y abrir PDF
+  const handleDownload = async () => {
+    try {
+      // Guardar cada imagen base64 con su tipo como nombre
+      for (const tipo in imagenes) {
+        await axios.post('http://localhost:8000/api/graficas/guardar', {
+          imagenBase64: imagenes[tipo],
+          nombre: `${tipo}_${idProceso}_${year}`
+        });
+      }
+
+      console.log("✅ Imágenes guardadas. Generando PDF...");
+      window.open(`http://localhost:8000/api/generar-reporte/${idProceso}/${year}`, "_blank");
+
+    } catch (error) {
+      console.error("❌ Error al guardar imágenes:", error);
+      alert("No se pudieron guardar las gráficas.");
+    }
+  };
 
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" sx={{ fontWeight: "bold", textAlign: "center", mb: 2 }}>
+      <Typography variant="h4" align="center" mb={3}>
         Reporte del Proceso
       </Typography>
 
-      {/* Información General */}
       <GeneralInfo reportData={reportData} />
-
-      {/* Manual Operativo */}
       <ManualOperativo idProceso={idProceso} />
-
-      {/* Gestión de Riesgos */}
       <GestionRiesgos idProceso={idProceso} anio={year} />
 
-      {/* AnalisiDatos */}
-      <AnalisisDatos />
+      <AnalisisDatos
+        idRegistro={idRegistro}
+        onImagenGenerada={handleImagenGenerada}
+      />
 
-      {/* Botón para descargar el PDF */}
-      <Box sx={{ textAlign: "center", mt: 3 }}>
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
         <Button
           variant="contained"
           color="primary"
           onClick={handleDownload}
-          disabled={!imagenPlanControl} // solo habilita cuando la imagen está lista
+          disabled={Object.keys(imagenes).length < 6} // Esperamos al menos 6 imágenes
         >
           Descargar PDF
         </Button>
-
       </Box>
     </Box>
   );
