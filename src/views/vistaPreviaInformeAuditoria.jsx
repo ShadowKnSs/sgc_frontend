@@ -244,11 +244,6 @@ function VistaPreviaAud() {
             <Grid container spacing={2}>
               <Grid item xs={2}>
                 <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
-                  <strong>No.</strong>
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
                   <strong>Req. ISO 9001:2015</strong>
                 </Typography>
               </Grid>
@@ -257,7 +252,7 @@ function VistaPreviaAud() {
                   <strong>Descripción del Punto de Mejora</strong>
                 </Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={5}>
                 <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
                   <strong>Evidencia Objetiva</strong>
                 </Typography>
@@ -271,12 +266,12 @@ function VistaPreviaAud() {
                 <TextField fullWidth variant="outlined" size="small" label="Req. ISO" value={puntoMejora.reqISO} InputProps={{ readOnly: true }}
                 />
                 </Grid>
-                <Grid item xs={6}>
-                <TextField fullWidth variant="outlined" size="small" label="Descripción" value={puntoMejora.descripcion} InputProps={{ readOnly: true }}
+                <Grid item xs={5}>
+                <TextField fullWidth variant="outlined" size="small" label="Descripción" multiline value={puntoMejora.descripcion} InputProps={{ readOnly: true }}
                 />
                 </Grid>
-                <Grid item xs={4}>
-                <TextField fullWidth variant="outlined" size="small" label="Evidencia" value={puntoMejora.evidencia} InputProps={{ readOnly: true }}
+                <Grid item xs={5}>
+                <TextField fullWidth variant="outlined" size="small" label="Evidencia" multiline value={puntoMejora.evidencia} InputProps={{ readOnly: true }}
                 />
                 </Grid>
                 </Grid>

@@ -420,11 +420,6 @@ function InformeAud() {
             <Grid container spacing={2}>
               <Grid item xs={2}>
                 <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
-                  <strong>No.</strong>
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
                   <strong>Req. ISO 9001:2015</strong>
                 </Typography>
               </Grid>
@@ -433,7 +428,7 @@ function InformeAud() {
                   <strong>Descripción del Punto de Mejora</strong>
                 </Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={5}>
                 <Typography variant="body1" gutterBottom sx={{ fontSize: "0.875rem", whiteSpace: "nowrap", textAlign: "center" }}>
                   <strong>Evidencia Objetiva</strong>
                 </Typography>
@@ -452,8 +447,8 @@ function InformeAud() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={2}>
-                    <TextField fullWidth variant="outlined" size="small" label="Descripción" value={puntoMejora.descripcion}
+                  <Grid item xs={5}>
+                    <TextField fullWidth variant="outlined" size="small" label="Descripción" multiline value={puntoMejora.descripcion}
                       onChange={(e) => {
                         const nuevos = [...puntosMejora];
                         nuevos[index].descripcion = e.target.value;
@@ -462,7 +457,7 @@ function InformeAud() {
                     />
                   </Grid>
                   <Grid item xs={5}>
-                    <TextField fullWidth variant="outlined" size="small" label="Evidencia" value={puntoMejora.evidencia}
+                    <TextField fullWidth variant="outlined" size="small" label="Evidencia" multiline value={puntoMejora.evidencia}
                       onChange={(e) => {
                         const nuevos = [...puntosMejora];
                         nuevos[index].evidencia = e.target.value;
