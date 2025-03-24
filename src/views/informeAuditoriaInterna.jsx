@@ -159,8 +159,6 @@ function InformeAud() {
     }
   };
 
-  
-
   return (
     <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
       <Box sx={{ width: "100%", maxWidth: "900px", backgroundColor: "white", padding: 4, borderRadius: "8px" }}>
@@ -444,20 +442,35 @@ function InformeAud() {
           </Box>
           {puntosMejora.map((puntoMejora, index) => (
             <Box key={index} width="100%" mt={2}>
-              <Grid container spacing={2}>
-                <Grid item xs={2}>
-                  <TextField fullWidth variant="outlined" size="small" />
+            <Grid container spacing={2}>
+                  <Grid item xs={2}>
+                    <TextField fullWidth variant="outlined" size="small" label="Req. ISO" value={puntoMejora.reqISO}
+                      onChange={(e) => {
+                        const nuevos = [...puntosMejora];
+                        nuevos[index].reqISO = e.target.value;
+                        setPuntosMejora(nuevos);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <TextField fullWidth variant="outlined" size="small" label="Descripción" value={puntoMejora.descripcion}
+                      onChange={(e) => {
+                        const nuevos = [...puntosMejora];
+                        nuevos[index].descripcion = e.target.value;
+                        setPuntosMejora(nuevos);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={5}>
+                    <TextField fullWidth variant="outlined" size="small" label="Evidencia" value={puntoMejora.evidencia}
+                      onChange={(e) => {
+                        const nuevos = [...puntosMejora];
+                        nuevos[index].evidencia = e.target.value;
+                        setPuntosMejora(nuevos);
+                      }}
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={2}>
-                  <TextField fullWidth variant="outlined" size="small" />
-                </Grid>
-                <Grid item xs={5}>
-                  <TextField fullWidth variant="outlined" size="small" />
-                </Grid>
-                <Grid item xs={3}>
-                  <TextField fullWidth variant="outlined" size="small" />
-                </Grid>
-              </Grid>
               <Box display="flex" justifyContent="flex-end" mt={1}>
                 <Typography 
                   variant="body2" 

@@ -27,6 +27,7 @@ import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
 import ReportesAuditoria from "../views/reportesAuditoria";
+import VistaPreviaAud from "../views/vistaPreviaInformeAuditoria";
 
 const AppRoutes = () => {
   // Define el tipo de usuario: 'admin' o 'user'
@@ -61,6 +62,8 @@ const AppRoutes = () => {
           <Route path="manual-operativo" element={<ManualOperativo />}/>
           <Route path="informe-auditoria" element={<InformeAuditoriaInterna />}/>
           <Route path="reportes-auditoria" element={<ReportesAuditoria />}/>
+          <Route path="/auditorias/:id" element={<InformeAuditoriaInterna />} />
+          <Route path="/vista-previa/:idAuditorialInterna" element={<VistaPreviaAud />} />
 
         </Route>
       </Routes>
