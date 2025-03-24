@@ -87,9 +87,7 @@ const ReportView = () => {
       <Auditoria idProceso={idProceso} />
       <Seguimiento idProceso={idProceso} anio={year} />
       <ProyectoMejora idProceso={idProceso} anio={year} />
-      <AnalisisDatos idRegistro={idRegistro} onImagenGenerada={handleImagenGenerada} />
       
-
       <AnalisisDatos
         idProceso={idProceso}
         anio={year}
