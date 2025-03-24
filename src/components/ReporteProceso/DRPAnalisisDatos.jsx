@@ -5,10 +5,12 @@ import GraficaRetroalimentacion from '../Graficas/GraficaRetroalimentacion';
 import GraficaMapaProceso from '../Graficas/GraficaIndMP';
 import GraficaRiesgos from '../Graficas/GraficaRiesgosReporte';
 import GraficaEvaluacion from '../Graficas/GraficaEvaluacion';
+import TablaPlanControl from './TablaPlanControl';
+import TablaSatisfaccion from './TablaSatisfaccion';
 import axios from 'axios';
 
 
-const DRPAnalisisDatos = ({ idRegistro, onImagenGenerada }) => {
+const DRPAnalisisDatos = ({ idProceso,anio,  idRegistro, onImagenGenerada }) => {
   const [indicadores, setIndicadores] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,13 +33,14 @@ const DRPAnalisisDatos = ({ idRegistro, onImagenGenerada }) => {
 
   return (
     <>
-      {/* Aquí irán las tablas del análisis de datos */}
-
+      
+      <TablaPlanControl idProceso={idProceso} anio={anio}/>
       {/* Gráfica Plan de Control */}
       <PlanControlBarChart
         onImageReady={(imgBase64) => onImagenGenerada("planControl", imgBase64)}
       />
 
+      <TablaSatisfaccion idProceso={idProceso} anio={anio}/>
       {/* Gráfica Encuesta de Satisfacción */}
       {getIndicador("Encuesta") && (
         <GraficaEncuesta

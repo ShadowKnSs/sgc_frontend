@@ -89,6 +89,8 @@ const ReportView = () => {
       <GestionRiesgos idProceso={idProceso} anio={year} />
 
       <AnalisisDatos
+        idProceso={idProceso}
+        anio={year}
         idRegistro={idRegistro}
         onImagenGenerada={handleImagenGenerada}
       />
