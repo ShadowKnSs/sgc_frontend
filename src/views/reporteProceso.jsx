@@ -8,6 +8,7 @@ import Auditoria from "../components/ReporteProceso/DRPAuditoria";
 import GestionRiesgos from "../components/ReporteProceso/DRPGestionRiesgos";
 import AnalisisDatos from "../components/ReporteProceso/DRPAnalisisDatos";
 import Seguimiento from "../components/ReporteProceso/DRPSegumiento";
+import ProyectoMejora from "../components/ReporteProceso/DRPProyectoMejora";
 
 const ReportView = () => {
   const { idProceso, year } = useParams();
@@ -85,6 +86,7 @@ const ReportView = () => {
       <GestionRiesgos idProceso={idProceso} anio={year} />
       <Auditoria idProceso={idProceso} />
       <Seguimiento idProceso={idProceso} anio={year} />
+      <ProyectoMejora idProceso={idProceso} anio={year} />
       <AnalisisDatos idRegistro={idRegistro} onImagenGenerada={handleImagenGenerada} />
       
 
