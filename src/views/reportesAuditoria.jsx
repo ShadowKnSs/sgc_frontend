@@ -29,7 +29,7 @@ const ReportCard = ({ report, onDelete  }) => {
                         backgroundColor: "#B00020", 
                         borderRadius: "50px", 
                         top: "-5px",
-                        right: "2px",
+                        right: "5px",
                         padding: "6px 20px", 
                         textTransform: "none", 
                         fontWeight: "bold" 
@@ -39,17 +39,11 @@ const ReportCard = ({ report, onDelete  }) => {
                     Eliminar
                 </Button>
                 <Button 
-                    variant="contained" 
-                    sx={{ 
-                        backgroundColor: "#004A98", 
-                        borderRadius: "50px", 
-                        top: "-5px", 
-                        padding: "6px 20px", 
-                        textTransform: "none", 
-                        fontWeight: "bold" 
-                    }}
+                variant="contained" 
+                sx={{ backgroundColor: "#004A98", borderRadius: "50px", top: -5, padding: "6px 20px", textTransform: "none", fontWeight: "bold" }}
+                onClick={() => window.open(`http://localhost:8000/api/reporte-pdf/${report.idAuditorialInterna}`, '_blank')}
                 >
-                    Descargar
+                Descargar
                 </Button>
             </Box>
         </Box>
@@ -84,6 +78,7 @@ const ReportesAuditoria = () => {
           const res = await axios.get("http://localhost:8000/api/reportesauditoria");
           const datos = res.data.map((r) => ({
             id: r.idReporte,
+            idAuditorialInterna: r.idAuditorialInterna,
             title: "Auditoría Interna", // puedes agregar luego más info
             date: new Date(r.fechaGeneracion).toLocaleDateString(),
           }));
@@ -123,6 +118,7 @@ const ReportesAuditoria = () => {
           // Opcional: actualizar lista de reportes
           setReports([...reports, {
             id: res.data.idReporte, // asumimos que el backend devuelve el ID
+            idAuditorialInterna: auditoria.idAuditorialInterna,
             title: "Auditoría Interna",
             date: new Date(auditoria.fecha).toLocaleDateString()
           }]);
