@@ -1,12 +1,71 @@
-import { useState } from "react";
-import { Box, Fab, Modal, TextField, MenuItem, Button } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Fab, Modal, TextField, MenuItem, Button, Grid } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Title from "../components/Title";
+import { useNavigate } from "react-router-dom";
+import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
+
+const fetchData = async (anio, periodo, navigate) => {
+    try {
+        // URLs de las 5 listas
+        const urls = [
+            `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
+            `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
+            `http://127.0.0.1:8000/api/get-acciones-sem?anio=${anio}&periodo=${periodo}`,
+            `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
+            `http://127.0.0.1:8000/api/get-seguimiento-sem?anio=${anio}&periodo=${periodo}`,
+        ];
+
+        // Hacer las 5 peticiones en paralelo
+        const responses = await Promise.all(urls.map(url => fetch(url)));
+        const results = await Promise.all(responses.map(res => res.json()));
+
+        // Nombres de cada lista para imprimir en consola
+        const nombresListas = ["Riesgos", "Indicadores", "Acciones de Mejora", "Auditorías", "Seguimiento"];
+
+        // Verificar si alguna lista tiene datos
+        let hayDatos = false;
+        results.forEach((lista, index) => {
+            if (lista.length > 0) {
+                console.log(`📌 Hay datos en la lista: ${nombresListas[index]}`);
+                hayDatos = true;
+            }
+        });
+
+        // Redirigir si hay datos
+        if (hayDatos) {
+            navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
+        } else {
+            console.log("⚠️ No se puede generar el informe. No hay datos para ese año y periodo.");
+        }
+
+    } catch (error) {
+        console.error("Error al obtener los datos:", error);
+        return [];
+    }
+};
 
 const PrincipalReportSem = () => {
     const [open, setOpen] = useState(false);
     const [year, setYear] = useState("");
     const [period, setPeriod] = useState("");
+    const navigate = useNavigate();
+    const [reportes, setReportes] = useState([]);
+
+    useEffect(() => {
+        fetchReportes();
+    }, []);
+
+    const fetchReportes = async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/reportes-semestrales");
+            if (!response.ok) throw new Error("Error al obtener los reportes");
+            const data = await response.json();
+            setReportes(data);
+        } catch (error) {
+            console.error("❌ Error al cargar reportes:", error);
+        }
+    };
 
     const handleOpenForm = () => setOpen(true);
     const handleCloseForm = () => {
@@ -15,8 +74,14 @@ const PrincipalReportSem = () => {
         setPeriod("");
     };
 
-    const handleGenerateReport = () => {
-        console.log(`Generando reporte para ${period} de ${year}`);
+    const handleClick = async () => {
+        if (!year || !period) {
+            console.log("⚠️ Por favor ingresa el año y el periodo.");
+            return;
+        }
+
+        console.log(`📤 Solicitando datos para el año ${year} y el periodo ${period}...`);
+        await fetchData(year, period, navigate);
         handleCloseForm();
     };
 
@@ -35,6 +100,19 @@ const PrincipalReportSem = () => {
             >
                 <Title text="Reportes Semestrales" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
             </Box>
+            {/* Contenedor de las cards */}
+            <Grid container spacing={3} justifyContent="center">
+                {reportes.map((reporte) => (
+                    <Grid item key={reporte.idReporteSemestral}>
+                        <ReporteSemCard
+                            anio={reporte.anio}
+                            periodo={reporte.periodo}
+                            fechaGeneracion={reporte.fechaGeneracion}
+                            ubicacion={reporte.ubicacion}
+                        />
+                    </Grid>
+                ))}
+            </Grid>
 
             {/* Botón flotante */}
             <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpenForm}>
@@ -81,8 +159,8 @@ const PrincipalReportSem = () => {
                         value={period}
                         onChange={(e) => setPeriod(e.target.value)}
                     >
-                        <MenuItem value="Enero-Junio">Enero - Junio</MenuItem>
-                        <MenuItem value="Julio-Diciembre">Julio - Diciembre</MenuItem>
+                        <MenuItem value="01-06">Enero - Junio</MenuItem>
+                        <MenuItem value="07-12">Julio - Diciembre</MenuItem>
                     </TextField>
 
                     {/* Botones */}
@@ -95,7 +173,7 @@ const PrincipalReportSem = () => {
                             Cancelar
                         </Button>
                         <Button
-                            onClick={handleGenerateReport}
+                            onClick={handleClick}
                             sx={{ backgroundColor: "#F9B800", color: "white", "&:hover": { backgroundColor: "#D99400" }, borderRadius: "30px", // Redondear los bordes
                             padding: "8px 16px" }}
                             disabled={!year || !period}

@@ -1,8 +1,7 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Box } from "@mui/material";
+import {Typography, Box } from "@mui/material";
 
-// Función para formatear las etiquetas de la gráfica de pastel
 const renderLabel = ({ name, value }) => `${name}: ${value.toFixed(2)}%`;
 
 const IndicadoresReport = ({ data }) => {
@@ -23,74 +22,20 @@ const IndicadoresReport = ({ data }) => {
         { name: "Cumplimiento", value: cumplimiento },
         { name: "Incumplimiento", value: incumplimiento }
     ];
-    const COLORS = ["#4CAF50", "#F44336"]; // Verde para cumplimiento, rojo para incumplimiento
+    const COLORS = ["#004A98", "#F9B800"];
 
     return (
-        <Box sx={{ width: "100%", textAlign: "center" }}>
-            {/* Título */}
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-                Resultados de Indicadores
-            </Typography>
-
+        <Box sx={{ width: "100%", textAlign: "center", padding: "20px" }}>
             {/* Gráfica de Barras */}
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={formattedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="resultado" fill="#8884d8" name="Resultado" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E8E8" />
+                    <XAxis dataKey="name" stroke="#004A98" />
+                    <YAxis domain={[0, 100]} stroke="#004A98" />
+                    <Tooltip contentStyle={{ backgroundColor: "#E8E8E8", borderRadius: "5px" }} />
+                    <Legend wrapperStyle={{ color: "#004A98", fontWeight: "bold" }} />
+                    <Bar dataKey="resultado" fill="#00B2E3" name="Resultado" barSize={40} radius={[5, 5, 0, 0]} />
                 </BarChart>
-            </ResponsiveContainer>
-
-            {/* Tabla */}
-            <TableContainer component={Paper} sx={{ mt: 3 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: "bold" }}>Indicador</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Proceso</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Entidad</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Nombre Indicador</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Origen</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {data.map((item, index) => (
-                            <TableRow key={index}>
-                                <TableCell>Indicador {index + 1}</TableCell>
-                                <TableCell>{item.NombreProceso}</TableCell>
-                                <TableCell>{item.Entidad}</TableCell>
-                                <TableCell>{item.nombreIndicador}</TableCell>
-                                <TableCell>{item.origenIndicador}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
-            {/* Gráfica de Pastel */}
-            <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: "bold" }}>
-                Porcentaje de Cumplimiento e Incumplimiento Semestral
-            </Typography>
-            <ResponsiveContainer width="50%" height={300}>
-                <PieChart>
-                    <Pie
-                        data={pieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label={renderLabel} // Agrega las etiquetas
-                    >
-                        {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                        ))}
-                    </Pie>
-                    <Tooltip />
-                </PieChart>
             </ResponsiveContainer>
         </Box>
     );

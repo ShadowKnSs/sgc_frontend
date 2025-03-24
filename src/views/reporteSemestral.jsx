@@ -6,57 +6,95 @@ import IndicadoresReport from "../components/componentsReportSem/indicadoresRS";
 import AccionesMejora from "../components/componentsReportSem/accionesMejoraRS";
 import AuditoriasInternas from "../components/componentsReportSem/auditoriasRS";
 import Seguimiento from "../components/componentsReportSem/seguimientoRS";
-import axios from "axios";
+import RiesgosTable from "../components/componentsReportSem/riesgosTable";
+import IndicadoresTable from "../components/componentsReportSem/indiTableRS";
+import IndicadoresPastel from "../components/componentsReportSem/indiPastelRS";
+import { useLocation } from "react-router-dom";
 
-const data = [
-    { NombreProceso: "Proceso A", Entidad: "Entidad 1", valorSeveridad: 5, valorOcurrencia: 3, valorNRP: 15, fuente: "Fuente X" },
-    { NombreProceso: "Proceso B", Entidad: "Entidad 2", valorSeveridad: 2, valorOcurrencia: 4, valorNRP: 8, fuente: "Fuente Y" },
-    { NombreProceso: "Proceso C", Entidad: "Entidad 3", valorSeveridad: 7, valorOcurrencia: 2, valorNRP: 14, fuente: "Fuente Z" },
-];
-const datosIndicadores = [
-    { NombreProceso: "Proceso 1", Entidad: "Entidad A", nombreIndicador: "Indicador A", origenIndicador: "Manual", resultado: 90 },
-    { NombreProceso: "Proceso 2", Entidad: "Entidad B", nombreIndicador: "Indicador B", origenIndicador: "Automático", resultado: 75 },
-    { NombreProceso: "Proceso 3", Entidad: "Entidad C", nombreIndicador: "Indicador C", origenIndicador: "Manual", resultado: 60 },
-];
-const datosAccionesMejora = [
-    { NombreProceso: "Proceso 1", Entidad: "Entidad A", fuente: "Fuente A", entregable: "Documento A", responsable: "Juan Pérez", estado: "En proceso" },
-    { NombreProceso: "Proceso 2", Entidad: "Entidad B", fuente: "Fuente B", entregable: "Informe B", responsable: "María Gómez", estado: "Cerrado" },
-    { NombreProceso: "Proceso 3", Entidad: "Entidad C", fuente: "Fuente C", entregable: "Reporte C", responsable: "Carlos Ramírez", estado: "En proceso" }
-];
-const datosAuditorias = [
-    { NombreProceso: "Proceso A", Entidad: "Entidad X", AuditorLider: "Juan Pérez", fecha: "2024-03-10" },
-    { NombreProceso: "Proceso B", Entidad: "Entidad Y", AuditorLider: "María Gómez", fecha: "2024-04-15" },
-    { NombreProceso: "Proceso C", Entidad: "Entidad Z", AuditorLider: "Carlos Ramírez", fecha: "2024-05-20" }
-];
-const datosSeguimiento = [
-    { NombreProceso: "Proceso A", Entidad: "Entidad X", fecha: "2024-03-10" },
-    { NombreProceso: "Proceso B", Entidad: "Entidad Y", fecha: "2024-04-15" },
-    { NombreProceso: "Proceso C", Entidad: "Entidad Z", fecha: "2024-05-20" }
-];
 
 const ReporteSemestral = () => {
     const [conclusion, setConclusion] = useState("");
+    const [fortalezas, setFortalezas] = useState("");
+    const [debilidades, setDebilidades] = useState("");
     const reporteRef = useRef(null);
+    const location = useLocation();
+    const { data, anio, periodo } = location.state || {};
+
+    const [datosRiesgos, datosIndicadores, datosAccionesMejora, datosAuditorias, datosSeguimiento] = data;
+
 
     const handleDownloadPDF = async () => {
-        if (!reporteRef.current) return;
-
         try {
-            const canvas = await html2canvas(reporteRef.current, { scale: 2 });
-            const image = canvas.toDataURL("image/png");
-            
+            console.log("Iniciando la captura de imágenes...");
+    
+            // Referencias a los componentes
+            const riesgosRef = document.getElementById("riesgos-chart");
+            const indicadoresRef = document.getElementById("indicadores-report");
+            const indicadoresPRef = document.getElementById("indicadores-report-pastel");
+    
+            // Función para capturar una imagen de un componente
+            const captureImage = async (element, name) => {
+                if (!element) {
+                    console.warn(`El elemento ${name} no fue encontrado.`);
+                    return null;
+                }
+                try {
+                    const canvas = await html2canvas(element, { scale: 2 });
+                    return canvas.toDataURL("image/png");
+                } catch (error) {
+                    console.error(`Error al capturar la imagen de ${name}:`, error);
+                    return null;
+                }
+            };
+    
+            // Capturar las imágenes de cada componente
+            const riesgosImage = await captureImage(riesgosRef, "riesgos-chart");
+            const indicadoresImage = await captureImage(indicadoresRef, "indicadores-report");
+            const indicadoresPImage = await captureImage(indicadoresPRef, "indicadores-report-pastel");
+    
+            // Datos a enviar
+            const payload = {
+                fortalezas,
+                debilidades,
+                conclusion,
+                anio,
+                periodo,
+                imagenes: {
+                    riesgos: riesgosImage,
+                    indicadores: indicadoresImage,
+                    indicadoresP: indicadoresPImage,
+                },
+                listas: {
+                    datosRiesgos,
+                    datosIndicadores,
+                    datosAccionesMejora,
+                    datosAuditorias,
+                    datosSeguimiento,
+                },
+            };
+    
+            console.log("Datos enviados al backend:", JSON.stringify(payload, null, 2));
+    
+            // Enviar los datos al backend para generar el PDF
             const response = await fetch("http://127.0.0.1:8000/api/generar-pdf", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    conclusion,
-                    reporteImagen: image,
-                }),
+                body: JSON.stringify(payload),
             });
     
+            if (!response.ok) {
+                throw new Error(`Error en la respuesta del servidor: ${response.status}`);
+            }
+    
+            console.log("PDF generado correctamente, iniciando descarga...");
+    
             const blob = await response.blob();
+            if (blob.size === 0) {
+                throw new Error("El archivo PDF generado está vacío.");
+            }
+    
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
@@ -64,48 +102,188 @@ const ReporteSemestral = () => {
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            console.log("Descarga completada.");
+    
+            // **Registrar en la base de datos que se generó el reporte**
+            const registroPayload = {
+                anio,
+                periodo,
+                fortalezas: fortalezas || null,
+                debilidades: debilidades || null,
+                conclusion,
+                fechaGeneracion: new Date().toISOString().slice(0, 19).replace("T", " "),
+                ubicacion: "ruta/del/reporte-semestral.pdf"
+            };
+    
+            const registroResponse = await fetch("http://127.0.0.1:8000/api/reporte-semestral", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(registroPayload),
+            });
+    
+            if (!registroResponse.ok) {
+                throw new Error("Error al registrar el reporte en la base de datos.");
+            }
+    
+            console.log("Registro de reporte semestral guardado en la base de datos.");
+    
+            // **Redirigir a la vista anterior**
+            window.location.href = "/principalReportSem";
+            
         } catch (error) {
-            console.error("Error al generar el PDF:", error);
+            console.error("Error en el proceso:", error);
         }
-    };    
+    };
+    
 
     return (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 5 }}>
-            <Paper elevation={3} sx={{ width: "80%", padding: 4, bgcolor: "#F5F5F5" }}>
+            <Paper elevation={3} sx={{ width: "50%", padding: 5, bgcolor: "#FFF", paddingLeft: 8, paddingRight: 12, }}>
                 <div ref={reporteRef}>
-                    <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
+                    <Typography sx={{ fontWeight: "bold", textAlign: "center", color: "#004A98", fontSize: "36px" }}>
                         Reporte Semestral
                     </Typography>
+                    <Typography sx={{ fontWeight: "bold", textAlign: "center", mb: 5, color: "#004A98", fontSize: "24px" }}>
+                        Ene - Jun 2025
+                    </Typography>
+                    {datosRiesgos && datosRiesgos.length > 0 && (
+                        <Box sx={{ mt: 5, mb: 5 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Gestión de Riesgos
+                            </Typography>
+                            <Box id="riesgos-chart" >
+                                <RiesgosChart data={datosRiesgos} />
+                            </Box>
+                            <RiesgosTable data={datosRiesgos} />
+                        </Box>
+                    )}
 
-                    <Box sx={{ mb: 3 }}>
-                        <RiesgosChart data={data} />
-                    </Box>
-                    <Box sx={{ mb: 3 }}>
-                        <IndicadoresReport data={datosIndicadores} />
-                    </Box>
-                    <Box sx={{ mb: 3 }}>
-                        <AccionesMejora data={datosAccionesMejora} />
-                    </Box>
-                    <Box sx={{ mb: 3 }}>
-                        <AuditoriasInternas data={datosAuditorias} />
-                    </Box>
-                    <Box sx={{ mb: 3 }}>
-                        <Seguimiento data={datosSeguimiento} />
-                    </Box>
+                    {datosIndicadores && datosIndicadores.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 5 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Indicadores
+                            </Typography>
+                            <Box id="indicadores-report">
+                                <IndicadoresReport data={datosIndicadores} />
+                            </Box>
+                            <IndicadoresTable data={datosIndicadores} />
+                            <Typography sx={{ mt: 4, mb: 2, fontWeight: "bold", fontSize: "24px", color: "#004A98" }}>
+                                Porcentaje de Cumplimiento e Incumplimiento Semestral
+                            </Typography>
+                            <Box id="indicadores-report-pastel">
+                                <IndicadoresPastel data={datosIndicadores} />
+                            </Box>
+                        </Box>
+                    )}
 
-                    <Box sx={{ mt: 3 }}>
-                        <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+                    {datosAccionesMejora && datosAccionesMejora.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 3 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Acciones de Mejora
+                            </Typography>
+                            <AccionesMejora data={datosAccionesMejora} />
+                        </Box>
+
+                    )}
+
+                    {datosAuditorias && datosAuditorias.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 3 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Auditorías Internas
+                            </Typography>
+                            <AuditoriasInternas data={datosAuditorias} />
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                placeholder="Escribe las fortalezas identificadas..."
+                                variant="outlined"
+                                inputProps={{ maxLength: 500 }}
+                                value={fortalezas}
+                                onChange={(e) => setFortalezas(e.target.value)}
+                                sx={{
+                                    mt: 3,
+                                    mb: 3,
+                                    backgroundColor: "#F5F5F5",
+                                    borderRadius: "8px",
+                                    "& .MuiOutlinedInput-root": {
+                                        "& fieldset": { borderColor: "#B0BEC5" }, // Color del borde normal
+                                        "&:hover fieldset": { borderColor: "#1976D2" }, // Color del borde al pasar el mouse
+                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" }, // Color y grosor del borde al hacer foco
+                                    },
+                                    "& .MuiInputBase-input": {
+                                        fontSize: "16px",
+                                        padding: "12px",
+                                    },
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                placeholder="Escribe las debilidades identificadas..."
+                                variant="outlined"
+                                inputProps={{ maxLength: 500 }}
+                                value={debilidades}
+                                onChange={(e) => setDebilidades(e.target.value)}
+                                sx={{
+                                    backgroundColor: "#F5F5F5",
+                                    borderRadius: "8px",
+                                    "& .MuiOutlinedInput-root": {
+                                        "& fieldset": { borderColor: "#B0BEC5" },
+                                        "&:hover fieldset": { borderColor: "#1976D2" },
+                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" },
+                                    },
+                                    "& .MuiInputBase-input": {
+                                        fontSize: "16px",
+                                        padding: "12px",
+                                    },
+                                }}
+                            />
+                        </Box>
+
+                    )}
+                    {datosSeguimiento && datosSeguimiento.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 3 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Seguimiento
+                            </Typography>
+                            <Seguimiento data={datosSeguimiento} />
+                        </Box>
+
+                    )}
+
+                    <Box sx={{ mt: 6 }}>
+                        <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
                             Conclusión
                         </Typography>
+
                         <TextField
                             fullWidth
                             multiline
                             rows={3}
                             placeholder="Escribe la conclusión del reporte..."
                             variant="outlined"
-                            inputProps={{ maxLength: 255 }}
+                            inputProps={{ maxLength: 600 }}
                             value={conclusion}
                             onChange={(e) => setConclusion(e.target.value)}
+                            sx={{
+                                backgroundColor: "#F5F5F5",
+                                borderRadius: "8px",
+                                "& .MuiOutlinedInput-root": {
+                                    "& fieldset": { borderColor: "#B0BEC5" },
+                                    "&:hover fieldset": { borderColor: "#1976D2" },
+                                    "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" },
+                                },
+                                "& .MuiInputBase-input": {
+                                    fontSize: "16px",
+                                    padding: "12px",
+                                },
+                            }}
                         />
                     </Box>
                 </div>

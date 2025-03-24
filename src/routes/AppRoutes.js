@@ -18,7 +18,6 @@ import FormularioAnalisis from "../views/analisisDatosForm";
 import GestionRiesgosForm from "../views/gestionRiegosForm";
 import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
-import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import AdminEventos from "../views/adminEventNot";
 import InformeAuditoria from "../views/informeAditoriaInterna";
@@ -80,7 +79,7 @@ const AppRoutes = () => {
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
           <Route path="typesReports" element={<TypesReports/>} />
           <Route path="principalReportSem" element={<PrincipalReportSem/>} />
-          <Route path="reporteSemestral" element={<ReporteSemestral/>} />
+          <Route path="/reporteSemestral" element={<ReporteSemestral/>} />
 
         </Route>
       </Routes>

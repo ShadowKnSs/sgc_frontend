@@ -3,43 +3,45 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 
 // Función para definir el color del estado
 const getEstadoColor = (estado) => {
-    if (estado.toLowerCase() === "en proceso") return "#FFEB3B"; // Amarillo
+    if (estado.toLowerCase() === "en proceso") return "#F9B800"; // Amarillo
     if (estado.toLowerCase() === "cerrado") return "#4CAF50"; // Verde
     return "transparent"; // Por si acaso hay otro estado
 };
 
 const AccionesMejora = ({ data }) => {
     return (
-        <Box sx={{ width: "100%", textAlign: "center" }}>
-            {/* Título */}
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-                Acciones de Mejora - Plan de Trabajo
-            </Typography>
-
-            {/* Tabla */}
-            <TableContainer component={Paper}>
+        <Box sx={{ width: "100%", textAlign: "center", padding: "20px" }}>
+            <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2 }}>
                 <Table>
                     <TableHead>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: "bold" }}>No.</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Proceso</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Entidad</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Fuente</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Entregable</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Responsable</TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>Estado</TableCell>
+                        <TableRow sx={{ backgroundColor: "#004A98" }}>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>No.</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>Proceso</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>Entidad</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>Fuente</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>Entregable</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>Responsable</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", fontSize: "18px" }}>Estado</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {data.map((item, index) => (
-                            <TableRow key={index}>
-                                <TableCell>{index + 1}</TableCell>
+                            <TableRow key={index} sx={{ backgroundColor: index % 2 ? "#E8E8E8" : "white" }}>
+                                <TableCell sx={{ fontWeight: "bold" }}>{index + 1}</TableCell>
                                 <TableCell>{item.NombreProceso}</TableCell>
                                 <TableCell>{item.Entidad}</TableCell>
                                 <TableCell>{item.fuente}</TableCell>
                                 <TableCell>{item.entregable}</TableCell>
                                 <TableCell>{item.responsable}</TableCell>
-                                <TableCell sx={{ backgroundColor: getEstadoColor(item.estado), color: "white", fontWeight: "bold", textAlign: "center" }}>
+                                <TableCell
+                                    sx={{
+                                        backgroundColor: getEstadoColor(item.estado),
+                                        color: "white",
+                                        fontWeight: "bold",
+                                        textAlign: "center",
+                                        borderRadius: "5px",
+                                    }}
+                                >
                                     {item.estado}
                                 </TableCell>
                             </TableRow>
