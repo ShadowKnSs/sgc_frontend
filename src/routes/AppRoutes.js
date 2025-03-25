@@ -29,6 +29,8 @@ import AdminIndicatorPage from "../views/adminIndicadoresPage";
 import UserIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
+import ReportesAuditoria from "../views/reportesAuditoria";
+import VistaPreviaAud from "../views/vistaPreviaInformeAuditoria";
 import ManualDelSitio from "../views/manualSitio";
 import ReporteProcesoPreview from "../views/reporteProceso";
 import ListaReportesProceso from "../views/listReportesProceso";
@@ -64,6 +66,9 @@ const AppRoutes = () => {
           <Route path="user-eventos" element={<UserEvent />} />
           <Route path="manual-operativo" element={<ManualOperativo />}/>
           <Route path="informe-auditoria" element={<InformeAuditoriaInterna />}/>
+          <Route path="reportes-auditoria" element={<ReportesAuditoria />}/>
+          <Route path="/auditorias/:id" element={<InformeAuditoriaInterna />} />
+          <Route path="/vista-previa/:idAuditorialInterna" element={<VistaPreviaAud />} />
           <Route path="informe-auditoria" element={<InformeAuditoria />}/>
           <Route path="cronograma" element={<Cronograma />}/>
           <Route path="manual-calidad" element={<ManualCalidad />}/>
