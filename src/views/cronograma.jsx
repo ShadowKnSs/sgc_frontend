@@ -12,7 +12,7 @@ const localizer = momentLocalizer(moment);
 
 function Cronograma() {
 
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([ ]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
 
