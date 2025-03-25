@@ -4,8 +4,16 @@ import AddIcon from "@mui/icons-material/Add";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
+import { Snackbar, Alert } from '@mui/material';
 
-const fetchData = async (anio, periodo, navigate) => {
+const PrincipalReportSem = () => {
+    const [open, setOpen] = useState(false);
+    const [year, setYear] = useState("");
+    const [period, setPeriod] = useState("");
+    const navigate = useNavigate();
+    const [reportes, setReportes] = useState([]);
+   
+  const fetchData = async (anio, periodo, navigate) => {
     try {
         // URLs de las 5 listas
         const urls = [
@@ -36,7 +44,7 @@ const fetchData = async (anio, periodo, navigate) => {
         if (hayDatos) {
             navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
         } else {
-            console.log("⚠️ No se puede generar el informe. No hay datos para ese año y periodo.");
+            console.log("⚠️ No se puede generar el informe. No hay datos para ese año y periodo.")
         }
 
     } catch (error) {
@@ -44,13 +52,6 @@ const fetchData = async (anio, periodo, navigate) => {
         return [];
     }
 };
-
-const PrincipalReportSem = () => {
-    const [open, setOpen] = useState(false);
-    const [year, setYear] = useState("");
-    const [period, setPeriod] = useState("");
-    const navigate = useNavigate();
-    const [reportes, setReportes] = useState([]);
 
     useEffect(() => {
         fetchReportes();
@@ -180,6 +181,7 @@ const PrincipalReportSem = () => {
                         >
                             Generar
                         </Button>
+                        
                     </Box>
                 </Box>
             </Modal>
