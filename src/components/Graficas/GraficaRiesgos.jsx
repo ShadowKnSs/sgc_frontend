@@ -4,7 +4,8 @@ import { Box, CircularProgress, Alert, Grid, Typography } from '@mui/material';
 import axios from 'axios';
 import CircularProgressIndicator from './CiruclarProgressIndicador';
 
-const GraficaGestionRiesgos = () => {
+const GraficaGestionRiesgos = ({idRegistro}) => {
+
   const [riesgoData, setRiesgoData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,11 +14,11 @@ const GraficaGestionRiesgos = () => {
   const colors = ['#F44336', '#FF9800', '#4caf50', '#2196F3'];
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/gestion-riesgos')
+    if (!idRegistro) return; // No hagas la petición si no hay idRegistro
+
+    axios.get(`http://127.0.0.1:8000/api/gestion-riesgos/${idRegistro}`)
       .then(response => {
-        // Se espera que response.data sea un array de registros de riesgo.
-        // En tu ejemplo se recibe: [ [ {nombreIndicador, resultadoSemestral1, ...}, {...} ] ]
-        const data = response.data[0];
+        const data = response.data;
         console.log("Datos de gestión de riesgos:", data);
         if (!data || data.length === 0) {
           setError("No se encontraron datos de gestión de riesgos.");
@@ -32,7 +33,8 @@ const GraficaGestionRiesgos = () => {
         setError("Error al cargar datos de gestión de riesgos.");
         setLoading(false);
       });
-  }, []);
+  }, [idRegistro]);
+
 
   if (loading) {
     return (
@@ -53,8 +55,8 @@ const GraficaGestionRiesgos = () => {
       <Grid container spacing={2}>
         {riesgoData.map((item, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
-            <CircularProgressIndicator 
-              label={item.nombreIndicador} 
+            <CircularProgressIndicator
+              label={item.nombreIndicador}
               value={item.resultadoAnual || 0}
               color={colors[index % colors.length]}  // Asignación cíclica de colores
             />

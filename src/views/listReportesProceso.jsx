@@ -133,6 +133,21 @@ const ReportesDeProceso = () => {
       processName: process ? process.nombreProceso : '',
     };
 
+    // axios.post('http://localhost:8000/api/reporte-proceso', {
+    //   idProceso: newReportCard.processId,
+    //   nombreReporte: `Reporte ${newReportCard.processName}`,
+    //   fechaElaboracion: new Date().toISOString().slice(0, 10) // formato yyyy-mm-dd
+    // })
+    // .then(() => {
+    //   console.log("✅ Reporte guardado correctamente");
+    // })
+    // .catch(err => {
+    //   console.error("❌ Error al guardar el reporte:", err);
+    //   setSnackbarMessage("Error al guardar el reporte");
+    //   setSnackbarOpen(true);
+    // });
+
+    
     setReportCard(newReportCard);
     setOpenModal(false);
     setSelectedEntity('');

@@ -7,10 +7,13 @@ import GraficaRiesgos from '../Graficas/GraficaRiesgosReporte';
 import GraficaEvaluacion from '../Graficas/GraficaEvaluacion';
 import TablaPlanControl from './TablaPlanControl';
 import TablaSatisfaccion from './TablaSatisfaccion';
+import TablaMapaProceso from './TablaMapaProceso';
+import TablaEficaciaRiesgos from './TablaEficaciaRiesgos';
+import TablaEvaluacionProveedores from './TablaEvaluacionProveedores';
 import axios from 'axios';
 
 
-const DRPAnalisisDatos = ({ idProceso,anio,  idRegistro, onImagenGenerada }) => {
+const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => {
   const [indicadores, setIndicadores] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,14 +36,14 @@ const DRPAnalisisDatos = ({ idProceso,anio,  idRegistro, onImagenGenerada }) => 
 
   return (
     <>
-      
-      <TablaPlanControl idProceso={idProceso} anio={anio}/>
+
+      <TablaPlanControl idProceso={idProceso} anio={anio} />
       {/* Gráfica Plan de Control */}
       <PlanControlBarChart
         onImageReady={(imgBase64) => onImagenGenerada("planControl", imgBase64)}
       />
 
-      <TablaSatisfaccion idProceso={idProceso} anio={anio}/>
+      <TablaSatisfaccion idProceso={idProceso} anio={anio} />
       {/* Gráfica Encuesta de Satisfacción */}
       {getIndicador("Encuesta") && (
         <GraficaEncuesta
@@ -56,14 +59,18 @@ const DRPAnalisisDatos = ({ idProceso,anio,  idRegistro, onImagenGenerada }) => 
         />
       )}
 
+      <TablaMapaProceso idProceso={idProceso} anio={anio} />
       <GraficaMapaProceso
         onImageReady={(img) => onImagenGenerada("mapaProceso", img)}
       />
-      
+
+      <TablaEficaciaRiesgos idProceso={idProceso} anio={anio} />
       <GraficaRiesgos
+        idRegistro={idRegistro}
         onImageReady={(img) => onImagenGenerada("riesgos", img)}
       />
 
+      <TablaEvaluacionProveedores idProceso={idProceso} anio={anio}/>
       {/* Gráfica Encuesta de Satisfacción */}
       {getIndicador("EvaluaProveedores") && (
         <GraficaEvaluacion

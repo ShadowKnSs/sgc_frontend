@@ -14,7 +14,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, Title);
 
-const GraficaGestionRiesgos = ({ onImageReady }) => {
+const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
   const [chartData, setChartData] = useState(null);
@@ -24,14 +24,15 @@ const GraficaGestionRiesgos = ({ onImageReady }) => {
   const colors = ['#1D2D5F', '#F65E5D', '#FFBC47', '#40CEE3'];
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/gestion-riesgos')
+    if (!idRegistro) return;
+  
+    axios.get(`http://127.0.0.1:8000/api/gestion-riesgos/${idRegistro}`)
       .then(response => {
-        const data = response.data[0] || [];
+        const data = response.data || [];
         const labels = data.map(item => item.nombreIndicador);
         const resultados = data.map(item => item.resultadoAnual ?? 0);
-
         const backgroundColor = resultados.map((_, index) => colors[index % colors.length]);
-
+  
         const chart = {
           labels,
           datasets: [{
@@ -40,7 +41,7 @@ const GraficaGestionRiesgos = ({ onImageReady }) => {
             backgroundColor
           }]
         };
-
+  
         setChartData(chart);
         setLoading(false);
       })
@@ -49,7 +50,8 @@ const GraficaGestionRiesgos = ({ onImageReady }) => {
         setError("Error al cargar datos.");
         setLoading(false);
       });
-  }, []);
+  }, [idRegistro]);
+  
 
   const options = {
     responsive: true,
