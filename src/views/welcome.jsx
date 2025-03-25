@@ -11,8 +11,10 @@ import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
+
 const Welcome = () => {
   const navigate = useNavigate(); 
+
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },
     { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manualDelSitio" },
@@ -24,6 +26,7 @@ const Welcome = () => {
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
     { icon: <SummarizeOutlinedIcon />, title: "Reportes", path: "typesReports" },
   ];
+
   return (
     <Box
       sx={{
@@ -32,19 +35,20 @@ const Welcome = () => {
         gap: 8, 
         placeItems: "center", 
         justifyContent: "center",
-        alignContent: "center",
-        height: "100vh",
-        width: "100%", 
+        alignContent: "start", // Cambiado para evitar centrado absoluto
+        minHeight: "calc(100vh - 100px)", // Ajusta 100px según tu header y footer
+        padding: "20px",
+        marginTop: "80px", // Ajusta según el tamaño del header
+        marginBottom: "20px", // Ajusta según el tamaño del footer
       }}
     >
       {menuItems.map((item, index) => (
         <MenuCard 
-        key={index} 
-        icon={item.icon} 
-        title={item.title} 
-        onClick={() => navigate(item.path)} 
-      />
-      
+          key={index} 
+          icon={item.icon} 
+          title={item.title} 
+          onClick={() => navigate(item.path)} 
+        />
       ))}
     </Box>
   );
