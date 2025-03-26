@@ -102,7 +102,7 @@ const ReportView = () => {
           variant="contained"
           color="primary"
           onClick={handleDownload}
-          disabled={Object.keys(imagenes).length < 6} // Esperamos al menos 6 imágenes
+          disabled={Object.keys(imagenes).length < 2} // Esperamos al menos 6 imágenes
         >
           Descargar PDF
         </Button>
