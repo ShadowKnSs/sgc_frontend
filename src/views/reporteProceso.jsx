@@ -84,11 +84,8 @@ const ReportView = () => {
       <GeneralInfo reportData={reportData} />
       <ManualOperativo idProceso={idProceso} />
       <GestionRiesgos idProceso={idProceso} anio={year} />
-      <Auditoria idProceso={idProceso} />
-      <Seguimiento idProceso={idProceso} anio={year} />
-      <PlanAccion idProceso={idProceso} anio={year} />
-      <ProyectoMejora idProceso={idProceso} anio={year} />
-      
+
+
       <AnalisisDatos
         idProceso={idProceso}
         anio={year}
@@ -97,8 +94,8 @@ const ReportView = () => {
       />
       <ProyectoMejora idProceso={idProceso} anio={year} />
       <Seguimiento idProceso={idProceso} anio={year} />
-
-<Auditoria idProceso={idProceso} />
+      <PlanAccion idProceso={idProceso} anio={year} />
+      <Auditoria idProceso={idProceso} />
 
 
       <Box sx={{ textAlign: "center", mt: 4 }}>
