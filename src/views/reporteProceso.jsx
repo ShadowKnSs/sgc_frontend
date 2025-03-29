@@ -23,6 +23,7 @@ const ReportView = () => {
     axios.get(`http://localhost:8000/api/datos-reporte/${idProceso}/${year}`)
       .then(res => {
         setReportData(res.data);
+        console.log("Datos del repore Info General",res.data);
         setLoading(false);
       })
       .catch(err => {
@@ -77,8 +78,8 @@ const ReportView = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" align="center" mb={3}>
-        Reporte del Proceso
+      <Typography variant="h4" align="center" mb={3}> 
+      {reportData ? `Reporte ${reportData.nombreProceso} ${reportData.entidad}` : "Reporte"} 
       </Typography>
 
       <GeneralInfo reportData={reportData} />
@@ -103,7 +104,6 @@ const ReportView = () => {
           variant="contained"
           color="primary"
           onClick={handleDownload}
-          disabled={Object.keys(imagenes).length < 2} // Esperamos al menos 6 imágenes
         >
           Descargar PDF
         </Button>

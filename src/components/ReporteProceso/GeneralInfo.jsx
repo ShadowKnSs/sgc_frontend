@@ -17,7 +17,7 @@ const GeneralInfo = ({ reportData }) => {
     };
 
     return (
-        <Box sx={{ mb: 5, p: 5, borderRadius: 2, boxShadow: 3, backgroundColor: "#fff", paddingLeft: 8, paddingRight: 8, margin: 7 }}>
+        <Box sx={{ p: 5, borderRadius: 2, boxShadow: 3, backgroundColor: "#fff", paddingLeft: 7, paddingRight: 7, marginLeft: 7, marginRight: 7 }}>
             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
                 Información General
             </Typography>
