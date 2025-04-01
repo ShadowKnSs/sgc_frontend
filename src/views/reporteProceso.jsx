@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import axios from "axios";
 import GeneralInfo from "../components/ReporteProceso/GeneralInfo";
@@ -11,6 +11,8 @@ import Seguimiento from "../components/ReporteProceso/DRPSegumiento";
 import ProyectoMejora from "../components/ReporteProceso/DRPProyectoMejora";
 import PlanAccion from "../components/ReporteProceso/DRPPlanAccion";
 import Title from "../components/Title";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 const ReportView = () => {
   const { idProceso, year } = useParams();
   const [reportData, setReportData] = useState(null);
@@ -18,6 +20,8 @@ const ReportView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [idRegistro, setIdRegistro] = useState(null);
+  const navigate = useNavigate();
+
 
   // ✅ Cargar datos generales del reporte
   useEffect(() => {
@@ -79,6 +83,13 @@ const ReportView = () => {
 
   return (
     <Box sx={{ p: 4 }}>
+      {/* Flecha de regreso en la parte superior izquierda */}
+      <Box sx={{ position: 'relative', mb: 2, color:"secondary.main" }}>
+        <ArrowBackIcon 
+          sx={{ fontSize: 32, cursor: 'pointer' }} 
+          onClick={() => navigate(-1)}
+        />
+      </Box>
       <Box sx={{ textAlign: "center", paddingTop: 3, paddingBottom: 3}}>
       <Title text={reportData ? `Reporte ${reportData.nombreProceso} ${reportData.entidad}` : "Reporte"} />
       </Box>
