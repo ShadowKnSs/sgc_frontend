@@ -12,46 +12,12 @@ const PrincipalReportSem = () => {
     const [period, setPeriod] = useState("");
     const navigate = useNavigate();
     const [reportes, setReportes] = useState([]);
-   
-  const fetchData = async (anio, periodo, navigate) => {
-    try {
-        // URLs de las 5 listas
-        const urls = [
-            `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
-            `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
-            `http://127.0.0.1:8000/api/get-acciones-sem?anio=${anio}&periodo=${periodo}`,
-            `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
-            `http://127.0.0.1:8000/api/get-seguimiento-sem?anio=${anio}&periodo=${periodo}`,
-        ];
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [messageSnackbar, setMessageSnackbar] = useState("");
 
-        // Hacer las 5 peticiones en paralelo
-        const responses = await Promise.all(urls.map(url => fetch(url)));
-        const results = await Promise.all(responses.map(res => res.json()));
-
-        // Nombres de cada lista para imprimir en consola
-        const nombresListas = ["Riesgos", "Indicadores", "Acciones de Mejora", "Auditorías", "Seguimiento"];
-
-        // Verificar si alguna lista tiene datos
-        let hayDatos = false;
-        results.forEach((lista, index) => {
-            if (lista.length > 0) {
-                console.log(`📌 Hay datos en la lista: ${nombresListas[index]}`);
-                hayDatos = true;
-            }
-        });
-
-        // Redirigir si hay datos
-        if (hayDatos) {
-            navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
-        } else {
-            console.log("⚠️ No se puede generar el informe. No hay datos para ese año y periodo.")
-        }
-
-    } catch (error) {
-        console.error("Error al obtener los datos:", error);
-        return [];
-    }
-};
+    const handleCloseSnackbar = () => {
+        setOpenSnackbar(false);
+    };
 
     useEffect(() => {
         fetchReportes();
@@ -75,16 +41,79 @@ const PrincipalReportSem = () => {
         setPeriod("");
     };
 
+    const fetchData = async (anio, periodo, navigate) => {
+        try {
+            // URLs de las 5 listas
+            const urls = [
+                `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-acciones-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-seguimiento-sem?anio=${anio}&periodo=${periodo}`,
+            ];
+
+            // Hacer las 5 peticiones en paralelo
+            const responses = await Promise.all(urls.map(url => fetch(url)));
+            const results = await Promise.all(responses.map(res => res.json()));
+
+            // Nombres de cada lista para imprimir en consola
+            const nombresListas = ["Riesgos", "Indicadores", "Acciones de Mejora", "Auditorías", "Seguimiento"];
+
+            // Verificar si alguna lista tiene datos
+            let hayDatos = false;
+            results.forEach((lista, index) => {
+                if (lista.length > 0) {
+                    console.log(`📌 Hay datos en la lista: ${nombresListas[index]}`);
+                    hayDatos = true;
+                }
+            });
+
+            if (!hayDatos) {
+                console.log("No hay datos, mostrando el snack bar...");
+                setMessageSnackbar("⚠️ No hay datos para ese año y periodo.");
+                setOpenSnackbar(true); // Mostrar Snackbar si no hay datos
+                return;
+            } else {
+                navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
+            }
+
+        } catch (error) {
+            console.error("Error al obtener los datos:", error);
+            return [];
+        }
+    };
+
     const handleClick = async () => {
         if (!year || !period) {
             console.log("⚠️ Por favor ingresa el año y el periodo.");
             return;
         }
 
-        console.log(`📤 Solicitando datos para el año ${year} y el periodo ${period}...`);
-        await fetchData(year, period, navigate);
+        try {
+            console.log(`🔍 Verificando si el reporte del ${year}, ${period} ya existe...`);
+
+            // Verificar si el reporte ya existe
+            const response = await fetch(`http://127.0.0.1:8000/api/verificar-reporte?anio=${year}&periodo=${period}`);
+            const data = await response.json();
+
+            if (data.exists) {
+                setMessageSnackbar("❌ Error: El reporte ya existe.");
+                setOpenSnackbar(true);
+                return; // Detiene la ejecución si el reporte ya existe
+            }
+
+            console.log("✅ El reporte no existe. Procediendo a verificar datos...");
+
+            // Si no existe, verificar si hay datos
+            await fetchData(year, period, navigate);
+
+        } catch (error) {
+            console.error("🚨 Error en la verificación del reporte:", error);
+        }
+
         handleCloseForm();
     };
+
 
     return (
         <Box>
@@ -135,7 +164,7 @@ const PrincipalReportSem = () => {
                         borderRadius: 2,
                     }}
                 >
-                    <h2 id="modal-title" style={{ color: "#004A98", textAlign: "center", fontSize:"28px"}}>
+                    <h2 id="modal-title" style={{ color: "#004A98", textAlign: "center", fontSize: "28px" }}>
                         Generar Reporte Semestral
                     </h2>
 
@@ -168,23 +197,32 @@ const PrincipalReportSem = () => {
                     <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
                         <Button
                             onClick={handleCloseForm}
-                            sx={{ backgroundColor: "#004A98", color: "white", "&:hover": { backgroundColor: "#003366" }, borderRadius: "30px", // Redondear los bordes
-                            padding: "8px 16px"}}
+                            sx={{
+                                backgroundColor: "#004A98", color: "white", "&:hover": { backgroundColor: "#003366" }, borderRadius: "30px", // Redondear los bordes
+                                padding: "8px 16px"
+                            }}
                         >
                             Cancelar
                         </Button>
                         <Button
                             onClick={handleClick}
-                            sx={{ backgroundColor: "#F9B800", color: "white", "&:hover": { backgroundColor: "#D99400" }, borderRadius: "30px", // Redondear los bordes
-                            padding: "8px 16px" }}
+                            sx={{
+                                backgroundColor: "#F9B800", color: "white", "&:hover": { backgroundColor: "#D99400" }, borderRadius: "30px", // Redondear los bordes
+                                padding: "8px 16px"
+                            }}
                             disabled={!year || !period}
                         >
                             Generar
                         </Button>
-                        
                     </Box>
                 </Box>
             </Modal>
+            <Snackbar
+                            open={openSnackbar}
+                            autoHideDuration={6000}  // Duración en milisegundos (6 segundos en este caso)
+                            onClose={() => setOpenSnackbar(false)}  // Cerrar el snackbar cuando se termine
+                            message={messageSnackbar}
+                        />
         </Box>
     );
 };
