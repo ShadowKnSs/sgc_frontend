@@ -4,6 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
+import SearchFilter from "../components/SearchFilter"; // Asegúrate de importar el componente
 import { Snackbar } from '@mui/material';
 
 const PrincipalReportSem = () => {
@@ -77,10 +78,43 @@ const PrincipalReportSem = () => {
                 navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
             }
 
+    } catch (error) {
+        console.error("Error al obtener los datos:", error);
+        return [];
+    }
+};
+
+const PrincipalReportSem = () => {
+    const [open, setOpen] = useState(false);
+    const [year, setYear] = useState("");
+    const [period, setPeriod] = useState("");
+    const navigate = useNavigate();
+    const [reportes, setReportes] = useState([]);
+    // Nuevos estados para el SearchFilter
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        fetchReportes();
+    }, []);
+
+    const fetchReportes = async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/reportes-semestrales");
+            if (!response.ok) throw new Error("Error al obtener los reportes");
+            const data = await response.json();
+            setReportes(data);
         } catch (error) {
-            console.error("Error al obtener los datos:", error);
-            return [];
+            console.error("❌ Error al cargar reportes:", error);
         }
+    };
+
+    const handleOpenForm = () => setOpen(true);
+    const handleCloseForm = () => {
+        setOpen(false);
+        setYear("");
+        setPeriod("");
+        
     };
 
     const handleClick = async () => {
@@ -114,45 +148,82 @@ const PrincipalReportSem = () => {
         handleCloseForm();
     };
 
+    // Función para alternar el SearchFilter
+    const toggleSearch = () => {
+        setSearchOpen(!searchOpen);
+    };
+
 
     return (
-        <Box>
-            {/* Título */}
+        <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+            {/* Línea vertical a la izquierda - ahora clickeable */}
             <Box
+                onClick={toggleSearch}
                 sx={{
+                    position: "absolute",
+                    top: "60%",
+                    left: "3%",
+                    transform: "translateY(-50%)",
+                    width: "5px",
+                    height: "1.5cm",
+                    bgcolor: "#D3D3D3",
+                    borderRadius: "10px",
+                    cursor: "pointer", // Cambia el cursor para indicar que es clickeable
+                    "&:hover": {
+                        bgcolor: "#004A98", // Cambia de color al pasar el mouse
+                    },
+                    transition: "background-color 0.3s", // Suaviza la transición de color
+                }}
+            />
+
+            {/* Componente SearchFilter */}
+            <SearchFilter 
+                open={searchOpen}
+                onClose={toggleSearch}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+            />
+
+            <Box sx={{
+                position: "relative", 
+                zIndex: 1, 
+                width: "100%", 
+                display: "flex", 
+                flexDirection: "column", 
+                alignItems: "center"
+            }}>
+                {/* Título */}
+                <Box sx={{
                     display: "flex",
                     justifyContent: "center",
-                    mt: 5,  // Ajusta la distancia desde el header
+                    mt: 5,  
                     mb: 5,
-                    position: "relative", // Asegura que no se superponga con elementos fijos
-                    zIndex: 1 // Eleva el título en caso de solapamiento
-                }}
-            >
-                <Title text="Reportes Semestrales" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
-            </Box>
-            {/* Contenedor de las cards */}
-            <Grid container spacing={3} justifyContent="center">
-                {reportes.map((reporte) => (
-                    <Grid item key={reporte.idReporteSemestral}>
-                        <ReporteSemCard
-                            anio={reporte.anio}
-                            periodo={reporte.periodo}
-                            fechaGeneracion={reporte.fechaGeneracion}
-                            ubicacion={reporte.ubicacion}
-                        />
-                    </Grid>
-                ))}
-            </Grid>
+                }}>
+                    <Title text="Reportes Semestrales" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
+                </Box>
 
-            {/* Botón flotante */}
-            <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpenForm}>
-                <AddIcon />
-            </Fab>
+                {/* Contenedor de las cards */}
+                <Grid container spacing={3} justifyContent="center">
+                    {reportes.map((reporte) => (
+                        <Grid item key={reporte.idReporteSemestral}>
+                            <ReporteSemCard
+                                anio={reporte.anio}
+                                periodo={reporte.periodo}
+                                fechaGeneracion={reporte.fechaGeneracion}
+                                ubicacion={reporte.ubicacion}
+                            />
+                        </Grid>
+                    ))}
+                </Grid>
 
-            {/* Modal */}
-            <Modal open={open} onClose={handleCloseForm} aria-labelledby="modal-title">
-                <Box
-                    sx={{
+                {/* Botón flotante */}
+                <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpenForm}>
+                    <AddIcon />
+                </Fab>
+
+                {/* Modal */}
+                <Modal open={open} onClose={handleCloseForm} aria-labelledby="modal-title">
+                    <Box sx={{
                         position: "absolute",
                         top: "50%",
                         left: "50%",
@@ -168,31 +239,50 @@ const PrincipalReportSem = () => {
                         Generar Reporte Semestral
                     </h2>
 
-                    {/* Campo Año */}
-                    <TextField
-                        label="Año"
-                        type="number"
-                        fullWidth
-                        variant="outlined"
-                        margin="normal"
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                    />
+                        {/* Campo Año */}
+                        <TextField
+                            label="Año"
+                            type="number"
+                            fullWidth
+                            variant="outlined"
+                            margin="normal"
+                            value={year}
+                            onChange={(e) => setYear(e.target.value)}
+                        />
 
-                    {/* Campo Período */}
-                    <TextField
-                        select
-                        label="Período"
-                        fullWidth
-                        variant="outlined"
-                        margin="normal"
-                        value={period}
-                        onChange={(e) => setPeriod(e.target.value)}
-                    >
-                        <MenuItem value="01-06">Enero - Junio</MenuItem>
-                        <MenuItem value="07-12">Julio - Diciembre</MenuItem>
-                    </TextField>
+                        {/* Campo Período */}
+                        <TextField
+                            select
+                            label="Período"
+                            fullWidth
+                            variant="outlined"
+                            margin="normal"
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                        >
+                            <MenuItem value="01-06">Enero - Junio</MenuItem>
+                            <MenuItem value="07-12">Julio - Diciembre</MenuItem>
+                        </TextField>
 
+                        {/* Botones */}
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                            <Button
+                                onClick={handleCloseForm}
+                                sx={{ backgroundColor: "#004A98", color: "white", "&:hover": { backgroundColor: "#003366" }, borderRadius: "30px", padding: "8px 16px"}}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={handleClick}
+                                sx={{ backgroundColor: "#F9B800", color: "white", "&:hover": { backgroundColor: "#D99400" }, borderRadius: "30px", padding: "8px 16px" }}
+                                disabled={!year || !period}
+                            >
+                                Generar
+                            </Button>
+                        </Box>
+                    </Box>
+                </Modal>
+            </Box>
                     {/* Botones */}
                     <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
                         <Button
