@@ -72,7 +72,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
   };
 
   if (loading) return <CircularProgress />;
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (error) return <Alert severity="info">{error}</Alert>;
 
   return (
     <Box sx={{ maxWidth: '70%', mx: 'auto', mt: 4 }}>

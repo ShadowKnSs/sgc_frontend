@@ -55,7 +55,7 @@ const GestionRiesgos = ({ idProceso, anio }) => {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}

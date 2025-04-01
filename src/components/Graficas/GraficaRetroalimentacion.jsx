@@ -107,7 +107,7 @@ const GraficaRetroalimentacionConjunta = ({ retroList, onImageReady }) => {
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return <Alert severity="info">{error}</Alert>;
   }
 
   return (

@@ -10,6 +10,7 @@ import AnalisisDatos from "../components/ReporteProceso/DRPAnalisisDatos";
 import Seguimiento from "../components/ReporteProceso/DRPSegumiento";
 import ProyectoMejora from "../components/ReporteProceso/DRPProyectoMejora";
 import PlanAccion from "../components/ReporteProceso/DRPPlanAccion";
+import Title from "../components/Title";
 const ReportView = () => {
   const { idProceso, year } = useParams();
   const [reportData, setReportData] = useState(null);
@@ -78,14 +79,13 @@ const ReportView = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" align="center" mb={3}> 
-      {reportData ? `Reporte ${reportData.nombreProceso} ${reportData.entidad}` : "Reporte"} 
-      </Typography>
+      <Box sx={{ textAlign: "center", paddingTop: 3, paddingBottom: 3}}>
+      <Title text={reportData ? `Reporte ${reportData.nombreProceso} ${reportData.entidad}` : "Reporte"} />
+      </Box>
 
       <GeneralInfo reportData={reportData} />
       <ManualOperativo idProceso={idProceso} />
       <GestionRiesgos idProceso={idProceso} anio={year} />
-
 
       <AnalisisDatos
         idProceso={idProceso}
@@ -97,7 +97,6 @@ const ReportView = () => {
       <Seguimiento idProceso={idProceso} anio={year} />
       <PlanAccion idProceso={idProceso} anio={year} />
       <Auditoria idProceso={idProceso} />
-
 
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Button

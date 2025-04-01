@@ -32,7 +32,7 @@ const MapaProceso = ({ mapaProceso }) => {
       </Typography>
 
       {!mapaProceso && (
-        <Alert severity="error">No existe información</Alert>
+        <Alert severity="info">No existe información</Alert>
       )}
 
       {mapaProceso && (

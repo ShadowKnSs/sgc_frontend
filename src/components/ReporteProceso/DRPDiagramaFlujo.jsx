@@ -35,7 +35,7 @@ const DiagramaFlujo = ({ imageUrl }) => {
           </CardContent>
         </Card>
       ) : (
-        <Alert severity="error">
+        <Alert severity="info">
           No se ha registrado un Diagrama de Flujo para este proceso.
         </Alert>
       )}

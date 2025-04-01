@@ -52,7 +52,7 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
           Análisis de Datos
         </Typography>
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="info">{error}</Alert>
       </Box>
     );
   }
@@ -72,7 +72,7 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
           Análisis de Datos
         </Typography>
-        <Alert severity="error">No se encontraron indicadores registrados.</Alert>
+        <Alert severity="info">No se encontraron indicadores registrados.</Alert>
       </Box>
     );
   }

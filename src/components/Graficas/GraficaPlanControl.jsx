@@ -61,7 +61,7 @@ const PlanControlBarChart = ({ idProceso, onImageReady }) => {
   if (error) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="info">{error}</Alert>
       </Box>
     );
   }

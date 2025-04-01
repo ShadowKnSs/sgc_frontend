@@ -51,7 +51,7 @@ const PlanControl = ({ idProceso }) => {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -128,7 +128,7 @@ const PlanControl = ({ idProceso }) => {
       )}
 
       {!error && actividades.length === 0 && (
-        <Alert severity="error">No hay actividades registradas.</Alert>
+        <Alert severity="info">No hay actividades registradas.</Alert>
       )}
     </Box>
   );

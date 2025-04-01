@@ -1,46 +1,60 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
+  TableContainer,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
-  TableContainer,
   Paper,
-  CircularProgress,
+  Alert,
 } from "@mui/material";
 import axios from "axios";
 
 const Auditoria = ({ idProceso }) => {
   const [auditorias, setAuditorias] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAuditorias = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/api/auditoria/${idProceso}`);
-        setAuditorias(response.data);
-      } catch (error) {
-        console.error("❌ Error al obtener auditorías:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (idProceso) fetchAuditorias();
+    if (idProceso) {
+      axios
+        .get(`http://localhost:8000/api/auditoria/${idProceso}`)
+        .then((response) => {
+          setAuditorias(response.data);
+        })
+        .catch((err) => {
+          console.error("❌ Error al obtener auditorías:", err);
+          setError("Error al cargar las auditorías. Por favor, inténtelo de nuevo más tarde.");
+        });
+    }
   }, [idProceso]);
 
   return (
-    <Box sx={{ mt: 5, margin: 7 }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+    <Box sx={{
+      mt: 2,
+      p: 3,
+      borderRadius: 2,
+      boxShadow: 3,
+      backgroundColor: "#fff",
+      margin: 7,
+    }}>
+      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 , color: "primary.main"}}>
         Auditorías
       </Typography>
 
-      {loading ? (
-        <CircularProgress />
-      ) : auditorias.length > 0 ? (
+      {error && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {!error && auditorias.length === 0 && (
+        <Alert severity="info">No hay auditorías registradas.</Alert>
+      )}
+
+      {!error && auditorias.length > 0 && (
         <TableContainer component={Paper}>
           <Table size="small">
             <TableHead>
@@ -64,7 +78,7 @@ const Auditoria = ({ idProceso }) => {
                   <strong>Entidad</strong>
                 </TableCell>
               </TableRow>
-            </TableHead>{}
+            </TableHead>
             <TableBody>
               {auditorias.map((auditoria) => (
                 <TableRow key={auditoria.id}>
@@ -79,8 +93,6 @@ const Auditoria = ({ idProceso }) => {
             </TableBody>
           </Table>
         </TableContainer>
-      ) : (
-        <Typography color="text.secondary">No hay auditorías registradas.</Typography>
       )}
     </Box>
   );
