@@ -11,6 +11,7 @@ import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
+import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 
 const Welcome = () => {
   const navigate = useNavigate(); 
@@ -25,6 +26,7 @@ const Welcome = () => {
     { icon: <CalendarMonthOutlinedIcon />, title: "Cronograma", path: "/cronograma" },
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
     { icon: <SummarizeOutlinedIcon />, title: "Reportes", path: "typesReports" },
+    { icon: <DocumentScannerIcon />, title: "Formatos", path: "formatos" },
   ];
 
   return (

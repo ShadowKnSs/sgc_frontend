@@ -12,6 +12,7 @@ import ProyectoMejora from "../components/ReporteProceso/DRPProyectoMejora";
 import PlanAccion from "../components/ReporteProceso/DRPPlanAccion";
 import Title from "../components/Title";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import FiltroReportes from "../components/buscadorProceso";
 
 const ReportView = () => {
   const { idProceso, year } = useParams();
@@ -83,6 +84,7 @@ const ReportView = () => {
 
   return (
     <Box sx={{ p: 4 }}>
+
       {/* Flecha de regreso en la parte superior izquierda */}
       <Box sx={{ position: 'relative', mb: 2, color:"secondary.main" }}>
         <ArrowBackIcon 

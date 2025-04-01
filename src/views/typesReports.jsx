@@ -13,7 +13,7 @@ const TypesReports = () => {
     const menuItems = [
         { icon: <AnalyticsOutlinedIcon />, title: "Semestral", path: "/principalReportSem"},
         { icon: <AccountTreeOutlinedIcon />, title: "Proceso", path: "/listado-reportes-proceso" },
-        { icon: <DescriptionIcon />, title: "Aditoría Interna", path: "/reportes-auditoria"},
+        { icon: <DescriptionIcon />, title: "Auditoría Interna", path: "/reportes-auditoria"},
     ];
 
     return (

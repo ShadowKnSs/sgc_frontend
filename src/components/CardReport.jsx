@@ -13,7 +13,7 @@ const ReportCard = ({ report, onClick, onDelete }) => {
     : "Fecha no disponible";
 
   return (
-    <Card sx={{ mb: 1, maxWidth: 400, position: 'relative', marginTop:3 }}>
+    <Card sx={{ mb: 1, maxWidth: 400, position: 'relative', marginTop:3, marginLeft: 12, marginRight: 12 }}>
       <CardActionArea onClick={onClick}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <PictureAsPdfIcon fontSize="large" color="primary" />
