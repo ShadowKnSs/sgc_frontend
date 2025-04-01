@@ -17,7 +17,6 @@ function UserForm({ open, onClose, onSubmit }) {
         academicDegree: "",
         status: "Activo",
         registrationDate: new Date().toISOString().split("T")[0],
-        photo: null,
         expirationDateTime: "",
         tempToken: ""
     });
@@ -72,19 +71,7 @@ function UserForm({ open, onClose, onSubmit }) {
             }); // Limpiar el formulario
         }
     };
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
-        setFormData({ ...formData, photo: file });
-        
-        // Vista previa de la foto
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPhotoPreview(reader.result);
-        };
-        if (file) {
-            reader.readAsDataURL(file);
-        }
-    };
+   
     const handleTabChange = (event, newValue) => {
         setTab(newValue);
         if (newValue === 0) {
@@ -186,11 +173,6 @@ function UserForm({ open, onClose, onSubmit }) {
                             </Select>
                             {errors.roles && <FormHelperText>{errors.roles}</FormHelperText>}
                         </FormControl>
-                        <Button variant="contained" component="label" color="primary" style={{ marginTop: 16 }}>
-                            Subir Foto
-                            <input type="file" accept="image/*" onChange={handlePhotoChange} hidden />
-                        </Button>
-                        {photoPreview && <img src={photoPreview} alt="Vista previa" style={{ width: 100, height: 100, marginTop: 16 }} />}
                     </>
                 ) : (
                     <>

@@ -17,7 +17,6 @@ import FormularioAnalisis from "../views/analisisDatosForm";
 import GestionRiesgosForm from "../views/gestionRiegosForm";
 import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
-import FormularioSeguimiento from "../views/formularioSeguimiento";
 import Archivos from "../views/archivosSeg";
 import AdminEventos from "../views/adminEventNot";
 import InformeAuditoria from "../views/informeAditoriaInterna";
@@ -34,6 +33,9 @@ import ReporteProcesoPreview from "../views/reporteProceso";
 import ListaReportesProceso from "../views/listReportesProceso";
 import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
+import TypesReports from "../views/typesReports";
+import PrincipalReportSem from "../views/principalReportSem";
+import ReporteSemestral from "../views/reporteSemestral";
 
 
 const AppRoutes = () => {
@@ -80,6 +82,9 @@ const AppRoutes = () => {
           {/* <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} /> */}
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
+          <Route path="typesReports" element={<TypesReports/>} />
+          <Route path="principalReportSem" element={<PrincipalReportSem/>} />
+          <Route path="/reporteSemestral" element={<ReporteSemestral/>} />
 
           <Route path="/reporte-proceso/:idProceso/:year" element={<ReporteProcesoPreview />} />
           <Route path="reporte-proceso" element={<ReporteProcesoPreview />} />

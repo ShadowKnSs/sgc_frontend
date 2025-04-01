@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
-
+import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 const Welcome = () => {
   const navigate = useNavigate(); 
   const menuItems = [
@@ -22,6 +22,7 @@ const Welcome = () => {
     { icon: <NewspaperOutlinedIcon />, title: "Gestión Noticias", path: "/admin-eventos" },
     { icon: <CalendarMonthOutlinedIcon />, title: "Cronograma", path: "/cronograma" },
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
+    { icon: <SummarizeOutlinedIcon />, title: "Reportes", path: "typesReports" },
   ];
   return (
     <Box
