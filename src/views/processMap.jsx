@@ -88,13 +88,14 @@ function ProcessMapView({ idProceso }) {
       .catch((error) => console.error("Error al obtener datos del proceso:", error));
 
     // Obtener datos del mapa de procesos
-    axios.get("http://localhost:8000/api/mapaproceso")
-      .then((response) => {
-        if (response.data.length > 0) {
-          setMapaProceso(response.data[0]);
-        }
-      })
-      .catch((error) => console.error("Error al obtener datos del mapa de procesos:", error));
+    axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
+  .then((response) => {
+    if (response.data) {
+      setMapaProceso(response.data);
+    }
+  })
+  .catch((error) => console.error("Error al obtener datos del mapa de procesos:", error));
+
 
     // Scroll
     const handleScroll = () => {

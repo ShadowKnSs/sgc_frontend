@@ -10,8 +10,9 @@ const ManualOperativo = ({ idProceso }) => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
+      .get(`http://localhost:8000/api/mapa-proceso/${idProceso}`)
       .then((response) => {
+        console.log("Mp", response.data);
         setMapaProceso(response.data);
       })
       .catch((error) => {
@@ -24,7 +25,7 @@ const ManualOperativo = ({ idProceso }) => {
 
         <MapaProceso mapaProceso={mapaProceso} />
         <DiagramaFlujo imageUrl={mapaProceso?.diagramaFlujo} />
-        <PlanControl idProceso={mapaProceso?.idProceso} />
+        <PlanControl idProceso={idProceso} />
         
     </Box>
   );

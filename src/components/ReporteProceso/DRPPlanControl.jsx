@@ -21,6 +21,7 @@ const PlanControl = ({ idProceso }) => {
     axios
       .get(`http://localhost:8000/api/actividadcontrol/${idProceso}`)
       .then((response) => {
+        console.log("Actiivdades PC:", response.data);
         setActividades(response.data);
       })
       .catch((error) => {

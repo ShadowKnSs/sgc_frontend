@@ -5,13 +5,15 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const ReportCard = ({ report, onClick, onDelete }) => {
   if (!report) return null;
-  // Extraer el año o la fecha completa según lo requieras.
-  const reportDate = new Date(report.fechaElaboracion);
-  const year = reportDate.getFullYear();
-  const formattedDate = reportDate.toLocaleDateString();
+  
+  // Usar el año seleccionado (report.year) si existe, de lo contrario calcular a partir de la fechaElaboracion
+  const year = report.anio || new Date(report.fechaElaboracion).getFullYear();
+  const formattedDate = report.fechaElaboracion 
+    ? new Date(report.fechaElaboracion).toLocaleDateString()
+    : "Fecha no disponible";
 
   return (
-    <Card sx={{ mb: 2, maxWidth: 400, position: 'relative' }}>
+    <Card sx={{ mb: 1, maxWidth: 400, position: 'relative', marginTop:3 }}>
       <CardActionArea onClick={onClick}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <PictureAsPdfIcon fontSize="large" color="primary" />

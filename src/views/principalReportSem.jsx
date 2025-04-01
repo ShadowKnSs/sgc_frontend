@@ -4,7 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar } from '@mui/material';
 
 const PrincipalReportSem = () => {
     const [open, setOpen] = useState(false);

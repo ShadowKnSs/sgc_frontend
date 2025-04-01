@@ -13,6 +13,7 @@ import GenerateReportModal from "../components/Modals/GenerarReporteModal";
 import FloatingActionButton from "../components/ButtonNewReport";
 import ConfirmModal from "../components/Modals/ConfIrmModal";
 import WarningModal from "../components/Modals/AvisoModal";
+import DeleteConfirmModal from "../components/Modals/DeleteConfirmModal";
 import axios from "axios";
 
 const ReportesDeProceso = () => {
@@ -30,6 +31,7 @@ const ReportesDeProceso = () => {
   const [loadingReports, setLoadingReports] = useState(true);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [reportToDelete, setReportToDelete] = useState(null);
   const navigate = useNavigate();
 
   // Funciones para obtener entidades, procesos, años y reportes...
@@ -128,6 +130,9 @@ const ReportesDeProceso = () => {
     setSelectedYear('');
   }, [selectedProcess]);
 
+  const handleOpenDeleteModal = (report) => {
+    setReportToDelete(report);
+  };
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -146,21 +151,26 @@ const ReportesDeProceso = () => {
       processName: process ? process.nombreProceso : '',
     };
 
-    // Verificar si ya existe un reporte para ese proceso y año
+    console.log("New Report", newReportCard);
+    // Verificar si ya existe un reporte para ese proceso y año (usando el año seleccionado)
     const existingReport = reports.find(
       (r) =>
         r.idProceso === newReportCard.processId &&
-        new Date(r.fechaElaboracion).getFullYear().toString() === newReportCard.year
+        String(r.anio) === String(newReportCard.year)
     );
+
     if (existingReport) {
       setWarningReportExistsOpen(true);
       return;
     }
 
+    // Enviar la solicitud POST sin enviar la fechaElaboracion para que el backend asigne la fecha actual.
     axios
       .post("http://localhost:8000/api/reportes-proceso", {
         idProceso: newReportCard.processId,
         nombreReporte: `Reporte ${newReportCard.processName} ${newReportCard.entityName}`,
+        anio: newReportCard.year
+        // No enviamos fechaElaboracion; el backend usará la fecha actual.
       })
       .then((res) => {
         console.log("Reporte guardado en base de datos", res.data);
@@ -177,6 +187,7 @@ const ReportesDeProceso = () => {
         setSnackbarOpen(true);
       });
   };
+
 
   // Si los datos están incompletos, se muestra el modal de confirmación
   const handleGuardarReporte = () => {
@@ -210,26 +221,33 @@ const ReportesDeProceso = () => {
   };
 
   // Función para eliminar reporte
-  const handleDeleteReport = (report) => {
-    if (!report) return;
+  const handleConfirmDelete = () => {
+    if (!reportToDelete) return;
     axios
-      .delete(`http://localhost:8000/api/reportes-proceso/${report.idReporteProceso}`)
+      .delete(`http://localhost:8000/api/reportes-proceso/${reportToDelete.idReporteProceso}`)
       .then((res) => {
         console.log("Reporte eliminado:", res.data);
         fetchReports();
+        setReportToDelete(null);
       })
       .catch((err) => {
         console.error("Error al eliminar el reporte:", err);
         setSnackbarMessage("Error al eliminar el reporte.");
         setSnackbarOpen(true);
+        setReportToDelete(null);
       });
+  };
+
+  // Función para cancelar la eliminación
+  const handleCancelDelete = () => {
+    setReportToDelete(null);
   };
 
   const handleCardClick = (report) => {
     if (!report) return;
     console.log("Clicked report:", report);
     const processId = report.idProceso;
-    const reportYear = new Date(report.fechaElaboracion).getFullYear();
+    const reportYear = report.anio;
     console.log("🔍 ID Proceso:", processId);
     console.log("🔍 Año:", reportYear);
     navigate(`/reporte-proceso/${processId}/${reportYear}`);
@@ -255,7 +273,7 @@ const ReportesDeProceso = () => {
                 key={rep.idReporteProceso}
                 report={rep}
                 onClick={() => handleCardClick(rep)}
-                onDelete={handleDeleteReport}
+                onDelete={() => handleOpenDeleteModal(rep)}
               />
             ))
           ) : (
@@ -270,6 +288,17 @@ const ReportesDeProceso = () => {
         <FloatingActionButton onClick={handleOpenModal} />
       </Box>
 
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmModal
+        open={Boolean(reportToDelete)}
+        reportName={
+          reportToDelete
+            ? reportToDelete.nombreReporte
+            : ""
+        }
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
       <GenerateReportModal
         open={openModal}
         onClose={handleCloseModal}
