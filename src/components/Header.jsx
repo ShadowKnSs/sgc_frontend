@@ -1,10 +1,21 @@
-import React from "react";
-import { FaUser } from "react-icons/fa"; // Import icons
+import React, { useState } from 'react';
+import { FaUser , FaBell} from "react-icons/fa"; // Import icons
 import { Link } from "react-router-dom"; // Import Link
 import "../css/Header.css"; // Estilos
 import image from "../assests/UASLP_Logo.png"; // Ruta de tu logo
+import DialogNotifications from "./Modals/DialogNotifications";
 
 function Header() {
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
   return (
     <header className="header">
       <div className="header-left">
@@ -23,10 +34,15 @@ function Header() {
       </div> */}
 
       <div className="header-right">
+      <a href="#" className="header-link" onClick={handleOpenDialog}>
+          <FaBell className="notification-icon" />
+        </a>
         <a href="" className="header-link">
           <FaUser className="user-icon-hover" />
         </a>
       </div>
+      {/* El diálogo de notificaciones */}
+      <DialogNotifications open={openDialog} onClose={handleCloseDialog} />
     </header>
   );
 }
