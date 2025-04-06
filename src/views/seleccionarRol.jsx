@@ -29,17 +29,9 @@ const SeleccionarRol = () => {
     setMensaje({ tipo: 'success', texto: `Rol seleccionado: ${rol.nombreRol}` });
     // Navegación según rol
     setTimeout(() => {
-        switch (rol.nombreRol) {
-          case 'Administrador':
-            navigate('/');
-            break;
-          case 'Líder de Proceso':
-            navigate('/');
-            break;
-          default:
-            navigate('/seleccionarRol');
-        }
-      }, 500);
+      localStorage.setItem("rolActivo", JSON.stringify(rol.nombreRol));
+      navigate("/");
+    }, 800);
   };
 
   return (

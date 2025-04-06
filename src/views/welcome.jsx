@@ -1,3 +1,4 @@
+// 📁 src/views/Welcome.jsx
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
@@ -6,15 +7,26 @@ import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
 import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
 import AssuredWorkloadOutlinedIcon from '@mui/icons-material/AssuredWorkloadOutlined';
-import { useNavigate } from "react-router-dom";
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
+import { useNavigate } from "react-router-dom";
+
+const permisosPorRol = {
+  "Líder de Proceso": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades", "Formatos"],
+  "Auditor": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades"],
+  "Coordinador": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades", "Formatos"],
+  "Administrador": ["Usuarios", "Procesos", "Gestión Noticias", "Reportes"],
+  "Personal Operativo": ["Noticias", "Manual de Calidad"],
+  "Supervisor": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades", "Formatos"]
+};
 
 const Welcome = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null");
+  const permitidos = permisosPorRol[rolActivo] || [];
 
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },
@@ -25,31 +37,33 @@ const Welcome = () => {
     { icon: <NewspaperOutlinedIcon />, title: "Gestión Noticias", path: "/admin-eventos" },
     { icon: <CalendarMonthOutlinedIcon />, title: "Cronograma", path: "/cronograma" },
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
-    { icon: <SummarizeOutlinedIcon />, title: "Reportes", path: "typesReports" },
-    { icon: <DocumentScannerIcon />, title: "Formatos", path: "formatos" },
+    { icon: <SummarizeOutlinedIcon />, title: "Reportes", path: "/typesReports" },
+    { icon: <DocumentScannerIcon />, title: "Formatos", path: "/formatos" },
   ];
+
+  const itemsFiltrados = menuItems.filter(item => permitidos.includes(item.title));
 
   return (
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "repeat(4, auto)", 
-        gap: 8, 
-        placeItems: "center", 
+        gridTemplateColumns: "repeat(4, auto)",
+        gap: 8,
+        placeItems: "center",
         justifyContent: "center",
-        alignContent: "start", // Cambiado para evitar centrado absoluto
-        minHeight: "calc(100vh - 100px)", // Ajusta 100px según tu header y footer
+        alignContent: "start",
+        minHeight: "calc(100vh - 100px)",
         padding: "20px",
-        marginTop: "80px", // Ajusta según el tamaño del header
-        marginBottom: "20px", // Ajusta según el tamaño del footer
+        marginTop: "80px",
+        marginBottom: "20px",
       }}
     >
-      {menuItems.map((item, index) => (
-        <MenuCard 
-          key={index} 
-          icon={item.icon} 
-          title={item.title} 
-          onClick={() => navigate(item.path)} 
+      {itemsFiltrados.map((item, index) => (
+        <MenuCard
+          key={index}
+          icon={item.icon}
+          title={item.title}
+          onClick={() => navigate(item.path)}
         />
       ))}
     </Box>
