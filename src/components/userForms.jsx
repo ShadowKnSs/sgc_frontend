@@ -62,6 +62,31 @@ function UserForm({ open, onClose, onSubmit, editingUser }) {
         setOpenConfirmEdit(false);
     };
 
+    const generarToken = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/api/generar-token", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              expirationDateTime: formData.expirationDateTime,
+            }),
+          });
+      
+          const data = await response.json();
+      
+          if (response.ok) {
+            alert(`Token generado: ${data.token}\nExpira: ${data.expiracion}`);
+          } else {
+            alert("Error al generar el token: " + data.message);
+          }
+        } catch (error) {
+          console.error("Error al generar el token:", error);
+          alert("Fallo en la comunicación con el backend");
+        }
+      };
+    
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>{editingUser ? "Editar Usuario" : "Agregar Usuario"}</DialogTitle>
@@ -106,8 +131,24 @@ function UserForm({ open, onClose, onSubmit, editingUser }) {
                     </>
                 ) : (
                     <>
-                        <TextField label="Fecha y Hora de Expiración" name="expirationDateTime" type="datetime-local" value={formData.expirationDateTime} onChange={handleChange} fullWidth margin="dense" InputLabelProps={{ shrink: true }} />
-                        <Button variant="contained" color="primary" onClick={() => console.log("Generar Token")}>Generar Token</Button>
+                    <TextField
+                    label="Fecha y Hora de Expiración"
+                    name="expirationDateTime"
+                    type="datetime-local"
+                    value={formData.expirationDateTime}
+                    onChange={handleChange}
+                    fullWidth
+                    margin="dense"
+                    InputLabelProps={{ shrink: true }}
+                    />
+
+                    <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={generarToken}
+                    >
+                    Generar Token
+                    </Button>
                     </>
                 )}
             </DialogContent>

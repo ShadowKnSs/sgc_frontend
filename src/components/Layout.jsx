@@ -1,17 +1,18 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import Header from './Header'; // si tienes un header
+import Header from './Header';
 import Footer from './Footer';
 import '../css/Layout.css';
 
 const Layout = () => {
   const location = useLocation();
-  // Muestra el Footer únicamente en la ruta raíz "/"
+
+  const hideHeader = location.pathname === '/login';
   const showFooter = location.pathname === '/';
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Header />
+      {!hideHeader && <Header />}
       <div style={{ flexGrow: 1 }}>
         <Outlet />
       </div>
