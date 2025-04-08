@@ -33,8 +33,8 @@ const Entity = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const idUsuario = 8;
-    const rolActivo = "Líder de Proceso";
+    const idUsuario = 7;
+    const rolActivo = "Auditor";
   
     console.log("🔐 ID Usuario desde localStorage:", idUsuario);
     console.log("🎭 Rol activo desde localStorage:", rolActivo);

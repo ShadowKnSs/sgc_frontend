@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios"; // Asegúrate de importar Axios
-import { useParams,Link } from "react-router-dom";
+import { useParams} from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Title from "../components/Title"; // Importamos el componente Title
 import CardArchivos from "../components/CardArchivos";
 import { Box, Grid, Fab, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Snackbar, Alert } from "@mui/material";
 
 function Carpetas() {
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const rolActivo = state?.rolActivo || "";
+  const soloLectura = rolActivo === "Auditor";
   const [carpetas, setCarpetas] = useState([]);
   const [open, setOpen] = useState(false);
   const [nuevoAnio, setNuevoAnio] = useState("");
@@ -85,21 +90,26 @@ function Carpetas() {
       <Grid container spacing={4} justifyContent="left" paddingLeft={10} sx={{ mt: 4 }}>
         {carpetas.map((registro) => (
           <Grid item key={registro.idRegistro}>
-            <Link
-              to={`/${rutas[title]}/${registro.idRegistro}`}  // Aquí redirige según el title
-              style={{ textDecoration: "none", color: "inherit" }}
-              onClick={() => console.log(`Navegando a /${rutas[title]}/${registro.idRegistro}`)}
+            <Box
+              onClick={() => {
+                navigate(`/${rutas[title]}/${registro.idRegistro}`, {
+                  state: { rolActivo },
+                });
+              }}
+              sx={{ cursor: "pointer" }}
             >
               <CardArchivos nombreCarpeta={registro.año.toString()} />
-            </Link>
+            </Box>
           </Grid>
         ))}
       </Grid>
 
       {/* Botón flotante */}
-      <Fab color="primary" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpen}>
-        <AddIcon />
-      </Fab>
+      {!soloLectura && (
+        <Fab color="primary" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpen}>
+          <AddIcon />
+        </Fab>
+      )}
 
       {/* Diálogo */}
       <Dialog open={open} onClose={handleClose}>

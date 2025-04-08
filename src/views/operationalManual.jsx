@@ -21,6 +21,7 @@ const sections = [
 ];
 
 const ProcessView = () => {
+  const rolActivo = "Auditor";
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed, setIsFixed] = useState(false);
   const navbarRef = useRef(null);
@@ -38,17 +39,17 @@ const ProcessView = () => {
   const renderContent = () => {
     switch (sections[selectedTab]) {
       case "Caratula":
-        return <Caratula />;
+        return <Caratula rolActivo={rolActivo} />;
       case "Control de Cambios":
-        return <ControlCambios />;
+        return <ControlCambios rolActivo={rolActivo} />;
       case "Mapa de Proceso":
-        return <MapaProceso idProceso={idProceso}/>;
+        return <MapaProceso idProceso={idProceso} rolActivo={rolActivo}/>;
       case "Diagrama de Flujo":
-        return <DiagramaFlujo idProceso={idProceso} />;
+        return <DiagramaFlujo idProceso={idProceso} rolActivo={rolActivo}/>;
       case "Plan de Control":
-        return <PlanControl idProceso={idProceso} />;
+        return <PlanControl idProceso={idProceso} rolActivo={rolActivo}/>;
       case "Control de documentos":
-        return <ControlDocuments />;
+        return <ControlDocuments rolActivo={rolActivo} />;
       default:
         return <h2>Seleccione una opción</h2>;
     }

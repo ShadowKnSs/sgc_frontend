@@ -2,13 +2,13 @@ import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Grid, Card, CardContent, CardHeader, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { styled } from '@mui/system';
 
-const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete }) => {
+const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) => {
   console.log("minuta Dialog", minuta);
   if (!minuta) return null;
 
   const handleEdit = () => {
-    onEdit(minuta); 
-    onClose(); 
+    onEdit(minuta);
+    onClose();
   };
 
   return (
@@ -16,7 +16,7 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete }) => {
       <DialogTitle sx={{ backgroundColor: '#004A98', color: 'white', fontWeight: 'bold' }}>
         Detalles de la Minuta
       </DialogTitle>
-      
+
       <DialogContent dividers sx={{ paddingTop: 2 }}>
         {/* Contenedor principal para la minuta */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -108,18 +108,25 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete }) => {
       <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#E8E8E8' }}>
         <Grid container justifyContent="space-between">
           <Grid item>
-            <Button onClick={handleEdit} color="primary" variant="outlined" sx={{ marginRight: 2 }}>
-              Editar
-            </Button>
-            <Button onClick={() => onDelete(minuta.idSeguimiento)} color="error" variant="outlined">
-              Eliminar
-            </Button>
+            {!soloLectura && (
+              <>
+                <Button onClick={handleEdit} color="primary" variant="outlined" sx={{ marginRight: 2 }}>
+                  Editar
+                </Button>
+                <Button onClick={() => onDelete(minuta.idSeguimiento)} color="error" variant="outlined">
+                  Eliminar
+                </Button>
+              </>
+            )}
           </Grid>
           <Grid item>
-            <Button onClick={onClose} color="primary" variant="contained" sx={{ backgroundColor: '#00B2E3' }}>Cerrar</Button>
+            <Button onClick={onClose} color="primary" variant="contained" sx={{ backgroundColor: '#00B2E3' }}>
+              Cerrar
+            </Button>
           </Grid>
         </Grid>
       </DialogActions>
+
     </Dialog>
   );
 };

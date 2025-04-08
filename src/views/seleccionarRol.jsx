@@ -18,7 +18,7 @@ const SeleccionarRol = () => {
     setTimeout(() => {
       const rolesDeUsuario = [
         { id: 1, nombreRol: 'Administrador', icono: 'AdminPanelSettings' },
-        { id: 2, nombreRol: 'Líder de Proceso', icono: 'School' },
+        { id: 2, nombreRol: 'Auditor', icono: 'School' },
       ];
       setRoles(rolesDeUsuario);
       setLoading(false);

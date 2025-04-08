@@ -3,7 +3,9 @@ import { Box, TextField, Typography, Button } from "@mui/material";
 import { Edit, Save, Close } from "@mui/icons-material";
 import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
 
-const Caratula = () => {
+const Caratula = ({ rolActivo }) => {
+  const soloLectura = rolActivo === "Auditor";
+
   const [personas, setPersonas] = useState([
     { nombre: "Dr. Juanito Perez", cargo: "Secretario General", fijo: "Responsable", editando: false },
     { nombre: "Dr. Pedro Sanchez", cargo: "Secretario Escolar", fijo: "Revisó", editando: false },
@@ -11,6 +13,7 @@ const Caratula = () => {
   ]);
 
   const handleEdit = (index) => {
+    if (soloLectura) return; // bloqueo por rol
     const updatedPersonas = [...personas];
     updatedPersonas[index].editando = true;
     setPersonas(updatedPersonas);
@@ -73,34 +76,36 @@ const Caratula = () => {
                   onChange={(e) => handleChange(index, "cargo", e.target.value)}
                   sx={{ textAlign: "center", mb: 1 }}
                 />
-                <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    sx={{
-                      backgroundColor: "#F9B800",
-                      color: "#000",
-                      "&:hover": { backgroundColor: "#004A98", color: "#fff" },
-                    }}
-                    startIcon={<Save />}
-                    onClick={() => handleSave(index)}
-                  >
-                    GUARDAR
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    sx={{
-                      backgroundColor: "#E0E0E0",
-                      color: "#000",
-                      "&:hover": { backgroundColor: "#BDBDBD" },
-                    }}
-                    startIcon={<Close />}
-                    onClick={() => handleCancel(index, persona.nombre, persona.cargo)}
-                  >
-                    CANCELAR
-                  </Button>
-                </Box>
+                {!soloLectura && (
+                  <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#F9B800",
+                        color: "#000",
+                        "&:hover": { backgroundColor: "#004A98", color: "#fff" },
+                      }}
+                      startIcon={<Save />}
+                      onClick={() => handleSave(index)}
+                    >
+                      GUARDAR
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#E0E0E0",
+                        color: "#000",
+                        "&:hover": { backgroundColor: "#BDBDBD" },
+                      }}
+                      startIcon={<Close />}
+                      onClick={() => handleCancel(index, persona.nombre, persona.cargo)}
+                    >
+                      CANCELAR
+                    </Button>
+                  </Box>
+                )}
               </>
             ) : (
               <>
@@ -109,15 +114,17 @@ const Caratula = () => {
                 <Typography sx={{ color: "#004A98", fontWeight: "bold", mt: 1 }}>
                   {persona.fijo}
                 </Typography>
-                <Button
-                  size="small"
-                  variant="text"
-                  startIcon={<Edit />}
-                  onClick={() => handleEdit(index)}
-                  sx={{ mt: 1, color: "#004A98" }}
-                >
-                  Editar
-                </Button>
+                {!soloLectura && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    startIcon={<Edit />}
+                    onClick={() => handleEdit(index)}
+                    sx={{ mt: 1, color: "#004A98" }}
+                  >
+                    Editar
+                  </Button>
+                )}
               </>
             )}
           </Box>
