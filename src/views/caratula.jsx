@@ -4,7 +4,9 @@ import { Edit, Save, Close } from "@mui/icons-material";
 import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
 
 const Caratula = ({ rolActivo }) => {
-  const soloLectura = rolActivo === "Auditor";
+  const permisos = rolActivo?.permisos || [];
+  const permisoCaratula = permisos.find(p => p.modulo === "Caratula");
+  const soloLectura = permisoCaratula?.tipoAcceso === "Lectura";
 
   const [personas, setPersonas] = useState([
     { nombre: "Dr. Juanito Perez", cargo: "Secretario General", fijo: "Responsable", editando: false },

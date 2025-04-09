@@ -102,9 +102,6 @@ const AppRoutes = () => {
           <Route path="buscar" element={<BuscaReportes />} />
           <Route path="login" element={<Login/>} />
 
-          
-
-
           <Route path="seleccionarRol" element={<SeleccionarRol/>} />
           
         </Route>

@@ -3,11 +3,14 @@ import React, { useState } from 'react';
 import { Card, CardActionArea, CardContent, Typography, Box } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import SchoolIcon from '@mui/icons-material/School';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const iconos = {
-  AdminPanelSettings: (color = 'primary') => <AdminPanelSettingsIcon sx={{ fontSize: 50 }} color={color} />, 
-  School: (color = 'secondary') => <SchoolIcon sx={{ fontSize: 50 }} color={color} />,
+  AdminPanelSettings: (color = 'primary') => <AdminPanelSettingsIcon sx={{ fontSize: 50 }} color={color} />, //Administradores
+  School: (color = 'secondary') => <SchoolIcon sx={{ fontSize: 50 }} color={color} />, //Lideres de Proceso
+  AssigmentIndIcon: (color = 'secondary') => <AssignmentIndIcon sx={{ fontSize: 50 }} color={color} /> //Auditores
+
 };
 
 const RolCard = ({ rol, onSelect }) => {

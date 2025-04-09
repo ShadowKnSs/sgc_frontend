@@ -1,4 +1,3 @@
-// 📁 src/views/Welcome.jsx
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
@@ -14,19 +13,11 @@ import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import { useNavigate } from "react-router-dom";
 
-const permisosPorRol = {
-  "Líder de Proceso": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades", "Formatos"],
-  "Auditor": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades"],
-  "Coordinador": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades", "Formatos"],
-  "Administrador": ["Usuarios", "Procesos", "Gestión Noticias", "Reportes"],
-  "Personal Operativo": ["Noticias", "Manual de Calidad"],
-  "Supervisor": ["Manual de Calidad", "Manual del Sitio", "Noticias", "Cronograma", "Entidades", "Formatos"]
-};
-
 const Welcome = () => {
   const navigate = useNavigate();
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null");
-  const permitidos = permisosPorRol[rolActivo] || [];
+
+  const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
 
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },
@@ -41,7 +32,7 @@ const Welcome = () => {
     { icon: <DocumentScannerIcon />, title: "Formatos", path: "/formatos" },
   ];
 
-  const itemsFiltrados = menuItems.filter(item => permitidos.includes(item.title));
+  const itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
 
   return (
     <Box
