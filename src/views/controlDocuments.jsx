@@ -36,9 +36,7 @@ const initialUsers = [
   }
 ];
 
-function ProcessMapView( {rolActivo}) {
-  const soloLectura = rolActivo === "Auditor";
-  console.log("Estado:", soloLectura);
+function ProcessMapView({ soloLectura }) {
   const [users, setUsers] = useState(initialUsers);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);

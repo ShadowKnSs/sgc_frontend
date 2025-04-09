@@ -3,8 +3,8 @@ import { Box, Button, Typography, Card, CardContent, IconButton } from "@mui/mat
 import { CloudUpload, Delete } from "@mui/icons-material";
 import axios from "axios";
 
-function DiagramaFlujo({ idProceso, rolActivo }) {
-    const soloLectura = rolActivo === "Auditor";
+function DiagramaFlujo({ idProceso, soloLectura }) {
+    
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [imageURL, setImageURL] = useState(null);

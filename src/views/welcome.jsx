@@ -16,8 +16,10 @@ import { useNavigate } from "react-router-dom";
 const Welcome = () => {
   const navigate = useNavigate();
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null");
-
   const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
+
+
+  console.log("Permisos", permisos);
 
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },

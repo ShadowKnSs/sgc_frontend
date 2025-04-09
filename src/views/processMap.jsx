@@ -8,9 +8,7 @@ import {
 } from "@mui/material";
 import { Add, Close, ExpandMore, ExpandLess, Edit, Delete } from "@mui/icons-material";
 
-function ProcessMapView({ idProceso, rolActivo }) {
-  // Estado local
-  const soloLectura = rolActivo === "Auditor";
+function ProcessMapView({ idProceso, soloLectura }) {
   const [users, setUsers] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);

@@ -29,8 +29,8 @@ import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvalua
 const UnifiedIndicatorPage = () => {
   const { idRegistro } = useParams();
   const { state } = useLocation();
-  const rolActivo = state?.rolActivo || "";
-  const soloLectura = rolActivo === "Auditor";
+  const soloLectura = state?.soloLectura ?? true;
+  const puedeEditar = state?.puedeEditar ?? false;
   console.log("UnifiedIndicatorPage - idRegistro:", idRegistro);
 
   // Estados principales
@@ -454,7 +454,7 @@ const UnifiedIndicatorPage = () => {
         </Grid>
       )}
       {/* Botón FAB para agregar indicador */}
-      {!soloLectura && (
+      {!soloLectura && puedeEditar && (
         <Box sx={{ position: "fixed", bottom: 40, right: 40 }}>
           <Fab color="primary" aria-label="Agregar" onClick={() => setFormOpen(true)}>
             <AddIcon />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Para extraer idRegistro desde la URL
+import { useParams, useLocation } from "react-router-dom"; // Para extraer idRegistro desde la URL
 import { Box, Button, Switch, FormControlLabel, Typography } from "@mui/material";
 import axios from "axios";
 import PTForm from "../components/Forms/PTForm";
@@ -12,6 +12,9 @@ const PlanTrabajoFormV = () => {
   // Extraemos idRegistro de la URL
   const { idRegistro } = useParams();
   console.log("ID Registro recibido:", idRegistro);
+  const location = useLocation();
+  const soloLectura = location.state?.soloLectura ?? true;
+  const puedeEditar = location.state?.puedeEditar ?? false;
 
   // Estado del formulario principal (se llenará con datos desde el backend)
   const [formData, setFormData] = useState({
@@ -228,10 +231,12 @@ const PlanTrabajoFormV = () => {
         />
       </Box>
 
-      <PTForm formData={formData} handleChange={handleChange} />
+      <PTForm formData={formData} handleChange={handleChange} soloLectura={soloLectura}
+      />
 
       {records.length > 0 && viewMode === "table" && (
-        <TablaRegistros records={records} handleOpenModal={handleOpenModal} handleDeleteRecord={handleDeleteRecord} />
+        <TablaRegistros records={records} handleOpenModal={handleOpenModal} handleDeleteRecord={handleDeleteRecord} soloLectura={soloLectura}
+        />
       )}
 
       {records.length > 0 && viewMode === "cards" && (
@@ -240,6 +245,8 @@ const PlanTrabajoFormV = () => {
           handleOpenModal={handleOpenModal}
           handleDeleteRecord={handleDeleteRecord}
           handleOpenCardModal={handleOpenCardModal}
+          soloLectura={soloLectura}
+
         />
       )}
 
@@ -251,33 +258,34 @@ const PlanTrabajoFormV = () => {
         handleAddOrUpdateRecord={handleAddOrUpdateRecord}
         isAdditionalFormValid={isAdditionalFormValid}
         editIndex={editIndex}
+        soloLectura={soloLectura}
+
       />
 
       <DetailsModal selectedRecord={selectedRecord} handleCloseCardModal={handleCloseCardModal} />
 
-      <Box sx={{ mt: 2, display: "flex", marginLeft: "auto", padding: "5px" }}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            console.log("Abriendo modal para agregar fuente");
-            handleOpenModal();
-          }}
-          sx={{
-            width: 50,
-            height: 50,
-            borderRadius: "50%",
-            fontSize: 30,
-            minWidth: "auto",
-            backgroundColor: "#00B2E3",
-            "&:hover": { backgroundColor: "#0099C3" }
-          }}
-        >
-          +
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ ml: 2 }}>
-          Enviar
-        </Button>
-      </Box>
+      {!soloLectura && puedeEditar && (
+        <Box sx={{ mt: 2, display: "flex", marginLeft: "auto", padding: "5px" }}>
+          <Button
+            variant="contained"
+            onClick={() => handleOpenModal()}
+            sx={{
+              width: 50,
+              height: 50,
+              borderRadius: "50%",
+              fontSize: 30,
+              minWidth: "auto",
+              backgroundColor: "#00B2E3",
+              "&:hover": { backgroundColor: "#0099C3" }
+            }}
+          >
+            +
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ ml: 2 }}>
+            Enviar
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

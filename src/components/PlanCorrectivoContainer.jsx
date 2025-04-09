@@ -22,10 +22,14 @@ import {
 import { Add, Close } from "@mui/icons-material";
 import PlanCorrectivoForm from "./Forms/PlanCorrectivoForm";
 import axios from "axios";
+import { useLocation, useParams } from "react-router-dom";
+
 
 function PlanCorrectivoContainer() {
-  // Eliminamos el uso de useParams(); usamos un valor constante para idRegistro
-  const idRegistro = 7;
+  const location = useLocation();
+  const soloLectura = location.state?.soloLectura ?? true;
+  const puedeEditar = location.state?.puedeEditar ?? false
+  const { idRegistro } = useParams();
 
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -116,17 +120,19 @@ function PlanCorrectivoContainer() {
           {error}
         </Typography>
       )}
-      <Button
-        variant="contained"
-        onClick={() => {
-          setEditingRecord(null);
-          setShowForm(true);
-        }}
-        startIcon={<Add />}
-        sx={{ backgroundColor: "secondary.main" }}
-      >
-        Nuevo Plan de Acción
-      </Button>
+      {!soloLectura && (
+        <Button
+          variant="contained"
+          onClick={() => {
+            setEditingRecord(null);
+            setShowForm(true);
+          }}
+          startIcon={<Add />}
+          sx={{ backgroundColor: "secondary.main" }}
+        >
+          Nuevo Plan de Acción
+        </Button>
+      )}
       {showForm && (
         <PlanCorrectivoForm
           onSave={handleSave}
@@ -231,13 +237,13 @@ function PlanCorrectivoContainer() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                  {(selectedRecord.actividades.filter(a => a.tipo === 'reaccion') || []).map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.descripcionAct || item.actividad}</TableCell>
-                      <TableCell>{item.responsable}</TableCell>
-                      <TableCell>{item.fechaProgramada ? item.fechaProgramada.split(" ")[0] : ""}</TableCell>
-                    </TableRow>
-                  ))}
+                    {(selectedRecord.actividades.filter(a => a.tipo === 'reaccion') || []).map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{item.descripcionAct || item.actividad}</TableCell>
+                        <TableCell>{item.responsable}</TableCell>
+                        <TableCell>{item.fechaProgramada ? item.fechaProgramada.split(" ")[0] : ""}</TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -266,13 +272,13 @@ function PlanCorrectivoContainer() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                  {(selectedRecord.actividades.filter(a => a.tipo === 'planaccion') || []).map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.descripcionAct || item.actividad}</TableCell>
-                      <TableCell>{item.responsable}</TableCell>
-                      <TableCell>{item.fechaProgramada ? item.fechaProgramada.split(" ")[0] : ""}</TableCell>
-                    </TableRow>
-                  ))}
+                    {(selectedRecord.actividades.filter(a => a.tipo === 'planaccion') || []).map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{item.descripcionAct || item.actividad}</TableCell>
+                        <TableCell>{item.responsable}</TableCell>
+                        <TableCell>{item.fechaProgramada ? item.fechaProgramada.split(" ")[0] : ""}</TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -280,13 +286,17 @@ function PlanCorrectivoContainer() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button color="primary" onClick={() => handleEdit(selectedRecord)}>
-            Editar
-          </Button>
-          <Button color="error" onClick={() => handleDelete(selectedRecord)}>
-            Eliminar
-          </Button>
-          </DialogActions>
+          {!soloLectura && puedeEditar && (
+            <>
+              <Button color="primary" onClick={() => handleEdit(selectedRecord)}>
+                Editar
+              </Button>
+              <Button color="error" onClick={() => handleDelete(selectedRecord)}>
+                Eliminar
+              </Button>
+            </>
+          )}
+        </DialogActions>
       </Dialog>
     </Box>
   );

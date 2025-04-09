@@ -1,18 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { IconButton } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
-import { useEffect } from "react";
-import {
-  Box, Fab, Card, CardContent, Typography, 
+import { IconButton, Box, Fab, Card, CardContent, Typography, 
   Table, TableBody, TableCell, TableContainer, TableRow, Paper,
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField
-} from "@mui/material";
-import { Add, Close } from "@mui/icons-material";
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
+import { Edit, Delete, Add } from "@mui/icons-material";
 
-const ControlCambios = ({ rolActivo }) => {
-  const soloLectura = rolActivo === "Auditor"; // 🔒
-
+const ControlCambios = ({ soloLectura }) => {
+  
   const [openDialog, setOpenDialog] = useState(false);
   const [newRow, setNewRow] = useState({ seccion: "", edicion: "", version: "", fechaRevision: "", descripcion: "" });
   const [data, setData] = useState([]);
@@ -48,7 +42,7 @@ const ControlCambios = ({ rolActivo }) => {
   };
 
   const handleAddRow = async () => {
-    if (soloLectura) return; // ❌ Bloqueo si auditor
+    if (soloLectura) return;
     if (validateFields()) {
       try {
         if (newRow.idCambio) {
@@ -84,7 +78,7 @@ const ControlCambios = ({ rolActivo }) => {
   };
 
   const handleEdit = (item) => {
-    if (soloLectura) return; // ❌ Auditor no puede editar
+    if (soloLectura) return;
     setNewRow({ 
       idCambio: item.idCambio,
       seccion: item.seccion,
@@ -97,7 +91,7 @@ const ControlCambios = ({ rolActivo }) => {
   };
 
   const handleDelete = async (id) => {
-    if (soloLectura) return; // ❌ Auditor no puede borrar
+    if (soloLectura) return;
     if (window.confirm("¿Seguro que deseas eliminar este registro?")) {
       try {
         await axios.delete(`http://localhost:8000/api/controlcambios/${id}`);
@@ -153,7 +147,6 @@ const ControlCambios = ({ rolActivo }) => {
         </CardContent>
       </Card>
 
-      {/* FAB agregar */}
       {!soloLectura && (
         <Box sx={{ position: "fixed", bottom: 16, right: 70, paddingRight: 0 }}>
           <Fab sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'primary.main' } }} onClick={() => setOpenDialog(true)}>
@@ -162,7 +155,6 @@ const ControlCambios = ({ rolActivo }) => {
         </Box>
       )}
 
-      {/* Diálogo de agregar/editar */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
           {newRow.idCambio ? "Editar versión" : "Agregar nueva versión"}

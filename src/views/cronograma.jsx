@@ -223,7 +223,7 @@ function Cronograma() {
         />
       </div>
 
-      {rolActivo !== "Líder de Proceso" && (
+      {rolActivo === "Líder de Proceso" && (
         <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
           <Button variant="contained" color="primary" onClick={handleOpenForm}>
             Crear Auditoría

@@ -26,8 +26,8 @@ import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 // --------------------------------------------------
 // 1) Componente principal
 // --------------------------------------------------
-function ProcessMapView({ idProceso, rolActivo }) {
-  const soloLectura = rolActivo === "Auditor";
+function ProcessMapView({ idProceso, soloLectura }) {
+  ;
   const [actividades, setActividades] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);

@@ -58,7 +58,7 @@ export default function Login() {
       localStorage.setItem("roles", JSON.stringify(roles));
 
       if (roles.length === 1) {
-        localStorage.setItem("rolActivo", JSON.stringify(roles[0].nombreRol));
+        localStorage.setItem("rolActivo", JSON.stringify(roles[0]));
         navigate("/");
       } else if (roles.length > 1) {
         navigate("/seleccionarRol");
