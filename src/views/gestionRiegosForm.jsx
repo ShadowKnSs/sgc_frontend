@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation} from "react-router-dom";
 import {
   AppBar,
   Tabs,
@@ -28,6 +28,11 @@ const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE
 function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
   const { idRegistro } = useParams();
+  const location = useLocation();
+  const rolActivo = location.state?.rolActivo || "";
+  const soloLectura = rolActivo === "Auditor";
+
+  console.log("El rol:"+ rolActivo + " esta: " + soloLectura);
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
   const [gestionRiesgo, setGestionRiesgo] = useState({
@@ -648,11 +653,11 @@ function FormularioGestionRiesgos() {
             InputLabelProps={{ shrink: true }}
           />
         </Box>
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-          <Button variant="contained" onClick={handleGuardarGestionRiesgos}>
-            Guardar Datos Generales
-          </Button>
-        </Box>
+        {!soloLectura && (
+          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+            <Button variant="contained" onClick={handleGuardarGestionRiesgos}>Guardar Datos Generales</Button>
+          </Box>
+        )}
       </Paper>
 
       {/* === Tabs para los riesgos (solo si ya existe idGesRies) === */}
@@ -731,23 +736,12 @@ function FormularioGestionRiesgos() {
                         {value}
                       </TableCell>
                     ))}
-                    <TableCell align="center">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleEditRiesgo(riesgos[index])}
-                        sx={{ mr: 1 }}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() => handleDeleteRiesgo(riesgos[index])}
-                      >
-                        Eliminar
-                      </Button>
-                    </TableCell>
+                    {!soloLectura && (
+                      <TableCell align="center">
+                        <Button variant="contained" color="primary" onClick={() => handleEditRiesgo(riesgos[index])} sx={{ mr: 1 }}>Editar</Button>
+                        <Button variant="contained" color="error" onClick={() => handleDeleteRiesgo(riesgos[index])}>Eliminar</Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -756,6 +750,7 @@ function FormularioGestionRiesgos() {
           </TableContainer>
 
           {/* Botón para abrir el modal y agregar un riesgo nuevo */}
+          {!soloLectura && (
           <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
             <Button
               variant="contained"
@@ -799,6 +794,7 @@ function FormularioGestionRiesgos() {
               +
             </Button>
           </Box>
+          )}
         </>
       )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   Grid,
   Typography,
@@ -28,6 +28,9 @@ import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvalua
 
 const UnifiedIndicatorPage = () => {
   const { idRegistro } = useParams();
+  const { state } = useLocation();
+  const rolActivo = state?.rolActivo || "";
+  const soloLectura = rolActivo === "Auditor";
   console.log("UnifiedIndicatorPage - idRegistro:", idRegistro);
 
   // Estados principales
@@ -444,17 +447,20 @@ const UnifiedIndicatorPage = () => {
                 onDelete={handleDelete}
                 onRegisterResult={() => handleRegisterResult(ind.idIndicador)}
                 cardColor={stateMap[selectedState].color}
+                soloLectura={soloLectura}
               />
             </Grid>
           ))}
         </Grid>
       )}
       {/* Botón FAB para agregar indicador */}
-      <Box sx={{ position: "fixed", bottom: 40, right: 40 }}>
-        <Fab color="primary" aria-label="Agregar" onClick={() => setFormOpen(true)}>
-          <AddIcon />
-        </Fab>
-      </Box>
+      {!soloLectura && (
+        <Box sx={{ position: "fixed", bottom: 40, right: 40 }}>
+          <Fab color="primary" aria-label="Agregar" onClick={() => setFormOpen(true)}>
+            <AddIcon />
+          </Fab>
+        </Box>
+      )}
       {formOpen && (
         <AddIndicatorForm
           open={formOpen}

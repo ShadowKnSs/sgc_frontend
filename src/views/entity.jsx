@@ -33,21 +33,31 @@ const Entity = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const idUsuario = 7;
+    const rolActivo = "Auditor";
+  
+    console.log("🔐 ID Usuario desde localStorage:", idUsuario);
+    console.log("🎭 Rol activo desde localStorage:", rolActivo);
+  
     axios
-      .get("http://127.0.0.1:8000/api/entidades")
+      .post("http://127.0.0.1:8000/api/entidades-por-usuario", { idUsuario, rolActivo })
       .then((response) => {
-        console.log("Respuesta del backend:", response.data);
-
+        console.log("📦 Entidades recibidas del backend:", response.data.entidades);
+  
         const entidadesConIcono = response.data.entidades.map((entidad) => ({
           ...entidad,
-          icon: iconos[entidad.nombreEntidad] || <BookIcon />, // Icono predeterminado si no se encuentra
+          icon: iconos[entidad.nombreEntidad] || <BookIcon />,
         }));
-
+  
         setEntidades(entidadesConIcono);
       })
-      .catch((error) => console.error("Error obteniendo entidades:", error))
-      .finally(() => setLoading(false));
+      .catch((error) => console.error("❌ Error al obtener entidades:", error))
+      .finally(() => {
+        console.log("✅ Petición finalizada.");
+        setLoading(false);
+      });
   }, []);
+  
 
   return (
     <Box
@@ -70,10 +80,10 @@ const Entity = () => {
       ) : (
         entidades.map((entidad) => (
           <MenuCard
-            key={entidad.idEntidadDependecia}
+            key={entidad.idEntidadDependencia}
             icon={entidad.icon}
             title={entidad.nombreEntidad}
-            onClick={() => navigate(`/procesos/${entidad.idEntidadDependecia}`)}
+            onClick={() => navigate(`/procesos/${entidad.idEntidadDependencia}`)}
           />
         ))
       )}

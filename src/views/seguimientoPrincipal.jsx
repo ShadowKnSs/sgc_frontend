@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, DialogTitle, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
@@ -10,6 +10,9 @@ import Subtitle from "../components/Subtitle";
 
 const Seguimiento = () => {
   const { idRegistro } = useParams(); // Se obtiene el idRegistro desde la URL
+  const { state } = useLocation();
+  const rolActivo = state?.rolActivo || "";
+  const soloLectura = rolActivo === "Auditor";
   const [minutas, setMinutas] = useState([]);
   const [openForm, setOpenForm] = useState(false);
   const [currentMinuta, setCurrentMinuta] = useState(null);
@@ -65,7 +68,7 @@ const Seguimiento = () => {
         const response = await axios.delete(`http://localhost:8000/api/minutasDelete/${id}`, {
           headers: { "Content-Type": "application/json" },
         });
-  
+
         console.log("Minuta eliminada:", response.data);
         alert("Minuta eliminada exitosamente");
         // Opcional: Actualizar el estado para que la lista de minutas se recargue
@@ -76,7 +79,7 @@ const Seguimiento = () => {
         alert("Hubo un error al eliminar la minuta");
       }
     }
-  };  
+  };
   return (
     <Container sx={{ mt: 4 }}>
       <Subtitle text="Minutas de Seguimiento" sx={{ textAlign: "center", mb: 4 }} />
@@ -100,8 +103,9 @@ const Seguimiento = () => {
         open={openMinutaDialog}
         onClose={handleCloseMinutaDialog}
         minuta={selectedMinuta}
-        onEdit={handleEdit} 
+        onEdit={handleEdit}
         onDelete={handleDeleteMinuta}
+        soloLectura={soloLectura}
       />
 
       {/* Este formulario solo se muestra si seleccionas "Editar" en MinutaDialog */}
@@ -116,9 +120,11 @@ const Seguimiento = () => {
       </Dialog>
 
       {/* Botón flotante para crear nueva minuta */}
-      <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={() => handleOpenForm(null)}>
-        <AddIcon />
-      </Fab>
+      {!soloLectura && (
+        <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={() => handleOpenForm(null)}>
+          <AddIcon />
+        </Fab>
+      )}
     </Container>
   );
 };

@@ -5,9 +5,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
-const IndicatorCard = ({ indicator, onEdit, onDelete, onRegisterResult, cardColor }) => {
+const IndicatorCard = ({ indicator, onEdit, onDelete, onRegisterResult, cardColor, soloLectura }) => {
   return (
-    <Card 
+    <Card
       sx={{
         backgroundColor: cardColor,
         borderRadius: '12px',
@@ -28,28 +28,26 @@ const IndicatorCard = ({ indicator, onEdit, onDelete, onRegisterResult, cardColo
       </CardContent>
 
       {/* Contenedor de Iconos en la parte inferior */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          paddingBottom: 2
-        }}
-      >
-        {/* Botón de Registrar Resultado */}
-        <IconButton onClick={() => onRegisterResult(indicator.idIndicadorConsolidado)} sx={{ color: '#0275d8' }}>
-          <PlaylistAddCheckIcon />
-        </IconButton>
+      {!soloLectura && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            paddingBottom: 2
+          }}
+        >
+          <IconButton onClick={() => onRegisterResult(indicator.idIndicadorConsolidado)} sx={{ color: '#0275d8' }}>
+            <PlaylistAddCheckIcon />
+          </IconButton>
+          <IconButton onClick={() => onEdit(indicator.idIndicadorConsolidado)} sx={{ color: '#f0ad4e' }}>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => onDelete(indicator)} sx={{ color: '#d9534f' }}>
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      )}
 
-        {/* Botón de Editar */}
-        <IconButton onClick={() => onEdit(indicator.idIndicadorConsolidado)} sx={{ color: '#f0ad4e' }}>
-          <EditIcon />
-        </IconButton>
-
-        {/* Botón de Eliminar */}
-        <IconButton onClick={() => onDelete(indicator)} sx={{ color: '#d9534f' }}>
-          <DeleteIcon />
-        </IconButton>
-      </Box>
     </Card>
   );
 };

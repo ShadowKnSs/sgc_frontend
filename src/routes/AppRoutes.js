@@ -39,6 +39,7 @@ import ListaReportesProceso from "../views/listReportesProceso";
 import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
 import Login from "../views/login";
+import SeleccionarRol from "../views/seleccionarRol";
 
 
 const AppRoutes = () => {
@@ -103,6 +104,9 @@ const AppRoutes = () => {
 
           
 
+
+          <Route path="seleccionarRol" element={<SeleccionarRol/>} />
+          
         </Route>
       </Routes>
     </BrowserRouter>

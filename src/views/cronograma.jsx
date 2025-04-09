@@ -11,8 +11,9 @@ moment.locale("es");
 const localizer = momentLocalizer(moment);
 
 function Cronograma() {
-
-  const [events, setEvents] = useState([ ]);
+  const idUsuario = 8;
+  const rolActivo = "Líder de Proceso";
+  const [events, setEvents] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
 
@@ -21,8 +22,17 @@ function Cronograma() {
   };
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/cronograma')
+
+
+    console.log("🔐 Enviando ID y rol al backend:", idUsuario, rolActivo);
+
+    axios.post('http://127.0.0.1:8000/api/cronograma/filtrar', {
+      idUsuario,
+      rolActivo,
+    })
       .then(response => {
+        console.log("📊 Auditorías recibidas:", response.data);
+
         const auditorias = response.data.map(auditoria => ({
           id: auditoria.idAuditoria,
           title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
@@ -35,21 +45,22 @@ function Cronograma() {
           entidad: auditoria.nombreEntidad,
           hora: auditoria.horaProgramada,
         }));
+
         setEvents(auditorias);
       })
       .catch(error => {
-        console.error("Error al obtener las auditorías:", error);
+        console.error("❌ Error al obtener las auditorías:", error);
       });
   }, []);
 
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/entidad-nombres')
-        .then(response => {
-            setEntidades(response.data.nombres);
-        })
-        .catch(error => {
-            console.error("Hubo un error al obtener las entidades:", error);
-        });
+      .then(response => {
+        setEntidades(response.data.nombres);
+      })
+      .catch(error => {
+        console.error("Hubo un error al obtener las entidades:", error);
+      });
   }, []);
 
   useEffect(() => {
@@ -64,7 +75,7 @@ function Cronograma() {
 
   const formats = {
     monthHeaderFormat: (date) =>
-      capitalizeFirstLetter(moment(date).format("MMMM YYYY")), 
+      capitalizeFirstLetter(moment(date).format("MMMM YYYY")),
     dayHeaderFormat: (date) =>
       capitalizeFirstLetter(moment(date).format("dddd, D")),
     dayRangeHeaderFormat: ({ start, end }) =>
@@ -108,7 +119,7 @@ function Cronograma() {
     setOpenDetails(false);
     setOpenForm(true);
   };
-  
+
   // Cerrar modales
   const handleCloseForm = () => setOpenForm(false);
   const handleCloseDetails = () => setOpenDetails(false);
@@ -181,7 +192,7 @@ function Cronograma() {
       alert("Todos los campos son obligatorios.");
     }
   };
-  
+
   return (
     <Box
       sx={{ p: 4, height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", backgroundColor: "#f4f4f4", paddingTop: "20px", position: "relative", }}
@@ -197,7 +208,7 @@ function Cronograma() {
           events={events}
           startAccessor="start"
           endAccessor="end"
-          defaultView="month" 
+          defaultView="month"
           views={["month", "week", "day"]}
           messages={{
             today: "Hoy",
@@ -212,11 +223,13 @@ function Cronograma() {
         />
       </div>
 
-      <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
-        <Button variant="contained" color="primary" onClick={handleOpenForm}>
-          Crear Auditoría
-        </Button>
-      </Box>
+      {rolActivo !== "Líder de Proceso" && (
+        <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
+          <Button variant="contained" color="primary" onClick={handleOpenForm}>
+            Crear Auditoría
+          </Button>
+        </Box>
+      )}
 
       <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
         <DialogTitle>{isEditing ? "Editar Auditoría" : "Crear Auditoría"}</DialogTitle>
@@ -331,10 +344,13 @@ function Cronograma() {
           <Button onClick={handleCloseDetails} color="secondary">
             Cerrar
           </Button>
-          <Button onClick={handleEdit} color="primary">
-            Editar
-          </Button>
+          {rolActivo !== "Líder de Proceso" && (
+            <Button onClick={handleEdit} color="primary">
+              Editar
+            </Button>
+          )}
         </DialogActions>
+
       </Dialog>
     </Box>
   );

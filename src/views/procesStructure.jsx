@@ -11,6 +11,8 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import { useNavigate, useParams } from "react-router-dom";
 
 const ProcessStructure = () => {
+  const rolActivo = "Auditor";
+  console.log(rolActivo);
   const navigate = useNavigate();
   const { idProceso } = useParams();
   console.log("id del proceso", idProceso);
@@ -18,11 +20,14 @@ const ProcessStructure = () => {
   const menuItems = [
     { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos`},
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos` },
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/informe-auditoria` },
-    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento`},
-    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores`},
+    // Esta opción solo se agregará si el rol es Auditor:
+    ...(rolActivo === "Auditor"
+      ? [{ icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/informe-auditoria` }]
+      : []),
+    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento` },
+    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores` },
   ];
 
   return (
@@ -41,7 +46,9 @@ const ProcessStructure = () => {
       }}
     >
       {menuItems.slice(0, 4).map((item, index) => (
-        <MenuCard key={index} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} onClick={() => navigate(item.path)} />
+        <MenuCard key={index} icon={item.icon} title={item.title} sx={{ textAlign: "center" }}   onClick={() => navigate(item.path, { state: { rolActivo } })} 
+
+        />
       ))}
       <Box
         sx={{
@@ -53,7 +60,9 @@ const ProcessStructure = () => {
         }}
       >
         {menuItems.slice(4).map((item, index) => (
-          <MenuCard key={index + 4} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} onClick={() => navigate(item.path)} />
+          <MenuCard key={index + 4} icon={item.icon} title={item.title} sx={{ textAlign: "center" }}   onClick={() => navigate(item.path, { state: { rolActivo } })} 
+
+          />
         ))}
       </Box>
     </Box>
