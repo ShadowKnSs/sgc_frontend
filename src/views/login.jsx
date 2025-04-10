@@ -3,30 +3,46 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   TextField, Button, InputAdornment, Typography, Paper, Box,
-  Snackbar, Alert, CircularProgress
+  CircularProgress, Dialog, DialogContent, DialogActions,
+  IconButton
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CloseIcon from "@mui/icons-material/Close";
 
 export default function Login() {
   const [rpe, setRpe] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
   const [useToken, setUseToken] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [modal, setModal] = useState({
+    open: false,
+    type: "success", 
+    title: "",
+    message: ""
+  });
+
   const navigate = useNavigate();
 
+  const showModal = (type, title, message) => {
+    setModal({
+      open: true,
+      type,
+      title,
+      message
+    });
+  };
+
   const handleLoginToken = async () => {
-    setErrorMessage("");
     if (!token.trim()) {
-      setErrorMessage("Por favor ingresa un token");
+      showModal("error", "Token inválido", "Por favor ingresa un token");
       return;
     }
 
     setLoading(true);
-
     try {
       const response = await fetch("http://localhost:8000/api/validar-token", {
         method: "POST",
@@ -37,19 +53,35 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        navigate("/");
+        localStorage.setItem("rolActivo", JSON.stringify({
+          nombreRol: "Auditor",
+          permisos: [
+            { modulo: "Manual de Calidad" },
+            { modulo: "Manual del Sitio" },
+            { modulo: "Entidades" },
+            { modulo: "Cronograma" },
+            { modulo: "Noticias" },
+            { modulo: "Reportes" }
+          ]
+        }));
+        showModal("success", "¡Token válido!", "Accediendo al sistema...");
+        setTimeout(() => navigate("/"), 1500);
       } else {
-        setErrorMessage(data.message.includes("expirado") ? "El token ha expirado" : "El token no es válido");
+        const msg = data.message.includes("expirado")
+          ? "El token ha expirado"
+          : "El token no es válido";
+        showModal("error", "Token inválido", msg);
       }
     } catch (error) {
       console.error(error);
-      setErrorMessage("❌ Error al conectar con el servidor");
+      showModal("error", "Error de conexión", "No se pudo conectar con el servidor");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/login", { rpe, password });
       const { usuario, roles } = response.data;
@@ -59,18 +91,18 @@ export default function Login() {
 
       if (roles.length === 1) {
         localStorage.setItem("rolActivo", JSON.stringify(roles[0]));
-        navigate("/");
+        showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema...");
+        setTimeout(() => navigate("/"), 1500);
       } else if (roles.length > 1) {
         navigate("/seleccionarRol");
       } else {
-        setSnackbar({ open: true, message: "No se encontraron roles asignados", severity: "warning" });
+        showModal("error", "Sin roles", "No se encontraron roles asignados");
       }
     } catch (error) {
-      let msg = "Error al iniciar sesión";
-      if (error.response?.data?.message) {
-        msg = error.response.data.message;
-      }
-      setSnackbar({ open: true, message: msg, severity: "error" });
+      const msg = error.response?.data?.message || "Error al iniciar sesión";
+      showModal("error", "Oops!", msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,7 +110,7 @@ export default function Login() {
     <Box display="flex" minHeight="100vh" justifyContent="center" alignItems="center" bgcolor="#f3f3f3">
       <Paper elevation={3} sx={{ display: 'flex', p: 6, borderRadius: 4 }}>
 
-        {/* Columna izquierda con logo y texto */}
+        {/* Columna izquierda */}
         <Box textAlign="center" pr={{ md: 8 }} mb={{ xs: 4, md: 0 }}>
           <Typography variant="h2" color="primary" fontWeight="bold">¡Hola,</Typography>
           <Typography variant="h2" color="primary" fontWeight="bold">bienvenido!</Typography>
@@ -92,7 +124,7 @@ export default function Login() {
           </Box>
         </Box>
 
-        {/* Columna derecha con formulario */}
+        {/* Columna derecha */}
         <Box sx={{ backgroundColor: "#0D47A1", color: "white", borderRadius: 3, p: 4, width: 350, border: "4px solid #FFD600" }}>
           {useToken ? (
             <>
@@ -148,7 +180,7 @@ export default function Login() {
                 fullWidth
                 type="password"
                 variant="outlined"
-                placeholder="********"
+                placeholder=""
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
@@ -175,12 +207,6 @@ export default function Login() {
             </>
           )}
 
-          {errorMessage && (
-            <Typography mt={2} fontSize="0.85rem" color="#FFD600" textAlign="center" sx={{ fontWeight: 500 }}>
-              {errorMessage}
-            </Typography>
-          )}
-
           <Button
             fullWidth
             sx={{ mt: 2, color: "#ccc", textTransform: "none", fontSize: "0.85rem" }}
@@ -190,17 +216,39 @@ export default function Login() {
           </Button>
         </Box>
 
-        {/* Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          <Alert severity={snackbar.severity} variant="filled">
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        {/* MODAL de éxito/error */}
+        <Dialog open={modal.open} onClose={() => setModal({ ...modal, open: false })}>
+          <IconButton
+            onClick={() => setModal({ ...modal, open: false })}
+            sx={{ position: 'absolute', top: 8, right: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <DialogContent sx={{ textAlign: 'center', p: 4 }}>
+            {modal.type === "success" ? (
+              <CheckCircleIcon sx={{ fontSize: 60, color: "green" }} />
+            ) : (
+              <CancelIcon sx={{ fontSize: 60, color: "red" }} />
+            )}
+            <Typography variant="h5" mt={2} fontWeight="bold">
+              {modal.title}
+            </Typography>
+            <Typography variant="body1" mt={1}>
+              {modal.message}
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+            <Button
+              onClick={() => setModal({ ...modal, open: false })}
+              variant="outlined"
+              color={modal.type === "success" ? "success" : "error"}
+            >
+              {modal.type === "success" ? "Continuar" : "Intentar de nuevo"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
       </Paper>
-    </Box>
-  );
+    </Box>
+  );
 }

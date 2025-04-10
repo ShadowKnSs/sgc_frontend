@@ -18,11 +18,11 @@ const Welcome = () => {
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null");
   const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
 
-
+  console.log("El rol es: ", rolActivo);
   console.log("Permisos", permisos);
 
   const menuItems = [
-    { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/" },
+    { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/manual-calidad" },
     { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manualDelSitio" },
     { icon: <GroupAddOutlinedIcon />, title: "Usuarios", path: "/usuarios" },
     { icon: <AccountTreeOutlinedIcon />, title: "Procesos", path: "/procesos" },
