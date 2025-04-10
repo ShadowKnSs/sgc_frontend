@@ -53,17 +53,7 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("rolActivo", JSON.stringify({
-          nombreRol: "Auditor",
-          permisos: [
-            { modulo: "Manual de Calidad" },
-            { modulo: "Manual del Sitio" },
-            { modulo: "Entidades" },
-            { modulo: "Cronograma" },
-            { modulo: "Noticias" },
-            { modulo: "Reportes" }
-          ]
-        }));
+        localStorage.setItem("rolActivo", JSON.stringify(data.rol));
         showModal("success", "¡Token válido!", "Accediendo al sistema...");
         setTimeout(() => navigate("/"), 1500);
       } else {
