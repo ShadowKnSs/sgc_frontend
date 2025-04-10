@@ -153,7 +153,6 @@ function UserForm({ open, onClose, editingUser }) {
             RPE: extractRPE(data.email),
             pass: editingUser ? undefined : generatePassword(data.firstName),
             idTipoUsuario: convertRolesToId(data.roles),
-            idSupervisor: data.supervisor || null
         };
     
         try {
@@ -175,6 +174,7 @@ function UserForm({ open, onClose, editingUser }) {
             throw error;
         }
     };
+    
 
     const handleConfirmEdit = async () => {
         try {
