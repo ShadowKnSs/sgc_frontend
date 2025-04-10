@@ -83,7 +83,7 @@ function UserForm({ open, onClose, onSubmit, editingUser }) {
           }
         } catch (error) {
           console.error("Error al generar el token:", error);
-          alert("Fallo en la comunicación con el backend");
+          alert("Fallo en la comunicación con el b ackend");
         }
       };
     
