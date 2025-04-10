@@ -5,6 +5,7 @@ import UserCard from "../components/userCard";
 import UserForm from "../components/userForms";
 import ConfirmDelete from "../components/confirmDelete"; // Importa el diálogo de eliminación
 import ConfirmEdit from "../components/confirmEdit"; // Importa el diálogo de edición
+import TemporalUsersList from "../components/TemporalUsersList";
 
 function UserManagement() {
     const [users, setUsers] = useState([]);
@@ -65,6 +66,10 @@ function UserManagement() {
                     <UserCard key={user.id} user={user} onEdit={() => handleEdit(user)} onDelete={() => handleDeleteClick(user)} />
                 ))}
             </Box>
+            <div>
+            <h2>Usuarios Temporales</h2>
+            <TemporalUsersList />
+            </div>
 
             <Fab
                 color="primary"
@@ -81,6 +86,7 @@ function UserManagement() {
             
             {/* Diálogo de confirmación de edición */}
             <ConfirmEdit open={openEdit} onClose={() => setOpenEdit(false)} entityType="usuario" entityName={userToEdit?.firstName} onConfirm={handleConfirmEdit} />
+                
         </Box>
     );
 }
