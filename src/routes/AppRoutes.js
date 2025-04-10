@@ -38,6 +38,7 @@ import ReporteProcesoPreview from "../views/reporteProceso";
 import ListaReportesProceso from "../views/listReportesProceso";
 import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
+import BuscaSupervisor from "../views/buscaSupervisor";
 
 //Pruebas
 import ModalError from "../components/Modals/ErrorInicioSesion";
@@ -106,6 +107,8 @@ const AppRoutes = () => {
           <Route path="formatos" element={<Formatos />} />
           <Route path="buscar" element={<BuscaReportes />} />
           <Route path="login" element={<Login/>} />
+
+          <Route path="busca_supervisor" element={<BuscaSupervisor />} />
 
           <Route path="error-modal" element={<ModalError/>} />
           <Route path="auditores" element={<Auditores/>} />
