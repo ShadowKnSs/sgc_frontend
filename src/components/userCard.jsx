@@ -50,7 +50,7 @@ function UserCard({ user, onEdit, onDelete }) {
         </Box>
 
         {/* Supervisor: Solo si es Líder de Proceso */}
-        {user.roles.includes("Líder de Proceso") && user.supervisor && (
+        {user.roles.includes("Líder") && user.supervisor && (
           <Box sx={{ textAlign: "center", mb: 2 }}>
             <Typography variant="body2" color="#555">
               Supervisor: {user.supervisor.lastName} {user.supervisor.secondLastName} {user.supervisor.firstName}

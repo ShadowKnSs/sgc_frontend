@@ -1,86 +1,162 @@
-import React, { useState } from "react";
-import { Box, Fab } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Fab, CircularProgress, Alert } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import UserCard from "../components/userCard";
 import UserForm from "../components/userForms";
-import ConfirmDelete from "../components/confirmDelete"; // Importa el diálogo de eliminación
-import ConfirmEdit from "../components/confirmEdit"; // Importa el diálogo de edición
+import ConfirmDelete from "../components/confirmDelete";
+import axios from "axios";
+
+const API_URL = 'http://127.0.0.1:8000/api';
 
 function UserManagement() {
     const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [openForm, setOpenForm] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [openDelete, setOpenDelete] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
-    const [openEdit, setOpenEdit] = useState(false); // Nuevo estado para el diálogo de confirmación de edición
-    const [userToEdit, setUserToEdit] = useState(null); // Estado para el usuario a editar
 
-    const handleAddUser = (newUser) => {
-        if (editingUser) {
-            setUsers(users.map(user => 
-                user.id === editingUser.id ? { ...editingUser, ...newUser } : user
-            ));
-        } else {
-            setUsers([...users, { id: users.length + 1, ...newUser }]);
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${API_URL}/usuarios`);
+            setUsers(response.data.data.map(transformUserData));
+            setError(null);
+        } catch (err) {
+            setError("Error al cargar los usuarios");
+            setUsers([]);
+        } finally {
+            setLoading(false);
         }
-        setEditingUser(null);  // 🔹 Reiniciar estado de edición
-        setUserToEdit(null);
-        setOpenForm(false);
     };
+
+    const transformUserData = (user) => {
+        return {
+            id: user.idUsuario,
+            firstName: user.nombre,
+            lastName: user.apellidoPat,
+            secondLastName: user.apellidoMat,
+            email: user.correo,
+            phone: user.telefono,
+            academicDegree: user.gradoAcademico,
+            roles: [user.tipo_usuario?.nombreRol],
+            supervisor: user.supervisor ? {
+                id: user.supervisor.idUsuario,
+                firstName: user.supervisor.nombre,
+                lastName: user.supervisor.apellidoPat,
+                secondLastName: user.supervisor.apellidoMat
+            } : null
+        };
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const handleAddUser = async (newUser) => {
+        try {
+            let response;
+            if (editingUser) {
+                response = await axios.put(`${API_URL}/usuarios/${editingUser.id}`, {
+                    ...newUser,
+                    id: editingUser.id
+                });
+                
+                setUsers(prevUsers => 
+                    prevUsers.map(user => 
+                        user.id === editingUser.id ? transformUserData(response.data.data) : user
+                    )
+                );
+            } else {
+                response = await axios.post(`${API_URL}/usuarios`, newUser);
+                setUsers(prevUsers => [...prevUsers, transformUserData(response.data.data)]);
+            }
+            
+            setError(null);
+        } catch (err) {
+            console.error("Error al guardar usuario:", err);
+            setError(err.response?.data?.message || "Error al guardar el usuario");
+        }
+    }
+
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(`${API_URL}/usuarios/${id}`);
+            setUsers(users.filter(user => user.id !== id));
+            setOpenDelete(false);
+        } catch (err) {
+            setError("Error al eliminar el usuario");
+        }
+    };
+
     const handleAddNewUser = () => {
         setEditingUser(null);
         setOpenForm(true);
     };
 
-   const handleEdit = (user) => {
-        setUserToEdit(user); 
-        setOpenEdit(true); 
-    };
-    
-    const handleConfirmEdit = () => {
-        setEditingUser(userToEdit); // 🔹 Aquí establecemos correctamente el usuario en edición
-        setOpenEdit(false);
+    const handleEdit = (user) => {
+        setEditingUser(user);
         setOpenForm(true);
-    }
-
-    const handleDelete = (id) => {
-        setUsers(users.filter((user) => user.id !== id));
-        setOpenDelete(false);
     };
 
-    const handleDeleteClick = (user) => {
-        setUserToDelete(user);
-        setOpenDelete(true);
+    const handleFormClose = () => {
+        setOpenForm(false);
+        setEditingUser(null);
+        fetchUsers();
     };
 
     return (
         <Box sx={{ p: 4, textAlign: "center" }}>
-            <Box
-                display="grid"
-                gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-                gap={2}
-                justifyContent="center"
-            >
-                {users.map((user) => (
-                    <UserCard key={user.id} user={user} onEdit={() => handleEdit(user)} onDelete={() => handleDeleteClick(user)} />
-                ))}
-            </Box>
+            {loading ? (
+                <CircularProgress />
+            ) : error ? (
+                <Alert severity="error">{error}</Alert>
+            ) : (
+                <>
+                    <Box
+                        display="grid"
+                        gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+                        gap={2}
+                        justifyContent="center"
+                    >
+                        {users.map(user => (
+                            <UserCard 
+                                key={user.id} 
+                                user={user} 
+                                onEdit={() => handleEdit(user)}
+                                onDelete={() => {
+                                    setUserToDelete(user);
+                                    setOpenDelete(true);
+                                }} 
+                            />
+                        ))}
+                    </Box>
 
-            <Fab
-                color="primary"
-                sx={{ position: "fixed", bottom: 16, right: 16, backgroundColor: "#004A98" }}
-                onClick={handleAddNewUser}
-            >
-                <Add />
-            </Fab>
+                    <Fab
+                        color="primary"
+                        sx={{ position: "fixed", bottom: 16, right: 16 }}
+                        onClick={handleAddNewUser}
+                    >
+                        <Add />
+                    </Fab>
+                </>
+            )}
 
-            <UserForm open={openForm} onClose={() => setOpenForm(false)} onSubmit={handleAddUser} editingUser={editingUser} />
+            <UserForm 
+                open={openForm} 
+                onClose={handleFormClose} 
+                onSubmit={handleAddUser} 
+                editingUser={editingUser}
+            />
 
-            {/* Diálogo de confirmación de eliminación */}
-            <ConfirmDelete open={openDelete} onClose={() => setOpenDelete(false)} entityType="usuario" entityName={userToDelete?.firstName} onConfirm={() => handleDelete(userToDelete?.id)} />
-            
-            {/* Diálogo de confirmación de edición */}
-            <ConfirmEdit open={openEdit} onClose={() => setOpenEdit(false)} entityType="usuario" entityName={userToEdit?.firstName} onConfirm={handleConfirmEdit} />
+            <ConfirmDelete
+                open={openDelete}
+                onClose={() => setOpenDelete(false)}
+                onConfirm={() => handleDelete(userToDelete?.id)}
+                entityType="usuario"
+                entityName={userToDelete?.firstName}
+            />
         </Box>
     );
 }
