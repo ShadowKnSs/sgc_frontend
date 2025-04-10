@@ -39,6 +39,11 @@ import ListaReportesProceso from "../views/listReportesProceso";
 import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
 
+//Pruebas
+import ModalError from "../components/Modals/ErrorInicioSesion";
+import Auditores from "../views/auditores";
+
+
 
 const AppRoutes = () => {
   return (
@@ -99,8 +104,8 @@ const AppRoutes = () => {
           <Route path="formatos" element={<Formatos />} />
           <Route path="buscar" element={<BuscaReportes />} />
 
-
-          
+          <Route path="error-modal" element={<ModalError/>} />
+          <Route path="auditores" element={<Auditores/>} />
 
         </Route>
       </Routes>
