@@ -99,17 +99,6 @@ function UserForm({ open, onClose, editingUser }) {
         return `${firstName.toLowerCase()}123`;
     };
 
-    const convertRolesToId = (roles) => {
-        if (!roles.length) return null;
-        
-        const selectedRoles = roles.map(roleName => {
-            const role = rolesList.find(r => r.nombreRol === roleName);
-            return role ? role.idTipoUsuario : null;
-        }).filter(id => id !== null);
-
-        return selectedRoles.length > 0 ? selectedRoles[0] : null;
-    };
-
     const validateForm = () => {
         const newErrors = {};
         
@@ -143,39 +132,61 @@ function UserForm({ open, onClose, editingUser }) {
     };
 
     const saveUser = async (data) => {
-        const backendData = {
-            nombre: data.firstName,
-            apellidoPat: data.lastName,
-            apellidoMat: data.secondLastName,
-            correo: data.email,
-            telefono: data.phone,
-            gradoAcademico: data.academicDegree,
-            RPE: extractRPE(data.email),
-            pass: editingUser ? undefined : generatePassword(data.firstName),
-            idTipoUsuario: convertRolesToId(data.roles),
-        };
-    
         try {
+            const rolesIds = convertRolesToId(data.roles);
+            
+            const payload = {
+                nombre: data.firstName,
+                apellidoPat: data.lastName,
+                apellidoMat: data.secondLastName || null,
+                correo: data.email,
+                telefono: data.phone,
+                gradoAcademico: data.academicDegree || null,
+                RPE: extractRPE(data.email),
+                pass: generatePassword(data.firstName),
+                roles: rolesIds,
+                idSupervisor: data.supervisor || null
+            };
+    
+            console.log('Payload a enviar:', payload);
+    
             const url = editingUser ? `${API_URL}/usuarios/${editingUser.id}` : `${API_URL}/usuarios`;
             const method = editingUser ? "put" : "post";
     
             const response = await axios({
                 method,
                 url,
-                data: backendData,
+                data: payload,
                 headers: {
-                    "Content-Type": "application/json",
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 }
             });
     
             return response.data;
+    
         } catch (error) {
-            console.error("Error:", error);
-            throw error;
+            console.error('Error detallado:', {
+                status: error.response?.status,
+                data: error.response?.data,
+                config: error.config
+            });
+            throw new Error(error.response?.data?.message || 'Error al guardar usuario');
         }
     };
     
-
+    const convertRolesToId = (roles) => {
+        if (!Array.isArray(roles)) return [];
+        
+        return roles.map(role => {
+            if (typeof role === 'object' && role !== null) {
+                return role.idTipoUsuario || role;
+            }
+            const roleObj = rolesList.find(r => r.nombreRol === role);
+            return roleObj ? roleObj.idTipoUsuario : null;
+        }).filter(id => id !== null);
+    };
+    
     const handleConfirmEdit = async () => {
         try {
             await saveUser(formData);
