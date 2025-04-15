@@ -91,44 +91,112 @@ function UserForm({ open, onClose, editingUser }) {
         }
     };
 
-    const handleSubmit = () => {
-        if (editingUser) {
-            setOpenConfirmEdit(true); // Mostrar confirmación antes de actualizar
-        } else {
-            onSubmit(formData);
-        }
+    const extractRPE = (email) => {
+        return email.split('@')[0] || '';
     };
 
-    const handleConfirmEdit = () => {
-        onSubmit(formData);
-        setOpenConfirmEdit(false);
+    const generatePassword = (firstName) => {
+        return `${firstName.toLowerCase()}123`;
     };
 
-    const generarToken = async () => {
-        try {
-          const response = await fetch("http://localhost:8000/api/generar-token", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              expirationDateTime: formData.expirationDateTime,
-            }),
-          });
-      
-          const data = await response.json();
-      
-          if (response.ok) {
-            alert(`Token generado: ${data.token}\nExpira: ${data.expiracion}`);
-          } else {
-            alert("Error al generar el token: " + data.message);
-          }
-        } catch (error) {
-          console.error("Error al generar el token:", error);
-          alert("Fallo en la comunicación con el b ackend");
+    const validateForm = () => {
+        const newErrors = {};
+        
+        if (!formData.firstName) newErrors.firstName = "El nombre es obligatorio";
+        if (!formData.lastName) newErrors.lastName = "El apellido paterno es obligatorio";
+        if (!formData.email) {
+            newErrors.email = "El correo electrónico es obligatorio";
+        } else if (!formData.email.includes('@')) {
+            newErrors.email = "El correo debe contener @";
         }
-      };
+        if (!formData.phone) newErrors.phone = "El teléfono es obligatorio";
+        if (!formData.roles.length) newErrors.roles = "Debe seleccionar al menos un rol";
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
     
+        try {
+            if (editingUser) {
+                setOpenConfirmEdit(true);
+            } else {
+                await saveUser(formData);
+                onClose();
+            }
+        } catch (error) {
+            console.error("Error al guardar el usuario:", error);
+        }
+    };
+
+    const saveUser = async (data) => {
+        try {
+            const rolesIds = convertRolesToId(data.roles);
+            
+            const payload = {
+                nombre: data.firstName,
+                apellidoPat: data.lastName,
+                apellidoMat: data.secondLastName || null,
+                correo: data.email,
+                telefono: data.phone,
+                gradoAcademico: data.academicDegree || null,
+                RPE: extractRPE(data.email),
+                pass: generatePassword(data.firstName),
+                roles: rolesIds,
+                idSupervisor: data.supervisor || null
+            };
+    
+            console.log('Payload a enviar:', payload);
+    
+            const url = editingUser ? `${API_URL}/usuarios/${editingUser.id}` : `${API_URL}/usuarios`;
+            const method = editingUser ? "put" : "post";
+    
+            const response = await axios({
+                method,
+                url,
+                data: payload,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+    
+            return response.data;
+    
+        } catch (error) {
+            console.error('Error detallado:', {
+                status: error.response?.status,
+                data: error.response?.data,
+                config: error.config
+            });
+            throw new Error(error.response?.data?.message || 'Error al guardar usuario');
+        }
+    };
+    
+    const convertRolesToId = (roles) => {
+        if (!Array.isArray(roles)) return [];
+        
+        return roles.map(role => {
+            if (typeof role === 'object' && role !== null) {
+                return role.idTipoUsuario || role;
+            }
+            const roleObj = rolesList.find(r => r.nombreRol === role);
+            return roleObj ? roleObj.idTipoUsuario : null;
+        }).filter(id => id !== null);
+    };
+    
+    const handleConfirmEdit = async () => {
+        try {
+            await saveUser(formData);
+            setOpenConfirmEdit(false);
+            onClose();
+        } catch (error) {
+            console.error("Error al actualizar el usuario:", error);
+        }
+    };
+
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>{editingUser ? "Editar Usuario" : "Agregar Usuario"}</DialogTitle>
@@ -260,24 +328,19 @@ function UserForm({ open, onClose, editingUser }) {
                     </>
                 ) : (
                     <>
-                    <TextField
-                    label="Fecha y Hora de Expiración"
-                    name="expirationDateTime"
-                    type="datetime-local"
-                    value={formData.expirationDateTime}
-                    onChange={handleChange}
-                    fullWidth
-                    margin="dense"
-                    InputLabelProps={{ shrink: true }}
-                    />
-
-                    <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={generarToken}
-                    >
-                    Generar Token
-                    </Button>
+                        <TextField
+                            label="Fecha y Hora de Expiración"
+                            name="expirationDateTime"
+                            type="datetime-local"
+                            value={formData.expirationDateTime}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <Button variant="contained" color="primary" onClick={() => console.log("Generar Token")}>
+                            Generar Token
+                        </Button>
                     </>
                 )}
             </DialogContent>

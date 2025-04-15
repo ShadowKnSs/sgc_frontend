@@ -7,9 +7,6 @@ import ConfirmDelete from "../components/confirmDelete";
 import axios from "axios";
 
 const API_URL = 'http://127.0.0.1:8000/api';
-import ConfirmDelete from "../components/confirmDelete"; // Importa el diálogo de eliminación
-import ConfirmEdit from "../components/confirmEdit"; // Importa el diálogo de edición
-import TemporalUsersList from "../components/TemporalUsersList";
 
 function UserManagement() {
     const [users, setUsers] = useState([]);
@@ -135,20 +132,6 @@ function UserManagement() {
                             />
                         ))}
                     </Box>
-            <Box
-                display="grid"
-                gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-                gap={2}
-                justifyContent="center"
-            >
-                {users.map((user) => (
-                    <UserCard key={user.id} user={user} onEdit={() => handleEdit(user)} onDelete={() => handleDeleteClick(user)} />
-                ))}
-            </Box>
-            <div>
-            <h2>Usuarios Temporales</h2>
-            <TemporalUsersList />
-            </div>
 
                     <Fab
                         color="primary"
@@ -174,14 +157,6 @@ function UserManagement() {
                 entityType="usuario"
                 entityName={userToDelete?.firstName}
             />
-            <UserForm open={openForm} onClose={() => setOpenForm(false)} onSubmit={handleAddUser} editingUser={editingUser} />
-
-            {/* Diálogo de confirmación de eliminación */}
-            <ConfirmDelete open={openDelete} onClose={() => setOpenDelete(false)} entityType="usuario" entityName={userToDelete?.firstName} onConfirm={() => handleDelete(userToDelete?.id)} />
-            
-            {/* Diálogo de confirmación de edición */}
-            <ConfirmEdit open={openEdit} onClose={() => setOpenEdit(false)} entityType="usuario" entityName={userToEdit?.firstName} onConfirm={handleConfirmEdit} />
-                
         </Box>
     );
 }
