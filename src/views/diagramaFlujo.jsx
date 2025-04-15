@@ -3,7 +3,8 @@ import { Box, Button, Typography, Card, CardContent, IconButton } from "@mui/mat
 import { CloudUpload, Delete } from "@mui/icons-material";
 import axios from "axios";
 
-function DiagramaFlujo({ idProceso }) {
+function DiagramaFlujo({ idProceso, soloLectura }) {
+    
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [imageURL, setImageURL] = useState(null);
@@ -101,19 +102,21 @@ function DiagramaFlujo({ idProceso }) {
             )}
 
             {/* Selector de archivo */}
-            <Button
-                component="label"
-                variant="contained"
-                sx={{
-                    backgroundColor: "secondary.main",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "primary.main" },
-                }}
-                startIcon={<CloudUpload />}
-            >
-                Seleccionar Imagen
-                <input type="file" hidden accept="image/png, image/jpeg, image/jpg" onChange={handleImageChange} />
-            </Button>
+            {!soloLectura && (
+                <Button
+                    component="label"
+                    variant="contained"
+                    sx={{
+                        backgroundColor: "secondary.main",
+                        color: "#fff",
+                        "&:hover": { backgroundColor: "primary.main" },
+                    }}
+                    startIcon={<CloudUpload />}
+                >
+                    Seleccionar Imagen
+                    <input type="file" hidden accept="image/png, image/jpeg, image/jpg" onChange={handleImageChange} />
+                </Button>
+            )}
 
             {/* Botón para subir */}
             {image && (

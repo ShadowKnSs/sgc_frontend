@@ -1,3 +1,4 @@
+// 📁 src/views/ProcessStructure.jsx
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
@@ -13,17 +14,20 @@ import { useNavigate, useParams } from "react-router-dom";
 const ProcessStructure = () => {
   const navigate = useNavigate();
   const { idProceso } = useParams();
-  console.log("id del proceso", idProceso);
-
+  const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
+  const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
+  console.log("El rol desde Estructura de Procesos: ", rolActivo);
   const menuItems = [
     { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
-    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos`},
+    { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos` },
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
-    { icon: <DescriptionIcon />, title: "Generar informe de auditoría", path: `/informe-auditoria` },
-    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento`},
-    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores`},
+    { icon: <DescriptionIcon />, title: "Auditoría", path: `/informe-auditoria` },
+    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento` },
+    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores` },
   ];
+
+  const itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
 
   return (
     <Box
@@ -40,9 +44,10 @@ const ProcessStructure = () => {
         margin: "auto",
       }}
     >
-      {menuItems.slice(0, 4).map((item, index) => (
+      {itemsFiltrados.slice(0, 4).map((item, index) => (
         <MenuCard key={index} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} onClick={() => navigate(item.path)} />
       ))}
+
       <Box
         sx={{
           gridColumn: "span 4",
@@ -52,7 +57,7 @@ const ProcessStructure = () => {
           marginTop: -30,
         }}
       >
-        {menuItems.slice(4).map((item, index) => (
+        {itemsFiltrados.slice(4).map((item, index) => (
           <MenuCard key={index + 4} icon={item.icon} title={item.title} sx={{ textAlign: "center" }} onClick={() => navigate(item.path)} />
         ))}
       </Box>

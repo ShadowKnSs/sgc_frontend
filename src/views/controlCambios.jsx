@@ -1,16 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { IconButton } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
-import { useEffect } from "react";
-import {
-  Box, Fab, Card, CardContent, Typography, 
+import { IconButton, Box, Fab, Card, CardContent, Typography, 
   Table, TableBody, TableCell, TableContainer, TableRow, Paper,
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField
-} from "@mui/material";
-import { Add, Close } from "@mui/icons-material";
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
+import { Edit, Delete, Add } from "@mui/icons-material";
 
-const ControlCambios = () => {
+const ControlCambios = ({ soloLectura }) => {
+  
   const [openDialog, setOpenDialog] = useState(false);
   const [newRow, setNewRow] = useState({ seccion: "", edicion: "", version: "", fechaRevision: "", descripcion: "" });
   const [data, setData] = useState([]);
@@ -25,7 +21,6 @@ const ControlCambios = () => {
         console.error("Error al obtener los datos:", error);
       }
     };
-  
     fetchData();
   }, []);  
 
@@ -47,6 +42,7 @@ const ControlCambios = () => {
   };
 
   const handleAddRow = async () => {
+    if (soloLectura) return;
     if (validateFields()) {
       try {
         if (newRow.idCambio) {
@@ -57,9 +53,7 @@ const ControlCambios = () => {
             fechaRevision: newRow.fechaRevision,
             descripcion: newRow.descripcion
           });
-
           setData(data.map(item => (item.idCambio === newRow.idCambio ? newRow : item)));
-
         } else {
           const response = await axios.post("http://localhost:8000/api/controlcambios", {
             idProceso: 1,
@@ -83,10 +77,10 @@ const ControlCambios = () => {
     }
   };
 
-
   const handleEdit = (item) => {
+    if (soloLectura) return;
     setNewRow({ 
-      idCambio: item.idCambio,  // Asegura que el ID se mantenga
+      idCambio: item.idCambio,
       seccion: item.seccion,
       edicion: item.edicion,
       version: item.version,
@@ -94,13 +88,14 @@ const ControlCambios = () => {
       descripcion: item.descripcion
     });
     setOpenDialog(true);
-  };  
-  
+  };
+
   const handleDelete = async (id) => {
+    if (soloLectura) return;
     if (window.confirm("¿Seguro que deseas eliminar este registro?")) {
       try {
         await axios.delete(`http://localhost:8000/api/controlcambios/${id}`);
-        setData(data.filter((item) => item.idCambio !== id)); // Actualiza la lista eliminando el registro
+        setData(data.filter((item) => item.idCambio !== id));
       } catch (error) {
         console.error("Error al eliminar:", error);
       }
@@ -133,25 +128,16 @@ const ControlCambios = () => {
                   <TableCell align="center">{row.fechaRevision}</TableCell>
                   <TableCell align="center">{row.descripcion}</TableCell>
                   <TableCell align="center">
-                    <IconButton 
-                      onClick={() => handleEdit(row)}
-                      sx={{
-                        color: "#0056b3", // Azul
-                        "&:hover": { color: "#003f80" },
-                      }}
-                    >
-                      <Edit sx={{ fontSize: 24 }} />
-                    </IconButton>
-                    <IconButton 
-                      onClick={() => handleDelete(row.idCambio)}
-                      sx={{
-                        color: "#F9B800",
-                        "&:hover": { color: "#E0A500" },
-                        marginLeft: 1
-                      }}
-                    >
-                      <Delete sx={{ fontSize: 24 }} />
-                    </IconButton>
+                    {!soloLectura && (
+                      <>
+                        <IconButton onClick={() => handleEdit(row)} sx={{ color: "#0056b3", "&:hover": { color: "#003f80" } }}>
+                          <Edit sx={{ fontSize: 24 }} />
+                        </IconButton>
+                        <IconButton onClick={() => handleDelete(row.idCambio)} sx={{ color: "#F9B800", "&:hover": { color: "#E0A500" }, ml: 1 }}>
+                          <Delete sx={{ fontSize: 24 }} />
+                        </IconButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -161,80 +147,62 @@ const ControlCambios = () => {
         </CardContent>
       </Card>
 
-      <Box sx={{ position: "fixed", bottom: 16, right: 70, paddingRight: 0}}>
-          <Fab 
-              sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'primary.main' } }} 
-              onClick={() => setOpenDialog(true)}
-          >
-              <Add sx={{ color: 'white' }} />
+      {!soloLectura && (
+        <Box sx={{ position: "fixed", bottom: 16, right: 70, paddingRight: 0 }}>
+          <Fab sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'primary.main' } }} onClick={() => setOpenDialog(true)}>
+            <Add sx={{ color: 'white' }} />
           </Fab>
-      </Box>
+        </Box>
+      )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>Agregar nueva versión</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
+          {newRow.idCambio ? "Editar versión" : "Agregar nueva versión"}
+        </DialogTitle>
         <DialogContent>
           <TextField 
-            label="Sección"
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.seccion}
+            label="Sección" fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
+            value={newRow.seccion} disabled={soloLectura}
             onChange={(e) => setNewRow({ ...newRow, seccion: e.target.value })}
-            error={!!errors.seccion}
-            helperText={errors.seccion}
+            error={!!errors.seccion} helperText={errors.seccion}
           />
           <TextField 
-            label="Edición"
-            type="number"
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.edicion}
+            label="Edición" type="number" fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
+            value={newRow.edicion} disabled={soloLectura}
             onChange={(e) => setNewRow({ ...newRow, edicion: e.target.value })}
-            error={!!errors.edicion}
-            helperText={errors.edicion}
+            error={!!errors.edicion} helperText={errors.edicion}
             inputProps={{ min: 0 }}
           />
           <TextField 
-            label="Versión"
-            type="number"
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.version}
+            label="Versión" type="number" fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
+            value={newRow.version} disabled={soloLectura}
             onChange={(e) => setNewRow({ ...newRow, version: e.target.value })}
-            error={!!errors.version}
-            helperText={errors.version}
+            error={!!errors.version} helperText={errors.version}
             inputProps={{ min: 0 }}
           />
           <TextField 
-            label="Fecha de Revisión" 
-            type="datetime-local" 
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.fechaRevision}
+            label="Fecha de Revisión" type="datetime-local" InputLabelProps={{ shrink: true }}
+            fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
+            value={newRow.fechaRevision} disabled={soloLectura}
             onChange={(e) => setNewRow({ ...newRow, fechaRevision: e.target.value })}
-            error={!!errors.fechaRevision}
-            helperText={errors.fechaRevision}
+            error={!!errors.fechaRevision} helperText={errors.fechaRevision}
           />
           <TextField 
-            label="Descripción"
-            multiline
-            rows={3}
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.descripcion}
+            label="Descripción" multiline rows={3} fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
+            value={newRow.descripcion} disabled={soloLectura}
             onChange={(e) => setNewRow({ ...newRow, descripcion: e.target.value })}
-            error={!!errors.descripcion}
-            helperText={errors.descripcion}
+            error={!!errors.descripcion} helperText={errors.descripcion}
           />
         </DialogContent>
         <DialogActions sx={{ justifyContent: "space-between", p: 2 }}>
-          <Button onClick={() => setOpenDialog(false)} sx={{ bgcolor: "#D3D3D3", color: "black", '&:hover': { bgcolor: "#B0B0B0" } }}>CANCELAR</Button>
-          <Button onClick={handleAddRow} sx={{ bgcolor: "#F9B800", color: "black", '&:hover': { bgcolor: "#E0A500" } }}>GUARDAR</Button>
+          <Button onClick={() => setOpenDialog(false)} sx={{ bgcolor: "#D3D3D3", color: "black", '&:hover': { bgcolor: "#B0B0B0" } }}>
+            CANCELAR
+          </Button>
+          {!soloLectura && (
+            <Button onClick={handleAddRow} sx={{ bgcolor: "#F9B800", color: "black", '&:hover': { bgcolor: "#E0A500" } }}>
+              GUARDAR
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Box>

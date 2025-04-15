@@ -4,7 +4,7 @@ import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// Importar iconos de Material UI
+// Iconos
 import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
 import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
@@ -33,19 +33,41 @@ const Entity = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:8000/api/entidades")
-      .then((response) => {
-        console.log("Respuesta del backend:", response.data);
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
+   
+    if (!usuario || !rolActivo) {
+      console.error("No se encontró información del usuario o rol.");
+      return;
+    }
 
+    const permisos = rolActivo.permisos || [];
+    const puedeVerProcesos = permisos.some(
+      (permiso) => permiso.modulo === "Entidades" && 
+      ["Lectura", "Edición", "Administración"].includes(permiso.tipoAcceso)
+    );
+
+    if (!puedeVerProcesos) {
+      console.warn("🚫 Este rol no tiene acceso al módulo de Procesos.");
+      setLoading(false);
+      return;
+    }
+
+    axios
+      .post("http://127.0.0.1:8000/api/entidades-por-usuario", {
+        idUsuario: usuario.idUsuario,
+        rolActivo: rolActivo.nombreRol,
+      })
+      .then((response) => {
         const entidadesConIcono = response.data.entidades.map((entidad) => ({
           ...entidad,
-          icon: iconos[entidad.nombreEntidad] || <BookIcon />, // Icono predeterminado si no se encuentra
+          icon: iconos[entidad.nombreEntidad] || <BookIcon />,
         }));
-
         setEntidades(entidadesConIcono);
       })
-      .catch((error) => console.error("Error obteniendo entidades:", error))
+      .catch((error) =>
+        console.error("❌ Error al obtener entidades:", error)
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -70,10 +92,12 @@ const Entity = () => {
       ) : (
         entidades.map((entidad) => (
           <MenuCard
-            key={entidad.idEntidadDependecia}
+            key={entidad.idEntidadDependencia}
             icon={entidad.icon}
             title={entidad.nombreEntidad}
-            onClick={() => navigate(`/procesos/${entidad.idEntidadDependecia}`)}
+            onClick={() =>
+              navigate(`/procesos/${entidad.idEntidadDependencia}`)
+            }
           />
         ))
       )}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation} from "react-router-dom";
 
 import { Box, Container, Button } from "@mui/material";
 
@@ -10,6 +10,7 @@ import ControlDocuments from "../views/controlDocuments";
 import MapaProceso from "./processMap";
 import ControlCambios from "./controlCambios";
 import DiagramaFlujo from "./diagramaFlujo";
+import Permiso from "../hooks/userPermiso";
 
 const sections = [
   "Caratula",
@@ -21,11 +22,16 @@ const sections = [
 ];
 
 const ProcessView = () => {
+  const location = useLocation();
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const { soloLectura, puedeEditar } = Permiso("Manual Operativo"); 
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed, setIsFixed] = useState(false);
   const navbarRef = useRef(null);
   const { idProceso } = useParams(); 
+  
 
+  console.log("El rol desde ManualOperativo: ", rolActivo);
   useEffect(() => {
     const handleScroll = () => {
       setIsFixed(window.scrollY > 150);
@@ -36,21 +42,15 @@ const ProcessView = () => {
   }, []);
 
   const renderContent = () => {
+    const props = { idProceso, soloLectura, puedeEditar };
     switch (sections[selectedTab]) {
-      case "Caratula":
-        return <Caratula />;
-      case "Control de Cambios":
-        return <ControlCambios />;
-      case "Mapa de Proceso":
-        return <MapaProceso idProceso={idProceso}/>;
-      case "Diagrama de Flujo":
-        return <DiagramaFlujo idProceso={idProceso} />;
-      case "Plan de Control":
-        return <PlanControl idProceso={idProceso} />;
-      case "Control de documentos":
-        return <ControlDocuments />;
-      default:
-        return <h2>Seleccione una opción</h2>;
+      case "Caratula": return <Caratula {...props} />;
+      case "Control de Cambios": return <ControlCambios {...props} />;
+      case "Mapa de Proceso": return <MapaProceso {...props} />;
+      case "Diagrama de Flujo": return <DiagramaFlujo {...props} />;
+      case "Plan de Control": return <PlanControl {...props} />;
+      case "Control de documentos": return <ControlDocuments {...props} />;
+      default: return <h2>Seleccione una opción</h2>;
     }
   };
 

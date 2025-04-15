@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams} from "react-router-dom";
+import { useParams, useLocation} from "react-router-dom";
 import {
   AppBar,
   Tabs,
@@ -23,10 +23,16 @@ import axios from "axios";
 
 const FormularioAnalisis = () => {
   const { idRegistro } = useParams();
+  const location = useLocation();
+  const soloLectura = location.state?.soloLectura ?? true;
+  const puedeEditar = location.state?.puedeEditar ?? false;
+
+  
+
     console.log("AnalisisDatos - idRegistro recibido:", idRegistro);
    
   const [formData, setFormData] = useState({
-    entidad: "Empresa XYZ",
+    entidad: "Facultad",
     macroproceso: "Gestión de Calidad",
     proceso: "Evaluación de Desempeño",
     periodoEvaluacion: "2024 - Primer Trimestre",
@@ -485,6 +491,7 @@ const FormularioAnalisis = () => {
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "necesidad", e.target.value)
               }
+              disabled={soloLectura}
             />
           </Grid>
           <Grid item xs={6}>
@@ -497,9 +504,11 @@ const FormularioAnalisis = () => {
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "interpretacion", e.target.value)
               }
+              disabled={soloLectura}
             />
           </Grid>
         </Grid>
+        {!soloLectura && (
         <Button
           variant="contained"
           sx={{ mt: 2, backgroundColor: "#F9B800", color: "#000000" }}
@@ -507,6 +516,7 @@ const FormularioAnalisis = () => {
         >
           Guardar
         </Button>
+      )}
       </Box>
 
       {/* Notificación (Snackbar) */}

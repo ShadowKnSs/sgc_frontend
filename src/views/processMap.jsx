@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { 
-  Box, Fab, Stack, Card, CardContent, Typography, IconButton, 
-  Table, TableBody, TableCell, TableContainer, TableRow, Paper, 
-  Button, Dialog, DialogTitle, DialogContent, DialogActions, 
+import {
+  Box, Fab, Stack, Card, CardContent, Typography, IconButton,
+  Table, TableBody, TableCell, TableContainer, TableRow, Paper,
+  Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Grid
-} from "@mui/material";  
+} from "@mui/material";
 import { Add, Close, ExpandMore, ExpandLess, Edit, Delete } from "@mui/icons-material";
 
-function ProcessMapView({ idProceso }) {
-  // Estado local
+function ProcessMapView({ idProceso, soloLectura }) {
   const [users, setUsers] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
@@ -89,12 +88,12 @@ function ProcessMapView({ idProceso }) {
 
     // Obtener datos del mapa de procesos
     axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
-  .then((response) => {
-    if (response.data) {
-      setMapaProceso(response.data);
-    }
-  })
-  .catch((error) => console.error("Error al obtener datos del mapa de procesos:", error));
+      .then((response) => {
+        if (response.data) {
+          setMapaProceso(response.data);
+        }
+      })
+      .catch((error) => console.error("Error al obtener datos del mapa de procesos:", error));
 
 
     // Scroll
@@ -143,7 +142,7 @@ function ProcessMapView({ idProceso }) {
    * 5) Crear nuevo "indicador" (POST)
    */
   const handleAddUser = () => {
-    if (!validateFields()) return;
+    if (soloLectura || !validateFields()) return;
 
     // Asumimos que en IndMapaProceso se requiere idProceso:
     const payload = {
@@ -160,7 +159,7 @@ function ProcessMapView({ idProceso }) {
         // Si el back te regresa "indMapaProceso" y "indicador", 
         // ajusta la forma de agregar a tu lista local.
         // Supongamos que con response.data.indMapaProceso
-        const nuevo = response.data.indMapaProceso; 
+        const nuevo = response.data.indMapaProceso;
         setUsers((prev) => [...prev, nuevo]);
         setOpenForm(false);
         setNewUser({ descripcion: "", formula: "", periodo: "" });
@@ -174,7 +173,7 @@ function ProcessMapView({ idProceso }) {
    */
   const handleEditToggle = () => setEditMode(!editMode);
   const handleSaveChanges = () => {
-    if (!mapaProceso.idMapaProceso) {
+    if (!mapaProceso.idMapaProceso || soloLectura) {
       console.error("No hay un idMapaProceso para actualizar");
       return;
     }
@@ -236,7 +235,7 @@ function ProcessMapView({ idProceso }) {
 
   return (
     <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
-      
+
       {/* EJEMPLO: Sección con datos del Proceso */}
       <Box sx={{ mb: 4, p: 3, backgroundColor: "#ffffff", borderRadius: 2, boxShadow: 2 }}>
         <Typography variant="h6" fontWeight="bold" color="#003366" mb={2}>
@@ -254,13 +253,15 @@ function ProcessMapView({ idProceso }) {
       {/* EJEMPLO: Mapa de procesos (editMode) */}
       <Box sx={{ mb: 3, p: 3, backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 2, position: "relative" }}>
         <Box sx={{ position: "absolute", top: 12, right: 12 }}>
-          <Button 
-            startIcon={<Edit />} 
-            sx={{ color: "#0056b3", fontWeight: "bold" }} 
-            onClick={editMode ? handleSaveChanges : handleEditToggle}
-          >
-            {editMode ? "GUARDAR" : "EDITAR"}
-          </Button>
+          {!soloLectura && (
+            <Button
+              startIcon={<Edit />}
+              sx={{ color: "#0056b3", fontWeight: "bold" }}
+              onClick={editMode ? handleSaveChanges : handleEditToggle}
+            >
+              {editMode ? "GUARDAR" : "EDITAR"}
+            </Button>
+          )}
         </Box>
 
         <Typography variant="h6" fontWeight="bold" color="#004A98" mb={2}>
@@ -288,9 +289,9 @@ function ProcessMapView({ idProceso }) {
                   minRows={1}
                   maxRows={6}
                   value={mapaProceso[item.key] || ""}
-                  onChange={(e) => setMapaProceso({ 
-                    ...mapaProceso, 
-                    [item.key]: e.target.value 
+                  onChange={(e) => setMapaProceso({
+                    ...mapaProceso,
+                    [item.key]: e.target.value
                   })}
                 />
               ) : (
@@ -308,11 +309,11 @@ function ProcessMapView({ idProceso }) {
         <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
           <Stack spacing={2}>
             {activeCards.map((user) => (
-              <UserCard 
-                key={user.idIndicador} 
-                user={user} 
-                isActive 
-                onClose={handleCloseCard} 
+              <UserCard
+                key={user.idIndicador}
+                user={user}
+                isActive
+                onClose={handleCloseCard}
                 onDelete={handleDeleteUser}
                 onEdit={handleEditUser}
               />
@@ -338,39 +339,41 @@ function ProcessMapView({ idProceso }) {
         {users
           .filter((user) => !activeCards.some(u => u.idIndicador === user.idIndicador))
           .map((user) => (
-            <UserCard 
-              key={user.idIndicador} 
-              user={user} 
-              onSelect={handleSelectCard} 
+            <UserCard
+              key={user.idIndicador}
+              user={user}
+              onSelect={handleSelectCard}
               onDelete={handleDeleteUser}
               onEdit={handleEditUser}
-              isSmall={activeCards.length > 0} 
+              isSmall={activeCards.length > 0}
+              soloLectura={soloLectura}  // Añade esta línea
+
             />
           ))}
       </Box>
 
       {/* Botón flotante para desplegar/cerrar */}
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: "fixed",
           top: isFixed ? 5 : 202,
-          right: 30, 
+          right: 30,
           zIndex: 50,
-          paddingRight: 5, 
+          paddingRight: 5,
           transition: "top 0.1s ease-in-out"
         }}
       >
-        <Button 
-          variant="contained" 
-          sx={{ 
-            width: 140, 
-            height: 40, 
-            borderRadius: 2, 
-            backgroundColor: "secondary.main", 
-            color: "#fff", 
+        <Button
+          variant="contained"
+          sx={{
+            width: 140,
+            height: 40,
+            borderRadius: 2,
+            backgroundColor: "secondary.main",
+            color: "#fff",
             "&:hover": { backgroundColor: "primary.main" }
-          }} 
-          onClick={handleToggleAll} 
+          }}
+          onClick={handleToggleAll}
           startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
         >
           {allExpanded ? "Cerrar" : "Desplegar"}
@@ -379,19 +382,19 @@ function ProcessMapView({ idProceso }) {
 
       {/* Botón flotante para abrir formulario de crear */}
       <Box sx={{ position: "fixed", bottom: 16, right: 30, paddingRight: 5 }}>
-        <Fab 
-          color="primary" 
-          sx={{ 
-            width: 56, 
-            height: 56, 
-            borderRadius: "50%", 
-            backgroundColor: "secondary.main", 
-            "&:hover": { backgroundColor: "primary.main" } 
-          }} 
+      {!soloLectura && (<Fab
+          color="primary"
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            backgroundColor: "secondary.main",
+            "&:hover": { backgroundColor: "primary.main" }
+          }}
           onClick={() => setOpenForm(true)}
         >
           <Add />
-        </Fab>
+        </Fab> )}
       </Box>
 
       {/* Diálogo para crear nuevo indicador */}
@@ -528,7 +531,7 @@ function ProcessMapView({ idProceso }) {
 /**
  * Card para mostrar cada "indicador"
  */
-function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall }) {
+function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall, soloLectura }) {
   return (
     <Card
       sx={{
@@ -558,7 +561,7 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
             <Close />
           </IconButton>
 
-          {onEdit && (
+          {onEdit && !soloLectura &&(
             <IconButton
               onClick={() => onEdit(user)}
               sx={{ color: "blue", position: "absolute", top: "5px", right: "80px", zIndex: 10 }}
@@ -567,7 +570,7 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
             </IconButton>
           )}
 
-          {onDelete && (
+          {onDelete && !soloLectura &&(
             <IconButton
               onClick={() => onDelete(user.idIndicador)}
               sx={{ color: "red", position: "absolute", top: "5px", right: "40px", zIndex: 10 }}
@@ -583,20 +586,20 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
                 { title: "Fórmula", value: user.formula },
                 { title: "Periodo", value: user.periodoMed },
               ].map((field, index) => (
-                <TableContainer 
-                  key={index} 
-                  component={Paper} 
+                <TableContainer
+                  key={index}
+                  component={Paper}
                   sx={{ width: "28%", minWidth: "180px", boxShadow: 1 }}
                 >
                   <Table>
                     <TableBody>
                       <TableRow>
-                        <TableCell 
-                          sx={{ 
-                            fontWeight: "bold", 
-                            textAlign: "center", 
-                            backgroundColor: "#e0e0e0", 
-                            borderBottom: "2px solid #004A98" 
+                        <TableCell
+                          sx={{
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            backgroundColor: "#e0e0e0",
+                            borderBottom: "2px solid #004A98"
                           }}
                         >
                           {field.title}

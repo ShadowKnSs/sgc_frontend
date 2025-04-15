@@ -172,7 +172,7 @@ const ReportesAuditoria = () => {
                 }}
             />
 
-            {/* 🔎 Componente de búsqueda lateral */}
+            {/* 🔎 Componente de búsqueda lat */}
             <FiltroAuditoria
                 open={searchOpen}
                 onClose={() => setSearchOpen(false)}

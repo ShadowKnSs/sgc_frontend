@@ -26,7 +26,8 @@ import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 // --------------------------------------------------
 // 1) Componente principal
 // --------------------------------------------------
-function ProcessMapView({ idProceso }) {
+function ProcessMapView({ idProceso, soloLectura }) {
+  ;
   const [actividades, setActividades] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
@@ -59,7 +60,7 @@ function ProcessMapView({ idProceso }) {
     
     // Supongamos que tu backend soporta ?proceso=XX para filtrar
     axios
-      .get(`http://localhost:8000/api/actividadcontrol?proceso=${idProceso}`)
+      .get(`http://localhost:8000/api/actividadcontrol/${idProceso}`)
       .then((response) => {
         console.log("[LOG] Respuesta GET /actividadcontrol:", response.data);
         setActividades(response.data);
@@ -268,30 +269,31 @@ function ProcessMapView({ idProceso }) {
         </Button>
       </Box>
 
-      {/* Botón flotante para abrir el formulario */}
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 16,
-          right: 30,
-          paddingRight: 5,
-          paddingTop: 3
-        }}
-      >
-        <Fab
-          color="primary"
+      {!soloLectura && (
+        <Box
           sx={{
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
-            backgroundColor: "secondary.main",
-            "&:hover": { backgroundColor: "primary.main" }
+            position: "fixed",
+            bottom: 16,
+            right: 30,
+            paddingRight: 5,
+            paddingTop: 3
           }}
-          onClick={() => setOpenForm(true)}
         >
-          <Add />
-        </Fab>
-      </Box>
+          <Fab
+            color="primary"
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              backgroundColor: "secondary.main",
+              "&:hover": { backgroundColor: "primary.main" }
+            }}
+            onClick={() => setOpenForm(true)}
+          >
+            <Add />
+          </Fab>
+        </Box>
+      )}
 
       {/* Diálogo para crear nueva actividad */}
       <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>

@@ -24,7 +24,6 @@ const ProcessView = () => {
       case "Plan de Acción Correctivo":
         return <PlanCorrectivoContainer idRegistro={idRegistro}/>;
       case "Plan de Trabajo":
-        // Se pasa idRegistro como prop a PlanTrabajo
         return (
           <Box>
             <PlanTrabajo idRegistro={idRegistro} />

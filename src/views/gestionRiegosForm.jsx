@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   AppBar,
   Tabs,
@@ -28,6 +28,11 @@ const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE
 function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
   const { idRegistro } = useParams();
+  const location = useLocation();
+  const soloLectura = location.state?.soloLectura ?? true;
+  const puedeEditar = location.state?.puedeEditar ?? false;
+
+  const [modoEdicion, setModoEdicion] = useState(false);
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
   const [gestionRiesgo, setGestionRiesgo] = useState({
@@ -610,49 +615,26 @@ function FormularioGestionRiesgos() {
           Información General
         </Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          {/* Entidad, macroproceso y proceso (solo lectura si deseas) */}
-          <TextField
-            label="Entidad"
-            value={gestionRiesgo.entidad}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, entidad: e.target.value })}
-            fullWidth
-            disabled
-          />
-          <TextField
-            label="Macroproceso"
-            value={gestionRiesgo.macroproceso}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, macroproceso: e.target.value })}
-            fullWidth
-            disabled
-          />
-          <TextField
-            label="Proceso"
-            value={gestionRiesgo.proceso}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, proceso: e.target.value })}
-            fullWidth
-            disabled
-          />
-          {/* elaboro y fechaelaboracion (el usuario los edita) */}
-          <TextField
-            label="Elaboró"
-            value={gestionRiesgo.elaboro}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Fecha"
-            type="date"
-            value={gestionRiesgo.fechaelaboracion}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, fechaelaboracion: e.target.value })}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
+          <TextField label="Entidad" value={gestionRiesgo.entidad} fullWidth disabled />
+          <TextField label="Macroproceso" value={gestionRiesgo.macroproceso} fullWidth disabled />
+          <TextField label="Proceso" value={gestionRiesgo.proceso} fullWidth disabled />
+          <TextField label="Elaboró" value={gestionRiesgo.elaboro} onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })} fullWidth disabled={!modoEdicion} />
+          <TextField label="Fecha" type="date" value={gestionRiesgo.fechaelaboracion} onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, fechaelaboracion: e.target.value })} fullWidth disabled={!modoEdicion} InputLabelProps={{ shrink: true }} />
         </Box>
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-          <Button variant="contained" onClick={handleGuardarGestionRiesgos}>
-            Guardar Datos Generales
-          </Button>
-        </Box>
+
+        {puedeEditar && (
+          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+            {!tieneGesRies ? (
+              <Button variant="contained" onClick={handleGuardarGestionRiesgos}>Guardar Datos Generales</Button>
+            ) : (
+              !modoEdicion ? (
+                <Button variant="outlined" onClick={() => setModoEdicion(true)}>Editar</Button>
+              ) : (
+                <Button variant="contained" onClick={handleGuardarGestionRiesgos} sx={{ backgroundColor: "#F9B800", color: "#000" }}>Guardar</Button>
+              )
+            )}
+          </Box>
+        )}
       </Paper>
 
       {/* === Tabs para los riesgos (solo si ya existe idGesRies) === */}
@@ -731,23 +713,12 @@ function FormularioGestionRiesgos() {
                         {value}
                       </TableCell>
                     ))}
-                    <TableCell align="center">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleEditRiesgo(riesgos[index])}
-                        sx={{ mr: 1 }}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() => handleDeleteRiesgo(riesgos[index])}
-                      >
-                        Eliminar
-                      </Button>
-                    </TableCell>
+                    {!soloLectura && (
+                      <TableCell align="center">
+                        <Button variant="contained" color="primary" onClick={() => handleEditRiesgo(riesgos[index])} sx={{ mr: 1 }}>Editar</Button>
+                        <Button variant="contained" color="error" onClick={() => handleDeleteRiesgo(riesgos[index])}>Eliminar</Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -756,49 +727,51 @@ function FormularioGestionRiesgos() {
           </TableContainer>
 
           {/* Botón para abrir el modal y agregar un riesgo nuevo */}
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-            <Button
-              variant="contained"
-              onClick={() => {
-                setOpenModal(true);
-                setIsEditing(false);
-                setEditingRiesgo(null);
-                setNuevoRiesgo({
-                  idRiesgo: null,
-                  responsable: "",
-                  fuente: "",
-                  tipoRiesgo: "",
-                  descripcion: "",
-                  consecuencias: "",
-                  valorSeveridad: "",
-                  valorOcurrencia: "",
-                  valorNRP: "",
-                  actividades: "",
-                  accionMejora: "",
-                  fechaImp: "",
-                  fechaEva: "",
-                  reevaluacionSeveridad: "",
-                  reevaluacionOcurencia: "",
-                  reevaluacionNRP: "",
-                  reevaluacionEfectividad: "",
-                  analisisEfectividad: "",
-                });
-              }}
-              sx={{
-                width: 50,
-                height: 50,
-                borderRadius: "50%",
-                fontSize: 30,
-                minWidth: "auto",
-                backgroundColor: "#00B2E3",
-                "&:hover": {
-                  backgroundColor: "#0099C3",
-                },
-              }}
-            >
-              +
-            </Button>
-          </Box>
+          {!soloLectura && (
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setOpenModal(true);
+                  setIsEditing(false);
+                  setEditingRiesgo(null);
+                  setNuevoRiesgo({
+                    idRiesgo: null,
+                    responsable: "",
+                    fuente: "",
+                    tipoRiesgo: "",
+                    descripcion: "",
+                    consecuencias: "",
+                    valorSeveridad: "",
+                    valorOcurrencia: "",
+                    valorNRP: "",
+                    actividades: "",
+                    accionMejora: "",
+                    fechaImp: "",
+                    fechaEva: "",
+                    reevaluacionSeveridad: "",
+                    reevaluacionOcurencia: "",
+                    reevaluacionNRP: "",
+                    reevaluacionEfectividad: "",
+                    analisisEfectividad: "",
+                  });
+                }}
+                sx={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: "50%",
+                  fontSize: 30,
+                  minWidth: "auto",
+                  backgroundColor: "#00B2E3",
+                  "&:hover": {
+                    backgroundColor: "#0099C3",
+                  },
+                }}
+              >
+                +
+              </Button>
+            </Box>
+          )}
         </>
       )}
 

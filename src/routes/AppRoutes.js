@@ -39,6 +39,14 @@ import ListaReportesProceso from "../views/listReportesProceso";
 import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
 import GestionEntidades from "../views/gestionEntidades";
+import BuscaSupervisor from "../views/buscaSupervisor";
+
+//Pruebas
+import ModalError from "../components/Modals/ErrorInicioSesion";
+import Auditores from "../views/auditores";
+
+import Login from "../views/login";
+import SeleccionarRol from "../views/seleccionarRol";
 
 
 const AppRoutes = () => {
@@ -100,10 +108,15 @@ const AppRoutes = () => {
           <Route path="formatos" element={<Formatos />} />
           <Route path="buscar" element={<BuscaReportes />} />
           <Route path="gestion-entidades" element={<GestionEntidades />} />
+          <Route path="login" element={<Login/>} />
 
+          <Route path="busca_supervisor" element={<BuscaSupervisor />} />
 
+          <Route path="error-modal" element={<ModalError/>} />
+          <Route path="auditores" element={<Auditores/>} />
+
+          <Route path="seleccionarRol" element={<SeleccionarRol/>} />
           
-
         </Route>
       </Routes>
     </BrowserRouter>
