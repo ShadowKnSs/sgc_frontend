@@ -38,6 +38,7 @@ import ReporteProcesoPreview from "../views/reporteProceso";
 import ListaReportesProceso from "../views/listReportesProceso";
 import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
+import GestionEntidades from "../views/gestionEntidades";
 
 
 const AppRoutes = () => {
@@ -98,6 +99,7 @@ const AppRoutes = () => {
 
           <Route path="formatos" element={<Formatos />} />
           <Route path="buscar" element={<BuscaReportes />} />
+          <Route path="gestion-entidades" element={<GestionEntidades />} />
 
 
           
