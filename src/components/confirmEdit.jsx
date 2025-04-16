@@ -1,49 +1,55 @@
 import React from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
+import { Dialog, DialogActions, DialogContent } from '@mui/material';
+import DialogTitleCustom from './TitleDialog';
+import CustomButton from './Button';
 
-const ConfirmEdit = ({ open, onClose, entityType, entityName, onConfirm }) => {
-
+const getEditMessage = (type, name) => {
+    switch (type) {
+      case "usuario":
+        return `¿Estás seguro de que deseas editar al usuario "${name}"?`;
+      case "proceso":
+        return `¿Estás seguro de que deseas editar el proceso "${name}"?`;
+      case "minuta":
+        return `¿Estás seguro de que deseas editar la minuta "${name}"?`;
+      case "reporte":
+        return `¿Deseas editar el reporte "${name}"?`;
+      default:
+        return `¿Estás seguro de que deseas editar "${name}"?`;
+    }
+  };
+  
+  const ConfirmEdit = ({ open, onClose, entityType, entityName, onConfirm }) => {
     return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogTitle sx={{ backgroundColor: '#004A98', color: '#FFFFFF' }}>
-                Confirmación de Edición
-            </DialogTitle>
-            <DialogContent sx={{ backgroundColor: '#F9F8F8', color: '#000000' }}>
-                <p>
-                    ¿Estás seguro de que deseas editar <strong>{entityType}</strong> "{entityName}"?
-                </p>
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    sx={{
-                        backgroundColor: '#00B2E3',
-                        color: '#FFFFFF',
-                        '&:hover': {
-                            backgroundColor: '#0091B7',
-                        },
-                    }}
-                    onClick={onClose}
-                >
-                    Cancelar
-                </Button>
-                <Button
-                    sx={{
-                        backgroundColor: '#F9B800',
-                        color: '#FFFFFF',
-                        '&:hover': {
-                            backgroundColor: '#F7A700',
-                        },
-                    }}
-                    onClick={() => {
-                        onConfirm();
-                        onClose();
-                    }}
-                >
-                    Editar
-                </Button>
-            </DialogActions>
-        </Dialog>
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitleCustom text="Confirmar Edición" />
+  
+        <DialogContent
+          sx={{
+            backgroundColor: "#DFECDF",
+            color: "#0D1321",
+            fontSize: "16px",
+            paddingY: 2,
+          }}
+        >
+          {getEditMessage(entityType, entityName)}
+        </DialogContent>
+  
+        <DialogActions
+          sx={{ backgroundColor: "#E3EBDA", padding: "16px", gap: 1 }}
+        >
+          <CustomButton type = "Cancelar"onClick={onClose}>Cancelar</CustomButton>
+          <CustomButton 
+            type="Aceptar"
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+          >
+            Editar
+          </CustomButton>
+        </DialogActions>
+      </Dialog>
     );
-};
-
-export default ConfirmEdit;
+  };
+  
+  export default ConfirmEdit;
