@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { TextField, Button, Box, IconButton, Typography, Stepper, Step, StepLabel, Snackbar, Alert } from "@mui/material";
 import { Remove } from "@mui/icons-material";
 import axios from "axios";
+import CustomButton from "../components/Button";
 
 const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
   const [step, setStep] = useState(1);
@@ -24,16 +25,16 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
       setCompromisos(initialData.compromisos || [{ descripcion: "", responsables: "", fecha: "" }]);
     }
   }, [initialData]);
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-  
+
     const isEditing = !!initialData; // Determina si es edición o creación
-  
+
     let data;
-  
+
     if (isEditing) {
       // Datos para cuando está en modo edición
       data = {
@@ -89,9 +90,9 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
           }))
       };
     }
-  
+
     console.log("Enviando datos:", data);
-  
+
     try {
       let response;
       if (isEditing) {
@@ -100,7 +101,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
           headers: { "Content-Type": "application/json" },
         });
         alert("Minuta actualizada exitosamente");
-       
+
       } else {
         // Si está en modo creación, hacer un POST con el formato de la base de datos
         response = await axios.post("http://localhost:8000/api/minutasAdd", data, {
@@ -117,7 +118,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Box component="form" sx={{ padding: 4, maxWidth: 600, margin: "auto", backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 3 }}>
       <Typography variant="h4" textAlign="center" color="#004A98" mb={2}>Registro de Minuta</Typography>
@@ -128,10 +129,10 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
           </Step>
         ))}
       </Stepper>
-  
+
       <Box mt={4}>
         <Typography variant="h6" color="#004A98" mb={2}>{steps[step - 1]}</Typography>
-        
+
         {step === 1 && (
           <>
             <TextField
@@ -165,7 +166,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
             />
           </>
         )}
-  
+
         {step === 2 && (
           <>
             {asistentes.map((asistente, index) => (
@@ -188,7 +189,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
             <Button onClick={() => setAsistentes([...asistentes, ""])} variant="outlined" color="primary">Agregar asistente</Button>
           </>
         )}
-  
+
         {step === 3 && (
           <>
             {actividades.map((actividad, index) => (
@@ -211,7 +212,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
             <Button onClick={() => setActividades([...actividades, ""])} variant="outlined" color="primary">Agregar actividad</Button>
           </>
         )}
-  
+
         {step === 4 && (
           <>
             {compromisos.map((compromiso, index) => (
@@ -257,14 +258,14 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
           </>
         )}
       </Box>
-  
+
       <Box display="flex" justifyContent="space-between" mt={4}>
         {step > 1 && <Button onClick={() => setStep(step - 1)} variant="contained" color="secondary">Atrás</Button>}
         {step < 4 ? (
-          <Button 
-            onClick={() => setStep(step + 1)} 
-            variant="contained" 
-            color="primary" 
+          <Button
+            onClick={() => setStep(step + 1)}
+            variant="contained"
+            color="primary"
             disabled={
               step === 1 && (!lugar || !fecha || !duracion || !/^\d+$/.test(duracion)) || // Validación de duración (solo números enteros)
               step === 2 && (asistentes.length === 0 || asistentes.some(asistente => !asistente)) || // Validación de asistentes
@@ -275,13 +276,17 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
             Siguiente
           </Button>
         ) : (
-          <Button onClick={handleSubmit} variant="contained" style={{ backgroundColor: "#004A98" }} disabled={isSubmitting}>
-            {initialData ? "Actualizar Minuta" : "Guardar Minuta"}
-          </Button>
+          <CustomButton
+            type="Guardar"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {initialData ? "Actualizar Minuta" : "Guardar"}
+          </CustomButton>
         )}
       </Box>
     </Box>
-  );  
+  );
 }
 export default FormularioSeguimiento;
 

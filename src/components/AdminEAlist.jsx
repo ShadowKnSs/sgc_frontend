@@ -20,6 +20,7 @@ import AdminEAModal from './Modals/AdminEAModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import ConfirmEditDialog from '../components/ConfirmEditDialog';
 import NewEAButton from "../components/NewCardButtom";
+import ConfirmDelete from './confirmDelete';
 
 function formatDate(dateString) {
   if (!dateString) return '';
@@ -268,6 +269,7 @@ const AdminEAList = ({ tipo }) => {
         onConfirm={handleConfirmDelete}
         itemName={`${tipo} #${deleteItem ? deleteItem.idEventosAvisos : ''}`}
       />
+      
 
       {/* Confirmar Edición */}
       <ConfirmEditDialog

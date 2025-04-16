@@ -11,22 +11,20 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
-const Subtitle = ({ text, align = "left", withBackground = false }) => (
+const DialogTitleCustom = ({ text }) => (
   <Box
     sx={{
-      backgroundColor: withBackground ? colorPalette.verdePastel : "transparent",
-      px: 2,
-      py: withBackground ? 1 : 0,
-      borderRadius: "8px",
-      mb: 2,
+      padding: "16px 24px",
+      borderBottom: `2px solid ${colorPalette.azulClaro}`,
+      backgroundColor: "#fff",
     }}
   >
     <Typography
       variant="h6"
       sx={{
-        color: colorPalette.grisOscuro,
-        fontWeight: 500,
-        textAlign: align,
+        color: colorPalette.azulOscuro,
+        fontWeight: 600,
+        textAlign: "left",
       }}
     >
       {text}
@@ -34,4 +32,4 @@ const Subtitle = ({ text, align = "left", withBackground = false }) => (
   </Box>
 );
 
-export default Subtitle;
+export default DialogTitleCustom;
