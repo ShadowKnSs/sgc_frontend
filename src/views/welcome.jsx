@@ -11,6 +11,7 @@ import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { useNavigate } from "react-router-dom";
 
 const Welcome = () => {
@@ -19,7 +20,7 @@ const Welcome = () => {
   // Definir un rol por defecto en caso de que no se encuentre en localStorage
   const defaultRol = {
     nombreRol: "Invitado",
-    permisos: ["Manual del Sitio", "Noticias"]
+    permisos: ["Manual de Calidad", "Noticias"]
   };
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || JSON.stringify(defaultRol));
   
@@ -50,6 +51,8 @@ const Welcome = () => {
     { icon: <AssuredWorkloadOutlinedIcon />, title: "Entidades", path: "/entidades" },
     { icon: <SummarizeOutlinedIcon />, title: "Reportes", path: "/typesReports" },
     { icon: <DocumentScannerIcon />, title: "Formatos", path: "/formatos" },
+    { icon: <PersonSearchIcon />, title: "Supervisor", path: "/busca_supervisor" },
+    { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
   ];
 
   // Filtra los ítems según los permisos del usuario

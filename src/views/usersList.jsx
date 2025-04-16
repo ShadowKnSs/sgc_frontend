@@ -4,186 +4,177 @@ import { Add } from "@mui/icons-material";
 import UserCard from "../components/userCard";
 import UserForm from "../components/userForms";
 import ConfirmDelete from "../components/confirmDelete";
+import TemporalUsersList from "../components/TemporalUsersList";
 import axios from "axios";
 
 const API_URL = 'http://127.0.0.1:8000/api';
-import ConfirmDelete from "../components/confirmDelete"; // Importa el diálogo de eliminación
-import ConfirmEdit from "../components/confirmEdit"; // Importa el diálogo de edición
-import TemporalUsersList from "../components/TemporalUsersList";
 
 function UserManagement() {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [openForm, setOpenForm] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
-    const [openDelete, setOpenDelete] = useState(false);
-    const [userToDelete, setUserToDelete] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openForm, setOpenForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
-    const fetchUsers = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`${API_URL}/usuarios`);
-            setUsers(response.data.data.map(transformUserData));
-            setError(null);
-        } catch (err) {
-            setError("Error al cargar los usuarios");
-            setUsers([]);
-        } finally {
-            setLoading(false);
-        }
+  // Función que transforma los datos de usuario según lo requerido
+  const transformUserData = (user) => {
+    if (!user) return {};
+    return {
+      id: user.idUsuario,
+      firstName: user.nombre,
+      lastName: user.apellidoPat,
+      secondLastName: user.apellidoMat,
+      email: user.correo,
+      phone: user.telefono,
+      academicDegree: user.gradoAcademico,
+      roles: [user.tipo_usuario?.nombreRol],
+      supervisor: user.supervisor ? {
+        id: user.supervisor.idUsuario,
+        firstName: user.supervisor.nombre,
+        lastName: user.supervisor.apellidoPat,
+        secondLastName: user.supervisor.apellidoMat
+      } : null
     };
-
-    const transformUserData = (user) => {
-        return {
-            id: user.idUsuario,
-            firstName: user.nombre,
-            lastName: user.apellidoPat,
-            secondLastName: user.apellidoMat,
-            email: user.correo,
-            phone: user.telefono,
-            academicDegree: user.gradoAcademico,
-            roles: [user.tipo_usuario?.nombreRol],
-            supervisor: user.supervisor ? {
-                id: user.supervisor.idUsuario,
-                firstName: user.supervisor.nombre,
-                lastName: user.supervisor.apellidoPat,
-                secondLastName: user.supervisor.apellidoMat
-            } : null
-        };
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const handleAddUser = async (newUser) => {
-        try {
-            let response;
-            if (editingUser) {
-                response = await axios.put(`${API_URL}/usuarios/${editingUser.id}`, {
-                    ...newUser,
-                    id: editingUser.id
-                });
-                
-                setUsers(prevUsers => 
-                    prevUsers.map(user => 
-                        user.id === editingUser.id ? transformUserData(response.data.data) : user
-                    )
-                );
-            } else {
-                response = await axios.post(`${API_URL}/usuarios`, newUser);
-                setUsers(prevUsers => [...prevUsers, transformUserData(response.data.data)]);
-            }
-            
-            setError(null);
-        } catch (err) {
-            console.error("Error al guardar usuario:", err);
-            setError(err.response?.data?.message || "Error al guardar el usuario");
-        }
+  };
+  
+  // Obtiene la lista de usuarios
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}/usuarios`);
+      setUsers(response.data.data.map(transformUserData));
+      setError(null);
+    } catch (err) {
+      setError("Error al cargar los usuarios");
+      setUsers([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`${API_URL}/usuarios/${id}`);
-            setUsers(users.filter(user => user.id !== id));
-            setOpenDelete(false);
-        } catch (err) {
-            setError("Error al eliminar el usuario");
-        }
-    };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-    const handleAddNewUser = () => {
-        setEditingUser(null);
-        setOpenForm(true);
-    };
+  // Maneja la adición o edición de usuario
+  const handleAddUser = async (newUser) => {
+    try {
+      let response;
+      if (editingUser) {
+        response = await axios.put(`${API_URL}/usuarios/${editingUser.id}`, {
+          ...newUser,
+          id: editingUser.id
+        });
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user.id === editingUser.id
+              ? transformUserData(response.data.data)
+              : user
+          )
+        );
+      } else {
+        response = await axios.post(`${API_URL}/usuarios`, newUser);
+        setUsers(prevUsers => [...prevUsers, transformUserData(response.data.data)]);
+      }
+      setError(null);
+      setOpenForm(false);
+      setEditingUser(null);
+    } catch (err) {
+      console.error("Error al guardar usuario:", err);
+      setError(err.response?.data?.message || "Error al guardar el usuario");
+    }
+  };
 
-    const handleEdit = (user) => {
-        setEditingUser(user);
-        setOpenForm(true);
-    };
+  // Maneja la eliminación de un usuario
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/usuarios/${id}`);
+      setUsers(users.filter(user => user.id !== id));
+      setOpenDelete(false);
+    } catch (err) {
+      setError("Error al eliminar el usuario");
+    }
+  };
 
-    const handleFormClose = () => {
-        setOpenForm(false);
-        setEditingUser(null);
-        fetchUsers();
-    };
+  // Abre el formulario para agregar un nuevo usuario
+  const handleAddNewUser = () => {
+    setEditingUser(null);
+    setOpenForm(true);
+  };
 
-    return (
-        <Box sx={{ p: 4, textAlign: "center" }}>
-            {loading ? (
-                <CircularProgress />
-            ) : error ? (
-                <Alert severity="error">{error}</Alert>
-            ) : (
-                <>
-                    <Box
-                        display="grid"
-                        gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-                        gap={2}
-                        justifyContent="center"
-                    >
-                        {users.map(user => (
-                            <UserCard 
-                                key={user.id} 
-                                user={user} 
-                                onEdit={() => handleEdit(user)}
-                                onDelete={() => {
-                                    setUserToDelete(user);
-                                    setOpenDelete(true);
-                                }} 
-                            />
-                        ))}
-                    </Box>
-            <Box
-                display="grid"
-                gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-                gap={2}
-                justifyContent="center"
-            >
-                {users.map((user) => (
-                    <UserCard key={user.id} user={user} onEdit={() => handleEdit(user)} onDelete={() => handleDeleteClick(user)} />
-                ))}
-            </Box>
-            <div>
+  // Abre el formulario para editar un usuario
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setOpenForm(true);
+  };
+
+  // Cierra el formulario y refresca la lista de usuarios
+  const handleFormClose = () => {
+    setOpenForm(false);
+    setEditingUser(null);
+    fetchUsers();
+  };
+
+  return (
+    <Box sx={{ p: 4, textAlign: "center" }}>
+      {loading ? (
+        <CircularProgress />
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : (
+        <>
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+            gap={2}
+            justifyContent="center"
+          >
+            {users.map(user => (
+              <UserCard
+                key={user.id}
+                user={user}
+                onEdit={() => handleEdit(user)}
+                onDelete={() => {
+                  setUserToDelete(user);
+                  setOpenDelete(true);
+                }}
+              />
+            ))}
+          </Box>
+
+          <Box mt={4}>
             <h2>Usuarios Temporales</h2>
             <TemporalUsersList />
-            </div>
+          </Box>
 
-                    <Fab
-                        color="primary"
-                        sx={{ position: "fixed", bottom: 16, right: 16 }}
-                        onClick={handleAddNewUser}
-                    >
-                        <Add />
-                    </Fab>
-                </>
-            )}
+          <Fab
+            color="primary"
+            sx={{ position: "fixed", bottom: 16, right: 16 }}
+            onClick={handleAddNewUser}
+          >
+            <Add />
+          </Fab>
+        </>
+      )}
 
-            <UserForm 
-                open={openForm} 
-                onClose={handleFormClose} 
-                onSubmit={handleAddUser} 
-                editingUser={editingUser}
-            />
+      <UserForm
+        open={openForm}
+        onClose={handleFormClose}
+        onSubmit={handleAddUser}
+        editingUser={editingUser}
+      />
 
-            <ConfirmDelete
-                open={openDelete}
-                onClose={() => setOpenDelete(false)}
-                onConfirm={() => handleDelete(userToDelete?.id)}
-                entityType="usuario"
-                entityName={userToDelete?.firstName}
-            />
-            <UserForm open={openForm} onClose={() => setOpenForm(false)} onSubmit={handleAddUser} editingUser={editingUser} />
-
-            {/* Diálogo de confirmación de eliminación */}
-            <ConfirmDelete open={openDelete} onClose={() => setOpenDelete(false)} entityType="usuario" entityName={userToDelete?.firstName} onConfirm={() => handleDelete(userToDelete?.id)} />
-            
-            {/* Diálogo de confirmación de edición */}
-            <ConfirmEdit open={openEdit} onClose={() => setOpenEdit(false)} entityType="usuario" entityName={userToEdit?.firstName} onConfirm={handleConfirmEdit} />
-                
-        </Box>
-    );
+      <ConfirmDelete
+        open={openDelete}
+        onClose={() => setOpenDelete(false)}
+        onConfirm={() => handleDelete(userToDelete?.id)}
+        entityType="usuario"
+        entityName={userToDelete?.firstName}
+      />
+    </Box>
+  );
 }
 
 export default UserManagement;
