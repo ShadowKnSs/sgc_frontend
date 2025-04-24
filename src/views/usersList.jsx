@@ -117,32 +117,6 @@ function UserManagement() {
     fetchUsers();
   };
 
-    return (
-        <Box sx={{ p: 4, textAlign: "center" }}>
-            {loading ? (
-                <CircularProgress />
-            ) : error ? (
-                <Alert severity="error">{error}</Alert>
-            ) : (
-                <>
-                    <Box
-                        display="grid"
-                        gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-                        gap={2}
-                        justifyContent="center"
-                    >
-                        {users.map(user => (
-                            <UserCard 
-                                key={user.id} 
-                                user={user} 
-                                onEdit={() => handleEdit(user)}
-                                onDelete={() => {
-                                    setUserToDelete(user);
-                                    setOpenDelete(true);
-                                }} 
-                            />
-                        ))}
-                    </Box>
   return (
     <Box sx={{ p: 4, textAlign: "center" }}>
       {loading ? (
@@ -192,15 +166,6 @@ function UserManagement() {
         editingUser={editingUser}
       />
 
-            <ConfirmDelete
-                open={openDelete}
-                onClose={() => setOpenDelete(false)}
-                onConfirm={() => handleDelete(userToDelete?.id)}
-                entityType="usuario"
-                entityName={userToDelete?.firstName}
-            />
-        </Box>
-    );
       <ConfirmDelete
         open={openDelete}
         onClose={() => setOpenDelete(false)}

@@ -37,7 +37,9 @@ const ProcessInEntity = () => {
     }, [idEntidad]);
 
     return (
+        
         <Box sx={{ textAlign: "center", padding: "20px" }}>
+            
             {/* Título mejorado con el componente Title */}
             <Title text={`Procesos de ${nombreEntidad}`} />
 

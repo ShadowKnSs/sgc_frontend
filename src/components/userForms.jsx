@@ -149,18 +149,21 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
     };
 
     const handleSubmit = async () => {
-        if (!validateForm()) return;
-    
-        try {
-            if (editingUser) {
-                setOpenConfirmEdit(true);
-            } else {
-                await saveUser(formData);
-                onClose();
-            }
-        } catch (error) {
-            console.error("Error al guardar el usuario:", error);
+      if (!validateForm()) return;
+      
+      try {
+        const datosAPI = transformUserDataForAPI(formData);
+        
+        if (editingUser) {
+          setOpenConfirmEdit(true);
+        } else {
+          await saveUser(datosAPI);
+          onSubmit(datosAPI);
+          onClose();
         }
+      } catch (error) {
+        console.error("Error al guardar el usuario:", error);
+      }
     };
 
     const saveUser = async (data) => {
@@ -220,13 +223,36 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
     };
     
     const handleConfirmEdit = async () => {
-        try {
-            await saveUser(formData);
-            setOpenConfirmEdit(false);
-            onClose();
-        } catch (error) {
-            console.error("Error al actualizar el usuario:", error);
+      try {
+        const datosAPI = transformUserDataForAPI(formData);
+        await saveUser(datosAPI);
+        onSubmit(datosAPI);
+        setOpenConfirmEdit(false);
+        onClose();
+      } catch (error) {
+        console.error("Error al actualizar el usuario:", error);
+      }
+    };
+
+    const generarToken = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/generar-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            expirationDateTime: formData.expirationDateTime,
+          }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert(`Token generado: ${data.token}\nExpira: ${data.expiracion}`);
+        } else {
+          alert("Error al generar el token: " + data.message);
         }
+      } catch (error) {
+        console.error("Error al generar el token:", error);
+        alert("Fallo en la comunicación con el backend");
+      }
     };
 
     return (
@@ -395,210 +421,6 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
             />
         </Dialog>
     );
-  const handleSubmit = () => {
-    const datosAPI = transformUserDataForAPI(formData);
-    console.log("Datos enviados a la API:", datosAPI);
-    if (editingUser) {
-      setOpenConfirmEdit(true); // Mostrar confirmación antes de actualizar
-    } else {
-      onSubmit(datosAPI);
-    }
-  };
-  
-  const handleConfirmEdit = () => {
-    const datosAPI = transformUserDataForAPI(formData);
-    console.log("Datos enviados a la API (editar):", datosAPI);
-    onSubmit(datosAPI);
-    setOpenConfirmEdit(false);
-  };
-  
-
-  const generarToken = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/generar-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          expirationDateTime: formData.expirationDateTime,
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert(`Token generado: ${data.token}\nExpira: ${data.expiracion}`);
-      } else {
-        alert("Error al generar el token: " + data.message);
-      }
-    } catch (error) {
-      console.error("Error al generar el token:", error);
-      alert("Fallo en la comunicación con el backend");
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{editingUser ? "Editar Usuario" : "Agregar Usuario"}</DialogTitle>
-      <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
-        <Tab label="Usuario Normal" />
-        <Tab label="Temporal" />
-      </Tabs>
-      <DialogContent>
-        {tab === 0 ? (
-          <>
-            <TextField
-              label="Nombre(s)"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              fullWidth
-              margin="dense"
-              error={Boolean(errors.firstName)}
-              helperText={errors.firstName}
-            />
-            <TextField
-              label="Apellido Paterno"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              fullWidth
-              margin="dense"
-              error={Boolean(errors.lastName)}
-              helperText={errors.lastName}
-            />
-            <TextField
-              label="Apellido Materno"
-              name="secondLastName"
-              value={formData.secondLastName}
-              onChange={handleChange}
-              fullWidth
-              margin="dense"
-              error={Boolean(errors.secondLastName)}
-              helperText={errors.secondLastName}
-            />
-            <TextField
-              label="Correo Electrónico"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              fullWidth
-              margin="dense"
-              error={Boolean(errors.email)}
-              helperText={errors.email}
-            />
-            <TextField
-              label="Teléfono"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              fullWidth
-              margin="dense"
-              error={Boolean(errors.phone)}
-              helperText={errors.phone}
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Grado Académico</InputLabel>
-              <Select
-                name="academicDegree"
-                value={formData.academicDegree}
-                onChange={handleChange}
-              >
-                <MenuItem value="Licenciatura">Licenciatura</MenuItem>
-                <MenuItem value="Maestría">Maestría</MenuItem>
-                <MenuItem value="Doctorado">Doctorado</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="dense" error={Boolean(errors.roles || errors.rolesLoad)}>
-              <InputLabel>
-                Roles {loadingRoles && "(Cargando...)"}
-              </InputLabel>
-              <Select
-                name="roles"
-                multiple
-                value={formData.roles}
-                onChange={handleRoleChange}
-                renderValue={(selected) => selected.join(", ")}
-                disabled={loadingRoles}
-              >
-                {loadingRoles ? (
-                  <MenuItem disabled>
-                    <CircularProgress size={24} />
-                  </MenuItem>
-                ) : (
-                  rolesList.map((role) => (
-                    <MenuItem key={role.idTipoUsuario} value={role.nombreRol}>
-                      {role.nombreRol}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-              {errors.roles && <FormHelperText>{errors.roles}</FormHelperText>}
-              {errors.rolesLoad && <FormHelperText error>{errors.rolesLoad}</FormHelperText>}
-            </FormControl>
-            {formData.roles.includes("Líder") && (
-              <FormControl fullWidth margin="dense" error={Boolean(errors.supervisor || errors.supervisoresLoad)}>
-                <InputLabel>Supervisor</InputLabel>
-                <Select
-                  name="supervisor"
-                  value={formData.supervisor || ""}
-                  onChange={handleChange}
-                  disabled={loadingSupervisores}
-                >
-                  {loadingSupervisores ? (
-                    <MenuItem disabled>
-                      <CircularProgress size={24} />
-                    </MenuItem>
-                  ) : supervisores.length > 0 ? (
-                    supervisores.map((sup) => (
-                      <MenuItem key={sup.idUsuario} value={sup.idUsuario}>
-                        {`${sup.nombre} ${sup.apellidoPat} ${sup.apellidoMat}`}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No hay supervisores disponibles</MenuItem>
-                  )}
-                </Select>
-                {errors.supervisor && <FormHelperText>{errors.supervisor}</FormHelperText>}
-                {errors.supervisoresLoad && <FormHelperText error>{errors.supervisoresLoad}</FormHelperText>}
-              </FormControl>
-            )}
-          </>
-        ) : (
-          <>
-            <TextField
-              label="Fecha y Hora de Expiración"
-              name="expirationDateTime"
-              type="datetime-local"
-              value={formData.expirationDateTime}
-              onChange={handleChange}
-              fullWidth
-              margin="dense"
-              InputLabelProps={{ shrink: true }}
-            />
-            <Button variant="contained" color="primary" onClick={generarToken}>
-              Generar Token
-            </Button>
-          </>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="secondary">Cancelar</Button>
-        <Button
-          onClick={handleSubmit}
-          color="primary"
-          disabled={Boolean(errors.firstName || errors.lastName || errors.email || errors.phone || errors.roles)}
-        >
-          {editingUser ? "Actualizar Usuario" : "Guardar"}
-        </Button>
-      </DialogActions>
-      <ConfirmEdit
-        open={openConfirmEdit}
-        onClose={() => setOpenConfirmEdit(false)}
-        entityType="usuario"
-        entityName={formData.firstName}
-        onConfirm={handleConfirmEdit}
-      />
-    </Dialog>
-  );
+ 
 }
-
 export default UserForm;

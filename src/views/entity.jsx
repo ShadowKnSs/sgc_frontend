@@ -3,6 +3,7 @@ import { Box, CircularProgress } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Buscador from "../components/BuscadorEntidades";
 
 // Iconos
 import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
@@ -14,6 +15,7 @@ import BloodtypeOutlinedIcon from "@mui/icons-material/BloodtypeOutlined";
 import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import BookIcon from "@mui/icons-material/Book";
+
 
 // Mapeo de iconos basado en el nombre de la entidad
 const iconos = {
@@ -31,6 +33,8 @@ const Entity = () => {
   const navigate = useNavigate();
   const [entidades, setEntidades] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [entidadesFiltradas, setEntidadesFiltradas] = useState([]);
+
 
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -64,6 +68,8 @@ const Entity = () => {
           icon: iconos[entidad.nombreEntidad] || <BookIcon />,
         }));
         setEntidades(entidadesConIcono);
+        setEntidadesFiltradas(entidadesConIcono);
+
       })
       .catch((error) =>
         console.error("❌ Error al obtener entidades:", error)
@@ -72,35 +78,36 @@ const Entity = () => {
   }, []);
 
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: 4,
-        justifyContent: "center",
-        alignItems: "start",
-        textAlign: "center",
-        marginTop: "80px",
-        paddingX: "20px",
-        width: "100%",
-      }}
-    >
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        entidades.map((entidad) => (
-          <MenuCard
-            key={entidad.idEntidadDependencia}
-            icon={entidad.icon}
-            title={entidad.nombreEntidad}
-            onClick={() =>
-              navigate(`/procesos/${entidad.idEntidadDependencia}`)
-            }
-          />
-        ))
-      )}
+    <Box sx={{ width: "100%", paddingX: "20px", marginTop: "40px" }}>
+      <Buscador entidades={entidades} onFiltrar={setEntidadesFiltradas} />
+  
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: 4,
+          justifyContent: "center",
+          alignItems: "start",
+          textAlign: "center",
+        }}
+      >
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          entidadesFiltradas.map((entidad) => (
+            <MenuCard
+              key={entidad.idEntidadDependencia}
+              icon={entidad.icon}
+              title={entidad.nombreEntidad}
+              onClick={() =>
+                navigate(`/procesos/${entidad.idEntidadDependencia}`)
+              }
+            />
+          ))
+        )}
+      </Box>
     </Box>
   );
 };
