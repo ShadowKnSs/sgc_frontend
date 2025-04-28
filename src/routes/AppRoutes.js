@@ -25,7 +25,7 @@ import ManualCalidad from "../views/manualCalidad";
 import ProcessInEntity from "../views/processInEntity";
 import SeguimientoPrincipal from "../views/seguimientoPrincipal";
 import AdminIndicatorPage from "../views/adminIndicadoresPage";
-import UserIndicatorPage from "../views/userIndicadoresPage";
+import UnifiedIndicatorPage from "../views/userIndicadoresPage";
 import UserEvent from "../views/userEventNot";
 import InformeAuditoriaInterna from "../views/informeAuditoriaInterna";
 import ReportesAuditoria from "../views/reportesAuditoria";
@@ -59,8 +59,8 @@ const AppRoutes = () => {
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
           <Route path="/admin-indicadores" element={<AdminIndicatorPage />} />
-          <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
-          <Route path="user-indicadores" element={<UserIndicatorPage />} />
+          <Route path="indicadores/:idProceso/:anio" element={<UnifiedIndicatorPage />} />
+          <Route path="indicadores" element={<UnifiedIndicatorPage />} />
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="graficas/:idRegistro" element={<GraficasPage />} />
           <Route path="archivos/:year" element={<FilesGestRiesgos />} />
@@ -96,7 +96,6 @@ const AppRoutes = () => {
           <Route path="user-eventos" element={<UserEvent/>} />
           {/* <Route path="carpeta-ActividadMejora/:idProceso" element={<CarpetasActividadMejora />} /> */}
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
-          <Route path="user-indicadores/:idRegistro" element={<UserIndicatorPage />} />
           <Route path="typesReports" element={<TypesReports/>} />
           <Route path="principalReportSem" element={<PrincipalReportSem/>} />
           <Route path="/reporteSemestral" element={<ReporteSemestral/>} />

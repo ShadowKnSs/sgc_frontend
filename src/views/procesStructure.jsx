@@ -8,7 +8,6 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import DescriptionIcon from "@mui/icons-material/Description";
 import LinkIcon from "@mui/icons-material/Link";
-import BarChartIcon from "@mui/icons-material/BarChart";
 import { useNavigate, useParams } from "react-router-dom";
 
 const ProcessStructure = () => {
@@ -24,7 +23,7 @@ const ProcessStructure = () => {
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
     { icon: <DescriptionIcon />, title: "Auditoría", path: `/informe-auditoria` },
     { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento` },
-    { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores` },
+    // { icon: <BarChartIcon />, title: "Indicadores", path: `/carpetas/${idProceso}/Indicadores` }, 
   ];
 
   const itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));

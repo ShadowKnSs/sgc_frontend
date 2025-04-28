@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid, Typography } from "@mui/material";
 import DialogActionButtons from "../DialogActionButtons";
+import DialogTitleCustom from "../TitleDialog";
 
 const EvaluaContent = ({ formData, setFormData, activeTab }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -95,9 +96,9 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
   useEffect(() => {
     if (open) {
       console.log("📌 Modal Evaluación de Proveedores abierto, savedResult:", savedResult);
-  
+
       const resultado = savedResult.resultado || {}; // Asegurar que extraemos los valores correctos
-  
+
       setFormData({
         confiableSem1: resultado.resultadoConfiableSem1?.toString() || "",
         confiableSem2: resultado.resultadoConfiableSem2?.toString() || "",
@@ -108,9 +109,9 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
       });
     }
   }, [open, savedResult]);
-  
-  
-  
+
+
+
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -125,27 +126,25 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
       noConfiableSem1: Number(formData.noConfiableSem1),
       noConfiableSem2: Number(formData.noConfiableSem2),
     };
-  
+
     console.log("📌 Payload enviado al backend:", resultData);
-  
+
     if (!indicator || !indicator.idIndicador) {
       console.error("❌ Error: idIndicador está indefinido.");
       return;
     }
-  
+
     onSave(indicator.idIndicador, { result: resultData });
     onClose();
   };
-  
+
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Registrar Evaluación de Proveedores - {indicator ? indicator.name : ""}
-        <Typography variant="caption" sx={{ display: "block", color: "text.secondary" }}>
-          Origen: {indicator ? indicator.origenIndicador : "Sin origen"}
-        </Typography>
-      </DialogTitle>
+      <DialogTitleCustom
+        title={`Registrar Resultado`}
+        subtitle={`${indicator?.nombreIndicador || indicator?.name || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
+      />
       <DialogContent>
         {/* 📌 Tabs para cambiar entre semestres */}
         <Tabs value={activeTab} onChange={handleTabChange} centered>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from "@mui/material";
+import { Dialog, DialogContent, DialogActions, TextField, Grid, Box } from "@mui/material";
 import DialogActionButtons from "../DialogActionButtons";
+import DialogTitleCustom from "../TitleDialog";
 
 const RetroalimentacionContent = ({ formData, setFormData }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -49,14 +50,14 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
   useEffect(() => {
     if (open) {
       console.log("📌 Datos recibidos en modal Retroalimentación:", savedResult);
-  
+
       if (!savedResult || Object.keys(savedResult).length === 0) {
         console.warn("⚠️ No se encontraron datos en savedResult.");
         return;
       }
-  
+
       const resultado = savedResult.resultado || {};
-  
+
       setFormData({
         felicitaciones: resultado.cantidadFelicitacion?.toString() ?? "",
         quejas: resultado.cantidadQueja?.toString() ?? "",
@@ -64,8 +65,8 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
       });
     }
   }, [open, savedResult]);
-  
-  
+
+
 
   const handleSave = () => {
     const resultData = {
@@ -86,17 +87,16 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Registrar Retroalimentación - {indicator ? indicator.name : ""}
-        <Typography variant="caption" sx={{ display: "block", color: "text.secondary" }}>
-          Origen: {indicator ? indicator.origenIndicador : "Sin origen"}
-        </Typography>
-      </DialogTitle>
+      <DialogTitleCustom
+        title={`Registrar Resultado`}
+        subtitle={`${indicator?.nombreIndicador || indicator?.name || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
+      />
       <DialogContent>
         <RetroalimentacionContent formData={formData} setFormData={setFormData} />
       </DialogContent>
       <DialogActions>
-        <DialogActionButtons onCancel={onClose} onSave={handleSave} saveText="Guardar" cancelText="Cancelar" />
+        <DialogActionButtons onCancel={onClose} onSave={handleSave} saveText="Guardar" cancelText="Cancelar" saveColor="terciary.main"
+          cancelColor="primary.main" />
       </DialogActions>
     </Dialog>
   );

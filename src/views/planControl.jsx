@@ -40,12 +40,13 @@ function ProcessMapView({ idProceso, soloLectura }) {
     nombreActividad: "",
     procedimiento: "",
     criterioAceptacion: "",
-    caracteriticasVerificar: "",
+    caracteristicasVerificar: "",
     frecuencia: "",
     identificacionSalida: "",
     registroSalida: "",
     responsable: "",
-    tratamiento: ""
+    tratamiento: "",
+    año: new Date().getFullYear() 
   });
 
   // --------------------------------------------------
@@ -93,8 +94,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
     if (!newActividad.criterioAceptacion.trim()) {
       tempErrors.criterioAceptacion = "Este campo es obligatorio";
     }
-    if (!newActividad.caracteriticasVerificar.trim()) {
-      tempErrors.caracteriticasVerificar = "Este campo es obligatorio";
+    if (!newActividad.caracteristicasVerificar.trim()) {
+      tempErrors.caracteristicasVerificar = "Este campo es obligatorio";
     }
     if (!newActividad.frecuencia.trim()) {
       tempErrors.frecuencia = "Este campo es obligatorio";
@@ -132,7 +133,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
     // Importante: agregar el idProceso en el payload
     const payload = {
       ...newActividad,
-      idProceso: idProceso  // <-- lo agregamos
+      idProceso: idProceso,  // <-- lo agregamos
+      año: newActividad.año
     };
 
     console.log("[LOG] Enviando nueva actividad al backend:", payload);
@@ -152,7 +154,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
           nombreActividad: "",
           procedimiento: "",
           criterioAceptacion: "",
-          caracteriticasVerificar: "",
+          caracteristicasVerificar: "",
           frecuencia: "",
           identificacionSalida: "",
           registroSalida: "",
@@ -162,7 +164,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
         setErrors({});
       })
       .catch((error) => {
-        console.error("[ERROR] al crear actividadControl:", error);
+        console.error("[ERROR] al crear actividadControl:", error.response?.data || error.message);
       });
   };
 
@@ -345,12 +347,12 @@ function ProcessMapView({ idProceso, soloLectura }) {
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
-            value={newActividad.caracteriticasVerificar}
+            value={newActividad.caracteristicasVerificar}
             onChange={(e) =>
-              setNewActividad({ ...newActividad, caracteriticasVerificar: e.target.value })
+              setNewActividad({ ...newActividad, caracteristicasVerificar: e.target.value })
             }
-            error={!!errors.caracteriticasVerificar}
-            helperText={errors.caracteriticasVerificar}
+            error={!!errors.caracteristicasVerificar}
+            helperText={errors.caracteristicasVerificar}
           />
 
           <TextField
@@ -469,7 +471,7 @@ function UserCard({ actividad, onSelect, onClose, isActive, isSmall }) {
                 { title: "Actividad de Control", value: actividad.nombreActividad },
                 { title: "Procedimiento", value: actividad.procedimiento },
                 { title: "Criterio de Aceptación", value: actividad.criterioAceptacion },
-                { title: "Características a Verificar", value: actividad.caracteriticasVerificar },
+                { title: "Características a Verificar", value: actividad.caracteristicasVerificar },
                 { title: "Frecuencia", value: actividad.frecuencia },
                 { title: "Identificación de Salida", value: actividad.identificacionSalida },
                 { title: "Registro de Salidas", value: actividad.registroSalida },

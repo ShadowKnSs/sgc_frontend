@@ -1,3 +1,4 @@
+// src/components/DialogTitleCustom.jsx
 import React from "react";
 import { Typography, Box } from "@mui/material";
 
@@ -11,7 +12,7 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
-const DialogTitleCustom = ({ text }) => (
+const DialogTitleCustom = ({ title, subtitle }) => (
   <Box
     sx={{
       padding: "16px 24px",
@@ -25,10 +26,22 @@ const DialogTitleCustom = ({ text }) => (
         color: colorPalette.azulOscuro,
         fontWeight: 600,
         textAlign: "left",
+        mb: subtitle ? 0.5 : 0, // Agrega espacio si hay subtítulo
       }}
     >
-      {text}
+      {title}
     </Typography>
+    {subtitle && (
+      <Typography
+        variant="subtitle2"
+        sx={{
+          color: "text.secondary",
+          textAlign: "left",
+        }}
+      >
+        {subtitle}
+      </Typography>
+    )}
   </Box>
 );
 

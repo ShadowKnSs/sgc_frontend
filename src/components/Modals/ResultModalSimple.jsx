@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Typography } from '@mui/material';
+import { Dialog, DialogContent, TextField, DialogActions } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
+import DialogTitleCustom from "../TitleDialog";
+
 
 const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) => {
   const [result, setResult] = useState('');
@@ -41,12 +43,10 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) =>
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Registrar Resultado para: {indicator ? indicator.name : ''}
-        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-          Origen: {indicator ? indicator.origenIndicador : 'Sin origen'}
-        </Typography>
-      </DialogTitle>
+      <DialogTitleCustom
+        title={`Registrar Resultado`}
+        subtitle={`${indicator?.nombreIndicador || indicator?.name || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
+      />
       <DialogContent>
         <TextField
           autoFocus
@@ -59,8 +59,8 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) =>
         />
       </DialogContent>
       <DialogActions>
-        <DialogActionButtons 
-          onCancel={onClose} 
+        <DialogActionButtons
+          onCancel={onClose}
           onSave={handleSave}
           saveText="Guardar"
           cancelText="Cancelar"

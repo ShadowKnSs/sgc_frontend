@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Box, Typography } from '@mui/material';
+import { Dialog, DialogContent, DialogActions, TextField, Grid, Box,} from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
+import DialogTitleCustom from "../TitleDialog";
 
 const EncuestaContent = ({ formData, setFormData }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -104,18 +105,13 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
     onClose();
   };
 
-  const title = (
-    <>
-      Registrar Resultado de Encuesta para: {indicator ? indicator.name : ''}
-      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-        Origen: {indicator ? indicator.origenIndicador : 'Sin origen'}
-      </Typography>
-    </>
-  );
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitleCustom
+        title={`Registrar Resultado`}
+        subtitle={`${indicator?.nombreIndicador || indicator?.name || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
+      />
       <DialogContent>
         <EncuestaContent formData={formData} setFormData={setFormData} />
       </DialogContent>

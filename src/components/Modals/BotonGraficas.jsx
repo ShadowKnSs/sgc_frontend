@@ -2,11 +2,10 @@
 import React from 'react';
 import { Fab } from '@mui/material';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-const IrGraficasBoton = ({ encuestaId, retroVirtualId, retroFisicaId, retroEncuestaId, evaluacionId }) => {
+const IrGraficasBoton = ({ encuestaId,idRegistro,  retroVirtualId, retroFisicaId, retroEncuestaId, evaluacionId }) => {
   const navigate = useNavigate();
-  const { idRegistro } = useParams(); // 📌 Obtener `idRegistro` desde la URL
 
 
   const handleClick = () => {

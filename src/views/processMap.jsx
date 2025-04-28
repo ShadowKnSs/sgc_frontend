@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import axios from "axios";
 import {
   Box, Fab, Stack, Card, CardContent, Typography, IconButton,
@@ -19,6 +20,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
   const [editUser, setEditUser] = useState(null);
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
 
   // Este es tu form local para crear un nuevo "indicador"
   const [newUser, setNewUser] = useState({
@@ -95,7 +97,6 @@ function ProcessMapView({ idProceso, soloLectura }) {
       })
       .catch((error) => console.error("Error al obtener datos del mapa de procesos:", error));
 
-
     // Scroll
     const handleScroll = () => {
       if (window.scrollY > 100) setIsFixed(true);
@@ -150,7 +151,6 @@ function ProcessMapView({ idProceso, soloLectura }) {
       descripcion: newUser.descripcion,
       formula: newUser.formula,
       periodoMed: newUser.periodo,
-      // si quieres "responsable", "meta", etc., inclúyelos
     };
 
     axios.post("http://localhost:8000/api/indmapaproceso", payload)

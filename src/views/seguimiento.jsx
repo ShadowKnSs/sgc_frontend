@@ -27,7 +27,6 @@ function Carpetas() {
     "Acciones de Mejora": "actividad-mejora",
     "Generar informe de auditoría": "informe-auditoria",
     "Seguimiento": "seguimientoPrincipal",
-    "Indicadores": "user-indicadores"
   };
 
   useEffect(() => {
@@ -83,7 +82,7 @@ function Carpetas() {
             <Box
               onClick={() => {
                 navigate(`/${rutas[title]}/${registro.idRegistro}`, {
-                  state: { rolActivo, soloLectura, puedeEditar },
+                  state: { rolActivo, soloLectura, puedeEditar, idProceso, año: registro.año },
                 });
               }}
               sx={{ cursor: "pointer" }}

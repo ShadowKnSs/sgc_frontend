@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Box, Alert, CircularProgress } from '@mui/material';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import PlanControlBarChart from '../components/Graficas/GraficaPlanControl';
 import GraficaEncuesta from '../components/Graficas/GraficaEncuesta';
 import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroalimentacion';
@@ -10,12 +10,15 @@ import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
 import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
 
 const GraficasPage = () => {
-  const { idRegistro } = useParams(); // 📌 Leer `idRegistro` desde la URL
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [encuestaId, setEncuestaId] = useState(null);
   const [evaluacionId, setEvaluacionId] = useState(null);
   const [retroList, setRetroList] = useState([]);
+  const [idProceso, setIdProceso] = useState(null);
+
+  const location = useLocation();
+  const idRegistro = location.state?.idRegistro;
 
   useEffect(() => {
     if (!idRegistro) {
@@ -35,7 +38,6 @@ const GraficasPage = () => {
         const encuestaIndicator = indicators.find(ind => ind.origenIndicador === "Encuesta");
         if (encuestaIndicator) setEncuestaId(encuestaIndicator.idIndicador);
 
-
         // Evaluación de Proveedores
         const evaluacionIndicator = indicators.find(ind => ind.origenIndicador === "EvaluaProveedores");
         if (evaluacionIndicator) setEvaluacionId(evaluacionIndicator.idIndicador);
@@ -52,10 +54,24 @@ const GraficasPage = () => {
       });
   }, [idRegistro]);
 
+  useEffect(() => {
+    if (!idRegistro) return;
+  
+    axios.get(`http://127.0.0.1:8000/api/registros/buscar-proceso/${idRegistro}`)
+      .then(response => {
+        const idProc = response.data.idProceso;
+        console.log("📌 ID de Proceso obtenido:", idProc);
+        setIdProceso(idProc);
+      })
+      .catch(error => {
+        console.error("❌ Error al obtener el idProceso:", error);
+        setError("Error al obtener idProceso.");
+      });
+  }, [idRegistro]);
+  
+
   if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
-
-  
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -65,7 +81,7 @@ const GraficasPage = () => {
 
       <Box sx={{ my: 4 }}>
         <Typography variant="h5" gutterBottom>Indicadores de Plan de Control</Typography>
-        <PlanControlBarChart idRegistro={idRegistro} />
+        <PlanControlBarChart idProceso={idProceso} />
       </Box>
 
       <Box sx={{ my: 4 }}>

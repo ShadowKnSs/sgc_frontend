@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid, Typography } from '@mui/material';
+import { Dialog, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid} from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
+import DialogTitleCustom from "../TitleDialog";
 
 const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult = {} }) => {
   const [tab, setTab] = useState(0); // 0: Ene-Jun, 1: Jul-Dic
@@ -87,12 +88,10 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Registrar Resultado para: {indicator ? indicator.name : ''}
-        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-          Origen: {indicator ? indicator.origenIndicador : 'Sin origen'}
-        </Typography>
-      </DialogTitle>
+      <DialogTitleCustom
+        title={`Registrar Resultado`}
+        subtitle={`${indicator?.nombreIndicador || indicator?.name || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
+      />
       <DialogContent>
         <Tabs value={tab} onChange={handleTabChange} centered>
           <Tab label="Ene-Jun" />
