@@ -56,8 +56,8 @@ function ProcessList() {
     // Verificamos ambos nombres de propiedad, por si el backend usa otro nombre
     const processId = process.idProceso || process.idProcesoPK;
     const entity = entidades.find(
-      (ent) => ent.idEntidadDependecia.toString() === process.idEntidad.toString()
-    );
+      (ent) => ent?.idEntidadDependencia?.toString() === process?.idEntidad?.toString()
+    );    
     return {
       ...process,
       id: processId,

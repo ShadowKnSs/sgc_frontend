@@ -8,6 +8,8 @@ const getDeleteMessage = (type, name) => {
       return `¿Estás seguro de que deseas eliminar al usuario "${name}"? Esta acción no se puede deshacer.`;
     case "proceso":
       return `¿Estás seguro de que deseas eliminar el proceso "${name}"?`;
+    case "entidad":
+      return `¿Estás seguro de que deseas eliminar la entidad "${name}"?`;
     case "minuta":
       return `¿Deseas eliminar la minuta "${name}" de forma permanente?`;
     case "reporte":

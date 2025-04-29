@@ -12,6 +12,7 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import AddHomeWorkOutlinedIcon from '@mui/icons-material/AddHomeWorkOutlined';
 import { useNavigate } from "react-router-dom";
 
 const Welcome = () => {
@@ -53,6 +54,7 @@ const Welcome = () => {
     { icon: <DocumentScannerIcon />, title: "Formatos", path: "/formatos" },
     { icon: <PersonSearchIcon />, title: "Supervisor", path: "/busca_supervisor" },
     { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
+    { icon: <AddHomeWorkOutlinedIcon />, title: "Gestión Entidades", path: "/gestion-entidades" },
   ];
 
   // Filtra los ítems según los permisos del usuario

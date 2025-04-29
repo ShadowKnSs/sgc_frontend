@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {TextField,MenuItem,Button,Typography,Grid, Box, IconButton} from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -69,14 +69,26 @@ const iconOptions = [
   
 ];
 
-const AddEntidad = ({ onSubmit }) => {
+const AddEntidad = ({ onSubmit, initialData }) => {
   const [form, setForm] = useState({
-    nombre: '',
+    nombreEntidad: '',
     tipo: '',
-    ubicacion: ''
+    ubicacion: '',
+    icono:''
   });
 
   const [selectedIcon, setSelectedIcon] = useState(iconOptions[0].name);
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        nombreEntidad: initialData.nombreEntidad || '',
+        tipo: initialData.tipo || '',
+        ubicacion: initialData.ubicacion || '',
+      });
+      setSelectedIcon(initialData.icono || iconOptions[0].name);
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     setForm({
@@ -91,7 +103,7 @@ const AddEntidad = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...form, icon: selectedIcon });
+    onSubmit({ ...form, icono: selectedIcon });
   };
 
   return (
@@ -99,8 +111,8 @@ const AddEntidad = ({ onSubmit }) => {
       <TextField
         fullWidth
         label="Nombre"
-        name="nombre"
-        value={form.nombre}
+        name="nombreEntidad"
+        value={form.nombreEntidad}
         onChange={handleChange}
         margin="normal"
         required
