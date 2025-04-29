@@ -46,7 +46,6 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
       expirationDateTime: data.expirationDateTime,
     };
   };
-  
   const [rolesList, setRolesList] = useState([]);
   const [supervisores, setSupervisores] = useState([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
