@@ -16,7 +16,6 @@ import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import BookIcon from "@mui/icons-material/Book";
 
-
 // Mapeo de iconos basado en el nombre de la entidad
 const iconos = {
   "Departamento Administrativo": <InventoryOutlinedIcon />,
