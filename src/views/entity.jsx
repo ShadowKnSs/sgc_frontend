@@ -84,7 +84,7 @@ const Entity = () => {
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
-   
+
     if (!usuario || !rolActivo) {
       console.error("No se encontró información del usuario o rol.");
       return;
@@ -92,8 +92,8 @@ const Entity = () => {
 
     const permisos = rolActivo.permisos || [];
     const puedeVerProcesos = permisos.some(
-      (permiso) => permiso.modulo === "Entidades" && 
-      ["Lectura", "Edición", "Administración"].includes(permiso.tipoAcceso)
+      (permiso) => permiso.modulo === "Entidades" &&
+        ["Lectura", "Edición", "Administración"].includes(permiso.tipoAcceso)
     );
 
     if (!puedeVerProcesos) {
@@ -112,9 +112,9 @@ const Entity = () => {
 
         const entidadesConIcono = response.data.entidades.map((entidad) => ({
           ...entidad,
-          icono: iconMap[entidad.icono] || <BusinessIcon/>, // ícono por defecto si no se encuentra
+          icono: iconMap[entidad.icono] || <BusinessIcon />, // ícono por defecto si no se encuentra
         }));
-        
+
         setEntidades(entidadesConIcono);
         setEntidadesFiltradas(entidadesConIcono);
 
@@ -124,37 +124,41 @@ const Entity = () => {
       )
       .finally(() => setLoading(false));
   }, []);
-  
+
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: 4,
-        justifyContent: "center",
-        alignItems: "start",
-        textAlign: "center",
-        marginTop: "80px",
-        paddingX: "20px",
-        width: "100%",
-      }}
-    >
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        entidades.map((entidad) => (
-          <MenuCard
-            key={entidad.idEntidadDependencia}
-            icon={entidad.icono}
-            title={entidad.nombreEntidad}
-            onClick={() =>
-              navigate(`/procesos/${entidad.idEntidadDependencia}`)
-            }
-          />
-        ))
-      )}
+    <Box sx={{ width: "100%", paddingX: "20px", marginTop: "40px" }}>
+      <Buscador entidades={entidades} onFiltrar={setEntidadesFiltradas} />
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: 4,
+          justifyContent: "center",
+          alignItems: "start",
+          textAlign: "center",
+          marginTop: "80px",
+          paddingX: "20px",
+          width: "100%",
+        }}
+      >
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          entidades.map((entidad) => (
+            <MenuCard
+              key={entidad.idEntidadDependencia}
+              icon={entidad.icono}
+              title={entidad.nombreEntidad}
+              onClick={() =>
+                navigate(`/procesos/${entidad.idEntidadDependencia}`)
+              }
+            />
+          ))
+        )}
+      </Box>
     </Box>
   );
 };
