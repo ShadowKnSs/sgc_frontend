@@ -7,26 +7,9 @@ import Buscador from "../components/BuscadorEntidades";
 
 // Iconos
 import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
-import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
-import EmergencyOutlinedIcon from "@mui/icons-material/EmergencyOutlined";
 import BloodtypeOutlinedIcon from "@mui/icons-material/BloodtypeOutlined";
-import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
-import BookIcon from "@mui/icons-material/Book";
-
-// Mapeo de iconos basado en el nombre de la entidad
-const iconos = {
-  "Departamento Administrativo": <InventoryOutlinedIcon />,
-  "Facultad de Ciencias": <ScienceOutlinedIcon />,
-  "Facultad de Ingeniería": <SettingsOutlinedIcon />,
-  "Departamento Universitario de Ingles": <TranslateOutlinedIcon />,
-  "División de Vinculación Universitaria": <LocationCityOutlinedIcon />,
-  "Facultad del Hábitat": <HomeWorkOutlinedIcon />,
-  "Facultad de Estomatología": <BloodtypeOutlinedIcon />,
-  "Facultad de Medicina": <EmergencyOutlinedIcon />,
-};
 
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -34,15 +17,12 @@ import SchoolIcon from '@mui/icons-material/School';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import YardOutlinedIcon from '@mui/icons-material/YardOutlined';
-import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
 import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
 import MedicalInformationOutlinedIcon from '@mui/icons-material/MedicalInformationOutlined';
 import ImportContactsOutlinedIcon from '@mui/icons-material/ImportContactsOutlined';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
-import BloodtypeOutlinedIcon from '@mui/icons-material/BloodtypeOutlined';
 import BiotechOutlinedIcon from '@mui/icons-material/BiotechOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
@@ -52,7 +32,6 @@ import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
 import SocialDistanceOutlinedIcon from '@mui/icons-material/SocialDistanceOutlined';
 import RequestQuoteOutlinedIcon from '@mui/icons-material/RequestQuoteOutlined';
-import TranslateOutlinedIcon from '@mui/icons-material/TranslateOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import LaptopChromebookOutlinedIcon from '@mui/icons-material/LaptopChromebookOutlined';
 import BalanceOutlinedIcon from '@mui/icons-material/BalanceOutlined';
