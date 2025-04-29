@@ -74,7 +74,7 @@ const iconMap = {
   LaptopChromebook: <LaptopChromebookOutlinedIcon />
 }
 
-const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete }) => {
+const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete}) => {
   return (
     <Card
       onClick={handleClick}
