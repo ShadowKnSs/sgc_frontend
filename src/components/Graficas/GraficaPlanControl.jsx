@@ -24,7 +24,7 @@ const PlanControlBarChart = ({ idProceso, onImageReady }) => {
         const chart = context.chart;
         if (!yaGenerada.current && onImageReady) {
           const base64 = chart.toBase64Image();
-          console.log("📸 Imagen generada PlanControl (longitud):", base64.length);
+          console.log("Imagen generada PlanControl (longitud):", base64.length);
           onImageReady(base64, "planControl");
           yaGenerada.current = true;
         }
