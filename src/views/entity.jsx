@@ -124,7 +124,7 @@ const Entity = () => {
       )
       .finally(() => setLoading(false));
   }, []);
-
+  
   return (
     <Box
       sx={{
