@@ -5,6 +5,28 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Buscador from "../components/BuscadorEntidades";
 
+// Iconos
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
+import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
+import EmergencyOutlinedIcon from "@mui/icons-material/EmergencyOutlined";
+import BloodtypeOutlinedIcon from "@mui/icons-material/BloodtypeOutlined";
+import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
+import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
+import BookIcon from "@mui/icons-material/Book";
+
+// Mapeo de iconos basado en el nombre de la entidad
+const iconos = {
+  "Departamento Administrativo": <InventoryOutlinedIcon />,
+  "Facultad de Ciencias": <ScienceOutlinedIcon />,
+  "Facultad de Ingeniería": <SettingsOutlinedIcon />,
+  "Departamento Universitario de Ingles": <TranslateOutlinedIcon />,
+  "División de Vinculación Universitaria": <LocationCityOutlinedIcon />,
+  "Facultad del Hábitat": <HomeWorkOutlinedIcon />,
+  "Facultad de Estomatología": <BloodtypeOutlinedIcon />,
+  "Facultad de Medicina": <EmergencyOutlinedIcon />,
+};
 
 
 import BusinessIcon from '@mui/icons-material/Business';
