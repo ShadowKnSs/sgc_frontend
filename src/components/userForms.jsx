@@ -5,25 +5,51 @@ import axios from "axios";
 
 const API_URL = 'http://127.0.0.1:8000/api';
 
-function UserForm({ open, onClose, editingUser }) {
-    const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
-        secondLastName: "",
-        email: "",
-        phone: "",
-        academicDegree: "",
-        roles: [],
-        supervisor: "",
-        expirationDateTime: "",
-    });
-    const [rolesList, setRolesList] = useState([]);
-    const [supervisores, setSupervisores] = useState([]);
-    const [loadingRoles, setLoadingRoles] = useState(false);
-    const [loadingSupervisores, setLoadingSupervisores] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [tab, setTab] = useState(0);
-    const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
+function UserForm({ open, onClose, editingUser, onSubmit }) {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    secondLastName: "",
+    email: "",
+    phone: "",
+    academicDegree: "",
+    roles: [],
+    supervisor: "",
+    expirationDateTime: "",
+  });
+  const transformUserDataForAPI = (data) => {
+    // Extrae RPE del correo (todo lo que está antes de "@")
+    const RPE = data.email.split("@")[0];
+    // Toma el primer nombre
+    const firstNameForPass = data.firstName.split(" ")[0];
+    const pass = firstNameForPass + "123";
+    // Transforma los roles: de los nombres seleccionados se obtienen los id correspondientes
+    // Se asume que rolesList ya está cargado en el estado
+    const rolesTransformed = rolesList
+      .filter(role => data.roles.includes(role.nombreRol))
+      .map(role => role.idTipoUsuario);
+  
+    return {
+      nombre: data.firstName,
+      apellidoPat: data.lastName,
+      apellidoMat: data.secondLastName,
+      correo: data.email,
+      telefono: data.phone,
+      gradoAcademico: data.academicDegree,
+      RPE,
+      pass,
+      roles: rolesTransformed,
+      supervisor: data.supervisor,
+      expirationDateTime: data.expirationDateTime,
+    };
+  };
+  const [rolesList, setRolesList] = useState([]);
+  const [supervisores, setSupervisores] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [loadingSupervisores, setLoadingSupervisores] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [tab, setTab] = useState(0);
+  const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
 
     useEffect(() => {
         const fetchRoles = async () => {
