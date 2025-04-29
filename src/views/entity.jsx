@@ -75,7 +75,7 @@ const Entity = () => {
       )
       .finally(() => setLoading(false));
   }, []);
-
+  
   return (
     <Box sx={{ width: "100%", paddingX: "20px", marginTop: "40px" }}>
       <Buscador entidades={entidades} onFiltrar={setEntidadesFiltradas} />
