@@ -147,7 +147,7 @@ const Entity = () => {
             <CircularProgress />
           </Box>
         ) : (
-          entidades.map((entidad) => (
+          entidadesFiltradas.map((entidad) => (
             <MenuCard
               key={entidad.idEntidadDependencia}
               icon={entidad.icono}
