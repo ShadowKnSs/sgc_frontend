@@ -97,10 +97,16 @@ const ProcessForm = ({
         setSelectedIcon(iconName);
     };
 
-    useEffect(() => {
+    /*useEffect(() => {
         setFormData(initialValues);
         console.log("Form data precargado:", initialValues);
+    }, [initialValues]);*/
+    
+    useEffect(() => {
+        setFormData(initialValues);
+        setSelectedIcon(initialValues.icono || iconOptions[0].name); // ← sincroniza el ícono
     }, [initialValues]);
+    
 
     const handleChange = (field) => (e) => {
         setFormData({
@@ -110,7 +116,7 @@ const ProcessForm = ({
     };
 
     const handleSubmit = () => {
-        onSubmit(formData);
+        onSubmit({ ...formData, icono: selectedIcon });
     };
 
     const commonStyles = {
