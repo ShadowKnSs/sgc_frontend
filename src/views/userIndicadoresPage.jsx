@@ -382,8 +382,6 @@ const UnifiedIndicatorPage = () => {
       />
 
       {renderResultModal()}
-
-      {/* Ajuste 2: mostramos el Snackbar al ocurrir cualquier error */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

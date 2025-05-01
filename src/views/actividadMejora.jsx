@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams} from "react-router-dom";
 import { Box, Container, Button, IconButton } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import PlanCorrectivoContainer from "../components/PlanCorrectivoContainer"; // Asegúrate de la ruta correcta
 import FormProyMejora from "../components/Forms/FormProyMejora";
-import PlanTrabajo from "../views/planTrabajoForm"; // Esta vista recibirá el idRegistro como prop
+import PlanTrabajo from "../views/planTrabajoForm";
+import ContextoProcesoEntidad from "../components/ProcesoEntidad";
+
 
 const ProcessView = () => {
   // Recibimos parámetros de la URL: por ejemplo, idRegistro y title
@@ -46,6 +48,8 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
+      <ContextoProcesoEntidad idRegistro={idRegistro} />
+
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 2 }}>
         <IconButton onClick={() => scrollNav("left")} sx={{ color: "secondary.main", mx: 1 }}>
           <ArrowBackIos />

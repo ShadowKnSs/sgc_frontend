@@ -44,21 +44,21 @@ function PlanCorrectivoContainer() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      // Se asume que la ruta devuelve todos los registros
-      const response = await axios.get("http://127.0.0.1:8000/api/plan-correctivos");
-      console.log("Datos obtenidos:", response.data);
+      const response = await axios.get(`http://127.0.0.1:8000/api/plan-correctivos/registro/${idRegistro}`);
       setRecords(response.data);
       setError("");
     } catch (err) {
-      console.error(err);
       setError("Error al obtener los planes de acción");
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchRecords();
-  }, []);
+    if (idRegistro) {
+      fetchRecords();
+    }
+  }, [idRegistro]);
+
 
   // Función para guardar (crear o actualizar) un plan de acción.
   const handleSave = async (data) => {
