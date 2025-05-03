@@ -1,4 +1,3 @@
-// 📁 src/components/RolCard.jsx
 import React, { useState } from 'react';
 import { Card, CardActionArea, CardContent, Typography, Box } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';

@@ -11,6 +11,7 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
+
 const Title = ({ text }) => (
   <Box
     sx={{

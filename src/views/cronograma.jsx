@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
-import { Calendar, momentLocalizer } from "react-big-calendar";
+import React, { useState, useEffect, useCallback } from "react";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Tooltip, Snackbar, Alert } from "@mui/material";
+import { Calendar, momentLocalizer, Navigate } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "moment/locale/es";
 import axios from "axios";
+import Title from "../components/Title";
+import CustomCalendarToolbar from "../components/BarraCalendario"; // Asegúrate de importar el componente
+
 
 moment.locale("es");
 const localizer = momentLocalizer(moment);
+
 
 function Cronograma() {
   // Se obtiene el usuario y el rol activo desde el localStorage.
@@ -22,21 +26,21 @@ function Cronograma() {
   const [events, setEvents] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
 
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
   useEffect(() => {
-    console.log("🔐 Enviando ID y rol al backend:", idUsuario, rolActivo);
-    axios
-      .post("http://127.0.0.1:8000/api/cronograma/filtrar", {
-        idUsuario,
-        // Se envía el nombre del rol, por ejemplo: rolActivo.nombreRol o, alternativamente, podrías enviar directamente el arreglo de permisos
-        rolActivo: rolActivo?.nombreRol || ""
-      })
-      .then((response) => {
-        console.log("📊 Auditorías recibidas:", response.data);
+    if (!usuario || !rolActivo?.nombreRol) return;
+    const fetchAuditorias = async () => {
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/api/cronograma/filtrar", {
+          idUsuario: usuario.idUsuario,
+          rolActivo: rolActivo.nombreRol
+        });
         const auditorias = response.data.map((auditoria) => ({
           id: auditoria.idAuditoria,
           title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
@@ -49,12 +53,15 @@ function Cronograma() {
           entidad: auditoria.nombreEntidad,
           hora: auditoria.horaProgramada,
         }));
-        setEvents(auditorias);
-      })
-      .catch((error) => {
+        setEvents([...auditorias]);
+      } catch (error) {
         console.error("❌ Error al obtener las auditorías:", error);
-      });
-  }, [idUsuario, rolActivo]);
+      }
+    };
+
+    fetchAuditorias();
+  }, [usuario, rolActivo]);
+
 
   useEffect(() => {
     axios
@@ -87,6 +94,9 @@ function Cronograma() {
       `${capitalizeFirstLetter(moment(start).format("D MMMM"))} - ${capitalizeFirstLetter(moment(end).format("D MMMM"))}`,
   };
 
+
+
+
   const [openForm, setOpenForm] = useState(false);
   const [openDetails, setOpenDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -112,6 +122,28 @@ function Cronograma() {
     }
     return false;
   };
+
+  const customEventStyleGetter = (event) => {
+    let backgroundColor = "#1976d2";
+    if (event.estado === "Finalizada") backgroundColor = "#2e7d32";
+    if (event.estado === "Cancelada") backgroundColor = "#c62828";
+
+    return {
+      style: {
+        backgroundColor,
+        borderRadius: "6px",
+        opacity: 0.95,
+        color: "white",
+        border: "1px solid white",
+        paddingLeft: "6px",
+        fontWeight: "500",
+      },
+    };
+  };
+
+
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
   // Función para abrir el formulario en modo creación
   const handleOpenForm = () => {
     setIsEditing(false);
@@ -179,8 +211,8 @@ function Cronograma() {
             nombreProceso: formData.proceso,
             nombreEntidad: formData.entidad,
           });
-          setEvents(
-            events.map((event) =>
+          setEvents(prevEvents =>
+            prevEvents.map(event =>
               event.id === selectedEvent.id
                 ? {
                   ...event,
@@ -196,7 +228,7 @@ function Cronograma() {
                 : event
             )
           );
-          alert("Auditoría actualizada correctamente.");
+          setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
         } else {
           const response = await axios.post("http://127.0.0.1:8000/api/cronograma", {
             fechaProgramada: formData.fecha,
@@ -219,8 +251,9 @@ function Cronograma() {
             entidad: response.data.auditoria.nombreEntidad,
             hora: response.data.auditoria.horaProgramada,
           };
-          setEvents([...events, nuevaAuditoria]);
-          alert("Auditoría creada exitosamente.");
+          setEvents(prev => [...prev, nuevaAuditoria]); // Mantener este que ya está correcto
+          setSnackbar({ open: true, message: "Auditoría creada correctamente.", severity: "success" });
+
         }
         setFormData({
           entidad: "",
@@ -234,13 +267,28 @@ function Cronograma() {
         handleCloseForm();
       } catch (error) {
         console.error("Error al guardar la auditoría:", error.response ? error.response.data : error.message);
-        alert("Hubo un error al guardar la auditoría.");
+        setSnackbar({ open: true, message: "Hubo un error al guardar la auditoría.", severity: "error" });
+
       }
     } else {
-      alert("Todos los campos son obligatorios.");
+      setSnackbar({ open: true, message: "Todos los campos son obligatorios..", severity: "error" });
+
     }
   };
 
+
+  // 1) Estados controlados de vista y fecha
+  const [view, setView] = useState("month");
+  const [date, setDate] = useState(new Date());
+
+  // 2) Handlers para que el Calendar te diga cuándo cambiar
+  const handleView = useCallback((newView) => {
+    setView(newView);
+  }, []);
+
+  const handleNavigate = useCallback((newDate) => {
+    setDate(newDate);
+  }, []);
   return (
     <Box
       sx={{
@@ -255,23 +303,18 @@ function Cronograma() {
         position: "relative",
       }}
     >
-      <h1
-        style={{
-          textAlign: "center",
-          marginBottom: "20px",
-          fontFamily: "'Roboto', sans-serif",
-          color: "#004A98",
-        }}
-      >
-        Cronograma de Auditorías
-      </h1>
+      <Title text="Cronograma de Auditorías" />
+
       <div style={{ height: "600px", width: "100%", maxWidth: "1000px" }}>
         <Calendar
           localizer={localizer}
-          events={events}
-          startAccessor="start"
+          events={Array.isArray(events) ? events : []}
+          view={view}
+          date={date}
+          onView={handleView}
+          onNavigate={handleNavigate}
+         startAccessor="start"
           endAccessor="end"
-          defaultView="month"
           views={["month", "week", "day"]}
           messages={{
             today: "Hoy",
@@ -283,6 +326,15 @@ function Cronograma() {
           }}
           formats={formats}
           onSelectEvent={handleOpenDetails}
+          eventPropGetter={customEventStyleGetter}
+          components={{
+            toolbar: CustomCalendarToolbar,
+            event: ({ event }) => (
+              <Tooltip /* … */>
+                <span>{event.title}</span>
+              </Tooltip>
+            )
+          }}
         />
       </div>
 
@@ -418,7 +470,21 @@ function Cronograma() {
 
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert elevation={6} variant="filled" onClose={handleCloseSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
     </Box>
+
+
   );
 }
 
