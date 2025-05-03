@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import axios from 'axios';
+
+// Componentes personalizados
 import NewsCarousel from '../components/NewsCarrusel';
 import DualCarousel from '../components/EventosAvisosCarousel';
 import ImageModal from '../components/Modals/ImageModal';
 import NewsModal from '../components/Modals/NewsModal';
 
+import SpeedDial from '@mui/material/SpeedDial';
+import SpeedDialAction from '@mui/material/SpeedDialAction';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import { useNavigate } from 'react-router-dom';
+
+
+// Estilo personalizado para flechas del carrusel
 const arrowOverride = `
   .swiper-button-next,
   .swiper-button-prev {
@@ -20,42 +29,47 @@ const arrowOverride = `
 `;
 
 const UserHome = () => {
-  // Estados para noticias, eventos y avisos
+  // Estados para almacenar noticias, eventos y avisos
   const [newsData, setNewsData] = useState([]);
   const [eventsData, setEventsData] = useState([]);
   const [announcementsData, setAnnouncementsData] = useState([]);
-
-  // Estado para modales
+  
+  // Estados para control de modales
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Se determina si el usuario es "Invitado"
+  const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null") || { nombreRol: "Invitado" };
+  const esInvitado = rolActivo.nombreRol === "Invitado";
+
+  const navigate = useNavigate();
+
+  // Cargar datos al montar la vista
   useEffect(() => {
-    fetchNews();
-    fetchEvents();
-    fetchAnnouncements();
+    Promise.all([fetchNews(), fetchEvents(), fetchAnnouncements()])
+      .finally(() => setLoading(false));
   }, []);
 
+  // Obtiene noticias desde Laravel
   const fetchNews = async () => {
     try {
       const resp = await axios.get('http://127.0.0.1:8000/api/noticias');
-      // Ajustamos la data para el NewsCarousel
-      // Suponiendo que en resp.data[i] tienes { idNoticias, titulo, descripcion, rutaImg, ... }
       const news = resp.data.map(n => ({
         id: n.idNoticias,
         title: n.titulo,
         description: n.descripcion,
-        image: n.rutaImg // La URL absoluta
+        image: n.rutaImg
       }));
       setNewsData(news);
     } catch (error) {
       console.error('Error al cargar noticias:', error);
     }
   };
-
+  // Obtiene eventos desde Laravel
   const fetchEvents = async () => {
     try {
       const resp = await axios.get('http://127.0.0.1:8000/api/eventos-avisos?tipo=Evento');
-      // Suponiendo resp.data[i] => { idEventosAvisos, rutaImg, ... }
       const events = resp.data.map(e => ({
         id: e.idEventosAvisos,
         image: e.rutaImg
@@ -66,6 +80,7 @@ const UserHome = () => {
     }
   };
 
+  // Obtiene avisos desde Laravel
   const fetchAnnouncements = async () => {
     try {
       const resp = await axios.get('http://127.0.0.1:8000/api/eventos-avisos?tipo=Aviso');
@@ -79,66 +94,54 @@ const UserHome = () => {
     }
   };
 
-  const handleImageClick = (imageUrl) => {
-    setSelectedImage(imageUrl);
-  };
-
-  const handleCloseImageModal = () => {
-    setSelectedImage(null);
-  };
-
-  const handleViewMoreNews = (newsItem) => {
-    setSelectedNews(newsItem);
-  };
-
-  const handleCloseNewsModal = () => {
-    setSelectedNews(null);
-  };
+  // Manejadores de modales
+  const handleImageClick = (imageUrl) => setSelectedImage(imageUrl);
+  const handleCloseImageModal = () => setSelectedImage(null);
+  const handleViewMoreNews = (newsItem) => setSelectedNews(newsItem);
+  const handleCloseNewsModal = () => setSelectedNews(null);
 
   return (
     <Box sx={{ p: 3 }}>
       <style>{arrowOverride}</style>
 
-      {/* <Typography
-        variant="h4"
-        align="center"
-        gutterBottom
-        sx={{ mb: 4, fontWeight: 'bold', color: 'primary.main' }}
-      >
-        Informate
-      </Typography> */}
+      {esInvitado && (
+        <SpeedDial
+          ariaLabel="Accesos rápidos"
+          sx={{ position: 'fixed', bottom: 24, right: 24 }}
+          icon={<MenuBookIcon />}
+        >
+          <SpeedDialAction
+            icon={<MenuBookIcon />}
+            tooltipTitle="Manual de Calidad"
+            onClick={() => navigate('/manual-calidad')}
+          />
+        </SpeedDial>
+      )}
 
-      {/* Carrusel de Noticias */}
+      {/* Noticias */}
       <Typography
         variant="h3"
         align="center"
         gutterBottom
-        sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff', paddingTop: '20px'  }}
+        sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff', paddingTop: '20px' }}
       >
         Noticias
       </Typography>
-      <NewsCarousel newsData={newsData} onViewMore={handleViewMoreNews} />
+      <NewsCarousel newsData={newsData} onViewMore={handleViewMoreNews} loading={loading} />
 
-      {/* Carrusel de Eventos y Avisos */}
+      {/* Eventos y Avisos */}
       <DualCarousel
         eventsData={eventsData}
         announcementsData={announcementsData}
         onImageClick={handleImageClick}
+        loading={loading}
       />
 
-      {/* Modal para imagen ampliada */}
-      <ImageModal
-        open={Boolean(selectedImage)}
-        imageUrl={selectedImage}
-        onClose={handleCloseImageModal}
-      />
+      {/* Modal Imagen */}
+      <ImageModal open={Boolean(selectedImage)} imageUrl={selectedImage} onClose={handleCloseImageModal} />
 
-      {/* Modal para noticia completa */}
-      <NewsModal
-        open={Boolean(selectedNews)}
-        newsItem={selectedNews}
-        onClose={handleCloseNewsModal}
-      />
+      {/* Modal Noticia */}
+      <NewsModal open={Boolean(selectedNews)} newsItem={selectedNews} onClose={handleCloseNewsModal} />
     </Box>
   );
 };

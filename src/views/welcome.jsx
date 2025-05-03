@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
+import { useNavigate } from "react-router-dom";
+
+// Importación de íconos para las tarjetas del menú
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
@@ -13,28 +16,31 @@ import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import AddHomeWorkOutlinedIcon from '@mui/icons-material/AddHomeWorkOutlined';
-import { useNavigate } from "react-router-dom";
+
 
 const Welcome = () => {
   const navigate = useNavigate();
 
-  // Definir un rol por defecto en caso de que no se encuentre en localStorage
+  // Rol por defecto si no hay sesión activa
+  // FUTURO: Este rol por defecto aplica si no hay sesión activa. 
+  // Puede ser modificado si se desea mostrar diferentes permisos por defecto al público.
+ 
   const defaultRol = {
-    nombreRol: "Invitado",
+    nombreRol: "Invitado", // Asume rol "Invitado" si no hay rol en localStorage
     permisos: ["Manual de Calidad", "Noticias"]
   };
+
+  // Se lee el rol desde localStorage o usa el default
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || JSON.stringify(defaultRol));
-  
+
+  // Bandera para saber si el acceso se hizo mediante token temporal usado para auditores externos
+  const viaToken = localStorage.getItem("viaToken") === "true";
+
+  // Lista de permisos disponibles para el rol activo
+  const permisos = rolActivo?.permisos?.map(p => p.modulo || p) || [];
   // Se obtiene el usuario para extraer el idUsuario
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
-  
-  // Flag que indica si se inició sesión mediante token
-  const viaToken = localStorage.getItem("viaToken") === "true";
-
-  // Se asume que rolActivo.permisos es un arreglo de objetos o de cadenas.
-  // Si son objetos se extrae la propiedad "modulo". Si son cadenas se usa directamente.
-  const permisos = rolActivo?.permisos?.map(p => p.modulo || p) || [];
 
   console.log("El rol es:", rolActivo);
   console.log("Permisos", permisos);
@@ -64,6 +70,15 @@ const Welcome = () => {
   if (viaToken) {
     itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
   }
+
+// Redirección automática si el usuario no tiene sesión (Personal Operativo / Invitado)
+useEffect(() => {
+    if (rolActivo?.nombreRol === "Invitado") {
+      navigate("/user-eventos"); // ← Lleva directamente a las noticias
+    }
+  }, [rolActivo, navigate]);
+
+  if (rolActivo?.nombreRol === "Invitado") return null; // ← Evita renderizar cards
 
   return (
     <Box
