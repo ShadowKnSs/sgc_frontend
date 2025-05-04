@@ -21,17 +21,19 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import axios from "axios";
 
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
 
 function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
-  const { idRegistro } = useParams();
+  const { idProceso, anio } = useParams();
+  //const { idRegistro } = useParams();
   const location = useLocation();
   const rolActivo = location.state?.rolActivo || "";
   const soloLectura = rolActivo === "Auditor";
-
+  const [idRegistro, setIdRegistro] = useState(null);
   console.log("El rol:"+ rolActivo + " esta: " + soloLectura);
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
@@ -87,11 +89,45 @@ function FormularioGestionRiesgos() {
   // 8) Confirmar eliminación
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
+  
+  const fetchIdRegistro = async () => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistroGR`, {
+        params: {
+          idProceso,
+          anio
+        }
+      });
+      
+      if (response.data.idRegistro) {
+        setIdRegistro(response.data.idRegistro);
+        
+        // Actualiza formData con los datos del proceso si vienen en la respuesta
+        if (response.data.proceso) {
+          setGestionRiesgo(prev => ({
+            ...prev,
+            entidad: response.data.entidad || prev.entidad,
+            macroproceso: response.data.macro || prev.macroproceso,
+            proceso: response.data.proceso.nombreProceso || prev.proceso
+          }));
+        }
+        console.log(response.data);
+        return response.data.idRegistro;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al obtener el idRegistro:", error);
+      return null;
+    }
+  };
 
   // --------------------------------------------------------------------------
   // useEffect #1: Al montar, cargamos la info general y/o chequeamos si existe un row en gestionriesgos
   // --------------------------------------------------------------------------
-  useEffect(() => {
+
+
+  const fetchFormData = async (idRegistro) => {
     console.log("[LOG] useEffect -> idRegistro =", idRegistro); // [LOG] Muestra el idRegistro recibido
 
     if (!idRegistro) {
@@ -108,12 +144,6 @@ function FormularioGestionRiesgos() {
       .then((info) => {
         console.log("[LOG] Datos Generales recibidos:", info);
         // Ajusta la forma según devuelva tu backend
-        setGestionRiesgo((prev) => ({
-          ...prev,
-          entidad: info.entidad || "",
-          macroproceso: info.macroproceso || "",
-          proceso: info.proceso || "",
-        }));
       })
       .catch((err) => console.error("[ERROR] al cargar datos generales:", err));
 
@@ -147,7 +177,21 @@ function FormularioGestionRiesgos() {
       .catch((err) => {
         console.log("[LOG] Posiblemente no exista gestionriesgos. Error:", err);
       });
-  }, [idRegistro]);
+  };
+
+
+  useEffect(() => {
+      const loadData = async () => {
+        const registroId = await fetchIdRegistro();
+        if (registroId) {
+          await fetchFormData(registroId);
+        } else {
+
+        }
+      };
+  
+      loadData();
+    }, [idProceso, anio]);
 
   // --------------------------------------------------------------------------
   // Función para cargar la lista de riesgos cuando tengamos idGesRies
@@ -621,21 +665,18 @@ function FormularioGestionRiesgos() {
             value={gestionRiesgo.entidad}
             onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, entidad: e.target.value })}
             fullWidth
-            disabled
           />
           <TextField
             label="Macroproceso"
             value={gestionRiesgo.macroproceso}
             onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, macroproceso: e.target.value })}
             fullWidth
-            disabled
           />
           <TextField
             label="Proceso"
             value={gestionRiesgo.proceso}
             onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, proceso: e.target.value })}
             fullWidth
-            disabled
           />
           {/* elaboro y fechaelaboracion (el usuario los edita) */}
           <TextField

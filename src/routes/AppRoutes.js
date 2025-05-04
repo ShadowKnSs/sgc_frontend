@@ -63,7 +63,7 @@ const AppRoutes = () => {
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
           <Route path="gestion-riesgos" element={<GestionRiesgosForm />} />
-          <Route path="gestion-riesgos/:idRegistro" element={<GestionRiesgosForm />} />
+          <Route path="gestion-riesgos/:idProceso/:anio" element={<GestionRiesgosForm />} />
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
