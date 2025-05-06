@@ -73,7 +73,6 @@ const iconOptions = [
 ];
 
 const ProcessCard = ({ process, onEdit, onDelete }) => {
-  // Buscar el ícono correspondiente al proceso
   const iconObj = iconOptions.find(icon => icon.name === process.icono);
   const IconComponent = iconObj ? iconObj.component : null;
 
@@ -84,47 +83,82 @@ const ProcessCard = ({ process, onEdit, onDelete }) => {
         flexDirection: "column",
         justifyContent: "space-between",
         p: 2,
-        borderRadius: 2,
-        boxShadow: 3,
+        borderRadius: 4,
+        boxShadow: 4,
+        minHeight: 200,
         transition: "transform 0.3s, box-shadow 0.3s",
+        backgroundColor: "#DFECDF", // verdeClaro
         "&:hover": {
-          transform: "scale(1.02)",
+          transform: "scale(1.015)",
           boxShadow: 6,
         },
-        minHeight: 180,
         position: "relative",
       }}
     >
-      {/* Icono en esquina superior derecha */}
+      {/* Icono decorativo */}
       {IconComponent && (
-        <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            backgroundColor: "#68A2C9", // azulClaro
+            borderRadius: "50%",
+            p: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {React.cloneElement(IconComponent, {
-            fontSize: "large",
-            color: "primary",
+            fontSize: "medium",
+            htmlColor: "#ffffff",
           })}
         </Box>
       )}
 
-      <CardContent>
-        <Typography variant="h6" sx={{ fontWeight: "bold", pr: 6 }}>
+      <CardContent sx={{ pr: 4 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: "#185FA4" }}>
           {process.nombreProceso}
         </Typography>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: "#555", mt: 0.5 }}>
           {process.entidad || process.dependencia || "Sin entidad"}
         </Typography>
       </CardContent>
 
-      {/* Botones */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: -1 }}>
-        <Button variant="outlined" color="primary" onClick={onEdit}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}>
+        <Button
+          variant="contained"
+          onClick={onEdit}
+          sx={{
+            backgroundColor: "#68A2C9",
+            color: "#fff",
+            borderRadius: 2,
+            "&:hover": { backgroundColor: "#185FA4" },
+          }}
+        >
           Editar
         </Button>
-        <Button variant="outlined" color="error" onClick={onDelete}>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={onDelete}
+          sx={{
+            borderRadius: 2,
+            color: "#C62828",
+            borderColor: "#C62828",
+            "&:hover": {
+              backgroundColor: "#FDECEA",
+              borderColor: "#B71C1C",
+            },
+          }}
+        >
           Eliminar
         </Button>
       </Box>
     </Card>
   );
 };
+
 
 export default ProcessCard;

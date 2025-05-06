@@ -7,6 +7,7 @@ import AddEntidad from '../components/Modals/AddEntidad';
 import CardEntidad from '../components/CardGesEntidad';
 import ConfirmDelete from '../components/confirmDelete';
 import ConfirmEdit from '../components/confirmEdit';
+import DialogTitleCustom from '../components/TitleDialog';
 
 const API_URL = 'http://localhost:8000/api/entidades';
 
@@ -159,7 +160,7 @@ const GestionEntidades = () => {
       </Fab>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{modoEdicion ? 'Editar Entidad' : 'Nueva Entidad'}</DialogTitle>
+        <DialogTitleCustom title = {modoEdicion ? 'Editar Entidad' : 'Nueva Entidad'} />
         <DialogContent>
           <AddEntidad
             onSubmit={handleSubmitEntidad}

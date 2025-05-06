@@ -13,57 +13,82 @@ const colorPalette = {
 };
 
 // Estilos según tipo de botón
+const baseStyle = {
+  textTransform: "none",
+  borderRadius: "20px",
+  fontWeight: 600,
+  px: 3,
+  py: 1,
+  boxShadow: 2,
+  transition: "all 0.3s ease-in-out",
+};
+
 const buttonConfigs = {
   guardar: {
     variant: "contained",
     sx: {
+      ...baseStyle,
       backgroundColor: colorPalette.azulOscuro,
+      color: "#fff",
       "&:hover": {
         backgroundColor: "#124B82",
+        boxShadow: 4,
       },
     },
   },
   cancelar: {
     variant: "outlined",
     sx: {
-      color: colorPalette.grisOscuro,
-      borderColor: colorPalette.grisOscuro,
+      ...baseStyle,
+      color: colorPalette.azulOscuro,
+      borderColor: colorPalette.azulOscuro,
+      backgroundColor: "#fff",
+      borderWidth: "2px",
       "&:hover": {
-        backgroundColor: "#f5f5f5",
-        borderColor: colorPalette.grisOscuro,
+        backgroundColor: colorPalette.azulClaro,
+        borderColor: colorPalette.azulOscuro,
+        boxShadow: 1,
       },
     },
   },
   aceptar: {
     variant: "contained",
     sx: {
+      ...baseStyle,
       backgroundColor: colorPalette.verdeAgua,
       color: "#000",
       "&:hover": {
         backgroundColor: "#A5CFCF",
+        boxShadow: 4,
       },
     },
   },
   descargar: {
     variant: "contained",
     sx: {
+      ...baseStyle,
       backgroundColor: colorPalette.azulClaro,
+      color: "#fff",
       "&:hover": {
         backgroundColor: "#4F8BB5",
+        boxShadow: 4,
       },
     },
   },
   generar: {
     variant: "contained",
     sx: {
+      ...baseStyle,
       backgroundColor: colorPalette.verdeClaro,
       color: "#000",
       "&:hover": {
         backgroundColor: "#CBE4CB",
+        boxShadow: 4,
       },
     },
   },
 };
+
 
 export default function CustomButton({ type = "guardar", children, ...props }) {
   const config = buttonConfigs[type] || buttonConfigs.guardar;

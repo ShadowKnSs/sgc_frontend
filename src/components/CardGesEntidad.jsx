@@ -74,7 +74,17 @@ const iconMap = {
   LaptopChromebook: <LaptopChromebookOutlinedIcon />
 }
 
-const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete}) => {
+const colorPalette = {
+  azulOscuro: "#185FA4",
+  azulClaro: "#68A2C9",
+  verdeAgua: "#BBD8D7",
+  verdeClaro: "#DFECDF",
+  verdePastel: "#E3EBDA",
+  grisClaro: "#DEDFD1",
+  grisOscuro: "#A4A7A0",
+};
+
+const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete }) => {
   return (
     <Card
       onClick={handleClick}
@@ -87,43 +97,82 @@ const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete}) => {
         justifyContent: "center",
         width: 200,
         height: 200,
-        borderRadius: 3,
+        borderRadius: 4,
         boxShadow: 3,
         cursor: "pointer",
-        backgroundColor: "primary.main",
-        transition: "transform 0.3s ease-in-out, background-color 0.3s ease-in-out",
+        backgroundColor: colorPalette.azulClaro,
+        transition: "transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "scale(1.05)",
-          backgroundColor: "secondary.main",
           boxShadow: 6,
+          backgroundColor: colorPalette.azulOscuro,
         }
       }}
     >
-      {/* Botones de editar y eliminar en la esquina superior derecha */}
+      {/* Botones de editar y eliminar */}
       <Box
         sx={{
           position: 'absolute',
-          top: 4,
-          right: 4,
+          top: 8,
+          right: 8,
           display: 'flex',
-          gap: 1,
-          zIndex: 2
+          gap: 0.5,
+          zIndex: 2,
         }}
-        onClick={(e) => e.stopPropagation()} // Evita que el click llegue al card
+        onClick={(e) => e.stopPropagation()}
       >
-        <IconButton size="small" onClick={handleEdit} sx={{ color: "#FFF" }}>
+        <IconButton
+          size="small"
+          onClick={handleEdit}
+          sx={{
+            backgroundColor: colorPalette.verdePastel,
+            color: colorPalette.azulOscuro,
+            "&:hover": {
+              backgroundColor: colorPalette.azulClaro,
+              color: "#fff"
+            }
+          }}
+        >
           <EditIcon fontSize="small" />
         </IconButton>
-        <IconButton size="small" onClick={handleDelete} sx={{ color: "#FFF" }}>
+
+        <IconButton
+          size="small"
+          onClick={handleDelete}
+          sx={{
+            backgroundColor: "#E57373",
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: "#C62828"
+            }
+          }}
+        >
           <DeleteIcon fontSize="small" />
         </IconButton>
       </Box>
 
-      <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {iconMap[icon] &&  React.cloneElement(iconMap[icon], {sx: { color: "#FFFFFF", fontSize: 70 }})}
+      <CardContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          color: "#fff",
+        }}
+      >
+        {iconMap[icon] && React.cloneElement(iconMap[icon], {
+          sx: { color: "#fff", fontSize: 70 }
+        })}
 
-
-        <Typography variant="subtitle1" sx={{ marginTop: 1, fontWeight: "bold", color: "#FFF", textAlign: "center" }}>
+        <Typography
+          variant="subtitle1"
+          fontWeight="bold"
+          mt={1}
+          sx={{
+            color: "#fff",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
+          }}
+        >
           {title}
         </Typography>
       </CardContent>
