@@ -41,7 +41,6 @@ export default function Login() {
       showModal("error", "Token inválido", "Por favor ingresa un token");
       return;
     }
-
     setLoading(true);
     try {
       const response = await fetch("http://localhost:8000/api/validar-token", {
@@ -49,11 +48,15 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
-        localStorage.setItem("rolActivo", JSON.stringify("Auditor"));
+        // Al validar el token, se asume que data.rol contiene la información del rol (por ejemplo, { nombreRol: "Auditor", permisos: [...] })
+        localStorage.setItem("rolActivo", JSON.stringify(data.rol));
+        // Además, se debe guardar un objeto usuario (con idUsuario distinto a 0)
+        const dummyUser = { idUsuario: data.idUsuario || 9999, nombre: data.nombre || "TokenUsuario" };
+        localStorage.setItem("usuario", JSON.stringify(dummyUser));
+        localStorage.setItem("viaToken", "true");
+        
         showModal("success", "¡Token válido!", "Accediendo al sistema...");
         setTimeout(() => navigate("/"), 1500);
       } else {
@@ -69,6 +72,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+  
 
   const handleLogin = async () => {
     setLoading(true);
@@ -78,6 +82,7 @@ export default function Login() {
 
       localStorage.setItem("usuario", JSON.stringify(usuario));
       localStorage.setItem("roles", JSON.stringify(roles));
+      localStorage.removeItem("viaToken");
 
       if (roles.length === 1) {
         localStorage.setItem("rolActivo", JSON.stringify(roles[0]));
@@ -170,7 +175,7 @@ export default function Login() {
                 fullWidth
                 type="password"
                 variant="outlined"
-                placeholder="********"
+                placeholder=""
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
@@ -239,6 +244,6 @@ export default function Login() {
         </Dialog>
 
       </Paper>
-    </Box>
-  );
+    </Box>
+  );
 }
