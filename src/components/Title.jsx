@@ -11,14 +11,15 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
-
-const Title = ({ text }) => (
+const Title = ({ text, children }) => (
   <Box
     sx={{
       display: "flex",
       justifyContent: "center",
-      mb: 4,            // margen inferior
-      px: 2,            // padding horizontal
+      alignItems: "baseline",
+      gap: 2,
+      mb: 4,
+      px: 2,
     }}
   >
     <Typography
@@ -28,7 +29,6 @@ const Title = ({ text }) => (
         fontWeight: "bold",
         position: "relative",
         textAlign: "center",
-        // Pseudo-elemento para el subrayado
         "&::after": {
           content: '""',
           width: "100%",
@@ -44,8 +44,10 @@ const Title = ({ text }) => (
     >
       {text}
     </Typography>
+    {children}
   </Box>
 );
+
 
 export default Title;
 

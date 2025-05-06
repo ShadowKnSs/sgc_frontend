@@ -7,6 +7,7 @@ import NewsCarousel from '../components/NewsCarrusel';
 import DualCarousel from '../components/EventosAvisosCarousel';
 import ImageModal from '../components/Modals/ImageModal';
 import NewsModal from '../components/Modals/NewsModal';
+import Title from '../components/Title';
 
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';

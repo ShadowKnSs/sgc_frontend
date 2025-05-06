@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
-import { Box } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Box, CircularProgress} from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // Importación de íconos para las tarjetas del menú
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
@@ -42,6 +43,10 @@ const Welcome = () => {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
 
+  const [procesoLider, setProcesoLider] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+
   console.log("El rol es:", rolActivo);
   console.log("Permisos", permisos);
   console.log("idUsuario", idUsuario);
@@ -61,10 +66,21 @@ const Welcome = () => {
     { icon: <PersonSearchIcon />, title: "Supervisor", path: "/busca_supervisor" },
     { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
     { icon: <AddHomeWorkOutlinedIcon />, title: "Gestión Entidades", path: "/gestion-entidades" },
+    
+
   ];
 
   // Filtra los ítems según los permisos del usuario
   let itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
+
+  if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
+    itemsFiltrados.push({
+      icon: <AddHomeWorkOutlinedIcon />,
+      title: "Mi Proceso",
+      path: `/estructura-procesos/${procesoLider.idProceso}`
+    });
+  }
+  
 
   // Si la sesión se inició con token, se quita la card de "Cronograma"
   if (viaToken) {
@@ -78,8 +94,43 @@ useEffect(() => {
     }
   }, [rolActivo, navigate]);
 
+  useEffect(() => {
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (usuario?.idUsuario && rolActivo?.nombreRol === "Líder") {
+      axios
+        .get(`http://localhost:8000/api/proceso-usuario/${usuario.idUsuario}`)
+        .then(res => {
+          setProcesoLider(res.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error al obtener proceso:", err);
+          setLoading(false); // Asegúrate de quitar el loading aunque falle
+        });
+    } else {
+      setLoading(false); // Si no es líder, también termina el loading
+    }
+  }, []);
+  
+  
   if (rolActivo?.nombreRol === "Invitado") return null; // ← Evita renderizar cards
 
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <CircularProgress size={60} thickness={5} color="primary" />
+      </Box>
+    );
+  }
+  
   return (
     <Box
       sx={{
