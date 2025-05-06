@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, } from "@mui/material";
+import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress} from "@mui/material";
 import axios from "axios";
 import ButtonInd from "../components/Button";
 
 const FormularioAnalisis = () => {
   const { idProceso, anio } = useParams();
-   
-  const { idRegistro } = useParams();
+  
+
+  const [idRegistro, setIdRegistro] = useState(null);
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
-  const idProceso = location.state?.idProceso;
-  const anio = location.state?.año;
+  
   const navigate = useNavigate();
 
 
@@ -41,7 +41,6 @@ const FormularioAnalisis = () => {
     evaluacion: { necesidad: "", interpretacion: "" },
   });
 
-  const [idRegistro, setIdRegistro] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [loading, setLoading] = useState(true);
