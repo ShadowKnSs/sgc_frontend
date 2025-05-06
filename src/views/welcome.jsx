@@ -56,7 +56,7 @@ const Welcome = () => {
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/manual-calidad" },
     { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manualDelSitio" },
     { icon: <GroupAddOutlinedIcon />, title: "Usuarios", path: "/usuarios" },
-    { icon: <AccountTreeOutlinedIcon />, title: "Procesos", path: "/procesos" },
+    { icon: <AccountTreeOutlinedIcon />, title: "Gestión de Procesos", path: "/procesos" },
     { icon: <CampaignOutlinedIcon />, title: "Noticias", path: "/user-eventos" },
     { icon: <NewspaperOutlinedIcon />, title: "Gestión Noticias", path: "/admin-eventos" },
     { icon: <CalendarMonthOutlinedIcon />, title: "Cronograma", path: "/cronograma" },

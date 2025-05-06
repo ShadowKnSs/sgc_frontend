@@ -24,7 +24,7 @@ const customColors = {
 const FeedbackSnackbar = ({
   open,
   onClose,
-  type = "info", // success, info, warning, error
+  type = "", // success, info, warning, error
   title = "",
   message = "",
   autoHideDuration = 5000,

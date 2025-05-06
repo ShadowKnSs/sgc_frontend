@@ -32,6 +32,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
+import CustomButton from "../Button";
 
 
 const iconOptions = [
@@ -69,7 +70,7 @@ const iconOptions = [
   
 ];
 
-const AddEntidad = ({ onSubmit, initialData }) => {
+const AddEntidad = ({ onSubmit, initialData , onClose}) => {
   const [form, setForm] = useState({
     nombreEntidad: '',
     tipo: '',
@@ -166,7 +167,19 @@ const AddEntidad = ({ onSubmit, initialData }) => {
       </Box>
 
       <Box sx={{ textAlign: 'right', mt: 3 }}>
-        <Button type="submit" variant="contained">Guardar</Button>
+        <CustomButton type="cancelar" onClick={onClose}> {"Cancelar"} </CustomButton>
+        <CustomButton
+                            type="Guardar"
+                            onClick={handleSubmit}
+                            disabled={
+                                !form.tipo ||
+                                !form.nombreEntidad ||
+                                !form.ubicacion 
+                            }
+                        >
+                            {"Guardar"}
+                        </CustomButton>
+       
       </Box>
     </Box>
   );

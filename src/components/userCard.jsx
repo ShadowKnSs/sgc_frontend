@@ -1,92 +1,122 @@
 import React from "react";
 import { Card, CardContent, Typography, Divider, Box, IconButton, Tooltip, Chip } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
+import SupervisorAccount from "@mui/icons-material/SupervisorAccount"; 
+
+const colorPalette = {
+  azulOscuro: "#185FA4",
+  azulClaro: "#68A2C9",
+  verdeAgua: "#BBD8D7",
+  verdeClaro: "#DFECDF",
+  verdePastel: "#E3EBDA",
+  grisClaro: "#DEDFD1",
+  grisOscuro: "#A4A7A0",
+};
 
 function UserCard({ user, onEdit, onDelete }) {
   return (
     <Card
       sx={{
         width: 320,
-        padding: 3,
-        backgroundColor: "#F9F8F8",
-        borderRadius: 3,
+        borderRadius: 4,
         boxShadow: 4,
-        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        overflow: "hidden",
+        transition: "transform 0.3s ease",
+        backgroundColor: "#fff",
         "&:hover": {
-          transform: "scale(1.05)",
+          transform: "scale(1.02)",
           boxShadow: 8,
         },
       }}
     >
-      <CardContent>
-        {/* Parte superior: Nombre y Correo */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 2 }}>
-          <Typography variant="h6" fontWeight="bold" color="#004A98" noWrap>
-            {user.lastName} {user.secondLastName} {user.firstName}
-          </Typography>
-          <Typography variant="body2" color="#00B2E3" sx={{ wordBreak: "break-word", mt: 1 }}>
-            {user.email}
-          </Typography>
-        </Box>
+      {/* Encabezado */}
+      <Box
+        sx={{
+          backgroundColor: colorPalette.verdePastel,
+          color: colorPalette.azulOscuro,
+          textAlign: "center",
+          py: 2,
+          px: 1.5,
+        }}
+      >
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          noWrap
+          sx={{ color: colorPalette.azulOscuro }}
+        >
+          {user.lastName} {user.secondLastName} {user.firstName}
+        </Typography>
+        <Typography variant="body2" sx={{ color: colorPalette.grisOscuro }}>
+          {user.email}
+        </Typography>
+      </Box>
 
-        <Divider sx={{ my: 2 }} />
-
-        {/* Roles: Centrados en una fila con chips */}
-        <Box display="flex" justifyContent="center" gap={1} flexWrap="wrap" sx={{ mb: 2 }}>
+      <CardContent sx={{ backgroundColor: colorPalette.verdeClaro }}>
+        {/* Roles */}
+        <Box display="flex" justifyContent="center" gap={1} flexWrap="wrap" mb={2}>
           {user.roles.map((role, index) => (
             <Chip
               key={index}
               label={role}
               sx={{
-                backgroundColor: "#F9B800",
-                color: "white",
-                fontWeight: "bold",
-                fontSize: "0.875rem",
-                borderRadius: 20,
-                padding: "4px 12px",
+                backgroundColor: index % 2 === 0 ? colorPalette.azulClaro : colorPalette.azulOscuro,
+                color: "#fff",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                borderRadius: 2,
               }}
             />
           ))}
         </Box>
 
-        {/* Supervisor: Solo si es Líder de Proceso */}
+        {/* Supervisor */}
         {user.roles.includes("Líder") && user.supervisor && (
-          <Box sx={{ textAlign: "center", mb: 2 }}>
-            <Typography variant="body2" color="#555">
-              Supervisor: {user.supervisor.lastName} {user.supervisor.secondLastName} {user.supervisor.firstName}
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            gap={1}
+            px={1}
+            mb={2}
+          >
+            <SupervisorAccount fontSize="small" sx={{ color: colorPalette.grisOscuro }} />
+            <Typography variant="body2" sx={{ color: "#4a4a4a", textAlign: "center" }}>
+              Supervisor:{" "}
+              {user.supervisor.lastName} {user.supervisor.secondLastName} {user.supervisor.firstName}
             </Typography>
           </Box>
         )}
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2, backgroundColor: colorPalette.grisClaro }} />
 
-        {/* Acciones: Botones centrados y estilizados */}
-        <Box display="flex" justifyContent="center" gap={3}>
+        {/* Acciones */}
+        <Box display="flex" justifyContent="center" gap={2}>
           <Tooltip title="Editar">
             <IconButton
               onClick={() => onEdit(user)}
               sx={{
-                color: "#004A98",
-                '&:hover': { backgroundColor: "#d0e0f1" },
-                padding: 1.5,
-                borderRadius: "50%",
-                boxShadow: 2,
-                transition: "all 0.2s ease",
+                backgroundColor: colorPalette.verdePastel,
+                color: colorPalette.azulOscuro,
+                "&:hover": {
+                  backgroundColor: colorPalette.azulClaro,
+                  color: "#fff",
+                },
               }}
             >
               <Edit />
             </IconButton>
           </Tooltip>
+
           <Tooltip title="Eliminar">
             <IconButton
               onClick={() => onDelete(user)}
               sx={{
-                color: "#F9B800",
-                '&:hover': { backgroundColor: "#fbe7a2" },
-                padding: 1.5,
-                borderRadius: "50%",
-                boxShadow: 2,
-                transition: "all 0.2s ease",
+                backgroundColor: "#E57373", // más suave que rojo puro
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: "#C62828",
+                },
               }}
             >
               <Delete />
@@ -97,5 +127,6 @@ function UserCard({ user, onEdit, onDelete }) {
     </Card>
   );
 }
+
 
 export default UserCard;

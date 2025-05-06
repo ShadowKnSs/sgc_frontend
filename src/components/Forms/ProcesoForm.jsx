@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, TextField, MenuItem, Card, CardContent, Typography, Grid, IconButton } from "@mui/material";
-import DialogActionButtons from "../DialogActionButtons"; // o el componente que uses para los botones
+import CustomButton from "../Button";
 import BusinessIcon from '@mui/icons-material/Business';
 import SchoolIcon from '@mui/icons-material/School';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
@@ -32,7 +32,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
-
+import Title from "../Title";
 
 const iconOptions = [
     { name: 'Business', component: <BusinessIcon /> },
@@ -80,7 +80,7 @@ const ProcessForm = ({
         estado: "",
         idEntidad: "",
         anioCertificado: "",
-        icono:''
+        icono: ''
     },
     leaders = [],
     macroprocesos = [],
@@ -92,6 +92,18 @@ const ProcessForm = ({
 }) => {
     const [formData, setFormData] = useState(initialValues);
     const [selectedIcon, setSelectedIcon] = useState(iconOptions[0].name);
+    const isFormValid = [
+        formData.nombreProceso,
+        formData.idUsuario,
+        formData.objetivo,
+        formData.alcance,
+        formData.idMacroproceso,
+        formData.estado,
+        formData.idEntidad,
+        formData.anioCertificado,
+      ].every(val => String(val).trim() !== "");
+      
+      
 
     const handleSelectIcon = (iconName) => {
         setSelectedIcon(iconName);
@@ -99,7 +111,7 @@ const ProcessForm = ({
 
     useEffect(() => {
         setFormData(initialValues);
-        console.log("Form data precargado:", initialValues);
+        setSelectedIcon(initialValues.icono || iconOptions[0].name); 
     }, [initialValues]);
 
     const handleChange = (field) => (e) => {
@@ -110,7 +122,7 @@ const ProcessForm = ({
     };
 
     const handleSubmit = () => {
-        onSubmit(formData);
+        onSubmit({ ...formData, icono: selectedIcon });
     };
 
     const commonStyles = {
@@ -122,11 +134,11 @@ const ProcessForm = ({
     return (
         <Card sx={{ width: "100%", maxWidth: 800, p: 3, boxShadow: 3, borderRadius: "12px", margin: "0 auto" }}>
             <CardContent>
-                <Typography variant="h1" sx={{ textAlign: "center", mb: 3, color: "primary.main", fontSize: "2.5rem" }}>
-                    {title}
-                </Typography>
+
+                <Title text={title} />
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
                     <TextField
+                        required
                         fullWidth
                         label="Nombre del Proceso"
                         variant="outlined"
@@ -135,6 +147,7 @@ const ProcessForm = ({
                         sx={commonStyles}
                     />
                     <TextField
+                        required
                         select
                         fullWidth
                         label="Líder del Proceso"
@@ -150,26 +163,31 @@ const ProcessForm = ({
                         ))}
                     </TextField>
                     <TextField
+                        required
                         fullWidth
                         label="Objetivo del Proceso"
                         multiline
-                        rows={3}
+                        rows={4}
                         variant="outlined"
                         value={formData.objetivo}
                         onChange={handleChange("objetivo")}
                         sx={commonStyles}
+                        inputProps={{ maxLength: 300 }}
                     />
                     <TextField
+                        required
                         fullWidth
                         label="Alcance del Proceso"
                         multiline
-                        rows={3}
+                        rows={4}
                         variant="outlined"
                         value={formData.alcance}
                         onChange={handleChange("alcance")}
                         sx={commonStyles}
+                        inputProps={{ maxLength: 300 }}
                     />
                     <TextField
+                        required
                         select
                         fullWidth
                         label="Norma"
@@ -182,6 +200,7 @@ const ProcessForm = ({
                         <MenuItem value="ISO 45001">ISO 45001</MenuItem>
                     </TextField>
                     <TextField
+                        required
                         select
                         fullWidth
                         label="Macroproceso"
@@ -196,6 +215,7 @@ const ProcessForm = ({
                         ))}
                     </TextField>
                     <TextField
+                        required
                         select
                         fullWidth
                         label="Estado"
@@ -207,6 +227,7 @@ const ProcessForm = ({
                         <MenuItem value="Inactivo">Inactivo</MenuItem>
                     </TextField>
                     <TextField
+                        required
                         select
                         fullWidth
                         label="Entidad/Dependencia"
@@ -221,6 +242,7 @@ const ProcessForm = ({
                         ))}
                     </TextField>
                     <TextField
+                        required
                         select
                         fullWidth
                         label="Año de Certificación"
@@ -259,16 +281,22 @@ const ProcessForm = ({
                         ))}
                     </Grid>
                 </Box>
-                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <DialogActionButtons
-                        onCancel={onCancel}
-                        onSave={handleSubmit}
-                        saveText={title.includes("Editar") ? "Actualizar" : "Guardar"}
-                        cancelText="Cancelar"
-                        saveColor="#F9B800"
-                        cancelColor="#0056b3"
-                    />
-                </Box>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}>
+    <CustomButton
+        type="cancelar"
+        onClick={onCancel}
+    >
+        {"Cancelar"}
+    </CustomButton>
+    <CustomButton
+        type="Guardar"
+        onClick={handleSubmit}
+        disabled={!isFormValid}
+    >
+        {"Guardar"}
+    </CustomButton>
+</Box>
+
             </CardContent>
         </Card>
     );

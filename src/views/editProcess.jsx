@@ -5,7 +5,6 @@ import ProcessForm from "../components/Forms/ProcesoForm";
 import axios from "axios";
 
 const EditProcess = () => {
-  // Cambia el nombre del parámetro para que coincida con la navegación
   const { idProceso } = useParams();
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
@@ -21,6 +20,7 @@ const EditProcess = () => {
     estado: "",
     idEntidad: "",
     anioCertificado: "",
+    icono:'',
   });
   const [leaders, setLeaders] = useState([]);
   const [macroprocesos, setMacroprocesos] = useState([]);
@@ -41,6 +41,7 @@ const EditProcess = () => {
           estado: proc.estado,
           idEntidad: proc.idEntidad,
           anioCertificado: proc.anioCertificado.toString(),
+          icono: proc.icono
         });
       })
       .catch(error => console.error("Error al cargar el proceso:", error));
