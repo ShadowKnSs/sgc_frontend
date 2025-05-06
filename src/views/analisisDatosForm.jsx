@@ -5,6 +5,8 @@ import axios from "axios";
 import ButtonInd from "../components/Button";
 
 const FormularioAnalisis = () => {
+  const { idProceso, anio } = useParams();
+   
   const { idRegistro } = useParams();
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
@@ -17,32 +19,33 @@ const FormularioAnalisis = () => {
   console.log("AnalisisDatos - idRegistro recibido:", idRegistro);
 
   const [formData, setFormData] = useState({
-    entidad: "Facultad",
-    macroproceso: "Gestión de Calidad",
-    proceso: "Evaluación de Desempeño",
-    periodoEvaluacion: "2024 - Primer Trimestre",
+    entidad: "",
+    macroproceso: "",
+    proceso: "",
+    periodoEvaluacion: "",
   });
 
   const [indicadores, setIndicadores] = useState({
-    conformidad: [],
+    Conformidad: [],
     desempeno: [],
     eficacia: [],
-    encuesta: [],
-    retroalimentacion: [],
+    satisfaccion: { encuesta: [], retroalimentacion: [] },
     evaluacion: [],
   });
 
   const [necesidadInterpretacion, setNecesidadInterpretacion] = useState({
-    conformidad: { necesidad: "", interpretacion: "" },
+    Conformidad: { necesidad: "", interpretacion: "" },
     desempeno: { necesidad: "", interpretacion: "" },
     eficacia: { necesidad: "", interpretacion: "" },
-    encuesta: { necesidad: "", interpretacion: "" },
-    retroalimentacion: { necesidad: "", interpretacion: "" },
+    satisfaccion: { necesidad: "", interpretacion: "" },
     evaluacion: { necesidad: "", interpretacion: "" },
   });
 
+  const [idRegistro, setIdRegistro] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [loading, setLoading] = useState(true);
+
 
 
   const handleIrAIndicadores = () => {
@@ -68,109 +71,179 @@ const FormularioAnalisis = () => {
     });
   };
 
-  // Función para mostrar notificaciones
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
 
-  // Cerrar notificación
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Obtener datos de la API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://127.0.0.1:8000/api/analisisDatos/1/analisis");
-        const data = response.data;
+  // Función para obtener el idRegistro basado en idProceso y anio
+  const fetchIdRegistro = async () => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistro`, {
+        params: {
+          idProceso,
+          anio
+        }
+      });
+      
+      if (response.data.idRegistro) {
+        setIdRegistro(response.data.idRegistro);
+        
+        // Actualiza formData con los datos del proceso si vienen en la respuesta
+        if (response.data.proceso) {
+          setFormData(prev => ({
+            ...prev,
+            entidad: response.data.entidad || prev.entidad,
+            macroproceso: response.data.macro || prev.macroproceso,
+            proceso: response.data.proceso.nombreProceso || prev.proceso
+          }));
+        }
+        console.log("Entidad:",response.data.proceso);
+        return response.data.idRegistro;
+      } else {
+        showSnackbar("No se encontró un registro para el proceso y año especificados", "warning");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al obtener el idRegistro:", error);
+      showSnackbar("Error al obtener el registro", "error");
+      return null;
+    }
+  };
 
-        // Filtrar indicadores por origen
-        const conformidad = data.Indicadores.filter((ind) => ind.origenIndicador === "ActividadControl");
-        const desempeno = data.Indicadores.filter((ind) => ind.origenIndicador === "MapaProceso");
-        const eficacia = data.Indicadores.filter((ind) => ind.origenIndicador === "GestionRiesgo");
+  // Función para cargar los datos del formulario
+  const fetchFormData = async (registroId) => {
+    try {
+      console.log("Registro:",registroId);
+      const response = await axios.get(`http://127.0.0.1:8000/api/analisisDatos/${registroId}`);
+      const data = response.data;
+      console.log("Respuesta de la API:", data);
 
-        // Asignar datos de Encuesta y Retroalimentación
-        const encuesta = data.Encuesta;
-        const retroalimentacion = data.Retroalimentacion;
+      const periodo = data.formAnalisisDatos[0].periodoEva;
+      setFormData(prev => ({
+        ...prev,
+        periodoEvaluacion: data.formAnalisisDatos[0].periodoEva || prev.periodoEva
+      }));
+      
+      console.log("", periodo);
 
-        // Asignar datos de Evaluación a Desempeño de Proveedores
-        const evaluacion = data.Evaluacion;
+      // Filtrar indicadores por origen
+      const Conformidad = data.indicador?.filter(ind => ind.origenIndicador === "ActividadControl") || [];
+      const desempeno = data.indicador?.filter(ind => ind.origenIndicador === "MapaProceso") || [];
+      const eficacia = data.indicador?.filter(ind => ind.origenIndicador === "GestionRiesgo") || [];
+      
+      // Procesar datos de encuesta
+      const encuestaIndicador = data.indicador?.find(ind => ind.origenIndicador === "Encuesta");
+      const encuesta = encuestaIndicador ? [{
+        ...encuestaIndicador,
+        ...(data.encuesta?.find(e => e.idIndicador === encuestaIndicador.idIndicador) || {})
+      }] : [];
 
-        setIndicadores({
-          conformidad,
-          desempeno,
-          eficacia,
+      // Procesar datos de evaluación
+      const evaluacionIndicador = data.indicador?.find(ind => ind.origenIndicador === "EvaluaProveedores");
+      const evaluacion = evaluacionIndicador ? [{
+        ...evaluacionIndicador,
+        ...(data.evaluacion?.find(e => e.idIndicador === evaluacionIndicador.idIndicador) || {})
+      }] : [];
+
+      // Procesar datos de retroalimentación
+      const retroalimentacion = data.retroalimentacion?.map(retro => {
+        const indicador = data.indicador?.find(ind => ind.idIndicador === retro.idIndicador);
+        return indicador ? { ...indicador, ...retro } : retro;
+      }) || [];
+
+      setIndicadores({
+        Conformidad,
+        desempeno,
+        eficacia,
+        satisfaccion: {
           encuesta,
-          retroalimentacion,
-          evaluacion,
-        });
+          retroalimentacion
+        },
+        evaluacion,
+      });
+      
+      // Inicializar necesidad e interpretación con datos de analisisDatos
+      const nuevaNecesidadInterpretacion = {
+        Conformidad: { necesidad: "", interpretacion: "" },
+        desempeno: { necesidad: "", interpretacion: "" },
+        eficacia: { necesidad: "", interpretacion: "" },
+        satisfaccion: { necesidad: "", interpretacion: "" },
+        evaluacion: { necesidad: "", interpretacion: "" },
+      };
 
-        // Asignar valores de necesidad e interpretación desde NeceInter
-        const neceInterData = data.NeceInter;
-        const newNecesidadInterpretacion = {
-          conformidad: { necesidad: "", interpretacion: "" },
-          desempeno: { necesidad: "", interpretacion: "" },
-          eficacia: { necesidad: "", interpretacion: "" },
-          encuesta: { necesidad: "", interpretacion: "" },
-          retroalimentacion: { necesidad: "", interpretacion: "" },
-          evaluacion: { necesidad: "", interpretacion: "" },
-        };
-
-        neceInterData.forEach((item) => {
-          switch (item.pestana) {
+      if (data.analisisDatos) {
+        data.analisisDatos.forEach(item => {
+          // Mapear secciones de la API a nuestro estado
+          let seccion = "";
+          switch(item.seccion) {
             case "Conformidad":
-              newNecesidadInterpretacion.conformidad = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
+              seccion = "Conformidad";
               break;
-            case "Desempeno":
-              newNecesidadInterpretacion.desempeno = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
+            case "DesempeñoProceso":
+              seccion = "desempeno";
               break;
             case "Eficacia":
-              newNecesidadInterpretacion.eficacia = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
+              seccion = "eficacia";
               break;
-            case "Satisfaccion":
-              newNecesidadInterpretacion.encuesta = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
+            case "Satisfacción":
+              seccion = "satisfaccion";
               break;
-            case "Evaluacion":
-              newNecesidadInterpretacion.evaluacion = {
-                necesidad: item.Necesidad || "",
-                interpretacion: item.Interpretacion || "",
-              };
+            case "DesempeñoProveedores":
+              seccion = "evaluacion";
               break;
             default:
-              break;
+              seccion = item.seccion.toLowerCase();
+          }
+
+          if (nuevaNecesidadInterpretacion[seccion]) {
+            nuevaNecesidadInterpretacion[seccion] = {
+              necesidad: item.necesidad || "",
+              interpretacion: item.interpretacion || "",
+            };
           }
         });
+      }
 
-        setNecesidadInterpretacion(newNecesidadInterpretacion);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-        showSnackbar("Error al cargar los datos", "error");
+      setNecesidadInterpretacion(nuevaNecesidadInterpretacion);
+      showSnackbar("Datos cargados correctamente", "success");
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+      showSnackbar("Error al cargar los datos", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const registroId = await fetchIdRegistro();
+      if (registroId) {
+        await fetchFormData(registroId);
+      } else {
+        setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    loadData();
+  }, [idProceso, anio]);
 
-  // Función para actualizar necesidad e interpretación en el backend
-  const updateNecesidadInterpretacion = async (pestana, campo, valor) => {
+  const updateNecesidadInterpretacion = async (seccion, campo, valor) => {
     try {
+      // Mapear nuestras secciones internas a las de la API
+      let seccionApi = seccion;
+      if (seccion === "desempeno") seccionApi = "DesempeñoProceso";
+      if (seccion === "evaluacion") seccionApi = "Evaluacion";
+      if (seccion === "evaluacion") seccionApi = "DesempeñoProveedores";
+      // Agrega más mapeos según sea necesario
+
       const response = await axios.put(
-        "http://127.0.0.1:8000/api/analisisDatos/1/necesidad-interpretacion",
+        `http://127.0.0.1:8000/api/analisisDatos/${idRegistro}/necesidad-interpretacion`,
         {
-          pestana,
+          seccion: seccionApi,
           campo,
           valor,
         }
@@ -183,7 +256,6 @@ const FormularioAnalisis = () => {
     }
   };
 
-  // Manejar cambios en los campos de necesidad e interpretación
   const handleNecesidadInterpretacionChange = (pestana, campo, valor) => {
     setNecesidadInterpretacion((prev) => ({
       ...prev,
@@ -194,98 +266,61 @@ const FormularioAnalisis = () => {
     }));
   };
 
-  // Guardar cambios en necesidad e interpretación
   const handleSaveNecesidadInterpretacion = async (pestana) => {
     const { necesidad, interpretacion } = necesidadInterpretacion[pestana];
     await updateNecesidadInterpretacion(pestana, "necesidad", necesidad);
     await updateNecesidadInterpretacion(pestana, "interpretacion", interpretacion);
   };
 
-  // Obtener los indicadores actuales según la pestaña seleccionada
   const getCurrentIndicators = () => {
     switch (selectedTab) {
-      case 0:
-        return indicadores.conformidad;
-      case 1:
-        return indicadores.desempeno;
-      case 2:
-        return indicadores.eficacia;
-      case 3:
-        return indicadores.encuesta;
-      case 4:
-        return indicadores.retroalimentacion;
-      case 5:
-        return indicadores.evaluacion;
-      default:
-        return [];
+      case 0: return indicadores.Conformidad;
+      case 1: return indicadores.desempeno;
+      case 2: return indicadores.eficacia;
+      case 3: return indicadores.satisfaccion;
+      case 4: return indicadores.evaluacion;
+      default: return [];
     }
   };
 
-  // Obtener las columnas de la tabla según la pestaña seleccionada
   const getTableHeaders = () => {
     switch (selectedTab) {
       case 0: // Conformidad
+        return ["Nombre del Indicador", "Meta", "Periodicidad"];
       case 1: // Desempeño
-        return ["Descripción", "Meta", "Periodo Ene-Jun", "Periodo Jul-Ago"];
+        return ["Nombre del Indicador", "Meta", "Periodicidad"];
       case 2: // Eficacia
-        return ["Descripción", "Meta", "ResultadoSemestral2"];
-      case 3: // Encuesta
-        return ["Malo", "Regular", "Bueno", "Excelente", "No Encuestas"];
-      case 4: // Retroalimentación
-        return ["Método", "Felicitaciones", "Sugerencias", "Quejas"];
-      case 5: // Desempeño de Proveedores
-        return ["Confiable", "No Confiable", "Condicionado"];
+        return ["Nombre del Indicador", "Meta", "Periodicidad"];
+      case 3: // Satisfacción (manejo especial)
+        return [];
+      case 4: // Evaluación de Proveedores
+        return ["Confiable", "No Confiable", "Condicionado", "Meta Confiable", "Meta No Confiable", "Meta Condicionado"];
       default:
         return [];
     }
   };
 
-  // Renderizar una fila de la tabla
   const renderTableRow = (indicator, index) => {
     switch (selectedTab) {
       case 0: // Conformidad
       case 1: // Desempeño
-        return (
-          <TableRow key={index}>
-            <TableCell>{indicator.descripcionIndicador || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.meta || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.resultadoSemestral1 || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.resultadoSemestral2 || "N/A"}</TableCell>
-          </TableRow>
-        );
       case 2: // Eficacia
         return (
           <TableRow key={index}>
-            <TableCell>{indicator.descripcionIndicador || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.meta || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.resultadoSemestral2 || "N/A"}</TableCell>
+            <TableCell>{indicator.nombreIndicador || "N/A"}</TableCell>
+            <TableCell align="center">{indicator.meta ?? "N/A"}</TableCell>
+            <TableCell align="center">{indicator.periodicidad || "N/A"}</TableCell>
           </TableRow>
         );
-      case 3: // Encuesta
+      case 4: // Evaluación de Proveedores
         return (
           <TableRow key={index}>
-            <TableCell align="center">{indicator.malo || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.regular || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.bueno || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.excelente || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.noEncuestas || "N/A"}</TableCell>
-          </TableRow>
-        );
-      case 4: // Retroalimentación
-        return (
-          <TableRow key={index}>
-            <TableCell>{indicator.metodo || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.cantidadFelicitacion || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.cantidadSugerencia || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.cantidadQueja || "N/A"}</TableCell>
-          </TableRow>
-        );
-      case 5: // Desempeño de Proveedores
-        return (
-          <TableRow key={index}>
-            <TableCell align="center">{indicator.confiable || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.noConfiable || "N/A"}</TableCell>
-            <TableCell align="center">{indicator.condicionado || "N/A"}</TableCell>
+            <TableCell align="center">{indicator.confiable ?? "N/A"}</TableCell>
+            <TableCell align="center">{indicator.noConfiable ?? "N/A"}</TableCell>
+            <TableCell align="center">{indicator.condicionado ?? "N/A"}</TableCell>
+            <TableCell align="center">{indicator.metaConfiable ?? "N/A"}</TableCell>
+            <TableCell align="center">{indicator.metaNoConfiable ?? "N/A"}</TableCell>
+            <TableCell align="center">{indicator.metaCondicionado ?? "N/A"}</TableCell>
           </TableRow>
         );
       default:
@@ -293,25 +328,24 @@ const FormularioAnalisis = () => {
     }
   };
 
-  // Obtener el nombre de la pestaña actual
   const getCurrentPestana = () => {
     switch (selectedTab) {
-      case 0:
-        return "conformidad";
-      case 1:
-        return "desempeno";
-      case 2:
-        return "eficacia";
-      case 3:
-        return "encuesta";
-      case 4:
-        return "retroalimentacion";
-      case 5:
-        return "evaluacion";
-      default:
-        return "";
+      case 0: return "Conformidad";
+      case 1: return "desempeno";
+      case 2: return "eficacia";
+      case 3: return "satisfaccion";
+      case 4: return "evaluacion";
+      default: return "";
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={80} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "80%", margin: "auto", mt: 5, p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
@@ -319,7 +353,6 @@ const FormularioAnalisis = () => {
         Formulario de Análisis de Datos
       </Typography>
 
-      {/* Formulario con valores preestablecidos */}
       <Grid container spacing={3}>
         <Grid item xs={6}>
           <TextField
@@ -359,7 +392,6 @@ const FormularioAnalisis = () => {
         </Grid>
       </Grid>
 
-      {/* Tabs de Secciones */}
       <AppBar position="static" sx={{ bgcolor: "#0056b3", borderRadius: 3, mt: 3 }}>
         <Tabs
           value={selectedTab}
@@ -393,9 +425,8 @@ const FormularioAnalisis = () => {
         </Tabs>
       </AppBar>
 
-      {/* Tabla de Indicadores */}
       <Box sx={{ mt: 3 }}>
-        {selectedTab === 3 ? ( // Satisfacción del Cliente
+        {selectedTab === 3 ? ( // Satisfacción del Cliente (mostrar ambas tablas)
           <>
             {/* Tabla de Encuesta */}
             <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#0056b3" }}>
@@ -413,13 +444,13 @@ const FormularioAnalisis = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {indicadores.encuesta.map((encuesta, index) => (
+                  {indicadores.satisfaccion.encuesta.map((encuesta, index) => (
                     <TableRow key={index}>
-                      <TableCell align="center">{encuesta.malo || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.regular || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.bueno || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.excelente || "N/A"}</TableCell>
-                      <TableCell align="center">{encuesta.noEncuestas || "N/A"}</TableCell>
+                      <TableCell align="center">{encuesta.malo ?? "N/A"}</TableCell>
+                      <TableCell align="center">{encuesta.regular ?? "N/A"}</TableCell>
+                      <TableCell align="center">{encuesta.bueno ?? "N/A"}</TableCell>
+                      <TableCell align="center">{encuesta.excelente ?? "N/A"}</TableCell>
+                      <TableCell align="center">{encuesta.noEncuestas ?? "N/A"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -434,7 +465,7 @@ const FormularioAnalisis = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    {["Método", "Felicitaciones", "Sugerencias", "Quejas"].map((header, i) => (
+                    {["Método", "Felicitaciones", "Sugerencias", "Quejas", "Total"].map((header, i) => (
                       <TableCell key={i} sx={{ fontWeight: "bold", textAlign: "center", bgcolor: "#0056b3", color: "white" }}>
                         {header}
                       </TableCell>
@@ -442,20 +473,20 @@ const FormularioAnalisis = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {indicadores.retroalimentacion.map((retro, index) => (
+                  {indicadores.satisfaccion.retroalimentacion.map((retro, index) => (
                     <TableRow key={index}>
                       <TableCell>{retro.metodo || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadFelicitacion || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadSugerencia || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadQueja || "N/A"}</TableCell>
+                      <TableCell align="center">{retro.cantidadFelicitacion ?? "N/A"}</TableCell>
+                      <TableCell align="center">{retro.cantidadSugerencia ?? "N/A"}</TableCell>
+                      <TableCell align="center">{retro.cantidadQueja ?? "N/A"}</TableCell>
+                      <TableCell align="center">{retro.total ?? "N/A"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
           </>
-        ) : (
-          // Otras secciones
+        ) : selectedTab !== 3 ? ( // Otras secciones (tabla normal)
           <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3 }}>
             <Table>
               <TableHead>
@@ -472,10 +503,9 @@ const FormularioAnalisis = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        )}
+        ) : null}
       </Box>
 
-      {/* Campos de Necesidad e Interpretación */}
       <Box sx={{ mt: 3 }}>
         <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#0056b3" }}>
           Necesidad e Interpretación
@@ -487,10 +517,11 @@ const FormularioAnalisis = () => {
               fullWidth
               multiline
               rows={4}
-              value={necesidadInterpretacion[getCurrentPestana()].necesidad}
+              value={necesidadInterpretacion[getCurrentPestana()]?.necesidad || ""}
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "necesidad", e.target.value)
               }
+              variant="outlined"
               disabled={soloLectura}
             />
           </Grid>
@@ -500,18 +531,17 @@ const FormularioAnalisis = () => {
               fullWidth
               multiline
               rows={4}
-              value={necesidadInterpretacion[getCurrentPestana()].interpretacion}
+              value={necesidadInterpretacion[getCurrentPestana()]?.interpretacion || ""}
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "interpretacion", e.target.value)
               }
-              disabled={soloLectura}
             />
           </Grid>
         </Grid>
         {!soloLectura && (
           <ButtonInd
             type="guardar"
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, "&:hover": { backgroundColor: "#e6a700" } }}
             onClick={() => handleSaveNecesidadInterpretacion(getCurrentPestana())}
           >
             Guardar

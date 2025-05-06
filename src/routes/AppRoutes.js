@@ -70,7 +70,7 @@ const AppRoutes = () => {
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
           <Route path="gestion-riesgos" element={<GestionRiesgosForm />} />
-          <Route path="gestion-riesgos/:idRegistro" element={<GestionRiesgosForm />} />
+          <Route path="gestion-riesgos/:idProceso/:anio" element={<GestionRiesgosForm />} />
           <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
           <Route path="actividad-mejora" element={<ActividadMejora />} />
           <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
@@ -88,7 +88,7 @@ const AppRoutes = () => {
           <Route path="manual-operativo" element={<ManualOperativo />} />
           <Route path="manual-operativo/:idProceso" element={<ManualOperativo />} />
           <Route path="analisis-datos" element={<FormularioAnalisis />} />
-          <Route path="analisis-datos/:idRegistro" element={<FormularioAnalisis />} />
+          <Route path="analisis-datos/:idProceso/:anio" element={<FormularioAnalisis />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
           <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
           <Route path="manualDelSitio" element={<ManualDelSitio />} />
