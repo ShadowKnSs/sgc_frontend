@@ -19,7 +19,7 @@ function Cronograma() {
   // Se derivan los permisos del rolActivo; por ejemplo, si se debe tener acceso al módulo "Cronograma"
   const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
 
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([ ]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
 
