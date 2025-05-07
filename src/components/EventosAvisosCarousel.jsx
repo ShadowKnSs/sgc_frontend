@@ -1,9 +1,10 @@
 import React from 'react';
-import { Box, Grid, Typography, CircularProgress } from '@mui/material';
+import { Box, Grid, CircularProgress } from '@mui/material';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+import Title from "../components/Title";
 
 const EventosAvisosCarousel = ({ eventsData, announcementsData, onImageClick, loading }) => {
   // Muestra animación de carga mientras se traen los datos
@@ -16,13 +17,11 @@ const EventosAvisosCarousel = ({ eventsData, announcementsData, onImageClick, lo
   }
 
   return (
-    <Grid container spacing={4} columnSpacing={10} sx={{ mt: 5 }}>
+    <Grid container spacing={4} columnSpacing={10} sx={{ mt: 5, marginTop: 2 }}>
       {/* ====================== EVENTOS ====================== */}
       <Grid item xs={12} md={6}>
-        <Typography variant="h3" gutterBottom align="center" sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff' }}>
-          Eventos
-        </Typography>
-        <Swiper
+      <Title text="Eventos" ></Title>        
+      <Swiper
           modules={[Navigation, Autoplay]}
           navigation
           loop={eventsData.length > 2}
@@ -62,9 +61,8 @@ const EventosAvisosCarousel = ({ eventsData, announcementsData, onImageClick, lo
 
       {/* ====================== AVISOS ====================== */}
       <Grid item xs={12} md={6}>
-        <Typography variant="h3" gutterBottom align="center" sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff' }}>
-          Avisos
-        </Typography>
+      <Title text="Avisos" ></Title>        
+
         <Swiper
           modules={[Navigation, Autoplay]}
           navigation

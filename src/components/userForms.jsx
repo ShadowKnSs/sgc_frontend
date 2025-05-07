@@ -256,8 +256,8 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-           
-            <DialogTitleCustom title={editingUser ? "Editar Usuario" : "Agregar Usuario"}/>
+
+            <DialogTitleCustom title={editingUser ? "Editar Usuario" : "Agregar Usuario"} />
             <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
                 <Tab label="Usuario Normal" />
                 <Tab label="Temporal" />
@@ -424,7 +424,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                             margin="dense"
                             InputLabelProps={{ shrink: true }}
                         />
-                        <Button variant="contained" color="primary" onClick={() => console.log("Generar Token")}>
+                        <Button variant="contained" color="primary" onClick={generarToken}>
                             Generar Token
                         </Button>
                     </>

@@ -34,7 +34,7 @@ const ManualCalidad = () => {
       <Typography
         variant="h4"
         align="center"
-        padding={5}
+        padding={4}
         gutterBottom
         sx={{ fontWeight: "bold", color: "#0056b3" }}
       >

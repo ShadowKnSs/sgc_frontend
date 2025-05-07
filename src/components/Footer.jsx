@@ -16,8 +16,22 @@ function Footer() {
           <span>© {currentYear} Todos los derechos reservados</span>
         </div>
         <div className="footer-right">
-          <FaFacebook className="social-icon" />
-          <FaInstagram className="social-icon" />
+        <a
+            href="https://www.facebook.com/sical.uaslp/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+          >
+            <FaFacebook className="social-icon" />
+          </a>
+          <a
+            href="https://www.instagram.com/sicaluaslp"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+          >
+            <FaInstagram className="social-icon" />
+          </a>
         </div>
       </div>
     </footer>

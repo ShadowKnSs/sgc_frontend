@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box} from '@mui/material';
 import axios from 'axios';
+
 
 // Componentes personalizados
 import NewsCarousel from '../components/NewsCarrusel';
 import DualCarousel from '../components/EventosAvisosCarousel';
 import ImageModal from '../components/Modals/ImageModal';
 import NewsModal from '../components/Modals/NewsModal';
-import Title from '../components/Title';
+import Title from "../components/Title";
 
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
@@ -120,14 +121,7 @@ const UserHome = () => {
       )}
 
       {/* Noticias */}
-      <Typography
-        variant="h3"
-        align="center"
-        gutterBottom
-        sx={{ mb: 4, fontWeight: 'bold', color: '#00aaff', paddingTop: '20px' }}
-      >
-        Noticias
-      </Typography>
+      <Title text="Noticias" ></Title>     
       <NewsCarousel newsData={newsData} onViewMore={handleViewMoreNews} loading={loading} />
 
       {/* Eventos y Avisos */}

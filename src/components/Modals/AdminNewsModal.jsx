@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, Button, Typography, Snackbar, Alert, Box
+  Dialog, DialogContent, DialogActions, IconButton, TextField, Button, Typography, Snackbar, Alert, Box
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DialogActionButtons from '../DialogActionButtons';
+import TitleDialog from '../TitleDialog';
 
 const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
   const [titulo, setTitulo] = useState('');
@@ -79,20 +80,21 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editItem ? 'Editar Noticia' : 'Crear Noticia'}
+        <Box sx={{ position: 'relative' }}>
+          <TitleDialog title={editItem ? "Editar Noticia" : "Crear Noticia"} />
           <IconButton
             aria-label="close"
             onClick={onClose}
             sx={{
               position: 'absolute',
-              right: 8,
-              top: 8
+              right: 12,
+              top: 12,
+              color: "#999"
             }}
           >
             <CloseIcon />
           </IconButton>
-        </DialogTitle>
+        </Box>
 
         <DialogContent dividers>
           <TextField
@@ -116,7 +118,7 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
             fullWidth
             margin="normal"
             multiline
-            rows={4}
+            rows={10}
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
           />
@@ -168,19 +170,20 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
             cancelColor="primary.main"
           />
         </DialogActions>
-      </Dialog>
+      </Dialog >
 
       {/* Snackbar de Error */}
-      <Snackbar
+      <Snackbar Snackbar
         open={errorOpen}
         autoHideDuration={3000}
         onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }
+        }
       >
         <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
           {errorMessage}
         </Alert>
-      </Snackbar>
+      </Snackbar >
     </>
   );
 };

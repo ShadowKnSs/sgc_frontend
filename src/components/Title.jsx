@@ -32,7 +32,7 @@ const Title = ({ text, children }) => (
         "&::after": {
           content: '""',
           width: "100%",
-          height: "4px",
+          height: "5px",
           backgroundColor: colorPalette.azulClaro,
           position: "absolute",
           left: "50%",
