@@ -5,10 +5,9 @@ import axios from "axios";
 import ButtonInd from "../components/Button";
 
 const FormularioAnalisis = () => {
-  const { idProceso, anio } = useParams();
+  const { idRegistro } = useParams();
   
 
-  const [idRegistro, setIdRegistro] = useState(null);
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
@@ -47,19 +46,7 @@ const FormularioAnalisis = () => {
 
 
 
-  const handleIrAIndicadores = () => {
-    if (!idProceso || !anio) {
-      console.error("Falta idProceso o año para navegar a indicadores");
-      return;
-    }
-    navigate(`/indicadores/${idProceso}/${anio}`, {
-      state: {
-        soloLectura,
-        puedeEditar
-      }
-    });
-    
-  };
+  
   
   // Función para manejar cambios en el formulario
   const handleChange = (e) => {
@@ -78,18 +65,16 @@ const FormularioAnalisis = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Función para obtener el idRegistro basado en idProceso y anio
+  // Función para obtener la info basica
   const fetchIdRegistro = async () => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistro`, {
         params: {
-          idProceso,
-          anio
+          idRegistro
         }
       });
       
       if (response.data.idRegistro) {
-        setIdRegistro(response.data.idRegistro);
         
         // Actualiza formData con los datos del proceso si vienen en la respuesta
         if (response.data.proceso) {
@@ -228,7 +213,7 @@ const FormularioAnalisis = () => {
     };
 
     loadData();
-  }, [idProceso, anio]);
+  }, [idRegistro]);
 
   const updateNecesidadInterpretacion = async (seccion, campo, valor) => {
     try {
@@ -548,12 +533,6 @@ const FormularioAnalisis = () => {
         )}
       </Box>
 
-      <ButtonInd
-          type="descargar"
-          onClick={handleIrAIndicadores}
-        >
-          Ver Indicadores
-        </ButtonInd>
 
       {/* Notificación (Snackbar) */}
       <Snackbar
