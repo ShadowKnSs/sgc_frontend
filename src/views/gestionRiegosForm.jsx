@@ -28,12 +28,11 @@ const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE
 
 function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
-  const { idProceso, anio } = useParams();
+  const { idRegistro } = useParams();
   //const { idRegistro } = useParams();
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
-  const [idRegistro, setIdRegistro] = useState(null);
   const [modoEdicion, setModoEdicion] = useState(false);
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
@@ -94,13 +93,11 @@ function FormularioGestionRiesgos() {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistroGR`, {
         params: {
-          idProceso,
-          anio
+          idRegistro
         }
       });
       
       if (response.data.idRegistro) {
-        setIdRegistro(response.data.idRegistro);
         
         // Actualiza formData con los datos del proceso si vienen en la respuesta
         if (response.data.proceso) {
@@ -191,7 +188,7 @@ function FormularioGestionRiesgos() {
       };
   
       loadData();
-    }, [idProceso, anio]);
+    }, [idRegistro]);
 
   // --------------------------------------------------------------------------
   // Función para cargar la lista de riesgos cuando tengamos idGesRies
