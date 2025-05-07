@@ -22,7 +22,7 @@ const getDeleteMessage = (type, name) => {
 const ConfirmDelete = ({ open, onClose, entityType, entityName, onConfirm }) => {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitleCustom text="Confirmar Eliminación" />
+      <DialogTitleCustom title="Confirmar Eliminación" />
 
       <DialogContent
         sx={{
@@ -38,7 +38,7 @@ const ConfirmDelete = ({ open, onClose, entityType, entityName, onConfirm }) => 
       <DialogActions
         sx={{ backgroundColor: "#E3EBDA", padding: "16px", gap: 1 }}
       >
-        <CustomButton type="Cancelar" onClick={onClose}>
+        <CustomButton type="cancelar" onClick={onClose}>
           Cancelar
         </CustomButton>
         <CustomButton

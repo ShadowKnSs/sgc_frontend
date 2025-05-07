@@ -69,6 +69,7 @@ const NewProcess = () => {
           estado: "",
           idEntidad: "",
           anioCertificado: "",
+          icono: "",
         }}
         leaders={leaders}
         macroprocesos={macroprocesos}

@@ -1,13 +1,14 @@
+// src/hooks/useProcesoEntidadPorProceso.js
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const useProcesoEntidad = (idRegistro) => {
+const useProcesoEntidadPorProceso = (idProceso) => {
   const [info, setInfo] = useState({ proceso: "", entidad: "", loading: true, error: null });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resp = await axios.get(`http://127.0.0.1:8000/api/registro-info/${idRegistro}`);
+        const resp = await axios.get(`http://127.0.0.1:8000/api/proceso-entidad/${idProceso}`);
         setInfo({
           proceso: resp.data.proceso,
           entidad: resp.data.entidad,
@@ -19,10 +20,10 @@ const useProcesoEntidad = (idRegistro) => {
       }
     };
 
-    if (idRegistro) fetchData();
-  }, [idRegistro]);
+    if (idProceso) fetchData();
+  }, [idProceso]);
 
   return info;
 };
 
-export default useProcesoEntidad;
+export default useProcesoEntidadPorProceso;

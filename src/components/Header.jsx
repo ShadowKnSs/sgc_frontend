@@ -11,9 +11,7 @@ import DialogNotifications from "./Modals/DialogNotifications";
 function Header() {
   const [openDialog, setOpenDialog] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-  // const idUsuario = 5; // Fijo, pero luego irá dinámico con auth 
-  
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+    const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
   const isLoggedIn = usuario !== null;
   const navigate = useNavigate();

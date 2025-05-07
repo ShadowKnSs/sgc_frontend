@@ -4,6 +4,7 @@ import { Box, Tabs, Tab, Typography } from '@mui/material';
 import AdminNewsList from '../components/AdminNewsList';
 import AdminEAList from '../components/AdminEAlist';
 
+
 const AdminHome = () => {
   const [tabValue, setTabValue] = useState(0);
 

@@ -20,7 +20,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({
     open: false,
-    type: "success", 
+    type: "success",
     title: "",
     message: ""
   });
@@ -50,13 +50,11 @@ export default function Login() {
       });
       const data = await response.json();
       if (response.ok) {
-        // Al validar el token, se asume que data.rol contiene la información del rol (por ejemplo, { nombreRol: "Auditor", permisos: [...] })
         localStorage.setItem("rolActivo", JSON.stringify(data.rol));
-        // Además, se debe guardar un objeto usuario (con idUsuario distinto a 0)
         const dummyUser = { idUsuario: data.idUsuario || 9999, nombre: data.nombre || "TokenUsuario" };
         localStorage.setItem("usuario", JSON.stringify(dummyUser));
         localStorage.setItem("viaToken", "true");
-        
+
         showModal("success", "¡Token válido!", "Accediendo al sistema...");
         setTimeout(() => navigate("/"), 1500);
       } else {
@@ -72,7 +70,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-  
 
   const handleLogin = async () => {
     setLoading(true);
@@ -102,25 +99,40 @@ export default function Login() {
   };
 
   return (
-    <Box display="flex" minHeight="100vh" justifyContent="center" alignItems="center" bgcolor="#f3f3f3">
-      <Paper elevation={3} sx={{ display: 'flex', p: 6, borderRadius: 4 }}>
-
+    <Box display="flex" minHeight="100vh" justifyContent="center" alignItems="center" bgcolor="#004A98">
+      <Paper elevation={6} sx={{ display: 'flex', width: '90%', maxWidth: 1100, borderRadius: 4, overflow: 'hidden',height:600 }}>
+        
         {/* Columna izquierda */}
-        <Box textAlign="center" pr={{ md: 8 }} mb={{ xs: 4, md: 0 }}>
-          <Typography variant="h2" color="primary" fontWeight="bold">¡Hola,</Typography>
-          <Typography variant="h2" color="primary" fontWeight="bold">bienvenido!</Typography>
-          <Box mt={4}>
-            <Typography sx={{ fontSize: "3rem", letterSpacing: "0.4em", color: "#2E6FA9" }}>
+        <Box flex={1} bgcolor="#ffffff" p={4} display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+  <Box display="flex" width="100%" alignItems="center" justifyContent="space-between">
+    <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
+      <img
+        src="https://admincongresos.uaslp.mx//Informacion/Patrocinadores/191.jpg"
+        alt="Logo UASLP"
+        style={{ width: 200 }}
+      />
+    </Box>
+
+    <Box width="1px" bgcolor="#0D47A1" height="100px" mx={2} />
+
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flex={1}>
+            <Typography sx={{ fontSize: "3rem", letterSpacing: "0.4em", color: "#0D47A1" }}>
               SICAL
             </Typography>
-            <Typography sx={{ fontSize: "0.75rem", letterSpacing: "0.15em", color: "#2E6FA9" }}>
-              SISTEMA INTEGRAL DE CALIDAD
-            </Typography>
-          </Box>
-        </Box>
+      <Typography variant="subtitle2" color="#0D47A1" textAlign="center">
+        SISTEMA INTEGRAL DE CALIDAD
+      </Typography>
+    </Box>
+  </Box>
+
+  <Typography variant="h3" color="#0D47A1" fontWeight="bold" mt={6} textAlign="center">
+    ¡Hola, bienvenidos!
+  </Typography>
+</Box>
+
 
         {/* Columna derecha */}
-        <Box sx={{ backgroundColor: "#0D47A1", color: "white", borderRadius: 3, p: 4, width: 350, border: "4px solid #FFD600" }}>
+        <Box flex={1} bgcolor="#0D47A1" color="white" p={4} display="flex" flexDirection="column" justifyContent="center" borderColor={'#00B2E3'}>
           {useToken ? (
             <>
               <Typography variant="h6" mb={1}>Token</Typography>
@@ -140,12 +152,12 @@ export default function Login() {
                 sx={{ mb: 3, backgroundColor: "white", borderRadius: 1 }}
               />
               {loading ? (
-                <Box textAlign="center" mt={2}><CircularProgress sx={{ color: "#00BCD4" }} /></Box>
+                <Box textAlign="center" mt={2}><CircularProgress sx={{ color: "#FFD600" }} /></Box>
               ) : (
                 <Button
                   fullWidth
                   variant="contained"
-                  sx={{ backgroundColor: "#00BCD4", mt: 1, borderRadius: 10, fontSize: "1.1rem" }}
+                  sx={{ backgroundColor: "#00B2E3", mt: 1, borderRadius: 10, fontSize: "1.1rem", color: "#000" }}
                   onClick={handleLoginToken}
                 >
                   Validar Token
@@ -168,14 +180,30 @@ export default function Login() {
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 3, backgroundColor: "white", borderRadius: 1 }}
+                sx={{
+                  mb: 3,
+                  backgroundColor: "white",
+                  borderRadius: 1,
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: '#00B2E3',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#00B2E3',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#00B2E3',
+                    },
+                  },
+                }}
               />
+
               <Typography variant="h6" mb={1}>Contraseña</Typography>
               <TextField
                 fullWidth
                 type="password"
                 variant="outlined"
-                placeholder=""
+                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
@@ -185,15 +213,29 @@ export default function Login() {
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 3, backgroundColor: "white", borderRadius: 1 }}
+                sx={{
+                mb: 3,
+                backgroundColor: "white",
+                borderRadius: 1,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#00B2E3',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#00B2E3',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#00B2E3',
+                  },
+                },}}
               />
               {loading ? (
-                <Box textAlign="center" mt={2}><CircularProgress sx={{ color: "#00BCD4" }} /></Box>
+                <Box textAlign="center" mt={2}><CircularProgress sx={{ color: "#FFD600" }} /></Box>
               ) : (
                 <Button
                   fullWidth
                   variant="contained"
-                  sx={{ backgroundColor: "#00BCD4", mt: 1, borderRadius: 10, fontSize: "1.1rem" }}
+                  sx={{ backgroundColor: "#00B2E3", mt: 1, borderRadius: 10, fontSize: "1.1rem", color: "#000" }}
                   onClick={handleLogin}
                 >
                   Login
@@ -210,40 +252,33 @@ export default function Login() {
             {useToken ? "¿Volver a login por RPE?" : "¿Usar token temporal?"}
           </Button>
         </Box>
-
-        {/* MODAL de éxito/error */}
-        <Dialog open={modal.open} onClose={() => setModal({ ...modal, open: false })}>
-          <IconButton
-            onClick={() => setModal({ ...modal, open: false })}
-            sx={{ position: 'absolute', top: 8, right: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <DialogContent sx={{ textAlign: 'center', p: 4 }}>
-            {modal.type === "success" ? (
-              <CheckCircleIcon sx={{ fontSize: 60, color: "green" }} />
-            ) : (
-              <CancelIcon sx={{ fontSize: 60, color: "red" }} />
-            )}
-            <Typography variant="h5" mt={2} fontWeight="bold">
-              {modal.title}
-            </Typography>
-            <Typography variant="body1" mt={1}>
-              {modal.message}
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-            <Button
-              onClick={() => setModal({ ...modal, open: false })}
-              variant="outlined"
-              color={modal.type === "success" ? "success" : "error"}
-            >
-              {modal.type === "success" ? "Continuar" : "Intentar de nuevo"}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
       </Paper>
-    </Box>
-  );
+
+      {/* MODAL */}
+      <Dialog open={modal.open} onClose={() => setModal({ ...modal, open: false })}>
+        <IconButton
+          onClick={() => setModal({ ...modal, open: false })}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <DialogContent sx={{ textAlign: 'center', p: 4 }}>
+          {modal.type === "success" ? (
+            <CheckCircleIcon sx={{ fontSize: 60, color: "green" }} />
+          ) : (
+            <CancelIcon sx={{ fontSize: 60, color: "red" }} />
+          )}
+          <Typography variant="h5" mt={2} fontWeight="bold">
+            {modal.title}
+          </Typography>
+          <Typography mt={1}>{modal.message}</Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button onClick={() => setModal({ ...modal, open: false })} variant="contained" color="primary">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
 }

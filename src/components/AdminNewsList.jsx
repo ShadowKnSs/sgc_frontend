@@ -59,7 +59,7 @@ const AdminNewsList = () => {
   const fetchNews = async () => {
     try {
       const resp = await axios.get('http://127.0.0.1:8000/api/noticias');
-      setNews(resp.data); // array devuelto por el backend
+      setNews(resp.data); 
     } catch (error) {
       console.error('Error al cargar noticias:', error);
       setSnackbarMessage('Error al cargar noticias');

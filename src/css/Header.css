@@ -3,7 +3,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 12px;
     background-color: #0056b3;
     color: white;
     box-shadow: 0px 10px #2dc1df;
@@ -17,8 +17,8 @@
   }
   
   .logo {
-    width: 200px;
-    height: 75px;
+    width: 170px;
+    height: 70px;
     margin-right: 1rem;
     padding-right: 2rem;
     box-shadow: 2px 0 rgb(255, 255, 255);

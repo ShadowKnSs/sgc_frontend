@@ -4,11 +4,18 @@ import { Add as AddIcon } from "@mui/icons-material";
 import ProcessCard from "../components/processCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Title from "../components/Title";
+import ConfirmDelete from "../components/confirmDelete";
+import ConfirmEdit from "../components/confirmEdit";
 
 function ProcessList() {
   const [processes, setProcesses] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const navigate = useNavigate();
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
+  const [selectedProcess, setSelectedProcess] = useState(null);
+
 
   // Función para obtener la lista de procesos
   const fetchProcesses = async () => {
@@ -39,6 +46,29 @@ function ProcessList() {
     fetchEntidades();
   }, []);
 
+  const handleConfirmDelete = async () => {
+    if (!selectedProcess) return;
+    await handleDelete(selectedProcess.id);
+    setOpenDelete(false);
+  };
+
+  const handleConfirmEdit = () => {
+    if (!selectedProcess) return;
+    navigate(`/editar-proceso/${selectedProcess.id}`);
+    setOpenConfirmEdit(false);
+  };
+  const confirmDelete = (process) => {
+    setSelectedProcess(process);
+    setOpenDelete(true);
+  };
+  
+  const confirmEdit = (process) => {
+    setSelectedProcess(process);
+    setOpenConfirmEdit(true);
+  };
+  
+
+
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/procesos/${id}`);
@@ -57,7 +87,7 @@ function ProcessList() {
     const processId = process.idProceso || process.idProcesoPK;
     const entity = entidades.find(
       (ent) => ent?.idEntidadDependencia?.toString() === process?.idEntidad?.toString()
-    );    
+    );
     return {
       ...process,
       id: processId,
@@ -68,26 +98,14 @@ function ProcessList() {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography
-        variant="h1"
-        sx={{
-          textAlign: "center",
-          marginBottom: "32px",
-          fontFamily: "'Roboto', sans-serif",
-          color: "primary.main",
-          fontSize: 48,
-          fontWeight: "bold",
-        }}
-      >
-        Lista De Procesos
-      </Typography>
+      <Title text="Procesos" ></Title>
       <Grid container spacing={2}>
         {enrichedProcesses.map((process) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
             <ProcessCard
               process={process}
-              onEdit={() => navigate(`/editar-proceso/${process.id}`)}
-              onDelete={() => handleDelete(process.id)}
+              onEdit={() => confirmEdit(process)}
+              onDelete={() => confirmDelete(process)}
             />
           </Grid>
         ))}
@@ -106,7 +124,24 @@ function ProcessList() {
       >
         <AddIcon />
       </Fab>
+      <ConfirmDelete
+        open={openDelete}
+        onClose={() => setOpenDelete(false)}
+        onConfirm={handleConfirmDelete}
+        entityType="proceso"
+        entityName={selectedProcess?.nombreProceso}
+      />
+
+      <ConfirmEdit
+        open={openConfirmEdit}
+        onClose={() => setOpenConfirmEdit(false)}
+        onConfirm={handleConfirmEdit}
+        entityType="proceso"
+        entityName={selectedProcess?.nombreProceso}
+      />
+
     </Box>
+
   );
 }
 
