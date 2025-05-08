@@ -30,4 +30,7 @@
   .footer-right .social-icon:hover {
     color: #1e90ff;
   }
-  
+
+  .social-icon{
+    color: #fff;
+  }

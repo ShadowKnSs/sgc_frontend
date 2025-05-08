@@ -9,30 +9,7 @@ import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 
 const initialUsers = [
   {
-    id: 1,
-    nombreDocumento: "Manual de Calidad",
-    tipo: "Interno",
-    fechaRevision: "2024-03-15",
-    responsable: "Líder de Proceso",
-    medioAlmacenamiento: "Digital",
-    lugarAlmacenamiento: "Servidor Interno",
-    numeroCopias: "5",
-    tipoAlmacenamiento: "Ambos",
-    disposicion: "Conservación Permanente",
-    usuarios: ["Alumnos", "Personal Administrativo"]
-  },
-  {
-    id: 2,
-    nombreDocumento: "Normas ISO",
-    tipo: "Externo",
-    fechaRevision: "2024-02-10",
-    responsable: "Auditor",
-    medioAlmacenamiento: "Físico",
-    lugarAlmacenamiento: "Archivo Central",
-    numeroCopias: "3",
-    tipoAlmacenamiento: "Físico",
-    disposicion: "Eliminación tras 5 años",
-    usuarios: ["Coordinadores", "Personal Administrativo"]
+    
   }
 ];
 

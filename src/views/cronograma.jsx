@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Tooltip, Snackbar, Alert } from "@mui/material";
-import { Calendar, momentLocalizer, Navigate } from "react-big-calendar";
+import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "moment/locale/es";
@@ -17,9 +17,10 @@ function Cronograma() {
   // Se obtiene el usuario y el rol activo desde el localStorage.
   // Se asume que "usuario" posee la propiedad "idUsuario" y
   // que "rolActivo" es un objeto con "nombreRol" y un arreglo "permisos".
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const usuario = useMemo(() => JSON.parse(localStorage.getItem("usuario") || "null"), []);
+  const rolActivo = useMemo(() => JSON.parse(localStorage.getItem("rolActivo") || "null"), []);
+
   const idUsuario = usuario?.idUsuario || 0;
-  const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null");
   // Se derivan los permisos del rolActivo; por ejemplo, si se debe tener acceso al módulo "Cronograma"
   const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
 
@@ -35,6 +36,7 @@ function Cronograma() {
 
   useEffect(() => {
     if (!usuario || !rolActivo?.nombreRol) return;
+  
     const fetchAuditorias = async () => {
       try {
         const response = await axios.post("http://127.0.0.1:8000/api/cronograma/filtrar", {
@@ -58,9 +60,10 @@ function Cronograma() {
         console.error("❌ Error al obtener las auditorías:", error);
       }
     };
-
+  
     fetchAuditorias();
   }, [usuario, rolActivo]);
+  
 
 
   useEffect(() => {
@@ -313,7 +316,7 @@ function Cronograma() {
           date={date}
           onView={handleView}
           onNavigate={handleNavigate}
-         startAccessor="start"
+          startAccessor="start"
           endAccessor="end"
           views={["month", "week", "day"]}
           messages={{
