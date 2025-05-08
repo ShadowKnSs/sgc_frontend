@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress} from "@mui/material";
+import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress } from "@mui/material";
 import axios from "axios";
 import ButtonInd from "../components/Button";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+
 
 const FormularioAnalisis = () => {
   const { idRegistro } = useParams();
-  
+
 
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
-  
+  const [datosProceso, setDatosProceso] = useState({
+    idProceso: null,
+    anio: null
+  });
+
+
   const navigate = useNavigate();
 
 
@@ -44,10 +51,6 @@ const FormularioAnalisis = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [loading, setLoading] = useState(true);
 
-
-
-  
-  
   // Función para manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,9 +76,12 @@ const FormularioAnalisis = () => {
           idRegistro
         }
       });
-      
+
       if (response.data.idRegistro) {
-        
+        setDatosProceso({
+          idProceso: response.data.proceso.idProceso,
+          anio: response.data.anio
+        });
         // Actualiza formData con los datos del proceso si vienen en la respuesta
         if (response.data.proceso) {
           setFormData(prev => ({
@@ -85,7 +91,7 @@ const FormularioAnalisis = () => {
             proceso: response.data.proceso.nombreProceso || prev.proceso
           }));
         }
-        console.log("Entidad:",response.data.proceso);
+        console.log("Entidad:", response.data.proceso);
         return response.data.idRegistro;
       } else {
         showSnackbar("No se encontró un registro para el proceso y año especificados", "warning");
@@ -101,24 +107,26 @@ const FormularioAnalisis = () => {
   // Función para cargar los datos del formulario
   const fetchFormData = async (registroId) => {
     try {
-      console.log("Registro:",registroId);
+      console.log("Registro:", registroId);
       const response = await axios.get(`http://127.0.0.1:8000/api/analisisDatos/${registroId}`);
       const data = response.data;
       console.log("Respuesta de la API:", data);
 
-      const periodo = data.formAnalisisDatos[0].periodoEva;
-      setFormData(prev => ({
-        ...prev,
-        periodoEvaluacion: data.formAnalisisDatos[0].periodoEva || prev.periodoEva
-      }));
-      
-      console.log("", periodo);
+      if (data.formAnalisisDatos && data.formAnalisisDatos.length > 0) {
+        const periodo = data.formAnalisisDatos[0].periodoEva;
+        setFormData(prev => ({
+          ...prev,
+          periodoEvaluacion: periodo || prev.periodoEvaluacion
+        }));
+      } else {
+        console.warn("No se encontró registro en formAnalisisDatos para el idRegistro:", registroId);
+      }
 
       // Filtrar indicadores por origen
       const Conformidad = data.indicador?.filter(ind => ind.origenIndicador === "ActividadControl") || [];
       const desempeno = data.indicador?.filter(ind => ind.origenIndicador === "MapaProceso") || [];
-      const eficacia = data.indicador?.filter(ind => ind.origenIndicador === "GestionRiesgo") || [];
-      
+      const eficacia = data.gestionRiesgo || [];
+
       // Procesar datos de encuesta
       const encuestaIndicador = data.indicador?.find(ind => ind.origenIndicador === "Encuesta");
       const encuesta = encuestaIndicador ? [{
@@ -149,7 +157,7 @@ const FormularioAnalisis = () => {
         },
         evaluacion,
       });
-      
+
       // Inicializar necesidad e interpretación con datos de analisisDatos
       const nuevaNecesidadInterpretacion = {
         Conformidad: { necesidad: "", interpretacion: "" },
@@ -163,7 +171,7 @@ const FormularioAnalisis = () => {
         data.analisisDatos.forEach(item => {
           // Mapear secciones de la API a nuestro estado
           let seccion = "";
-          switch(item.seccion) {
+          switch (item.seccion) {
             case "Conformidad":
               seccion = "Conformidad";
               break;
@@ -249,6 +257,38 @@ const FormularioAnalisis = () => {
       },
     }));
   };
+
+  const handleGuardarTodo = async () => {
+    const seccionesMap = {
+      Conformidad: "Conformidad",
+      desempeno: "Desempeño",
+      eficacia: "Eficacia",
+      satisfaccion: "Satisfaccion",
+      evaluacion: "Desempeño Proveedores"
+    };
+
+    const secciones = Object.entries(necesidadInterpretacion).map(([key, valor]) => ({
+      seccion: seccionesMap[key],
+      necesidad: valor.necesidad,
+      interpretacion: valor.interpretacion
+    }));
+
+    try {
+      console.log({
+        periodoEvaluacion: formData.periodoEvaluacion,
+        secciones
+      });
+      await axios.put(`http://localhost:8000/api/analisisDatos/${idRegistro}/guardar-completo`, {
+        periodoEvaluacion: formData.periodoEvaluacion,
+        secciones
+      });
+      showSnackbar("Datos guardados correctamente");
+    } catch (err) {
+      showSnackbar("Error al guardar", "error");
+      console.error(err);
+    }
+  };
+
 
   const handleSaveNecesidadInterpretacion = async (pestana) => {
     const { necesidad, interpretacion } = necesidadInterpretacion[pestana];
@@ -526,13 +566,21 @@ const FormularioAnalisis = () => {
           <ButtonInd
             type="guardar"
             sx={{ mt: 2, "&:hover": { backgroundColor: "#e6a700" } }}
-            onClick={() => handleSaveNecesidadInterpretacion(getCurrentPestana())}
-          >
+            onClick={handleGuardarTodo}          >
             Guardar
           </ButtonInd>
         )}
       </Box>
 
+      <ButtonInd
+        type="secundario"
+        sx={{ mt: 2, ml: 2 }}
+        onClick={() => navigate(`/indicadores/${datosProceso.idProceso}/${datosProceso.anio}`)}
+        startIcon={<ArrowForwardIosIcon />}
+        disabled={!datosProceso.idProceso || !datosProceso.anio}
+      >
+        Ir a Indicadores
+      </ButtonInd>
 
       {/* Notificación (Snackbar) */}
       <Snackbar

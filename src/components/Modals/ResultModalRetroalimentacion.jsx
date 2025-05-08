@@ -56,7 +56,7 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
         return;
       }
 
-      const resultado = savedResult.resultado || {};
+      const resultado = savedResult || {};
 
       setFormData({
         felicitaciones: resultado.cantidadFelicitacion?.toString() ?? "",

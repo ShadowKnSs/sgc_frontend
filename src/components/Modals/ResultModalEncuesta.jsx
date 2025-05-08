@@ -73,7 +73,8 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
     if (open) {
       console.log("📌 Modal Encuesta abierto, savedResult:", savedResult);
 
-      const resultado = savedResult.encuesta || {}; // 🔥 Extraemos correctamente los datos anidados
+      const resultado = savedResult || {};
+
 
       setFormData({
         encuestas: resultado.noEncuestas?.toString() || "",
