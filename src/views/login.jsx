@@ -50,11 +50,13 @@ export default function Login() {
       });
       const data = await response.json();
       if (response.ok) {
+        // Al validar el token, se asume que data.rol contiene la información del rol (por ejemplo, { nombreRol: "Auditor", permisos: [...] })
         localStorage.setItem("rolActivo", JSON.stringify(data.rol));
+        // Además, se debe guardar un objeto usuario (con idUsuario distinto a 0)
         const dummyUser = { idUsuario: data.idUsuario || 9999, nombre: data.nombre || "TokenUsuario" };
         localStorage.setItem("usuario", JSON.stringify(dummyUser));
         localStorage.setItem("viaToken", "true");
-
+        
         showModal("success", "¡Token válido!", "Accediendo al sistema...");
         setTimeout(() => navigate("/"), 1500);
       } else {
@@ -70,6 +72,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+  
 
   const handleLogin = async () => {
     setLoading(true);
