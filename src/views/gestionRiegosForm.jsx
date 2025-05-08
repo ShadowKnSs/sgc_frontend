@@ -10,7 +10,11 @@ import {
   TextField,
   Table,
   TableBody,
+  MenuItem,
+  Select,
   TableCell,
+  FormControl,
+  InputLabel,
   TableContainer,
   TableHead,
   TableRow,
@@ -19,10 +23,13 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  
   DialogActions,
 } from "@mui/material";
 import axios from "axios";
-
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
 
@@ -79,7 +86,7 @@ function FormularioGestionRiesgos() {
     fechaImp: "",
     fechaEva: "",
     reevaluacionSeveridad: "",
-    reevaluacionOcurencia: "",
+    reevaluacionOcurrencia: "",
     reevaluacionNRP: "",
     reevaluacionEfectividad: "",
     analisisEfectividad: "",
@@ -221,38 +228,37 @@ function FormularioGestionRiesgos() {
     console.log("[LOG] organizando riesgos en secciones. Cantidad:", lista.length);
 
     return {
-      0: lista.map((item) => ({
-        idRiesgo: item.idRiesgo, // Incluimos el id para identificar el riesgo
+      0: lista.map((item, index) => ({
+        Riesgo: index + 1, // Usamos index + 1 para que empiece en 1
         fuente: item.fuente,
         tipoRiesgo: item.tipoRiesgo,
         descripcion: item.descripcion,
       })),
-      1: lista.map((item) => ({
-        idRiesgo: item.idRiesgo,
+      1: lista.map((item, index) => ({
+        idRiesgo: index + 1,
         consecuencias: item.consecuencias,
         valorSeveridad: item.valorSeveridad,
         valorOcurrencia: item.valorOcurrencia,
         valorNRP: item.valorNRP,
       })),
-      2: lista.map((item) => ({
-        idRiesgo: item.idRiesgo,
+      2: lista.map((item, index) => ({
+        idRiesgo: index + 1,
         actividades: item.actividades,
         accionMejora: item.accionMejora,
         fechaImp: item.fechaImp,
         fechaEva: item.fechaEva,
         responsable: item.responsable,
       })),
-      3: lista.map((item) => ({
-        idRiesgo: item.idRiesgo,
+      3: lista.map((item, index) => ({
+        idRiesgo: index + 1,
         reevaluacionSeveridad: item.reevaluacionSeveridad,
-        reevaluacionOcurencia: item.reevaluacionOcurencia,
+        reevaluacionOcurrencia: item.reevaluacionOcurrencia,
         reevaluacionNRP: item.reevaluacionNRP,
         reevaluacionEfectividad: item.reevaluacionEfectividad,
         analisisEfectividad: item.analisisEfectividad,
       })),
     };
-  };
-
+};
 
   // --------------------------------------------------------------------------
   // Handler para GUARDAR la info general en la tabla gestionriesgos
@@ -383,26 +389,8 @@ function FormularioGestionRiesgos() {
       setCurrentSection(0);
       setIsEditing(false);
       setEditingRiesgo(null);
-      setNuevoRiesgo({
-        idRiesgo: null,
-        responsable: "",
-        fuente: "",
-        tipoRiesgo: "",
-        descripcion: "",
-        consecuencias: "",
-        valorSeveridad: "",
-        valorOcurrencia: "",
-        valorNRP: "",
-        actividades: "",
-        accionMejora: "",
-        fechaImp: "",
-        fechaEva: "",
-        reevaluacionSeveridad: "",
-        reevaluacionOcurencia: "",
-        reevaluacionNRP: "",
-        reevaluacionEfectividad: "",
-        analisisEfectividad: "",
-      });
+      setNuevoRiesgo(nuevoRiesgo);
+      cargarRiesgos(gestionRiesgo.idGesRies);
     } catch (err) {
       console.error("[ERROR] al crear/editar el riesgo:", err);
       alert("Error al crear/editar el riesgo.");
@@ -471,10 +459,14 @@ function FormularioGestionRiesgos() {
   };
 
   const renderModalSection = () => {
+    
     switch (currentSection) {
       case 0:
         return (
           <>
+            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+              Identificación
+            </Typography>
             <TextField
               label="Fuente"
               name="fuente"
@@ -504,6 +496,9 @@ function FormularioGestionRiesgos() {
       case 1:
         return (
           <>
+            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+              Análisis
+            </Typography>
             <TextField
               label="Consecuencias"
               name="consecuencias"
@@ -533,17 +528,21 @@ function FormularioGestionRiesgos() {
             <TextField
               label="NRP"
               name="valorNRP"
-              value={nuevoRiesgo.valorNRP}
+              value={nuevoRiesgo.valorNRP=(nuevoRiesgo.valorOcurrencia*nuevoRiesgo.valorSeveridad)}
               onChange={handleRiesgoChange}
               type="number"
               fullWidth
               sx={{ mb: 2 }}
+              disabled
             />
           </>
         );
       case 2:
         return (
           <>
+            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+              Tratamiento
+            </Typography>
             <TextField
               label="Actividades"
               name="actividades"
@@ -593,51 +592,63 @@ function FormularioGestionRiesgos() {
       case 3:
         return (
           <>
-            <TextField
-              label="Reevaluación Severidad"
-              name="reevaluacionSeveridad"
-              value={nuevoRiesgo.reevaluacionSeveridad}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Reevaluación Ocurrencia"
-              name="reevaluacionOcurencia"
-              value={nuevoRiesgo.reevaluacionOcurencia}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Reevaluación NRP"
-              name="reevaluacionNRP"
-              value={nuevoRiesgo.reevaluacionNRP}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Reevaluación Efectividad"
-              name="reevaluacionEfectividad"
-              value={nuevoRiesgo.reevaluacionEfectividad}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Análisis de Efectividad"
-              name="analisisEfectividad"
-              value={nuevoRiesgo.analisisEfectividad}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-          </>
+          <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+            Evaluación de Efectividad
+          </Typography>
+          
+          <TextField
+            label="Reevaluación Severidad"
+            name="reevaluacionSeveridad"
+            value={nuevoRiesgo.reevaluacionSeveridad}
+            onChange={handleRiesgoChange}
+            type="number"
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          
+          <TextField
+            label="Reevaluación Ocurrencia"
+            name="reevaluacionOcurrencia"
+            value={nuevoRiesgo.reevaluacionOcurrencia}
+            onChange={handleRiesgoChange}
+            type="number"
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          
+          <TextField
+            label="Reevaluación NRP"
+            name="reevaluacionNRP"
+            value={nuevoRiesgo.reevaluacionNRP = (nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad)}
+            onChange={handleRiesgoChange}
+            type="number"
+            fullWidth
+            sx={{ mb: 2 }}
+            disabled
+          />
+
+          <TextField
+            label="Reevaluación Efectividad"
+            name="reevaluacionEfectividad"
+            value={nuevoRiesgo.reevaluacionEfectividad=
+              (nuevoRiesgo.reevaluacionNRP < nuevoRiesgo.valorNRP
+                ? "Mejoró"
+                : "No mejoró")
+            }
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            label="Análisis de Efectividad"
+            name="analisisEfectividad"
+            value={nuevoRiesgo.analisisEfectividad}
+            onChange={handleRiesgoChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+        </>
+
         );
       default:
         return null;
@@ -647,7 +658,7 @@ function FormularioGestionRiesgos() {
   return (
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
       <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-        Formulario Gestión de Riesgos
+        Gestión de Riesgos: {gestionRiesgo.proceso}
       </Typography>
 
       {/* === Sección de Info General (gestionriesgos) === */}
@@ -785,8 +796,20 @@ function FormularioGestionRiesgos() {
                     ))}
                     {!soloLectura && (
                       <TableCell align="center">
-                        <Button variant="contained" color="primary" onClick={() => handleEditRiesgo(riesgos[index])} sx={{ mr: 1 }}>Editar</Button>
-                        <Button variant="contained" color="error" onClick={() => handleDeleteRiesgo(riesgos[index])}>Eliminar</Button>
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => handleEditRiesgo(riesgos[index])} 
+                          sx={{ mr: 1 }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleDeleteRiesgo(riesgos[index])}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
                       </TableCell>
                     )}
                   </TableRow>
@@ -820,7 +843,7 @@ function FormularioGestionRiesgos() {
                     fechaImp: "",
                     fechaEva: "",
                     reevaluacionSeveridad: "",
-                    reevaluacionOcurencia: "",
+                    reevaluacionOcurrencia: "",
                     reevaluacionNRP: "",
                     reevaluacionEfectividad: "",
                     analisisEfectividad: "",
