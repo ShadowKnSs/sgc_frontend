@@ -27,6 +27,7 @@ function Carpetas() {
     "Acciones de Mejora": "actividad-mejora",
     "Generar informe de auditoría": "informe-auditoria",
     "Seguimiento": "seguimientoPrincipal",
+    "Auditoria": "auditoria"
   };
 
   useEffect(() => {
