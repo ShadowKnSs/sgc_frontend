@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useParams, useLocation} from "react-router-dom";
-import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import Title from "../components/Title";
 import { Box, Container, Button } from "@mui/material";
 

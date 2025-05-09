@@ -178,7 +178,10 @@ function ProcessMapView({ soloLectura, idProceso }) {
   };
   
   return (
-    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 8 }}>
+    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 1 }}>
+      <Typography variant="h5" sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}>
+        DOCUMENTOS
+      </Typography>
       {alerta && (
         <MensajeAlert
           tipo={alerta.tipo}
