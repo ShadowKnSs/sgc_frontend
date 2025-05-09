@@ -37,6 +37,8 @@ const FeedbackSnackbar = ({
       autoHideDuration={autoHideDuration}
       onClose={onClose}
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      
+
     >
       <Alert
         onClose={onClose}

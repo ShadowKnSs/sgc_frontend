@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FaUser, FaBell, FaSignOutAlt } from "react-icons/fa"; // Import icons
 import { Link } from "react-router-dom"; // Import Link
 import axios from 'axios';
-import { Badge, IconButton } from '@mui/material';
+import { Drawer, List, ListItem, ListItemText, IconButton, Badge } from '@mui/material';
+import { FaBars } from 'react-icons/fa';
 import "../css/Header.css"; // Estilos
 import image from "../assests/UASLP_Logo.png"; // Ruta de tu logo
 import DialogNotifications from "./Modals/DialogNotifications";
@@ -15,6 +16,15 @@ function Header() {
   const idUsuario = usuario?.idUsuario || 0;
   const isLoggedIn = usuario !== null;
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+const toggleDrawer = (open) => (event) => {
+  if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+    return;
+  }
+  setMenuOpen(open);
+};
+
 
 
   const handleOpenDialog = () => {
@@ -33,14 +43,29 @@ function Header() {
   };
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/api/notificaciones/count/${idUsuario}`)
-      .then(response => {
+    axios.get('http://localhost:8000/api/notificaciones/count/${idUsuario}')
+    .then(response => {
         setNotificationCount(response.data.notificacionesNoLeidas);
       })
       .catch(error => {
         console.error('Error al obtener el conteo de notificaciones:', error);
       });
   }, [idUsuario]);
+  const menuList = (
+    <List sx={{ width: 250 }}>
+      <ListItem button onClick={() => navigate('/')}>
+        <ListItemText primary="Inicio" />
+      </ListItem>
+      <ListItem button onClick={() => navigate('/seguimiento')}>
+        <ListItemText primary="Seguimiento" />
+      </ListItem>
+      <ListItem button onClick={() => navigate('/reportes')}>
+        <ListItemText primary="Reportes" />
+      </ListItem>
+      {/* Agrega más opciones aquí */}
+    </List>
+  );
+  
 
   return (
     <header className="header">
@@ -75,10 +100,18 @@ function Header() {
             <FaUser className="user-icon-hover" />
           </IconButton>
         )}
+        <IconButton onClick={toggleDrawer(true)} className="header-link">
+  <FaBars />
+</IconButton>
+
       </div>
 
 
       <DialogNotifications open={openDialog} onClose={handleCloseDialog} idUsuario={idUsuario} />
+      <Drawer anchor="left" open={menuOpen} onClose={toggleDrawer(false)}>
+  {menuList}
+</Drawer>
+
     </header>
   );
 }

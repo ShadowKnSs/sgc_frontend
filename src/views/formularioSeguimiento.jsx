@@ -3,6 +3,7 @@ import { TextField, Button, Box, IconButton, Typography, Stepper, Step, StepLabe
 import { Remove } from "@mui/icons-material";
 import axios from "axios";
 import CustomButton from "../components/Button";
+import FeedbackSnackbar from "../components/Feedback";
 
 const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
   const [step, setStep] = useState(1);
@@ -15,6 +16,12 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const steps = ["Datos Generales", "Asistentes", "Actividades", "Compromisos"];
 
+  const [openInfo, setOpenInfo] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarType, setSnackbarType] = useState('info');  // Puedes usar 'success', 'error', etc.
+
+
+
   useEffect(() => {
     if (initialData) {
       setLugar(initialData.lugar || "");
@@ -23,9 +30,11 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
       setAsistentes(initialData.asistentes?.map(b => b.nombre) || []);
       setActividades(initialData.actividades?.map(a => a.descripcion) || []);
       setCompromisos(initialData.compromisos || [{ descripcion: "", responsables: "", fecha: "" }]);
+
     }
   }, [initialData]);
 
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -96,31 +105,40 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
     try {
       let response;
       if (isEditing) {
-        // Si está en modo edición, hacer un PUT con el formato adecuado
         response = await axios.put(`http://localhost:8000/api/minutas/${initialData.idSeguimiento}`, data, {
           headers: { "Content-Type": "application/json" },
         });
-        alert("Minuta actualizada exitosamente");
-
+        setSnackbarMessage('Minuta actualizada exitosamente');
+        setSnackbarType('success');
+        setOpenInfo(true);
+        console.log('Snackbar debería abrirse con error');
       } else {
-        // Si está en modo creación, hacer un POST con el formato de la base de datos
         response = await axios.post("http://localhost:8000/api/minutasAdd", data, {
           headers: { "Content-Type": "application/json" },
         });
-        alert("Minuta creada exitosamente");
+        setSnackbarMessage('Minuta creada exitosamente');
+        setSnackbarType('success');
+        setOpenInfo(true);
       }
       console.log(response.data);
-      onClose(); // Cerrar el formulario después de guardar
+      setTimeout(() => {
+        onClose(); // cerrar el formulario después de mostrar el snackbar
+      }, 1200);
     } catch (error) {
       console.error("Error al guardar la minuta:", error);
-      alert("Hubo un error al guardar la minuta");
+      setSnackbarMessage('Hubo un error al guardar la minuta');
+      setSnackbarType('error');
+      setOpenInfo(true);
     } finally {
       setIsSubmitting(false);
     }
+    
   };
+
 
   return (
     <Box component="form" sx={{ padding: 4, maxWidth: 600, margin: "auto", backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 3 }}>
+
       <Typography variant="h4" textAlign="center" color="#004A98" mb={2}>Registro de Minuta</Typography>
       <Stepper activeStep={step - 1} alternativeLabel>
         {steps.map((label, index) => (
@@ -280,13 +298,26 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
             type="Guardar"
             onClick={handleSubmit}
             disabled={isSubmitting}
+            
           >
             {initialData ? "Actualizar Minuta" : "Guardar"}
+            
           </CustomButton>
         )}
       </Box>
+      <FeedbackSnackbar
+        open={openInfo}
+        onClose={() => setOpenInfo(false)}
+        type={snackbarType}
+        title={snackbarType === 'success' ? 'info' : 'error'}
+        message={snackbarMessage}
+        autoHideDuration={5000}
+        
+      />
     </Box>
+    
   );
+  
 }
 export default FormularioSeguimiento;
 

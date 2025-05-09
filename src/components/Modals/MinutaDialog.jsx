@@ -1,6 +1,7 @@
 import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Grid, Card, CardContent, CardHeader, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { styled } from '@mui/system';
+import CustomButton from "../Button";
 
 const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) => {
   console.log("minuta Dialog", minuta);
@@ -41,6 +42,20 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) 
             </CardContent>
           </Card>
 
+          {/* Card para los asistentes */}
+          <Card variant="outlined" sx={{ padding: 2 }}>
+            <CardHeader title="Asistentes" sx={{ backgroundColor: '#F1F1F1', color: '#004A98' }} />
+            <CardContent>
+              {minuta.asistentes && minuta.asistentes.length > 0 ? (
+                minuta.asistentes.map((asistente, index) => (
+                  <Typography key={index} variant="body1">{asistente.nombre || 'No especificado'}</Typography>
+                ))
+              ) : (
+                <Typography color="textSecondary" variant="body1">No hay asistentes registrados</Typography>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Card para actividades */}
           <Card variant="outlined" sx={{ padding: 2 }}>
             <CardHeader title="Actividades" sx={{ backgroundColor: '#F1F1F1', color: '#004A98' }} />
@@ -58,20 +73,6 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) 
             </CardContent>
           </Card>
 
-          {/* Card para los asistentes */}
-          <Card variant="outlined" sx={{ padding: 2 }}>
-            <CardHeader title="Asistentes" sx={{ backgroundColor: '#F1F1F1', color: '#1004A98' }} />
-            <CardContent>
-              {minuta.asistentes && minuta.asistentes.length > 0 ? (
-                minuta.asistentes.map((asistente, index) => (
-                  <Typography key={index} variant="body1">{asistente.nombre || 'No especificado'}</Typography>
-                ))
-              ) : (
-                <Typography color="textSecondary" variant="body1">No hay asistentes registrados</Typography>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Card para los compromisos con tabla */}
           <Card variant="outlined" sx={{ padding: 2, backgroundColor: '#E8E8E8' }}>
             <CardHeader title="Compromisos" sx={{ backgroundColor: '#F1F1F1', color: '#004A98' }} />
@@ -81,9 +82,9 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) 
                   <Table sx={{ minWidth: 650 }}>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ backgroundColor: '#F9B800', color: '#1B3156' }}>Descripción</TableCell>
-                        <TableCell sx={{ backgroundColor: '#F9B800', color: '#1B3156' }}>Responsable</TableCell>
-                        <TableCell sx={{ backgroundColor: '#F9B800', color: '#1B3156' }}>Fecha</TableCell>
+                        <TableCell sx={{ backgroundColor: '#F9B800', color: '#1B3156', fontWeight: 'bold' }}>Descripción</TableCell>
+                        <TableCell sx={{ backgroundColor: '#F9B800', color: '#1B3156', fontWeight: 'bold' }}>Responsable</TableCell>
+                        <TableCell sx={{ backgroundColor: '#F9B800', color: '#1B3156', fontWeight: 'bold' }}>Fecha</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -120,9 +121,7 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) 
             )}
           </Grid>
           <Grid item>
-            <Button onClick={onClose} color="primary" variant="contained" sx={{ backgroundColor: '#00B2E3' }}>
-              Cerrar
-            </Button>
+            <CustomButton type={"cancelar"} onClick={onClose}> {"Cerrar"}</CustomButton>
           </Grid>
         </Grid>
       </DialogActions>

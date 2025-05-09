@@ -19,6 +19,7 @@ const getEditMessage = (type, name) => {
   };
   
   const ConfirmEdit = ({ open, onClose, entityType, entityName, onConfirm }) => {
+    console.log("entityName en ConfirmEdit:", entityName); 
     return (
       <Dialog open={open} onClose={onClose}>
         <DialogTitleCustom title="Confirmar Edición" />

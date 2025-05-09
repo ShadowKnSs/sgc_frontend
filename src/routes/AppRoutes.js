@@ -54,7 +54,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
+        <Route index element={<HomePage />} />
           <Route path="procesos" element={<ProcessPage />} />
           <Route path="nuevo-proceso" element={<NewProcess />} />
           <Route path="editar-proceso/:idProceso" element={<EditProcess />} />
@@ -90,7 +90,7 @@ const AppRoutes = () => {
           <Route path="analisis-datos" element={<FormularioAnalisis />} />
           <Route path="analisis-datos/:idProceso/:anio" element={<FormularioAnalisis />} />
           <Route path="/procesos/:idEntidad" element={<ProcessInEntity />} />
-          <Route path="seguimientoPrincipal/:idRegistro" element={<SeguimientoPrincipal />} />
+          <Route path="seguimientoPrincipal/:idRegistro/:idProceso" element={<SeguimientoPrincipal />} />
           <Route path="manualDelSitio" element={<ManualDelSitio />} />
           <Route path="admin-eventos" element={<AdminEventos/>} />
           <Route path="user-eventos" element={<UserEvent/>} />
