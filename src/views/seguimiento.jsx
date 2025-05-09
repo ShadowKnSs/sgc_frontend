@@ -35,6 +35,15 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
   const rolActivo = state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso(title);
 
+  const rutas = {
+    "Gestión de Riesgo": "gestion-riesgos",
+    "Análisis de Datos": "analisis-datos",
+    "Acciones de Mejora": "actividad-mejora",
+    "Generar informe de auditoría": "informe-auditoria",
+    "Seguimiento": "seguimientoPrincipal",
+    "Auditoria": "auditoria"
+  };
+
   useEffect(() => {
     obtenerRegistros();
   }, []);
