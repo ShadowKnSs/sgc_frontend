@@ -35,6 +35,8 @@ const GraficaGestionRiesgos = ({idRegistro}) => {
       });
   }, [idRegistro]);
 
+  const truncarTexto = (texto, maxLength = 50) =>
+    texto.length > maxLength ? texto.slice(0, maxLength - 3) + "..." : texto;
 
   if (loading) {
     return (
@@ -56,7 +58,7 @@ const GraficaGestionRiesgos = ({idRegistro}) => {
         {riesgoData.map((item, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <CircularProgressIndicator
-              label={item.nombreIndicador}
+              label={truncarTexto(item.nombreIndicador)}
               value={item.resultadoAnual || 0}
               color={colors[index % colors.length]}  // Asignación cíclica de colores
             />

@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { useParams} from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, useLocation} from "react-router-dom";
 import { Box, Container, Button, IconButton } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import PlanCorrectivoContainer from "../components/PlanCorrectivoContainer"; // Asegúrate de la ruta correcta
 import FormProyMejora from "../components/Forms/FormProyMejora";
+// import ProyectosMejoraCards from "../components/ProyectoMejoraCards";
+
 import PlanTrabajo from "../views/planTrabajoForm";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 
 
 const ProcessView = () => {
   // Recibimos parámetros de la URL: por ejemplo, idRegistro y title
-  const { idRegistro, title } = useParams();
+  const { idRegistro} = useParams();
   console.log("ProcessView - idRegistro recibido:", idRegistro);
-  console.log("ProcessView - title recibido:", title);
+  const location = useLocation();
+  const idProceso = location.state?.idProceso;
 
   const [selectedTab, setSelectedTab] = useState(0);
   const sections = [
@@ -24,17 +27,18 @@ const ProcessView = () => {
   const renderContent = () => {
     switch (sections[selectedTab]) {
       case "Plan de Acción Correctivo":
-        return <PlanCorrectivoContainer idRegistro={idRegistro}/>;
+        return <PlanCorrectivoContainer idProceso={idProceso}/>;
       case "Plan de Trabajo":
         return (
           <Box>
-            <PlanTrabajo idRegistro={idRegistro} />
+            <PlanTrabajo idRegistro={idRegistro}  />
           </Box>
         );
       case "Proyecto de Mejora":
         return (
           <Box>
             <FormProyMejora idRegistro={idRegistro} />
+            {/* <ProyectosMejoraCards /> */}
           </Box>
         );
       default:
@@ -48,7 +52,7 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      <ContextoProcesoEntidad idRegistro={idRegistro} />
+      <ContextoProcesoEntidad idProceso={idProceso} /> 
 
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 2 }}>
         <IconButton onClick={() => scrollNav("left")} sx={{ color: "secondary.main", mx: 1 }}>

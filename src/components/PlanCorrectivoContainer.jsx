@@ -5,27 +5,16 @@ import {
   Card,
   CardContent,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableContainer,
-  Paper,
   CircularProgress
 } from "@mui/material";
-import { Add, Close } from "@mui/icons-material";
+import { Add} from "@mui/icons-material";
 import PlanCorrectivoForm from "./Forms/PlanCorrectivoForm";
+import PlanCorrectivoDetalleModal from './Modals/PlanCorrectivoModal';
 import axios from "axios";
 import { useLocation, useParams } from "react-router-dom";
 
 
-function PlanCorrectivoContainer() {
+function PlanCorrectivoContainer({ idProceso }) {
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false
@@ -48,7 +37,6 @@ function PlanCorrectivoContainer() {
       setRecords(response.data);
       setError("");
     } catch (err) {
-      setError("Error al obtener los planes de acción");
     }
     setLoading(false);
   };
@@ -66,7 +54,7 @@ function PlanCorrectivoContainer() {
     try {
       if (editingRecord) {
         await axios.put(
-          `http://127.0.0.1:8000/api/plan-correctivo/${editingRecord.idPlanCorrectivo}`,
+          `http://127.0.0.1:8000/api/plan-correctivos/${editingRecord.idPlanCorrectivo}`,
           { ...data, idRegistro }
         );
         setEditingRecord(null);
@@ -139,6 +127,7 @@ function PlanCorrectivoContainer() {
           onCancel={() => setShowForm(false)}
           initialData={editingRecord}
           sequence={sequence}
+          idProceso={idProceso}
         />
       )}
       {loading ? (
@@ -174,130 +163,16 @@ function PlanCorrectivoContainer() {
           )}
         </Box>
       )}
-      <Dialog open={Boolean(selectedRecord)} onClose={() => setSelectedRecord(null)} fullWidth>
-        <DialogTitle>
-          Detalles del Plan de Acción
-          <IconButton onClick={() => setSelectedRecord(null)} sx={{ position: "absolute", right: 8, top: 8 }}>
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {selectedRecord && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Datos del Proceso
-              </Typography>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  <strong>Entidad:</strong> {selectedRecord.entidad}
-                </Typography>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  <strong>No Conformidad:</strong> {selectedRecord.noConformidad ? "Sí" : "No"}
-                </Typography>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  <strong>Código:</strong> {selectedRecord.codigo}
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  <strong>Coordinador:</strong> {selectedRecord.coordinadorPlan}
-                </Typography>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  <strong>Fecha de Inicio:</strong> {selectedRecord.fechaInicio ? selectedRecord.fechaInicio.split(" ")[0] : ""}
-                </Typography>
-              </Box>
-              <Typography variant="body2">
-                <strong>Origen:</strong> {selectedRecord.origenConformidad}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Equipo de Mejora:</strong> {selectedRecord.equipoMejora}
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", mt: 2 }}>
-                Descripción de la No Conformidad
-              </Typography>
-              <Typography variant="body2">
-                <strong>Requisito:</strong> {selectedRecord.requisito}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Incumplimiento:</strong> {selectedRecord.incumplimiento}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Evidencia:</strong> {selectedRecord.evidencia}
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", mt: 2 }}>
-                Reacción para Controlar y Corregir
-              </Typography>
-              <TableContainer component={Paper} sx={{ mt: 1, mb: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Actividad</TableCell>
-                      <TableCell>Responsable</TableCell>
-                      <TableCell>Fecha Programada</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(selectedRecord.actividades.filter(a => a.tipo === 'reaccion') || []).map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.descripcionAct || item.actividad}</TableCell>
-                        <TableCell>{item.responsable}</TableCell>
-                        <TableCell>{item.fechaProgramada ? item.fechaProgramada.split(" ")[0] : ""}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", mt: 2 }}>
-                Consecuencias Identificadas
-              </Typography>
-              <Typography variant="body2">
-                <strong>Revisión:</strong> {selectedRecord.revisionAnalisis}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Causa Raíz:</strong> {selectedRecord.causaRaiz}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Similares:</strong> {selectedRecord.estadoSimilares}
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", mt: 2 }}>
-                Plan de Acción
-              </Typography>
-              <TableContainer component={Paper} sx={{ mt: 1 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Actividad</TableCell>
-                      <TableCell>Responsable</TableCell>
-                      <TableCell>Fecha Programada</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(selectedRecord.actividades.filter(a => a.tipo === 'planaccion') || []).map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.descripcionAct || item.actividad}</TableCell>
-                        <TableCell>{item.responsable}</TableCell>
-                        <TableCell>{item.fechaProgramada ? item.fechaProgramada.split(" ")[0] : ""}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          {!soloLectura && puedeEditar && (
-            <>
-              <Button color="primary" onClick={() => handleEdit(selectedRecord)}>
-                Editar
-              </Button>
-              <Button color="error" onClick={() => handleDelete(selectedRecord)}>
-                Eliminar
-              </Button>
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
+      <PlanCorrectivoDetalleModal
+        open={Boolean(selectedRecord)}
+        record={selectedRecord}
+        onClose={() => setSelectedRecord(null)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        soloLectura={soloLectura}
+        puedeEditar={puedeEditar}
+      />
+
     </Box>
   );
 }

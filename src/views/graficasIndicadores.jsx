@@ -8,7 +8,8 @@ import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroaliment
 import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
 import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
 import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
-
+import Title from '../components/Title';
+import Subtitle from '../components/Subtitle';
 const GraficasPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,9 +76,7 @@ const GraficasPage = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" align="center" gutterBottom sx={{ fontFamily: "'Roboto', sans-serif", color: "primary.main", fontWeight: "bold" }}>
-        Vista de Gráficas
-      </Typography>
+      <Title text="Vista Gáficas"></Title>
 
       <Box sx={{ my: 4 }}>
         <Typography variant="h5" gutterBottom>Indicadores de Plan de Control</Typography>
@@ -96,7 +95,7 @@ const GraficasPage = () => {
 
       <Box sx={{ my: 4 }}>
         <Typography variant="h5" gutterBottom>Mapa de Proceso</Typography>
-        <GraficaMapaProceso idRegistro={idRegistro} />
+        <GraficaMapaProceso idProceso={idProceso} />
       </Box>
 
       <Box sx={{ my: 4 }}>

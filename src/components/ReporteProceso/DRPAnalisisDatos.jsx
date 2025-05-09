@@ -18,9 +18,11 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (idProceso) {
+    if (idRegistro) {
       axios
-        .get(`http://localhost:8000/api/indicadoresconsolidados/${idProceso}`)
+        .get("http://localhost:8000/api/indicadoresconsolidados", {
+          params: { idRegistro },
+        })
         .then((res) => {
           setIndicadores(res.data.indicadores || []);
           console.log("Datos de indicadores:", res.data.indicadores);
@@ -30,7 +32,7 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
           setError("No se pudo cargar los indicadores.");
         });
     }
-  }, [idProceso]);
+  }, [idRegistro]);
 
   const getIndicador = (origen) =>
     indicadores.find((i) => i.origenIndicador === origen);
@@ -105,6 +107,7 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       <TablaMapaProceso idProceso={idProceso} anio={anio} />
       <GraficaMapaProceso
         onImageReady={(img) => onImagenGenerada("mapaProceso", img)}
+        idProceso={idProceso}
       />
 
       <TablaEficaciaRiesgos idProceso={idProceso} anio={anio} />

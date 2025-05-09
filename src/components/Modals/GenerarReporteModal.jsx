@@ -42,11 +42,11 @@ const GenerateReportModal = ({
             >
               {Array.isArray(entities) &&
                 entities
-                  .filter(entity => entity && entity.idEntidadDependecia !== undefined)
+                  .filter(entity => entity && entity.idEntidadDependencia !== undefined)
                   .map((entity) => (
                     <MenuItem
-                      key={entity.idEntidadDependecia}
-                      value={entity.idEntidadDependecia.toString()}
+                      key={entity.idEntidadDependencia}
+                      value={entity.idEntidadDependencia.toString()}
                     >
                       {entity.nombreEntidad}
                     </MenuItem>

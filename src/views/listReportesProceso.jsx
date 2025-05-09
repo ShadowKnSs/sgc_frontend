@@ -200,7 +200,7 @@ const ReportesDeProceso = () => {
       setSnackbarOpen(true);
       return;
     }
-    const entity = entities.find((e) => e.idEntidadDependecia === Number(selectedEntity));
+    const entity = entities.find((e) => e.idEntidadDependencia === Number(selectedEntity));
     const process = processes.find((p) => p.idProceso === Number(selectedProcess));
     if (!entity || !process) {
       setSnackbarMessage('Datos inválidos seleccionados.');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,13 +8,11 @@ import {
   Step,
   StepButton,
   StepContent,
-  Select,
-  MenuItem,
   FormControl,
-  InputLabel,
   Snackbar,
   Alert
 } from "@mui/material";
+import Title from "../Title";
 import axios from "axios";
 
 function ProyectoMejoraVertical() {
@@ -22,9 +20,10 @@ function ProyectoMejoraVertical() {
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
 
-  const [divisiones, setDivisiones] = useState([]);
-  const [departamentos, setDepartamentos] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
+  const navigate = useNavigate();
+
+  const { idRegistro } = useParams();
 
   const steps = [
     "Datos Generales",
@@ -38,9 +37,10 @@ function ProyectoMejoraVertical() {
   ];
 
   const [formData, setFormData] = useState({
+    idRegistro: "",
     division: "",
     departamento: "",
-    fecha: "",
+    fecha: new Date().toISOString().split("T")[0], // ← Fecha actual
     noMejora: "",
     responsable: "",
     descripcionMejora: "",
@@ -49,7 +49,7 @@ function ProyectoMejoraVertical() {
     personalBeneficiado: "",
     responsables: [{ nombre: "" }],
     situacionActual: "",
-    indicadoresExito: [{ nombre: "" }],
+    indicadoresExito: [{ nombre: "", meta: "" }],
     recursos: [{ tiempoEstimado: "", recursosMatHum: "" }],
     costoProyecto: "",
     actividadesPM: [{ actividad: "", responsable: "", fecha: "" }],
@@ -63,15 +63,16 @@ function ProyectoMejoraVertical() {
     severity: "success"
   });
 
-  useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/entidades")
-      .then((res) => setDivisiones(res.data.entidades || []))
-      .catch((err) => console.error("Error cargando divisiones:", err));
 
-    axios.get("http://127.0.0.1:8000/api/procesos")
-      .then((res) => setDepartamentos(res.data.procesos || res.data.data || []))
-      .catch((err) => console.error("Error cargando departamentos:", err));
-  }, []);
+  useEffect(() => {
+    if (idRegistro) {
+      setFormData(prev => ({ ...prev, idRegistro }));
+      console.log("Asignando idRegistro al formData:", idRegistro);
+    } else {
+      console.warn("idRegistro no encontrado en useParams");
+    }
+  }, [idRegistro]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -106,9 +107,20 @@ function ProyectoMejoraVertical() {
       setSnackbar({ open: true, message: "División y Departamento son obligatorios.", severity: "error" });
       return;
     }
+
+    if (!formData.idRegistro) {
+      setSnackbar({ open: true, message: "No se recibió el ID del registro.", severity: "error" });
+      return;
+    }
     try {
+
       await axios.post("http://127.0.0.1:8000/api/proyecto-mejora", formData);
       setSnackbar({ open: true, message: "Proyecto guardado correctamente!", severity: "success" });
+      setTimeout(() => {
+        navigate("/proyectos-mejora", {
+          state: { volverACards: true }
+        });
+      }, 1000); // espera opcional para mostrar el snackbar
     } catch (error) {
       console.error("Error al guardar:", error);
       setSnackbar({ open: true, message: "Error al guardar el proyecto.", severity: "error" });
@@ -123,35 +135,26 @@ function ProyectoMejoraVertical() {
         return (
           <Box>
             <FormControl fullWidth margin="normal">
-              <InputLabel id="division-label">División</InputLabel>
-              <Select
-                labelId="division-label"
+              <TextField
+                fullWidth
+                label="División"
                 name="division"
                 value={formData.division}
-                label="División"
                 onChange={handleChange}
+                margin="normal"
                 disabled={disabled}
-              >
-                <MenuItem value=""></MenuItem>
-                {divisiones.map((d) => (
-                  <MenuItem key={d.idEntidadDependecia} value={d.nombreEntidad}>{d.nombreEntidad}</MenuItem>
-                ))}
-              </Select>
+              />
             </FormControl>
             <FormControl fullWidth margin="normal">
-              <InputLabel id="departamento-label">Departamento</InputLabel>
-              <Select
-                labelId="departamento-label"
+              <TextField
+                fullWidth
+                label="Departamento"
                 name="departamento"
                 value={formData.departamento}
-                label="Departamento"
                 onChange={handleChange}
+                margin="normal"
                 disabled={disabled}
-              >
-                {departamentos.map((dep) => (
-                  <MenuItem key={dep.idProceso} value={dep.nombreProceso}>{dep.nombreProceso}</MenuItem>
-                ))}
-              </Select>
+              />
             </FormControl>
             <TextField fullWidth label="Fecha" name="fecha" type="date" value={formData.fecha} onChange={handleChange} margin="normal" InputLabelProps={{ shrink: true }} disabled={disabled} />
             <TextField fullWidth label="Número de Mejora" name="noMejora" type="number" value={formData.noMejora} onChange={handleChange} margin="normal" disabled={disabled} />
@@ -164,7 +167,7 @@ function ProyectoMejoraVertical() {
         );
       case 2:
         return (
-          <Box>
+          <Box sx={{ mt: 2 }}>
             {formData.objetivos.map((obj, index) => (
               <Box key={index} display="flex" alignItems="center">
                 <TextField
@@ -187,9 +190,9 @@ function ProyectoMejoraVertical() {
         );
       case 3:
         return (
-          <Box>
-            <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" disabled={disabled} />
-            <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" disabled={disabled} />
+          <Box sx={{ mt: 2 }}>
+            <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} />
+            <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} />
             {formData.responsables.map((resp, index) => (
               <Box key={index} display="flex" alignItems="center">
                 <TextField fullWidth label={`Responsable ${index + 1}`} value={resp.nombre} onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} margin="normal" disabled={disabled} />
@@ -201,22 +204,64 @@ function ProyectoMejoraVertical() {
             {!soloLectura && puedeEditar && (
               <Button variant="outlined" onClick={() => addDynamicField("responsables", { nombre: "" })}>Agregar Responsable</Button>
             )}
-            <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" disabled={disabled} />
+            <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} />
           </Box>
         );
       case 4:
         return (
           <Box>
             {formData.indicadoresExito.map((ind, index) => (
-              <Box key={index} display="flex" alignItems="center">
-                <TextField fullWidth label={`Indicador ${index + 1}`} value={ind.nombre} onChange={(e) => handleDynamicChange("indicadoresExito", index, "nombre", e.target.value)} margin="normal" disabled={disabled} />
+              <Box
+                key={index}
+                display="flex"
+                alignItems="center"
+                gap={2}
+                marginBottom={2}
+                flexWrap="wrap"
+              >
+                <TextField
+                  label={`Indicador ${index + 1}`}
+                  value={ind.nombre}
+                  onChange={(e) =>
+                    handleDynamicChange("indicadoresExito", index, "nombre", e.target.value)
+                  }
+                  margin="normal"
+                  fullWidth
+                  sx={{ flex: 1 }}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Meta"
+                  type="number"
+                  value={ind.meta || ""}
+                  onChange={(e) =>
+                    handleDynamicChange("indicadoresExito", index, "meta", e.target.value)
+                  }
+                  margin="normal"
+                  fullWidth
+                  sx={{ flex: 0.5 }}
+                  disabled={disabled}
+                />
                 {!soloLectura && puedeEditar && (
-                  <Button variant="outlined" color="error" onClick={() => removeDynamicField("indicadoresExito", index)}>Eliminar</Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => removeDynamicField("indicadoresExito", index)}
+                    sx={{ height: 56 }}
+                  >
+                    Eliminar
+                  </Button>
                 )}
               </Box>
             ))}
             {!soloLectura && puedeEditar && (
-              <Button variant="outlined" onClick={() => addDynamicField("indicadoresExito", { nombre: "" })}>Agregar Indicador</Button>
+              <Button
+                variant="outlined"
+                onClick={() => addDynamicField("indicadoresExito", { nombre: "", meta: "" })}
+                sx={{ mt: 2 }}
+              >
+                Agregar Indicador
+              </Button>
             )}
           </Box>
         );
@@ -269,8 +314,19 @@ function ProyectoMejoraVertical() {
   };
 
   return (
-    <Box sx={{ p: 4, width: "800px", margin: "auto", minHeight: "600px", border: "1px solid #ccc" }}>
-      <h2>Formulario de Proyecto de Mejora</h2>
+    <Box sx={{
+      p: 4,
+      width: "800px",
+      margin: "auto",
+      minHeight: "600px",
+      borderRadius: 2,
+      border: "1px solid #ccc",
+      boxShadow: 2,
+      backgroundColor: "#fff"
+    }}>
+
+      <Title text="Formulario de Proyecto de Mejora" ></Title>
+
       <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
         {steps.map((label, index) => (
           <Step key={label}>
@@ -279,10 +335,15 @@ function ProyectoMejoraVertical() {
               <Box sx={{ minHeight: "300px" }}>{renderStepContent(index)}</Box>
               <Box sx={{ mb: 2 }}>
                 {!soloLectura && puedeEditar && (
-                  <Button variant="contained" onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext} sx={{ mt: 1, mr: 1 }}>
+                  <Button
+                    variant="contained"
+                    onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
                     {activeStep === steps.length - 1 ? "Enviar" : "Siguiente"}
                   </Button>
                 )}
+
                 {activeStep > 0 && (
                   <Button onClick={handleBack} sx={{ mt: 1, mr: 1 }}>
                     Anterior

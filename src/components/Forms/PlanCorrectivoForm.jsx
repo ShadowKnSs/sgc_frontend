@@ -8,10 +8,7 @@ import {
   TextField,
   Checkbox,
   FormControlLabel,
-  Select,
-  MenuItem,
   FormControl,
-  InputLabel,
   Typography,
   IconButton,
   Radio,
@@ -33,7 +30,7 @@ const steps = [
 
 const initialDynamicEntry = { actividad: "", responsable: "", fechaProgramada: "" };
 
-function PlanCorrectivoForm({ onSave, onCancel, initialData, sequence }) {
+function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence }) {
   // Objeto por defecto que contiene todas las propiedades esperadas
   const defaultForm = {
     entidad: "",
@@ -59,24 +56,23 @@ function PlanCorrectivoForm({ onSave, onCancel, initialData, sequence }) {
   const [formData, setFormData] = useState(mergedData);
   const [activeStep, setActiveStep] = useState(0);
   const [errors, setErrors] = useState({});
-  const [entidades, setEntidades] = useState([]);
 
   // Simulación de carga para Dependencia/Entidad
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/entidades")
-      .then(response => {
-        // Asegúrate de que response.data.entidades sea un array
-        if (Array.isArray(response.data.entidades)) {
-          setEntidades(response.data.entidades);
-        } else {
-          // En caso de que no sea así, forzamos a array
-          setEntidades([]);
-        }
+    if (!idProceso) return;
+
+    axios.get(`http://127.0.0.1:8000/api/proceso-entidad/${idProceso}`)
+      .then(res => {
+        const { entidad, proceso } = res.data;
+        setFormData(prev => ({
+          ...prev,
+          entidad: entidad || "" // ← actualiza el campo automáticamente
+        }));
       })
-      .catch(error => {
-        console.error("Error al obtener las entidades:", error);
+      .catch(err => {
+        console.error("❌ Error al obtener entidad desde idProceso:", err);
       });
-  }, []);
+  }, [idProceso]);
 
 
 
@@ -210,20 +206,13 @@ function PlanCorrectivoForm({ onSave, onCancel, initialData, sequence }) {
             {/* Primera fila: Entidad, No conformidad y Código */}
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
               <FormControl sx={{ flex: 1 }} error={!!errors.entidad}>
-                <InputLabel id="entidad-label">Dependencia/Entidad</InputLabel>
-                <Select
-                  labelId="entidad-label"
-                  label="Dependencia/Entidad"
-                  name="entidad"
+                <TextField
+                  label="Entidad"
                   value={formData.entidad}
-                  onChange={handleChange}
-                >
-                  {(Array.isArray(entidades) ? entidades : []).map((ent, idx) => (
-                    <MenuItem key={idx} value={ent.idEntidadDependecia}>
-                      {ent.nombreEntidad}
-                    </MenuItem>
-                  ))}
-                </Select>
+                  fullWidth
+                  margin="normal"
+                  InputProps={{ readOnly: true }}
+                />
 
                 {errors.entidad && <FormHelperText>{errors.entidad}</FormHelperText>}
               </FormControl>

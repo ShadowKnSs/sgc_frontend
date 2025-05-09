@@ -42,9 +42,9 @@ const ReportView = () => {
   useEffect(() => {
     axios.get(`http://localhost:8000/api/registros/idRegistro`, {
       params: {
-        proceso: idProceso,
+        idProceso: idProceso,
         año: year,
-        apartado: 'Indicadores'
+        apartado: 'Análisis de Datos'
       }
     })
       .then(res => {

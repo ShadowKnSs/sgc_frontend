@@ -32,16 +32,25 @@ const PlanTrabajoFormV = () => {
         const response = await axios.get(`http://127.0.0.1:8000/api/plantrabajo/registro/${idRegistro}`);
         console.log("Plan de trabajo obtenido del backend:", response.data);
         const plan = response.data;
+        if (plan.fuentes && plan.fuentes.length > 0) {
+          // Agrega el número al volver a cargar
+          const fuentesConNumero = plan.fuentes.map((fuente, i) => ({
+            ...fuente,
+            numero: i + 1
+          }));
+          setRecords(fuentesConNumero);
+        }
+        
         if (plan) {
           setFormData({
             responsable: plan.responsable || "",
             fechaElaboracion: plan.fechaElaboracion || new Date().toISOString().slice(0, 10),
             objetivo: plan.objetivo || "",
-            revisadoPor: plan.revisadoPor || ""
+            revisadoPor: plan.revisadoPor || "",
+            fechaRevision: plan.fechaRevision || "",
+            elaboradoPor: plan.elaboradoPor || ""
           });
-          if (plan.fuentes && plan.fuentes.length > 0) {
-            setRecords(plan.fuentes);
-          }
+          
         } else {
           // Si no existe plan, asigna la fecha actual
           const currentDate = new Date().toISOString().slice(0, 10);
@@ -88,7 +97,9 @@ const PlanTrabajoFormV = () => {
   };
 
   const isFormValid = () =>
-    Object.values(formData).every((value) => value.trim() !== "");
+    formData.responsable.trim() !== "" &&
+    formData.fechaElaboracion.trim() !== "" &&
+    formData.objetivo.trim() !== "";
   const isAdditionalFormValid = () =>
     additionalFormData.responsable.trim() !== "" &&
     additionalFormData.fechaInicio.trim() !== "" &&
@@ -162,60 +173,65 @@ const PlanTrabajoFormV = () => {
   };
 
   // Construye el payload y lo envía al backend
-  const handleSubmit = () => {
-    if (!isFormValid()) {
-      alert("Complete el formulario principal.");
-      console.log("Error: formulario principal incompleto");
-      return;
-    }
-    if (records.length === 0) {
-      alert("Agregue al menos un registro de fuente.");
-      console.log("Error: no se han agregado fuentes");
-      return;
-    }
-
-    const payload = {
-      planTrabajo: {
-        responsable: formData.responsable, // Se agrega el responsable aquí
+  const guardarPlanTrabajo = async () => {
+    try {
+      const payload = {
+        idRegistro,
+        idActividadMejora: formData.idActividadMejora || undefined,
+        responsable: formData.responsable,
         fechaElaboracion: formData.fechaElaboracion,
         objetivo: formData.objetivo,
-        revisadoPor: formData.revisadoPor,
-        actividadMejora: {
-          idRegistro: idRegistro // Se utiliza el idRegistro recibido de la vista Carpetas
-        }
-      },
-      fuentes: records.map((record) => ({
-        responsable: record.responsable,
-        fechaInicio: record.fechaInicio,
-        fechaTermino: record.fechaTermino,
-        estado: record.estado,
-        nombreFuente: record.nombreFuente,
-        elementoEntrada: record.elementoEntrada,
-        descripcion: record.descripcion,
-        entregable: record.entregable
-      }))
-    };
-
-    console.log("Enviando payload al backend:", payload);
-    axios
-      .post("http://127.0.0.1:8000/api/plantrabajo", payload)
-      .then((response) => {
-        console.log("Respuesta del backend:", response.data);
-        alert("Plan de trabajo guardado exitosamente");
-        // Reiniciar formulario principal y fuentes
-        setFormData({
-          responsable: "",
-          fechaElaboracion: new Date().toISOString().slice(0, 10),
-          objetivo: "",
-          revisadoPor: ""
-        });
-        setRecords([]);
-      })
-      .catch((error) => {
-        console.error("Error al guardar:", error);
-        alert("Hubo un error al guardar el plan de trabajo");
-      });
+      };
+      
+      // Agregar campos opcionales solo si existen
+      if (formData.revisadoPor?.trim()) payload.revisadoPor = formData.revisadoPor;
+      if (formData.fechaRevision?.trim()) payload.fechaRevision = formData.fechaRevision;
+      if (formData.elaboradoPor?.trim()) payload.elaboradoPor = formData.elaboradoPor;
+      console.log("Payload enviado:", payload);
+      const response = await axios.post("http://localhost:8000/api/plantrabajo", payload);
+      console.log("Plan guardado:", response.data);
+  
+      return response.data.planTrabajo.idPlanTrabajo;
+    } catch (error) {
+      console.error("Error al guardar plan de trabajo:", error);
+      alert("Error al guardar el plan de trabajo.");
+      throw error;
+    }
   };
+
+  const guardarFuentes = async (idPlanTrabajo) => {
+    try {
+      const response = await axios.post(`http://localhost:8000/api/plantrabajo/${idPlanTrabajo}/fuentes`, {
+        fuentes: records.map(({ numero, ...rest }) => rest)
+      });
+      console.log("Fuentes guardadas:", response.data);
+      return true;
+    } catch (error) {
+      console.error("Error al guardar fuentes:", error);
+      alert("Error al guardar las fuentes.");
+      throw error;
+    }
+  };
+  
+  const handleSubmit = async () => {
+    if (!isFormValid() && records.length === 0) {
+      alert("Debes llenar al menos el formulario principal o agregar una fuente.");
+      return;
+    }
+    
+    try {
+      const idPlanTrabajo = await guardarPlanTrabajo();
+      await guardarFuentes(idPlanTrabajo);
+  
+      alert("Plan de trabajo y fuentes guardados exitosamente.");
+      // Opcional: reset
+      setRecords([]);
+      setFormData({ responsable: "", fechaElaboracion: "", objetivo: "", revisadoPor: "" });
+    } catch (error) {
+      console.error("Error en el proceso de guardado:", error);
+    }
+  };
+
 
   return (
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mx: "auto" }}>

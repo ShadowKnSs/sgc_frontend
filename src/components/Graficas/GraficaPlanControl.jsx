@@ -72,7 +72,15 @@ const PlanControlBarChart = ({ idProceso, onImageReady }) => {
 
   return (
     <Box sx={{ maxWidth: "70%", mx: "auto", mt: 4 }}>
-      <Bar ref={chartRef} data={chartData} options={options} />
+      <Bar data={chartData} options={options} ref={(el) => {
+        if (el && !yaGenerada.current && onImageReady) {
+          const base64 = el.toBase64Image();
+          console.log("Imagen generada PlanControl (longitud):", base64.length);
+          onImageReady(base64, "planControl");
+          yaGenerada.current = true;
+        }
+      }} />
+
     </Box>
   );
 };

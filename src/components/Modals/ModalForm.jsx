@@ -52,13 +52,12 @@ const ModalForm = ({
   // 8. Estado (select: En proceso, Cerrado)
   const fields = [
     { key: "nombreFuente", label: "Nombre de la Fuente", type: "text" },
-    { key: "elementoEntrada", label: "Elemento de Entrada", type: "text" },
-    { key: "descripcion", label: "Descripción", type: "text" },
-    { key: "entregable", label: "Entregable", type: "text" },
+    { key: "elementoEntrada", label: "Elemento de Entrada", type: "textarea", rows: 5 },
+    { key: "descripcion", label: "Descripción", type: "textarea", rows: 4 },
+    { key: "entregable", label: "Entregable", type: "textarea", rows: 3 },
     { key: "responsable", label: "Responsable", type: "text" },
     { key: "fechaInicio", label: "Fecha de Inicio", type: "date" },
     { key: "fechaTermino", label: "Fecha de Término", type: "date" },
-    { key: "estado", label: "Estado", type: "select", options: ["En proceso", "Cerrado"] }
   ];
 
   const handleSaveClick = () => {
@@ -148,10 +147,29 @@ const ModalForm = ({
                     onChange={handleAdditionalChange}
                     fullWidth
                     margin="dense"
+                    multiline={fieldObj.type === "textarea"}
+                    rows={fieldObj.rows || 1}
                   />
                 </Grid>
               );
+
             })}
+            {editIndex !== null && (
+              <Grid item xs={12}>
+                <TextField
+                  select
+                  label="Estado"
+                  name="estado"
+                  value={additionalFormData.estado || "En proceso"}
+                  onChange={handleAdditionalChange}
+                  fullWidth
+                  margin="dense"
+                >
+                  <MenuItem value="En proceso">En proceso</MenuItem>
+                  <MenuItem value="Cerrado">Cerrado</MenuItem>
+                </TextField>
+              </Grid>
+            )}
             <Grid item xs={12}>
               <DialogActionButtons
                 onCancel={() => setShowModal(false)}
