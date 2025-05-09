@@ -4,6 +4,7 @@ import { IconButton, Box, Fab, Card, CardContent, Typography,
   Table, TableBody, TableCell, TableContainer, TableRow, Paper,
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
+import { useParams } from "react-router-dom";
 
 const ControlCambios = ({ soloLectura }) => {
   
@@ -11,18 +12,19 @@ const ControlCambios = ({ soloLectura }) => {
   const [newRow, setNewRow] = useState({ seccion: "", edicion: "", version: "", fechaRevision: "", descripcion: "" });
   const [data, setData] = useState([]);
   const [errors, setErrors] = useState({});
+  const { idProceso } = useParams();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/controlcambios");
+        const response = await axios.get(`http://localhost:8000/api/controlcambios/proceso/${idProceso}`);
         setData(response.data);
       } catch (error) {
         console.error("Error al obtener los datos:", error);
       }
     };
     fetchData();
-  }, []);  
+  }, [idProceso]);  
 
   const validateFields = () => {
     let tempErrors = {};
@@ -56,7 +58,7 @@ const ControlCambios = ({ soloLectura }) => {
           setData(data.map(item => (item.idCambio === newRow.idCambio ? newRow : item)));
         } else {
           const response = await axios.post("http://localhost:8000/api/controlcambios", {
-            idProceso: 1,
+            idProceso: parseInt(idProceso),
             idArchivo: 1,
             seccion: newRow.seccion,
             edicion: parseInt(newRow.edicion),

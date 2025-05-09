@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import Title from "../components/Title";
 import axios from "axios";
 import {
   Box, Fab, Stack, Card, CardContent, Typography, IconButton,
@@ -7,7 +7,22 @@ import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Grid
 } from "@mui/material";
-import { Add, Close, ExpandMore, ExpandLess, Edit, Delete } from "@mui/icons-material";
+import { Add, Close, ExpandMore, ExpandLess, Edit, Delete, } from "@mui/icons-material";
+import MensajeAlert from "../components/MensajeAlert";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import FlagIcon from '@mui/icons-material/Flag';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import GavelIcon from '@mui/icons-material/Gavel';
+import TimerIcon from '@mui/icons-material/Timer';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import DescriptionIcon from '@mui/icons-material/Description';
+import SourceIcon from '@mui/icons-material/Source';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import OutboxIcon from '@mui/icons-material/Outbox';
+import GroupsIcon from '@mui/icons-material/Groups';
+import GroupWorkIcon from '@mui/icons-material/GroupWork';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 
 function ProcessMapView({ idProceso, soloLectura }) {
   const [users, setUsers] = useState([]);
@@ -20,7 +35,19 @@ function ProcessMapView({ idProceso, soloLectura }) {
   const [editUser, setEditUser] = useState(null);
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+  const [alerta, setAlerta] = useState({ tipo: "", texto: "" });
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [indicadorAEliminar, setIndicadorAEliminar] = useState(null);
+
+  const icons = {
+    documentos: <DescriptionIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+    fuente: <SourceIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+    material: <InventoryIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+    requisitos: <AssignmentIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+    salidas: <OutboxIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+    receptores: <GroupsIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+    puestosInvolucrados: <GroupWorkIcon sx={{ color: "#004A98", fontSize: 32 }} />,
+  };
 
   // Este es tu form local para crear un nuevo "indicador"
   const [newUser, setNewUser] = useState({
@@ -38,6 +65,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
     duracionCetificado: "",
     estado: ""
   });
+
   const [mapaProceso, setMapaProceso] = useState({
     documentos: "",
     fuente: "",
@@ -79,14 +107,13 @@ function ProcessMapView({ idProceso, soloLectura }) {
    */
   useEffect(() => {
     // Obtener datos del proceso (puedes filtrar con tu idProceso si quieres)
-    axios.get("http://localhost:8000/api/procesos")
-      .then((response) => {
-        // Ajusta la respuesta según tu backend
-        if (response.data.procesos && response.data.procesos.length > 0) {
-          setProceso(response.data.procesos[0]);
-        }
-      })
-      .catch((error) => console.error("Error al obtener datos del proceso:", error));
+    axios.get(`http://localhost:8000/api/procesos/${idProceso}`)
+    .then((response) => {
+      if (response.data.proceso) {
+        setProceso(response.data.proceso);
+      }
+    })
+    .catch((error) => console.error("Error al obtener datos del proceso:", error));  
 
     // Obtener datos del mapa de procesos
     axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
@@ -172,56 +199,84 @@ function ProcessMapView({ idProceso, soloLectura }) {
    * 6) Editar "mapaProceso" (ejemplo) con un botón "EDITAR/GUARDAR"
    */
   const handleEditToggle = () => setEditMode(!editMode);
-  const handleSaveChanges = () => {
-    if (!mapaProceso.idMapaProceso || soloLectura) {
-      console.error("No hay un idMapaProceso para actualizar");
-      return;
-    }
-    axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, mapaProceso)
-      .then((resp) => {
-        console.log("MapaProceso actualizado:", resp.data);
-        setEditMode(false);
-      })
-      .catch((error) => console.error("Error al actualizar mapaProceso:", error));
-  };
 
+  const handleSaveChanges = async () => {
+    try {
+      if (!mapaProceso.idMapaProceso || soloLectura) {
+        console.error("No hay un idMapaProceso para actualizar");
+        return;
+      }
+      axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, mapaProceso)
+        .then((resp) => {
+          console.log("MapaProceso actualizado:", resp.data);
+          setEditMode(false);
+        })
+        .catch((error) => console.error("Error al actualizar mapaProceso:", error));
+      setAlerta({ tipo: "success", texto: "Cambios guardados correctamente." });
+      setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      setAlerta({ tipo: "error", texto: "Ocurrió un error al guardar los cambios." });
+      setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
+    }
+  };
   /**
    * 7) Eliminar un registro de indmapaproceso
    */
-  const handleDeleteUser = (idIndicador) => {
-    axios.delete(`http://localhost:8000/api/indmapaproceso/${idIndicador}`)
-      .then(() => {
-        setUsers((prev) => prev.filter((u) => u.idIndicador !== idIndicador));
-      })
-      .catch((error) => console.error("Error al eliminar el indicador:", error));
-  };
-
+  const handleDeleteUser = (indicador) => {
+    setIndicadorAEliminar(indicador);
+    setConfirmDialogOpen(true);
+  };  
   /**
    * 8) Editar un registro (indicador)
    */
 
+  const confirmarEliminarIndicador = () => {
+    if (!indicadorAEliminar) return;
+  
+    axios.delete(`http://localhost:8000/api/indmapaproceso/${indicadorAEliminar.idIndicador}`)
+      .then(() => {
+        setUsers((prev) => prev.filter((u) => u.idIndicador !== indicadorAEliminar.idIndicador));
+        setAlerta({ tipo: "success", texto: "Indicador eliminado correctamente." });
+      })
+      .catch((error) => {
+        console.error("Error al eliminar el indicador:", error);
+        setAlerta({ tipo: "error", texto: "Error al eliminar el indicador." });
+      })
+      .finally(() => {
+        setConfirmDialogOpen(false);
+        setIndicadorAEliminar(null);
+      });
+  };
+  
   const handleEditUser = (user) => {
     setEditUser(user);
     setEditFormOpen(true);
   };
+  
   const handleSaveEditUser = () => {
     if (!editUser) return;
-
-    axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicador}`, {
+  
+    axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
       idProceso: idProceso,
       descripcion: editUser.descripcion,
       formula: editUser.formula,
       periodoMed: editUser.periodo,
     })
       .then((resp) => {
-        // Actualizamos la lista local
-        setUsers((prev) => prev.map(u => u.idIndicador === editUser.idIndicador ? resp.data : u));
+        setUsers((prev) =>
+          prev.map((u) => u.idIndicadorMP === editUser.idIndicadorMP ? resp.data : u)
+        );
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setActiveCards([]); // Cierra todos los indicadores abiertos
         setEditFormOpen(false);
         setEditUser(null);
+        setAlerta({ tipo: "success", texto: "Indicador actualizado correctamente." });
+        setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
       })
       .catch((error) => console.error("Error al actualizar indicador:", error));
   };
-
+  
   /**
    * Render principal
    */
@@ -235,18 +290,38 @@ function ProcessMapView({ idProceso, soloLectura }) {
 
   return (
     <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
-
+      {alerta.texto && (
+        <MensajeAlert
+          tipo={alerta.tipo}
+          texto={alerta.texto}
+          onClose={() => setAlerta({ tipo: "", texto: "" })}
+        />
+      )}
       {/* EJEMPLO: Sección con datos del Proceso */}
-      <Box sx={{ mb: 4, p: 3, backgroundColor: "#ffffff", borderRadius: 2, boxShadow: 2 }}>
-        <Typography variant="h6" fontWeight="bold" color="#003366" mb={2}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" fontWeight="bold" color="#003366" mb={2} textAlign="center">
           Información del Proceso
         </Typography>
+
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Typography fontWeight="bold" color="#333">Objetivo:</Typography>
-            <Typography color="#666">{proceso.objetivo || "Cargando..."}</Typography>
-          </Grid>
-          {/* ... repite para alcance, anioCertificado, etc. */}
+          {[
+            { label: "Objetivo", value: proceso.objetivo, icon: <FlagIcon /> },
+            { label: "Alcance", value: proceso.alcance, icon: <TrackChangesIcon /> },
+            { label: "Año de Certificado", value: proceso.anioCertificado, icon: <CalendarTodayIcon /> },
+            { label: "Norma", value: proceso.norma, icon: <GavelIcon /> },
+            { label: "Duración del Certificado", value: proceso.duracionCetificado, icon: <TimerIcon /> },
+            { label: "Estado", value: proceso.estado, icon: <VerifiedIcon /> },
+          ].map((item, idx) => (
+            <Grid item xs={12} md={6} key={idx}>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: 1 }}>
+                <Box color="#004A98">{item.icon}</Box>
+                <Box>
+                  <Typography fontWeight="bold" color="#333">{item.label}:</Typography>
+                  <Typography color="#666">{item.value || "Cargando..."}</Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
         </Grid>
       </Box>
 
@@ -263,13 +338,11 @@ function ProcessMapView({ idProceso, soloLectura }) {
             </Button>
           )}
         </Box>
-
-        <Typography variant="h6" fontWeight="bold" color="#004A98" mb={2}>
+        <Typography variant="h6" fontWeight="bold" color="#004A98" mb={2} textAlign="center">
           Información General del Mapa de Procesos
         </Typography>
 
         <Grid container spacing={2}>
-          {/* EJEMPLO: mapeamos tus campos del mapaProceso */}
           {[
             { label: "Documentos", key: "documentos" },
             { label: "Fuente", key: "fuente" },
@@ -280,29 +353,38 @@ function ProcessMapView({ idProceso, soloLectura }) {
             { label: "Puestos Involucrados", key: "puestosInvolucrados" }
           ].map((item, index) => (
             <Grid item xs={12} md={6} key={index}>
-              <Typography fontWeight="bold" color="#333">{item.label}:</Typography>
-              {editMode ? (
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  multiline
-                  minRows={1}
-                  maxRows={6}
-                  value={mapaProceso[item.key] || ""}
-                  onChange={(e) => setMapaProceso({
-                    ...mapaProceso,
-                    [item.key]: e.target.value
-                  })}
-                />
-              ) : (
-                <Typography color="#666">
-                  {mapaProceso[item.key] || "No disponible"}
-                </Typography>
-              )}
+              <Paper elevation={3} sx={{ p: 2, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                {icons[item.key]}
+                <Box sx={{ flex: 1 }}>
+                  <Typography fontWeight="bold" color="#333">{item.label}:</Typography>
+                  {editMode ? (
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      multiline
+                      minRows={2}
+                      sx={{ width: '100%' }}
+                      value={mapaProceso[item.key] || ""}
+                      onChange={(e) =>
+                        setMapaProceso({
+                          ...mapaProceso,
+                          [item.key]: e.target.value
+                        })
+                      }
+                    />
+                  ) : (
+                    <Typography color="#666">
+                      {mapaProceso[item.key] || "No disponible"}
+                    </Typography>
+                  )}
+                </Box>
+              </Paper>
             </Grid>
           ))}
         </Grid>
       </Box>
+
+      <Title text="Indicadores" />
 
       {/* Tarjetas expandidas */}
       {activeCards.length > 0 && (
@@ -310,7 +392,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
           <Stack spacing={2}>
             {activeCards.map((user) => (
               <UserCard
-                key={user.idIndicador}
+                key={user.idIndicadorMP}
                 user={user}
                 isActive
                 onClose={handleCloseCard}
@@ -337,10 +419,10 @@ function ProcessMapView({ idProceso, soloLectura }) {
         }}
       >
         {users
-          .filter((user) => !activeCards.some(u => u.idIndicador === user.idIndicador))
+          .filter((user) => !activeCards.some(u => u.idIndicadorMP === user.idIndicadorMP))
           .map((user) => (
             <UserCard
-              key={user.idIndicador}
+              key={user.idIndicadorMP}
               user={user}
               onSelect={handleSelectCard}
               onDelete={handleDeleteUser}
@@ -356,18 +438,18 @@ function ProcessMapView({ idProceso, soloLectura }) {
       <Box
         sx={{
           position: "fixed",
-          top: isFixed ? 5 : 202,
-          right: 30,
+          top: isFixed ? 33 : 140,
+          right: -30,
           zIndex: 50,
           paddingRight: 5,
-          transition: "top 0.1s ease-in-out"
+          transition: "top 0.05s ease-in-out"
         }}
       >
         <Button
           variant="contained"
           sx={{
-            width: 140,
-            height: 40,
+            width: 150,
+            height: 50,
             borderRadius: 2,
             backgroundColor: "secondary.main",
             color: "#fff",
@@ -376,7 +458,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
           onClick={handleToggleAll}
           startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
         >
-          {allExpanded ? "Cerrar" : "Desplegar"}
+          {allExpanded ? "Cerrar Indicadores" : "Desplegar Indicadores"}
         </Button>
       </Box>
 
@@ -524,10 +606,15 @@ function ProcessMapView({ idProceso, soloLectura }) {
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDeleteDialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={confirmarEliminarIndicador}
+        itemName={indicadorAEliminar?.descripcion || "este indicador"}
+      />
     </Box>
   );
 }
-
 /**
  * Card para mostrar cada "indicador"
  */
@@ -554,30 +641,34 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
     >
       {isActive ? (
         <>
-          <IconButton
-            onClick={() => onClose?.(user)}
-            sx={{ color: "red", position: "absolute", top: "5px", right: "5px", zIndex: 10 }}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: 1,
+              zIndex: 10,
+            }}
           >
-            <Close />
-          </IconButton>
-
-          {onEdit && !soloLectura &&(
-            <IconButton
-              onClick={() => onEdit(user)}
-              sx={{ color: "blue", position: "absolute", top: "5px", right: "80px", zIndex: 10 }}
-            >
-              <Edit />
+            <IconButton onClick={() => onClose?.(user)} sx={{ color: "red" }}>
+              <Close />
             </IconButton>
-          )}
 
-          {onDelete && !soloLectura &&(
-            <IconButton
-              onClick={() => onDelete(user.idIndicador)}
-              sx={{ color: "red", position: "absolute", top: "5px", right: "40px", zIndex: 10 }}
-            >
-              <Delete />
-            </IconButton>
-          )}
+            {onEdit && !soloLectura && (
+              <IconButton onClick={() => onEdit(user)} sx={{ color: "blue" }}>
+                <Edit />
+              </IconButton>
+            )}
+
+            {onDelete && !soloLectura && (
+              <IconButton onClick={() => onDelete(user.idIndicadorMP)} sx={{ color: "red" }}>
+                <Delete />
+              </IconButton>
+            )}
+          </Box>
 
           <CardContent>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
@@ -618,9 +709,22 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
           </CardContent>
         </>
       ) : (
-        <Typography variant="h6" fontWeight="bold" color="#004A98">
-          Indicador
-        </Typography>
+      <Typography
+        variant="body1"
+        fontWeight="500"
+        color="#004A98"
+        sx={{
+          textAlign: "center",
+          paddingX: 1,
+          display: "-webkit-box",
+          WebkitLineClamp: 3, // muestra máximo 3 líneas
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        }}
+      >
+        {user.descripcion || "Sin descripción"}
+      </Typography>
       )}
     </Card>
   );

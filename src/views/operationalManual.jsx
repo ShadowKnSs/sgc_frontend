@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import { useParams, useLocation} from "react-router-dom";
-
+import ContextoProcesoEntidad from "../components/ProcesoEntidad";
+import Title from "../components/Title";
 import { Box, Container, Button } from "@mui/material";
 
 // Importar vistas
@@ -26,21 +28,26 @@ const ProcessView = () => {
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso("Manual Operativo"); 
   const [selectedTab, setSelectedTab] = useState(0);
-  const [isFixed, setIsFixed] = useState(false);
+  const [isFixed] = useState(false);
   const navbarRef = useRef(null);
   const { idProceso } = useParams(); 
   
+  const [nombreEntidad, setNombreEntidad] = useState("");
+  const [nombreProceso, setNombreProceso] = useState("");
 
   console.log("El rol desde ManualOperativo: ", rolActivo);
+
   useEffect(() => {
-    const handleScroll = () => {
-      setIsFixed(window.scrollY > 150);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+    axios.get(`http://localhost:8000/api/proceso-entidad/${idProceso}`)
+      .then((res) => {
+        setNombreEntidad(res.data.entidad);
+        setNombreProceso(res.data.proceso);
+      })
+      .catch((err) => {
+        console.error("Error al obtener datos del proceso:", err);
+      });
+  }, [idProceso]);  
+ 
   const renderContent = () => {
     const props = { idProceso, soloLectura, puedeEditar };
     switch (sections[selectedTab]) {
@@ -56,7 +63,22 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2 }}>
+      <Box
+        sx={{
+          mt: 1.3,
+          width: "100vw",
+          position: "sticky",
+          top: 0,
+          zIndex: 30,
+          backgroundColor: "#fff", 
+          paddingTop: 2,
+          paddingBottom: 0,
+        }}
+      >
+      <Box sx={{ mt: 2, mb: 0, display: "flex", justifyContent: "center" }}>
+        <Title text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} />
+      </Box>      </Box>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2, mb: 0 }}>
         <Box
           ref={navbarRef}
           sx={{
@@ -99,7 +121,7 @@ const ProcessView = () => {
       <Box
         sx={{
           position: isFixed ? "fixed" : "sticky",
-          top: isFixed ? 0 : "80px",
+          top: isFixed ? 0 : "48px",
           zIndex: 20,
           width: "100%",
           backgroundColor: "#ffffff",
@@ -114,7 +136,6 @@ const ProcessView = () => {
           transition: "all 0.1s ease-in-out",
         }}
       >
-        Nombre del Proceso
       </Box>
 
       <Box
