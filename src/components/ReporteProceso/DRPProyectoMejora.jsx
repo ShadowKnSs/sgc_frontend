@@ -17,6 +17,9 @@ const ProyectoMejora = ({ idProceso, anio }) => {
   const [proyectoMejora, setProyectoMejora] = useState(null);
   const [recursos, setRecursos] = useState([]);
   const [actividadesPM, setActividadesPM] = useState([]);
+  const [objetivos, setObjetivos] = useState([]);
+  const [responsables, setResponsables] = useState([]);
+  const [indicadoresExito, setIndicadoresExito] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -34,6 +37,9 @@ const ProyectoMejora = ({ idProceso, anio }) => {
           setProyectoMejora(response.data.proyectoMejora);
           setRecursos(response.data.recursos || []);
           setActividadesPM(response.data.actividadesPM || []);
+          setObjetivos(response.data.objetivos || []);
+          setResponsables(response.data.responsables || []);
+          setIndicadoresExito(response.data.indicadoresExito || []);
         } else {
           setError("Formato de respuesta no válido");
         }
@@ -99,7 +105,15 @@ const ProyectoMejora = ({ idProceso, anio }) => {
           <Typography variant="h6" sx={{ mt: 2 }}>
             Objetivos/Beneficio de la mejora:
           </Typography>
-          <Typography>{proyectoMejora.objetivo}</Typography>
+          {objetivos.length > 0 ? (
+            <ul>
+              {objetivos.map((obj, index) => (
+                <li key={index}>{obj.descripcionObj}</li>
+              ))}
+            </ul>
+          ) : (
+            <Typography>No se registraron objetivos.</Typography>
+          )}
 
           {/* Áreas de impacto/Personal beneficiado */}
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -111,7 +125,15 @@ const ProyectoMejora = ({ idProceso, anio }) => {
           <Typography variant="h6" sx={{ mt: 2 }}>
             Responsables involucrados:
           </Typography>
-          <Typography>{proyectoMejora.responsable}</Typography>
+          {responsables.length > 0 ? (
+            <ul>
+              {responsables.map((r, index) => (
+                <li key={index}>{r.nombre}</li>
+              ))}
+            </ul>
+          ) : (
+            <Typography>No hay responsables registrados.</Typography>
+          )}
 
           {/* Situación actual */}
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -123,7 +145,17 @@ const ProyectoMejora = ({ idProceso, anio }) => {
           <Typography variant="h6" sx={{ mt: 2 }}>
             Indicadores de Éxito:
           </Typography>
-          <Typography>{proyectoMejora.indicadorExito}</Typography>
+          {indicadoresExito.length > 0 ? (
+            <ul>
+              {indicadoresExito.map((ind, index) => (
+                <li key={index}>
+                  {ind.nombreInd} - Meta: {ind.meta}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Typography>No se definieron indicadores.</Typography>
+          )}
 
           {/* Recursos */}
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -134,7 +166,7 @@ const ProyectoMejora = ({ idProceso, anio }) => {
               <TableHead>
                 <TableRow>
                   <TableCell>
-                    <strong>Descripción</strong>
+                    <strong>Tiempo</strong>
                   </TableCell>
                   <TableCell>
                     <strong>Recursos Materiales y Humanos</strong>
@@ -147,7 +179,7 @@ const ProyectoMejora = ({ idProceso, anio }) => {
               <TableBody>
                 {recursos.map((recurso, index) => (
                   <TableRow key={index}>
-                    <TableCell>{recurso.descripcionRec}</TableCell>
+                    <TableCell>{recurso.tiempoEstimado}</TableCell>
                     <TableCell>{recurso.recursosMatHum}</TableCell>
                     <TableCell>{recurso.costo}</TableCell>
                   </TableRow>
