@@ -62,8 +62,8 @@
     display: flex;
     align-items: center;
     padding-right: 4rem;
-  }
-  
+    gap: 10px;
+  }  
   .user-icon  {
     width: 40px;
     height: 40px;

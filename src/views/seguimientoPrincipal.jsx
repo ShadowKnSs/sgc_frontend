@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, DialogTitle, Button } from "@mui/material";
+import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, DialogTitle, Button, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import MinutaCard from "../components/CardMinuta";
 import MinutaForm from "./formularioSeguimiento";
 import MinutaDialog from "../components/Modals/MinutaDialog";
 import Subtitle from "../components/Subtitle";
+import DialogTitleCustom from "../components/TitleDialog";
+import CustomButton from "../components/Button";
+import ContextoProcesoEntidad from "../components/ProcesoEntidad";
+import FeedbackSnackbar from "../components/Feedback";
+import ConfirmDelete from "../components/confirmDelete";
+import ConfirmEdit from "../components/confirmEdit";
 
 const Seguimiento = () => {
   const { idRegistro } = useParams();
+  const { idProceso } = useParams();
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
@@ -19,6 +26,15 @@ const Seguimiento = () => {
   const [currentMinuta, setCurrentMinuta] = useState(null);
   const [openMinutaDialog, setOpenMinutaDialog] = useState(false);
   const [selectedMinuta, setSelectedMinuta] = useState(null);
+
+  const [openInfo, setOpenInfo] = useState(false);
+  const [snackbarType, setSnackbarType] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [selectedMinutaId, setSelectedMinutaId] = useState(null);
+  const [minutaToEdit, setMinutaToEdit] = useState(null);
 
   useEffect(() => {
     const fetchMinutas = async () => {
@@ -54,29 +70,78 @@ const Seguimiento = () => {
     setSelectedMinuta(null);
   };
 
+  /*const handleEdit = (minuta) => {
+    if (minuta) {
+      setCurrentMinuta(minuta);
+      setOpenConfirmEdit(false);
+      setOpenMinutaDialog(false);
+      setOpenForm(true);
+    } else {
+      console.log("No hay minuta para editar");
+    }
+  };*/
   const handleEdit = () => {
-    setCurrentMinuta(selectedMinuta);
-    setOpenMinutaDialog(false);
-    setOpenForm(true);
+    if (selectedMinuta) {
+      setCurrentMinuta(selectedMinuta);
+      setOpenConfirmEdit(false);
+      setOpenMinutaDialog(false);
+      setOpenForm(true);
+    } else {
+      console.log("No hay minuta para editar");
+    }
+  };
+  useEffect(() => {
+    console.log("selectedMinuta actualizado:", selectedMinuta);
+  }, [selectedMinuta]);
+  
+  
+  const handleEditMinuta = (id) => {
+    const minuta = minutas.find((m) => m.idSeguimiento === id);
+    console.log("minutaaaaaa", id); // Verifica si encontramos la minuta
+    setSelectedMinuta(minuta); 
+    setOpenConfirmEdit(true);
+  };
+  
+  const handleDeleteMinuta = (id) => {
+    const minuta = minutas.find((m) => m.idSeguimiento === id);
+    setSelectedMinuta(minuta);  // Almacena la minuta completa
+
+    setOpenDelete(true);
   };
 
-  const handleDeleteMinuta = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta minuta?")) {
-      try {
-        await axios.delete(`http://localhost:8000/api/minutasDelete/${id}`);
-        alert("Minuta eliminada exitosamente");
-        handleCloseMinutaDialog();
-        setMinutas(minutas.filter((m) => m.idSeguimiento !== id));
-      } catch (error) {
-        console.error("Error al eliminar la minuta:", error);
-        alert("Hubo un error al eliminar la minuta");
-      }
+  const handleConfirmDelete = async () => {
+    try {
+      // Aquí va la lógica de eliminación, como tu `axios.delete()`
+      await axios.delete(`http://localhost:8000/api/minutasDelete/${selectedMinutaId}`);
+
+      // Actualiza el estado de la snackbar con éxito
+      setSnackbarType('success');
+      setSnackbarMessage('Minuta eliminada exitosamente');
+      setOpenInfo(true);
+
+      // Elimina la minuta de la lista localmente
+      setMinutas(minutas.filter((m) => m.idSeguimiento !== selectedMinutaId));
+    } catch (error) {
+      console.error('Error al eliminar la minuta:', error);
+      setSnackbarType('error');
+      setSnackbarMessage('Hubo un error al eliminar la minuta');
+      setOpenInfo(true);
     }
+
+    // Cierra el cuadro de confirmación
+    setOpenDelete(false);
   };
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Subtitle text="Minutas de Seguimiento" sx={{ textAlign: "center", mb: 4 }} />
+      <Box sx={{ position: "relative", mb: 4 }}>
+        <Box sx={{ position: "absolute", left: 0 }}>
+          <Subtitle text="Minutas de Seguimiento" />
+        </Box>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <ContextoProcesoEntidad idProceso={idProceso} />
+        </Box>
+      </Box>
 
       <Grid container spacing={2}>
         {minutas.map((minuta) => (
@@ -97,18 +162,17 @@ const Seguimiento = () => {
         open={openMinutaDialog}
         onClose={handleCloseMinutaDialog}
         minuta={selectedMinuta}
-        onEdit={handleEdit}
+        onEdit={handleEditMinuta}
         onDelete={handleDeleteMinuta}
         soloLectura={soloLectura}
       />
-
       <Dialog open={openForm} onClose={handleCloseForm} fullWidth maxWidth="md">
-        <DialogTitle>{currentMinuta ? "Editar Minuta" : "Nueva Minuta"}</DialogTitle>
+        <DialogTitleCustom title={currentMinuta ? "Editar Minuta" : "Nueva Minuta"}></DialogTitleCustom>
         <DialogContent>
           <MinutaForm idRegistro={idRegistro} initialData={currentMinuta} onClose={handleCloseForm} soloLectura={soloLectura} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseForm} color="primary">Cancelar</Button>
+          <CustomButton type={"cancelar"} onClick={handleCloseForm}>{"Cancelar"}</CustomButton>
         </DialogActions>
       </Dialog>
 
@@ -117,6 +181,29 @@ const Seguimiento = () => {
           <AddIcon />
         </Fab>
       )}
+      <FeedbackSnackbar
+        open={openInfo}
+        onClose={() => setOpenInfo(false)}
+        type={snackbarType}
+        title={snackbarType === 'success' ? 'info' : 'Error'}
+        message={snackbarMessage}
+        autoHideDuration={5000}
+      />
+      <ConfirmEdit
+        open={openConfirmEdit}
+        onClose={() => setOpenConfirmEdit(false)}
+        onConfirm={handleEdit}
+        entityType="minuta"
+        entityName={selectedMinuta ? selectedMinuta.fecha : ""}
+      />
+      <ConfirmDelete
+        open={openDelete}
+        onClose={() => setOpenDelete(false)}
+        onConfirm={handleConfirmDelete}
+        entityType="minuta"
+        entityName={selectedMinuta ? selectedMinuta.fecha : ""}
+      />
+
     </Container>
   );
 };

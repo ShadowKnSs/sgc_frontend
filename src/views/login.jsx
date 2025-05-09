@@ -12,6 +12,16 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CloseIcon from "@mui/icons-material/Close";
 
+const colorPalette = {
+  azulOscuro: "#185FA4",
+  azulClaro: "#68A2C9",
+  verdeAgua: "#BBD8D7",
+  verdeClaro: "#DFECDF",
+  verdePastel: "#E3EBDA",
+  grisClaro: "#DEDFD1",
+  grisOscuro: "#A4A7A0",
+};
+
 export default function Login() {
   const [rpe, setRpe] = useState("");
   const [password, setPassword] = useState("");
@@ -102,47 +112,48 @@ export default function Login() {
   };
 
   return (
-    <Box display="flex" minHeight="100vh" justifyContent="center" alignItems="center" bgcolor="#004A98">
-      <Paper elevation={6} sx={{ display: 'flex', width: '90%', maxWidth: 1100, borderRadius: 4, overflow: 'hidden',height:600 }}>
-        
+    <Box display="flex" minHeight="100vh" justifyContent="center" alignItems="center" bgcolor={colorPalette.verdeClaro}>
+      <Paper elevation={6} sx={{ display: 'flex', width: '90%', maxWidth: 1000, borderRadius: 4, overflow: 'hidden', height: 500 }}>
+
         {/* Columna izquierda */}
         <Box flex={1} bgcolor="#ffffff" p={4} display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-  <Box display="flex" width="100%" alignItems="center" justifyContent="space-between">
-    <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
-      <img
-        src="https://admincongresos.uaslp.mx//Informacion/Patrocinadores/191.jpg"
-        alt="Logo UASLP"
-        style={{ width: 200 }}
-      />
-    </Box>
+          <Box display="flex" width="100%" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
+              <img
+                src="https://admincongresos.uaslp.mx//Informacion/Patrocinadores/191.jpg"
+                alt="Logo UASLP"
+                style={{ width: 200 }}
+              />
+            </Box>
 
-    <Box width="1px" bgcolor="#0D47A1" height="100px" mx={2} />
+            <Box width="1px" bgcolor="#0D47A1" height="100px" mx={2} />
 
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flex={1}>
-            <Typography sx={{ fontSize: "3rem", letterSpacing: "0.4em", color: "#0D47A1" }}>
-              SICAL
-            </Typography>
-      <Typography variant="subtitle2" color="#0D47A1" textAlign="center">
-        SISTEMA INTEGRAL DE CALIDAD
-      </Typography>
-    </Box>
-  </Box>
-
-  <Typography variant="h3" color="#0D47A1" fontWeight="bold" mt={6} textAlign="center">
-    ¡Hola, bienvenidos!
+            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flex={1}>
+  <Typography sx={{ fontWeight: "bold", fontSize: "3rem", letterSpacing: "0.1em", color: "#0D47A1", mb: -2 }}>
+    DIGC
+  </Typography>
+  <Typography variant="subtitle2" color="#0D47A1" textAlign="center">
+    Dirección Institucional de Gestión de Calidad
   </Typography>
 </Box>
 
+          </Box>
+
+          <Typography variant="h4" color="#0D47A1" fontWeight="bold" mt={6} textAlign="center">
+            ¡Hola, bienvenidos!
+          </Typography>
+        </Box>
+
 
         {/* Columna derecha */}
-        <Box flex={1} bgcolor="#0D47A1" color="white" p={4} display="flex" flexDirection="column" justifyContent="center" borderColor={'#00B2E3'}>
+        <Box flex={1} bgcolor={colorPalette.azulOscuro} color="white" p={4} display="flex" flexDirection="column" justifyContent="center">
           {useToken ? (
             <>
               <Typography variant="h6" mb={1}>Token</Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 placeholder="AZ19DBB860L9533"
+                variant="outlined"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 InputProps={{
@@ -152,15 +163,15 @@ export default function Login() {
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 3, backgroundColor: "white", borderRadius: 1 }}
+                sx={{ mb: 3, backgroundColor: "#fff", borderRadius: 1 }}
               />
               {loading ? (
-                <Box textAlign="center" mt={2}><CircularProgress sx={{ color: "#FFD600" }} /></Box>
+                <Box textAlign="center"><CircularProgress sx={{ color: "#FFD600" }} /></Box>
               ) : (
                 <Button
                   fullWidth
                   variant="contained"
-                  sx={{ backgroundColor: "#00B2E3", mt: 1, borderRadius: 10, fontSize: "1.1rem", color: "#000" }}
+                  sx={{ backgroundColor: colorPalette.azulClaro, mt: 1, borderRadius: 5, fontWeight: "bold" }}
                   onClick={handleLoginToken}
                 >
                   Validar Token
@@ -172,8 +183,8 @@ export default function Login() {
               <Typography variant="h6" mb={1}>Usuario</Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 placeholder="RPE"
+                variant="outlined"
                 value={rpe}
                 onChange={(e) => setRpe(e.target.value)}
                 InputProps={{
@@ -185,19 +196,8 @@ export default function Login() {
                 }}
                 sx={{
                   mb: 3,
-                  backgroundColor: "white",
+                  backgroundColor: "#fff",
                   borderRadius: 1,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#00B2E3',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#00B2E3',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00B2E3',
-                    },
-                  },
                 }}
               />
 
@@ -205,8 +205,8 @@ export default function Login() {
               <TextField
                 fullWidth
                 type="password"
-                variant="outlined"
                 placeholder="Contraseña"
+                variant="outlined"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
@@ -217,31 +217,22 @@ export default function Login() {
                   ),
                 }}
                 sx={{
-                mb: 3,
-                backgroundColor: "white",
-                borderRadius: 1,
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#00B2E3',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#00B2E3',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#00B2E3',
-                  },
-                },}}
+                  mb: 3,
+                  backgroundColor: "#fff",
+                  borderRadius: 1,
+                }}
               />
+
               {loading ? (
-                <Box textAlign="center" mt={2}><CircularProgress sx={{ color: "#FFD600" }} /></Box>
+                <Box textAlign="center"><CircularProgress sx={{ color: "#FFD600" }} /></Box>
               ) : (
                 <Button
                   fullWidth
                   variant="contained"
-                  sx={{ backgroundColor: "#00B2E3", mt: 1, borderRadius: 10, fontSize: "1.1rem", color: "#000" }}
+                  sx={{ backgroundColor: colorPalette.azulClaro, mt: 1, borderRadius: 5, fontWeight: "bold" }}
                   onClick={handleLogin}
                 >
-                  Login
+                  Iniciar Sesión
                 </Button>
               )}
             </>
@@ -249,10 +240,10 @@ export default function Login() {
 
           <Button
             fullWidth
-            sx={{ mt: 2, color: "#ccc", textTransform: "none", fontSize: "0.85rem" }}
+            sx={{ mt: 2, color: "#fff", textTransform: "none", fontSize: "0.85rem" }}
             onClick={() => setUseToken(!useToken)}
           >
-            {useToken ? "¿Volver a login por RPE?" : "¿Usar token temporal?"}
+            {useToken ? "¿Volver a inciar sesión por RPE?" : "¿Usar token temporal?"}
           </Button>
         </Box>
       </Paper>
