@@ -19,7 +19,7 @@ import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
 import Archivos from "../views/archivosSeg";
 import AdminEventos from "../views/adminEventNot";
-import InformeAuditoria from "../views/informeAditoriaInterna";
+import InformeAuditoria from "../views/informeAuditoriaInterna";
 import Cronograma from "../views/cronograma";
 import ManualCalidad from "../views/manualCalidad";
 import ProcessInEntity from "../views/processInEntity";
@@ -40,6 +40,7 @@ import Formatos from "../views/formatos";
 import BuscaReportes from "../views/buscaReportes";
 import GestionEntidades from "../views/gestionEntidades";
 import BuscaSupervisor from "../views/buscaSupervisor";
+import AuditoriaProceso from "../views/auditoriaProceso";
 
 //Pruebas
 import ModalError from "../components/Modals/ErrorInicioSesion";
@@ -83,6 +84,7 @@ const AppRoutes = () => {
           <Route path="/auditorias/:id" element={<InformeAuditoriaInterna />} />
           <Route path="/vista-previa/:idAuditorialInterna" element={<VistaPreviaAud />} />
           <Route path="informe-auditoria" element={<InformeAuditoria />}/>
+          <Route path="/auditoria/:idRegistro" element={<InformeAuditoria />} />
           <Route path="cronograma" element={<Cronograma />}/>
           <Route path="manual-calidad" element={<ManualCalidad />}/>
           <Route path="manual-operativo" element={<ManualOperativo />} />

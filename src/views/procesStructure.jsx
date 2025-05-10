@@ -22,7 +22,7 @@ const ProcessStructure = () => {
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
     { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos` },
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
-    { icon: <DescriptionIcon />, title: "Auditoría", path: `/informe-auditoria` },
+    { icon: <DescriptionIcon />, title: "Auditoría", path: `/carpetas/${idProceso}/Auditoria` },
     { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento` },
   ];
 

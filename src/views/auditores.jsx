@@ -1,34 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DetalleAuditor from './informacionAuditor';
-
-const auditores = [
-  { id: 1, nombre: 'Juan', apellido: 'Pérez', correo: 'juan.perez@example.com', telefono: '111 111 1111', tipo: 'Asesor Externo', certificacion: 'ISO 9001:2015' },
-  { id: 2, nombre: 'María', apellido: 'Gómez', correo: 'maria.gomez@example.com', telefono: '222 222 2222', tipo: 'Asesor Interno', certificacion: 'ISO 14001:2015' },
-  { id: 3, nombre: 'Carlos', apellido: 'López', correo: 'carlos.lopez@example.com', telefono: '333 333 3333', tipo: 'Asesor Externo', certificacion: 'ISO 45001:2018' },
-  { id: 4, nombre: 'Ana', apellido: 'Martínez', correo: 'ana.martinez@example.com', telefono: '444 444 4444', tipo: 'Asesor Externo', certificacion: 'ISO 22000:2018' }
-];
+import Title from "../components/Title";
+import axios from 'axios';
 
 const AuditoresView = () => {
+  const [auditores, setAuditores] = useState([]);
   const [auditorSeleccionado, setAuditorSeleccionado] = useState(null);
 
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/auditores')
+      .then(response => {
+        if (response.data.success) {
+          const auditoresOrdenados = response.data.data.sort((a, b) => {
+            const nombreA = `${a.nombre} ${a.apellidoPat}`.toLowerCase();
+            const nombreB = `${b.nombre} ${b.apellidoPat}`.toLowerCase();
+            return nombreA.localeCompare(nombreB);
+          });
+          setAuditores(auditoresOrdenados);
+        }
+      })
+      .catch(error => {
+        console.error('Error al obtener auditores:', error);
+      });
+  }, []);  
+
   if (auditorSeleccionado) {
-    return (
-      <DetalleAuditor auditor={auditorSeleccionado} onBack={() => setAuditorSeleccionado(null)} />
-    );
+    return <DetalleAuditor auditor={auditorSeleccionado} onBack={() => setAuditorSeleccionado(null)} />;
   }
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Auditores</h2>
+      <Title text="Auditores" />
       <div style={styles.scrollContainer}>
         <div style={styles.grid}>
           {auditores.map((auditor) => (
             <div
-              key={auditor.id}
+              key={auditor.idUsuario}
               style={styles.card}
               onClick={() => setAuditorSeleccionado(auditor)}
             >
-              <p style={styles.name}>{auditor.nombre} {auditor.apellido}</p>
+              <p style={styles.name}>{auditor.nombre} {auditor.apellidoPat}</p>
               <p style={styles.email}>{auditor.correo}</p>
             </div>
           ))}

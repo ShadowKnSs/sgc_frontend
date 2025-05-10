@@ -194,7 +194,10 @@ function ProcessMapView({ idProceso, soloLectura }) {
   // Render principal
   // --------------------------------------------------
   return (
-    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 8 }}>
+    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 1 }}>
+      <Typography variant="h5" sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}>
+        ACTIVIDADES
+      </Typography>
       {/* Sección de Cards "expandidas" */}
       {activeCards.length > 0 && (
         <Box sx={{ flex: 4, pr: 2, display: "flex", justifyContent: "center" }}>
@@ -247,17 +250,17 @@ function ProcessMapView({ idProceso, soloLectura }) {
       <Box
         sx={{
           position: "fixed",
-          top: isFixed ? 5 : 202,
-          right: 30,
+          top: isFixed ? 33 : 140,
+          right: -30,
           zIndex: 50,
           paddingRight: 5,
-          transition: "top 0.1s ease-in-out"
+          transition: "top 0.05s ease-in-out"
         }}
       >
         <Button
           variant="contained"
           sx={{
-            width: 140,
+            width: 200,
             height: 40,
             borderRadius: 2,
             backgroundColor: "secondary.main",
@@ -267,7 +270,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
           onClick={handleToggleAll}
           startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
         >
-          {allExpanded ? "Cerrar" : "Desplegar"}
+          {allExpanded ? "Cerrar Todo" : "Desplegar Todo"}
         </Button>
       </Box>
 
