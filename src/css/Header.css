@@ -89,11 +89,24 @@
     cursor: pointer;
     transition: transform 0.3s ease, color 0.3s ease;
   }
-  
+
   .user-icon-hover:hover {
     transform: scale(1.2);
     color: #00c8ff;
   }
+
+  .menu-icon{
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+
+  .menu-icon:hover{
+    transform: scale(1.2);
+    color: #00c8ff;
+  }
+  
   .header-right .notification-icon {
     font-size: 24px;
     cursor: pointer;

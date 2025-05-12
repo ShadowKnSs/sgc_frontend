@@ -66,7 +66,7 @@ export default function Login() {
         const dummyUser = { idUsuario: data.idUsuario || 9999, nombre: data.nombre || "TokenUsuario" };
         localStorage.setItem("usuario", JSON.stringify(dummyUser));
         localStorage.setItem("viaToken", "true");
-        
+
         showModal("success", "¡Token válido!", "Accediendo al sistema...");
         setTimeout(() => navigate("/"), 1500);
       } else {
@@ -82,34 +82,46 @@ export default function Login() {
       setLoading(false);
     }
   };
+
   
-
   const handleLogin = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/api/login", { rpe, password });
-      const { usuario, roles } = response.data;
+  setLoading(true);
+  try {
+    const response = await axios.post("http://127.0.0.1:8000/api/login", { rpe, password });
+    const { usuario, roles } = response.data;
+    console.log("rolee", roles);
 
-      localStorage.setItem("usuario", JSON.stringify(usuario));
-      localStorage.setItem("roles", JSON.stringify(roles));
-      localStorage.removeItem("viaToken");
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+    localStorage.setItem("roles", JSON.stringify(roles));
+    localStorage.removeItem("viaToken");
 
-      if (roles.length === 1) {
-        localStorage.setItem("rolActivo", JSON.stringify(roles[0]));
-        showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema...");
-        setTimeout(() => navigate("/"), 1500);
-      } else if (roles.length > 1) {
-        navigate("/seleccionarRol");
-      } else {
-        showModal("error", "Sin roles", "No se encontraron roles asignados");
-      }
-    } catch (error) {
-      const msg = error.response?.data?.message || "Error al iniciar sesión";
-      showModal("error", "Oops!", msg);
-    } finally {
-      setLoading(false);
+    if (roles.length === 1) {
+      const rol = roles[0];
+      console.log("rolee", roles);
+      localStorage.setItem("rolActivo", JSON.stringify(rol));
+      showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema...");
+      
+
+      setTimeout(() => {
+        if (rol.nombreRol === "Administrador") {
+          navigate("/");
+        } else {
+          navigate("/user-eventos");
+        }
+      }, 1500);
+    } else if (roles.length > 1) {
+      navigate("/seleccionarRol");
+    } else {
+      showModal("error", "Sin roles", "No se encontraron roles asignados");
     }
-  };
+  } catch (error) {
+    const msg = error.response?.data?.message || "Error al iniciar sesión";
+    showModal("error", "Oops!", msg);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Box display="flex" minHeight="100vh" justifyContent="center" alignItems="center" bgcolor={colorPalette.verdeClaro}>
@@ -129,13 +141,13 @@ export default function Login() {
             <Box width="1px" bgcolor="#0D47A1" height="100px" mx={2} />
 
             <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flex={1}>
-  <Typography sx={{ fontWeight: "bold", fontSize: "3rem", letterSpacing: "0.1em", color: "#0D47A1", mb: -2 }}>
-    DIGC
-  </Typography>
-  <Typography variant="subtitle2" color="#0D47A1" textAlign="center">
-    Dirección Institucional de Gestión de Calidad
-  </Typography>
-</Box>
+              <Typography sx={{ fontWeight: "bold", fontSize: "3rem", letterSpacing: "0.1em", color: "#0D47A1", mb: -2 }}>
+                DIGC
+              </Typography>
+              <Typography variant="subtitle2" color="#0D47A1" textAlign="center">
+                Dirección Institucional de Gestión de Calidad
+              </Typography>
+            </Box>
 
           </Box>
 
