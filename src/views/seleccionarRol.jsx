@@ -42,7 +42,7 @@ const SeleccionarRol = () => {
   const handleSeleccion = (rol) => {
     localStorage.setItem("rolActivo", JSON.stringify(rol));
     setMensaje({ tipo: 'success', texto: `Rol seleccionado: ${rol.nombreRol}` });
-    setTimeout(() => navigate("/"), 1000);
+    setTimeout(() => navigate("/user-eventos"), 1000);
   };
 
   return (

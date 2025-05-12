@@ -3,29 +3,116 @@ import { useNavigate } from "react-router-dom";
 import { FaUser, FaBell, FaSignOutAlt } from "react-icons/fa"; // Import icons
 import { Link } from "react-router-dom"; // Import Link
 import axios from 'axios';
-import { Drawer, List, ListItem, ListItemText, IconButton, Badge } from '@mui/material';
+import { Drawer, List, ListItem, ListItemText, IconButton, Badge, Divider, Box, Typography, ListItemButton } from '@mui/material';
 import { FaBars } from 'react-icons/fa';
 import "../css/Header.css"; // Estilos
 import image from "../assests/UASLP_Logo.png"; // Ruta de tu logo
 import DialogNotifications from "./Modals/DialogNotifications";
 
+const colorPalette = {
+  azulOscuro: "#185FA4",
+  azulClaro: "#68A2C9",
+  azulCielo: "#2dc1df",
+  verdeAgua: "#BBD8D7",
+  verdeClaro: "#DFECDF",
+  verdePastel: "#E3EBDA",
+  grisClaro: "#DEDFD1",
+  grisOscuro: "#A4A7A0",
+};
+
+const menuItems = [
+  { title: "Manual de Calidad", path: "/manual-calidad" },
+  { title: "Manual del Sitio", path: "/manualDelSitio" },
+  { title: "Usuarios", path: "/usuarios" },
+  { title: "Gestión de Procesos", path: "/procesos" },
+  { title: "Noticias", path: "/user-eventos" },
+  { title: "Gestión Noticias", path: "/admin-eventos" },
+  { title: "Cronograma", path: "/cronograma" },
+  { title: "Entidades", path: "/entidades" },
+  { title: "Reportes", path: "/typesReports" },
+  { title: "Formatos", path: "/formatos" },
+  { title: "Supervisor", path: "/busca_supervisor" },
+  { title: "Auditores", path: "/auditores" },
+  { title: "Gestión Entidades", path: "/gestion-entidades" }
+];
+
 function Header() {
   const [openDialog, setOpenDialog] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-    const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
   const isLoggedIn = usuario !== null;
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-const toggleDrawer = (open) => (event) => {
-  if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-    return;
+  const defaultRol = {
+    nombreRol: "Invitado",
+    permisos: ["Manual de Calidad", "Noticias"]
+  };
+
+  const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || JSON.stringify(defaultRol));
+  const viaToken = localStorage.getItem("viaToken") === "true";
+
+  const permisos = rolActivo?.permisos?.map(p => p.modulo || p) || [];
+  const [procesoLider, setProcesoLider] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [nombreCompleto, setNombreCompleto] = useState("");
+
+  useEffect(() => {
+    if (idUsuario) {
+      axios.get(`http://localhost:8000/api/usuario/${idUsuario}`)
+        .then(response => {
+          setNombreCompleto(response.data.nombreCompleto);
+        })
+        .catch(error => {
+          console.error("Error al obtener el nombre del usuario:", error);
+        });
+    }
+  }, [idUsuario]);
+
+  useEffect(() => {
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (usuario?.idUsuario && rolActivo?.nombreRol === "Líder") {
+      axios
+        .get(`http://localhost:8000/api/proceso-usuario/${usuario.idUsuario}`)
+        .then(res => {
+          setProcesoLider(res.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error al obtener proceso:", err);
+          setLoading(false); // Asegúrate de quitar el loading aunque falle
+        });
+    } else {
+      setLoading(false); // Si no es líder, también termina el loading
+    }
+  }, []);
+
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/notificaciones/count/${idUsuario}')
+      .then(response => {
+        setNotificationCount(response.data.notificacionesNoLeidas);
+      })
+      .catch(error => {
+        console.error('Error al obtener el conteo de notificaciones:', error);
+      });
+  }, [idUsuario]);
+
+  // Se filtran los items por permisos
+  let itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
+
+  // Filtro adicional si la sesión fue vía token
+  if (viaToken) {
+    itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
   }
-  setMenuOpen(open);
-};
 
 
+  const toggleDrawer = (open) => (event) => {
+    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+      return;
+    }
+    setMenuOpen(open);
+  };
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -42,30 +129,58 @@ const toggleDrawer = (open) => (event) => {
     navigate("/login");
   };
 
-  useEffect(() => {
-    axios.get('http://localhost:8000/api/notificaciones/count/${idUsuario}')
-    .then(response => {
-        setNotificationCount(response.data.notificacionesNoLeidas);
-      })
-      .catch(error => {
-        console.error('Error al obtener el conteo de notificaciones:', error);
-      });
-  }, [idUsuario]);
+
+  if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
+    itemsFiltrados.push({
+      title: "Mi Proceso",
+      path: `/estructura-procesos/${procesoLider.idProceso}`
+    });
+  }
+
   const menuList = (
-    <List sx={{ width: 250 }}>
-      <ListItem button onClick={() => navigate('/')}>
-        <ListItemText primary="Inicio" />
-      </ListItem>
-      <ListItem button onClick={() => navigate('/seguimiento')}>
-        <ListItemText primary="Seguimiento" />
-      </ListItem>
-      <ListItem button onClick={() => navigate('/reportes')}>
-        <ListItemText primary="Reportes" />
-      </ListItem>
-      {/* Agrega más opciones aquí */}
+  <Box sx={{ width: 280, height: '100%' }}>
+    <Box sx={{ p: 2, textAlign: 'center', backgroundColor: colorPalette.azulOscuro }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: "white" }}>
+        {nombreCompleto || "Usuario"}
+      </Typography>
+    </Box>
+     <Box sx={{ height: '8px', backgroundColor: colorPalette.azulCielo}} />
+
+    <Divider />
+
+    <List>
+      {itemsFiltrados.map((item, index) => (
+        <ListItemButton
+          key={index}
+          onClick={() => {
+            navigate(item.path);
+            setMenuOpen(false);
+          }}
+          sx={{
+            px: 3,
+            py: 1.5,
+            borderRadius: 1,
+            my: 0.5,
+            mx: 1,
+            '&:hover': {
+              backgroundColor: colorPalette.azulClaro,
+              color: 'white',
+            },
+            transition: 'all 0.2s ease-in-out',
+          }}
+        >
+          <ListItemText
+            primary={item.title}
+            primaryTypographyProps={{
+              fontSize: 16,
+              fontWeight: 500,
+            }}
+          />
+        </ListItemButton>
+      ))}
     </List>
-  );
-  
+  </Box>
+);
 
   return (
     <header className="header">
@@ -100,17 +215,18 @@ const toggleDrawer = (open) => (event) => {
             <FaUser className="user-icon-hover" />
           </IconButton>
         )}
-        <IconButton onClick={toggleDrawer(true)} className="header-link">
-  <FaBars />
-</IconButton>
+        {rolActivo && rolActivo.nombreRol !== "Invitado" && rolActivo.nombreRol !== "Administrador" && (
+          <IconButton onClick={toggleDrawer(true)} className="header-link">
+            <FaBars  className='menu-icon'/>
+          </IconButton>
+        )}
+
 
       </div>
-
-
       <DialogNotifications open={openDialog} onClose={handleCloseDialog} idUsuario={idUsuario} />
       <Drawer anchor="left" open={menuOpen} onClose={toggleDrawer(false)}>
-  {menuList}
-</Drawer>
+        {menuList}
+      </Drawer>
 
     </header>
   );
