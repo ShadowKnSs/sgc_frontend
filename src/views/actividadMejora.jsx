@@ -8,6 +8,8 @@ import FormProyMejora from "../components/Forms/FormProyMejora";
 
 import PlanTrabajo from "../views/planTrabajoForm";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
+import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import useMenuProceso from "../hooks/useMenuProceso";
 
 
 const ProcessView = () => {
@@ -16,7 +18,7 @@ const ProcessView = () => {
   console.log("ProcessView - idRegistro recibido:", idRegistro);
   const location = useLocation();
   const idProceso = location.state?.idProceso;
-
+  const menuItems = useMenuProceso();
   const [selectedTab, setSelectedTab] = useState(0);
   const sections = [
     "Plan de Acción Correctivo",
@@ -53,7 +55,8 @@ const ProcessView = () => {
   return (
     <Container maxWidth="xl">
       <ContextoProcesoEntidad idProceso={idProceso} /> 
-
+      <MenuNavegacionProceso items={menuItems} />
+      
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 2 }}>
         <IconButton onClick={() => scrollNav("left")} sx={{ color: "secondary.main", mx: 1 }}>
           <ArrowBackIos />

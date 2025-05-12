@@ -48,6 +48,12 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
     obtenerRegistros();
   }, []);
 
+  useEffect(() => {
+  if (idProceso) {
+    localStorage.setItem("idProcesoActivo", idProceso);
+  }
+}, [idProceso]);
+
   const obtenerRegistros = async () => {
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/registros/filtrar", {

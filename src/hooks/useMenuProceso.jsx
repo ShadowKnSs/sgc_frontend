@@ -11,7 +11,14 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import LinkIcon from "@mui/icons-material/Link";
 
 const useMenuProceso = () => {
-  const { idProceso } = useParams();
+  let { idProceso } = useParams();
+   // Verifica si el parámetro no está disponible en la URL
+  if (!idProceso) {
+    idProceso = localStorage.getItem("idProcesoActivo");
+  } else {
+    // Si viene en la URL, actualiza el valor persistente
+    localStorage.setItem("idProcesoActivo", idProceso);
+  }
 
   const menuItems = useMemo(() => [
     {

@@ -10,11 +10,7 @@ import {
   TextField,
   Table,
   TableBody,
-  MenuItem,
-  Select,
   TableCell,
-  FormControl,
-  InputLabel,
   TableContainer,
   TableHead,
   TableRow,
@@ -30,17 +26,20 @@ import axios from "axios";
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import useMenuProceso from "../hooks/useMenuProceso";
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
 
 function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
   const { idRegistro } = useParams();
-  //const { idRegistro } = useParams();
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
   const [modoEdicion, setModoEdicion] = useState(false);
+  const menuItems = useMenuProceso();
+
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
   const [gestionRiesgo, setGestionRiesgo] = useState({
@@ -656,10 +655,13 @@ function FormularioGestionRiesgos() {
   };
 
   return (
+    
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
       <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
         Gestión de Riesgos: {gestionRiesgo.proceso}
       </Typography>
+
+      <MenuNavegacionProceso items={menuItems} />
 
       {/* === Sección de Info General (gestionriesgos) === */}
       <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>

@@ -5,12 +5,14 @@ import axios from "axios";
 import ButtonInd from "../components/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Title from '../components/Title';
+import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import useMenuProceso from "../hooks/useMenuProceso";
 
 
 const FormularioAnalisis = () => {
   const { idRegistro } = useParams();
 
-
+  const menuItems = useMenuProceso();
   const location = useLocation();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
@@ -363,7 +365,7 @@ const FormularioAnalisis = () => {
   return (
     <Box sx={{ width: "80%", margin: "auto", mt: 5, p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
       <Title text="Análisis de Datos"></Title>
-
+      <MenuNavegacionProceso items={menuItems} />
       <Grid container spacing={3}>
         <Grid item xs={6}>
           <TextField

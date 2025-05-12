@@ -13,11 +13,15 @@ import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import FeedbackSnackbar from "../components/Feedback";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
+import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import useMenuProceso from "../hooks/useMenuProceso";
+
 
 const Seguimiento = () => {
   const { idRegistro } = useParams();
   const { idProceso } = useParams();
   const location = useLocation();
+  const menuItems = useMenuProceso();
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
 
@@ -93,15 +97,15 @@ const Seguimiento = () => {
   useEffect(() => {
     console.log("selectedMinuta actualizado:", selectedMinuta);
   }, [selectedMinuta]);
-  
-  
+
+
   const handleEditMinuta = (id) => {
     const minuta = minutas.find((m) => m.idSeguimiento === id);
     console.log("minutaaaaaa", id); // Verifica si encontramos la minuta
-    setSelectedMinuta(minuta); 
+    setSelectedMinuta(minuta);
     setOpenConfirmEdit(true);
   };
-  
+
   const handleDeleteMinuta = (id) => {
     const minuta = minutas.find((m) => m.idSeguimiento === id);
     setSelectedMinuta(minuta);  // Almacena la minuta completa
@@ -134,6 +138,8 @@ const Seguimiento = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
+      <MenuNavegacionProceso items={menuItems} />
+
       <Box sx={{ position: "relative", mb: 4 }}>
         <Box sx={{ position: "absolute", left: 0 }}>
           <Subtitle text="Minutas de Seguimiento" />
