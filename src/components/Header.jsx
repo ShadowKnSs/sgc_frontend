@@ -43,6 +43,7 @@ const toggleDrawer = (open) => (event) => {
   };
 
   useEffect(() => {
+    if (!idUsuario) return;
     axios.get(`http://localhost:8000/api/notificaciones/count/${idUsuario}`)
     .then(response => {
         setNotificationCount(response.data.notificacionesNoLeidas);
