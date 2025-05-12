@@ -88,17 +88,14 @@ const UnifiedIndicatorPage = () => {
     axios.get(`http://localhost:8000/api/indicadores-riesgo`, {
       params: { idProceso: paramProceso, año: anio }
     })
-      .then(res => {
-        const riesgos = res.data.indicadores || [];
-        setIndicadoresRiesgo(riesgos);
-
-        // Agregarlos a los indicadores globales si no están
-        setIndicators(prev => {
-          const existentes = prev.map(i => i.idIndicador);
-          const nuevos = riesgos.filter(r => !existentes.includes(r.idIndicador));
-          return [...prev, ...nuevos];
-        });
-      })
+    .then(response => {
+      const nuevos = response.data.indicadores || [];
+      setIndicators(prev => {
+        const existentes = prev.map(i => i.idIndicador);
+        const sinDuplicados = nuevos.filter(n => !existentes.includes(n.idIndicador));
+        return [...prev, ...sinDuplicados];
+      });
+    })    
       .catch(err => {
         console.error("Error al cargar indicadores de riesgo:", err);
         setSnackbar({ open: true, message: "Error al cargar indicadores de riesgo" });
@@ -288,7 +285,7 @@ const UnifiedIndicatorPage = () => {
         return <ResultModalEvaluaProveedores open onClose={() => setResultModalOpen(false)} indicator={editIndicator} savedResult={saved} onSave={handleResultRegister} />;
       case "mapaproceso":
       case "actividadcontrol":
-        return <ResultModalSemestralDual open onClose={() => setResultModalOpen(false)} indicator={editIndicator} savedResult={saved} onSave={handleResultRegister} fields={[{ name: "resultado", label: "Resultado" }]} />;
+        return <ResultModalSemestralDual open onClose={() => setResultModalOpen(false)} indicator={editIndicator} savedResult={saved} onSave={handleResultRegister} fields={[{ name: "resultado", label: "Resultado", percent: true }]} />;
       case "gestionriesgo":
         return <ResultModalSimple open onClose={() => setResultModalOpen(false)} indicator={editIndicator} savedResult={saved} onSave={handleResultRegister} />;
       default:

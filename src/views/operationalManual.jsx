@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
-import { useParams, useLocation} from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import Title from "../components/Title";
 import { Box, Container, Button } from "@mui/material";
 
@@ -12,6 +12,8 @@ import MapaProceso from "./processMap";
 import ControlCambios from "./controlCambios";
 import DiagramaFlujo from "./diagramaFlujo";
 import Permiso from "../hooks/userPermiso";
+import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import useMenuProceso from "../hooks/useMenuProceso";
 
 const sections = [
   "Caratula",
@@ -25,16 +27,16 @@ const sections = [
 const ProcessView = () => {
   const location = useLocation();
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
-  const { soloLectura, puedeEditar } = Permiso("Manual Operativo"); 
+  const { soloLectura, puedeEditar } = Permiso("Manual Operativo");
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed] = useState(false);
   const navbarRef = useRef(null);
-  const { idProceso } = useParams(); 
-  
+  const { idProceso } = useParams();
+
   const [nombreEntidad, setNombreEntidad] = useState("");
   const [nombreProceso, setNombreProceso] = useState("");
 
-  console.log("El rol desde ManualOperativo: ", rolActivo);
+  const menuItems = useMenuProceso();
 
   useEffect(() => {
     axios.get(`http://localhost:8000/api/proceso-entidad/${idProceso}`)
@@ -45,8 +47,8 @@ const ProcessView = () => {
       .catch((err) => {
         console.error("Error al obtener datos del proceso:", err);
       });
-  }, [idProceso]);  
- 
+  }, [idProceso]);
+
   const renderContent = () => {
     const props = { idProceso, soloLectura, puedeEditar };
     switch (sections[selectedTab]) {
@@ -62,6 +64,7 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
+      <MenuNavegacionProceso items={menuItems} />
       <Box
         sx={{
           mt: 1.3,
@@ -69,14 +72,15 @@ const ProcessView = () => {
           position: "sticky",
           top: 0,
           zIndex: 30,
-          backgroundColor: "#fff", 
+          backgroundColor: "#fff",
           paddingTop: 2,
           paddingBottom: 0,
         }}
       >
-      <Box sx={{ mt: 2, mb: 0, display: "flex", justifyContent: "center" }}>
-        <Title text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} />
-      </Box>      </Box>
+        <Box sx={{ mt: 2, mb: 0, display: "flex", justifyContent: "center" }}>
+          <Title text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} />
+        </Box>
+      </Box>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2, mb: 0 }}>
         <Box
           ref={navbarRef}
@@ -134,8 +138,7 @@ const ProcessView = () => {
           boxShadow: isFixed ? "0px 4px 10px rgba(0, 0, 0, 0.1)" : "none",
           transition: "all 0.1s ease-in-out",
         }}
-      >
-      </Box>
+      ></Box>
 
       <Box
         sx={{

@@ -4,6 +4,7 @@ import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableC
 import axios from "axios";
 import ButtonInd from "../components/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import Title from '../components/Title';
 
 
 const FormularioAnalisis = () => {
@@ -112,13 +113,14 @@ const FormularioAnalisis = () => {
       const data = response.data;
       console.log("Respuesta de la API:", data);
 
-      if (data.formAnalisisDatos && data.formAnalisisDatos.length > 0) {
-        const periodo = data.formAnalisisDatos[0].periodoEva;
+      if (data.analisisDatos && data.analisisDatos.length > 0) {
+        const periodo = data.analisisDatos[0].periodoEvaluacion;
         setFormData(prev => ({
           ...prev,
           periodoEvaluacion: periodo || prev.periodoEvaluacion
         }));
-      } else {
+      }
+      else {
         console.warn("No se encontró registro en formAnalisisDatos para el idRegistro:", registroId);
       }
 
@@ -167,34 +169,21 @@ const FormularioAnalisis = () => {
         evaluacion: { necesidad: "", interpretacion: "" },
       };
 
-      if (data.analisisDatos) {
-        data.analisisDatos.forEach(item => {
-          // Mapear secciones de la API a nuestro estado
-          let seccion = "";
-          switch (item.seccion) {
-            case "Conformidad":
-              seccion = "Conformidad";
-              break;
-            case "DesempeñoProceso":
-              seccion = "desempeno";
-              break;
-            case "Eficacia":
-              seccion = "eficacia";
-              break;
-            case "Satisfacción":
-              seccion = "satisfaccion";
-              break;
-            case "DesempeñoProveedores":
-              seccion = "evaluacion";
-              break;
-            default:
-              seccion = item.seccion.toLowerCase();
-          }
+      if (data.necesidadInterpretacion) {
+        data.necesidadInterpretacion.forEach(item => {
+          const seccionMap = {
+            'Conformidad': 'Conformidad',
+            'Desempeño': 'desempeno',
+            'Desempeño Proveedores': 'evaluacion',
+            'Eficacia': 'eficacia',
+            'Satisfaccion': 'satisfaccion'
+          };
 
-          if (nuevaNecesidadInterpretacion[seccion]) {
-            nuevaNecesidadInterpretacion[seccion] = {
-              necesidad: item.necesidad || "",
-              interpretacion: item.interpretacion || "",
+          const key = seccionMap[item.seccion] || item.seccion.toLowerCase();
+          if (nuevaNecesidadInterpretacion[key]) {
+            nuevaNecesidadInterpretacion[key] = {
+              necesidad: item.Necesidad || "",
+              interpretacion: item.Interpretacion || ""
             };
           }
         });
@@ -373,9 +362,7 @@ const FormularioAnalisis = () => {
 
   return (
     <Box sx={{ width: "80%", margin: "auto", mt: 5, p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
-      <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-        Formulario de Análisis de Datos
-      </Typography>
+      <Title text="Análisis de Datos"></Title>
 
       <Grid container spacing={3}>
         <Grid item xs={6}>

@@ -1,5 +1,5 @@
 // 📁 src/views/ProcessStructure.jsx
-import React from "react";
+import React, { useMemo } from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import BookIcon from "@mui/icons-material/Book";
@@ -10,6 +10,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import LinkIcon from "@mui/icons-material/Link";
 import { useNavigate, useParams } from "react-router-dom";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
+import { motion } from "framer-motion";
 
 const ProcessStructure = () => {
   const navigate = useNavigate();
@@ -17,19 +18,23 @@ const ProcessStructure = () => {
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
   const permisos = rolActivo?.permisos?.map((p) => p.modulo) || [];
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
     { icon: <InsertDriveFileIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos` },
     { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
     { icon: <DescriptionIcon />, title: "Auditoría", path: `/carpetas/${idProceso}/Auditoria` },
     { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento` },
-  ];
+  ], [idProceso]);
 
-  const itemsFiltrados = menuItems.filter((item) => permisos.includes(item.title));
+  const itemsFiltrados = useMemo(() => menuItems.filter((item) => permisos.includes(item.title)), [menuItems, permisos]);
 
   return (
     <Box
+      component={motion.div}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -43,8 +48,13 @@ const ProcessStructure = () => {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 10,
+          gridTemplateColumns: {
+            xs: "repeat(1, 1fr)",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+            lg: "repeat(4, 1fr)"
+          },
+          gap: 4,
           textAlign: "center",
           justifyContent: "center",
           alignItems: "center",
@@ -52,7 +62,7 @@ const ProcessStructure = () => {
           maxWidth: "900px",
         }}
       >
-        {itemsFiltrados.slice(0, 4).map((item, index) => (
+        {itemsFiltrados.map((item, index) => (
           <MenuCard
             key={index}
             icon={item.icon}
@@ -61,26 +71,6 @@ const ProcessStructure = () => {
             onClick={() => navigate(item.path)}
           />
         ))}
-
-        <Box
-          sx={{
-            gridColumn: "span 4",
-            display: "flex",
-            justifyContent: "center",
-            gap: 10,
-            marginTop: -4,
-          }}
-        >
-          {itemsFiltrados.slice(4).map((item, index) => (
-            <MenuCard
-              key={index + 4}
-              icon={item.icon}
-              title={item.title}
-              sx={{ textAlign: "center" }}
-              onClick={() => navigate(item.path)}
-            />
-          ))}
-        </Box>
       </Box>
     </Box>
   );

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, TextField, DialogActions } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
 import DialogTitleCustom from "../TitleDialog";
+import InputAdornment from '@mui/material/InputAdornment';
 
 
 const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) => {
@@ -52,11 +53,17 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult }) =>
           autoFocus
           margin="dense"
           label="Resultado"
+          type="number"
+          inputProps={{ min: 0, step: 1 }}
           fullWidth
           variant="outlined"
           value={result}
           onChange={(e) => setResult(e.target.value)}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">%</InputAdornment>
+          }}
         />
+
       </DialogContent>
       <DialogActions>
         <DialogActionButtons

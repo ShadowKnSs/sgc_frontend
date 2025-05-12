@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid} from '@mui/material';
+import { Dialog, DialogContent, DialogActions, TextField, Tabs, Tab, Box, Grid } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
 import DialogTitleCustom from "../TitleDialog";
+import InputAdornment from '@mui/material/InputAdornment';
+
 
 const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult = {} }) => {
   const [tab, setTab] = useState(0); // 0: Ene-Jun, 1: Jul-Dic
@@ -75,10 +77,13 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
     };
 
     if (indicator.periodicidad === "Anual") {
-      payload.result.resultadoAnual = resultEneJun[fields[0].name];
+      // payload.result.resultadoAnual = resultEneJun[fields[0].name];
+      payload.result.resultadoAnual = parseFloat(resultEneJun[fields[0].name]);
     } else {
-      payload.result.resultadoSemestral1 = resultEneJun[fields[0].name];
-      payload.result.resultadoSemestral2 = resultJulDic[fields[0].name];
+      // payload.result.resultadoSemestral1 = resultEneJun[fields[0].name];
+      // payload.result.resultadoSemestral2 = resultJulDic[fields[0].name];
+      payload.result.resultadoSemestral1 = parseFloat(resultEneJun[fields[0].name]);
+      payload.result.resultadoSemestral2 = parseFloat(resultJulDic[fields[0].name]);
     }
 
     console.log("📌 Payload enviado al backend:", JSON.stringify(payload, null, 2));
@@ -106,9 +111,15 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
                     fullWidth
                     label={field.label}
                     type="number"
-                    value={resultEneJun[field.name] || ""}
-                    onChange={e => handleFieldChange(0, field.name, e.target.value)}
+                    value={resultEneJun[field.name] ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleFieldChange(0, field.name, val);
+                    }}
                     margin="dense"
+                    InputProps={{
+                      endAdornment: field.percent ? <InputAdornment position="end">%</InputAdornment> : null
+                    }}
                   />
                 </Grid>
               ))}
@@ -122,9 +133,15 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
                     fullWidth
                     label={field.label}
                     type="number"
-                    value={resultJulDic[field.name] || ""}
-                    onChange={e => handleFieldChange(1, field.name, e.target.value)}
+                    value={resultJulDic[field.name] ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleFieldChange(0, field.name, val);
+                    }}
                     margin="dense"
+                    InputProps={{
+                      endAdornment: field.percent ? <InputAdornment position="end">%</InputAdornment> : null
+                    }}
                   />
                 </Grid>
               ))}
