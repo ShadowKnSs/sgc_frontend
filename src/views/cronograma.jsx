@@ -6,12 +6,14 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "moment/locale/es";
 import axios from "axios";
 import Title from "../components/Title";
-import CustomCalendarToolbar from "../components/BarraCalendario"; // Asegúrate de importar el componente
-
+import CustomCalendarToolbar from "../components/BarraCalendario";
+import CircularProgress from '@mui/material/CircularProgress';
+import CustomButton from '../components/Button';
+import DialogTitleCustom from '../components/TitleDialog';
+import FeedbackSnackbar from '../components/Feedback';
 
 moment.locale("es");
 const localizer = momentLocalizer(moment);
-
 
 function Cronograma() {
   // Se obtiene el usuario y el rol activo desde el localStorage.
@@ -24,11 +26,12 @@ function Cronograma() {
   // Se derivan los permisos del rolActivo; por ejemplo, si se debe tener acceso al módulo "Cronograma"
   const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
 
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([ ]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
+  const [auditores, setAuditores] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-
+  const [loading, setLoading] = useState(false);
 
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -37,24 +40,37 @@ function Cronograma() {
   useEffect(() => {
     if (!usuario || !rolActivo?.nombreRol) return;
   
+    // En tu useEffect que carga las auditorías
     const fetchAuditorias = async () => {
       try {
         const response = await axios.post("http://127.0.0.1:8000/api/cronograma/filtrar", {
           idUsuario: usuario.idUsuario,
           rolActivo: rolActivo.nombreRol
         });
-        const auditorias = response.data.map((auditoria) => ({
-          id: auditoria.idAuditoria,
-          title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
-          start: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
-          end: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
-          descripcion: auditoria.descripcion,
-          estado: auditoria.estado,
-          tipo: auditoria.tipoAuditoria,
-          proceso: auditoria.nombreProceso,
-          entidad: auditoria.nombreEntidad,
-          hora: auditoria.horaProgramada,
-        }));
+        
+        const auditorias = response.data.map((auditoria) => {
+          // Encuentra el auditor correspondiente
+          const auditor = auditores.find(a => a.idUsuario === auditoria.auditorLider);
+          const nombreAuditor = auditor 
+            ? `${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`
+            : "No asignado";
+
+          return {
+            id: auditoria.idAuditoria,
+            title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
+            start: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
+            end: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
+            descripcion: auditoria.descripcion,
+            estado: auditoria.estado,
+            tipo: auditoria.tipoAuditoria,
+            proceso: auditoria.nombreProceso,
+            entidad: auditoria.nombreEntidad,
+            hora: auditoria.horaProgramada,
+            auditorLider: nombreAuditor, // Usamos el nombre en lugar del ID
+            auditorLiderId: auditoria.auditorLider // Guardamos el ID por si lo necesitas
+          };
+        });
+        
         setEvents([...auditorias]);
       } catch (error) {
         console.error("❌ Error al obtener las auditorías:", error);
@@ -62,10 +78,9 @@ function Cronograma() {
     };
   
     fetchAuditorias();
-  }, [usuario, rolActivo]);
-  
+  }, [usuario, rolActivo, auditores]);
 
-
+  // Obtener Entidades
   useEffect(() => {
     axios
       .get("http://127.0.0.1:8000/api/entidad-nombres")
@@ -77,6 +92,7 @@ function Cronograma() {
       });
   }, []);
 
+  // Obtener Procesos
   useEffect(() => {
     axios
       .get("http://127.0.0.1:8000/api/procesos-nombres")
@@ -88,6 +104,18 @@ function Cronograma() {
       });
   }, []);
 
+  // Obtener Auditores
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/api/auditores")
+      .then((response) => {
+        setAuditores(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error al obtener los auditores:", error);
+      });
+  }, []);
+  
   const formats = {
     monthHeaderFormat: (date) =>
       capitalizeFirstLetter(moment(date).format("MMMM YYYY")),
@@ -96,9 +124,6 @@ function Cronograma() {
     dayRangeHeaderFormat: ({ start, end }) =>
       `${capitalizeFirstLetter(moment(start).format("D MMMM"))} - ${capitalizeFirstLetter(moment(end).format("D MMMM"))}`,
   };
-
-
-
 
   const [openForm, setOpenForm] = useState(false);
   const [openDetails, setOpenDetails] = useState(false);
@@ -111,6 +136,7 @@ function Cronograma() {
     tipo: "",
     estado: "",
     descripcion: "",
+    auditorLider: "",
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -128,8 +154,8 @@ function Cronograma() {
 
   const customEventStyleGetter = (event) => {
     let backgroundColor = "#1976d2";
-    if (event.estado === "Finalizada") backgroundColor = "#2e7d32";
-    if (event.estado === "Cancelada") backgroundColor = "#c62828";
+    if (event.estado === "finalizada") backgroundColor = "#2e7d32";
+    if (event.estado === "cancelada") backgroundColor = "#c62828";
 
     return {
       style: {
@@ -144,7 +170,6 @@ function Cronograma() {
     };
   };
 
-
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
   // Función para abrir el formulario en modo creación
@@ -156,8 +181,9 @@ function Cronograma() {
       fecha: "",
       hora: "",
       tipo: "",
-      estado: "",
+      estado: "Pendiente",
       descripcion: "",
+      auditorLider: "",
     });
     setOpenForm(true);
   };
@@ -180,6 +206,7 @@ function Cronograma() {
       tipo: selectedEvent.tipo,
       estado: selectedEvent.estado,
       descripcion: selectedEvent.descripcion,
+      auditorLider: selectedEvent.auditorLiderId || "",
     });
     setOpenDetails(false);
     setOpenForm(true);
@@ -194,6 +221,7 @@ function Cronograma() {
 
   // Guarda nueva auditoría o actualiza la existente
   const handleSubmit = async () => {
+    // Verificación de que todos los campos sean llenados
     if (
       formData.entidad &&
       formData.proceso &&
@@ -201,10 +229,14 @@ function Cronograma() {
       formData.hora &&
       formData.tipo &&
       formData.estado &&
-      formData.descripcion
+      formData.descripcion &&
+      formData.auditorLider
     ) {
+      setLoading(true);
+  
       try {
         if (isEditing) {
+          // Edición de un evento existente
           await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
             fechaProgramada: formData.fecha,
             horaProgramada: formData.hora,
@@ -213,26 +245,31 @@ function Cronograma() {
             descripcion: formData.descripcion,
             nombreProceso: formData.proceso,
             nombreEntidad: formData.entidad,
+            auditorLider: formData.auditorLider,
           });
+  
           setEvents(prevEvents =>
             prevEvents.map(event =>
               event.id === selectedEvent.id
                 ? {
-                  ...event,
-                  start: new Date(`${formData.fecha}T${formData.hora}`),
-                  end: new Date(`${formData.fecha}T${formData.hora}`),
-                  descripcion: formData.descripcion,
-                  estado: formData.estado,
-                  tipo: formData.tipo,
-                  proceso: formData.proceso,
-                  entidad: formData.entidad,
-                  hora: formData.hora,
-                }
+                    ...event,
+                    start: new Date(`${formData.fecha}T${formData.hora}`),
+                    end: new Date(`${formData.fecha}T${formData.hora}`),
+                    descripcion: formData.descripcion,
+                    estado: formData.estado,
+                    tipo: formData.tipo,
+                    proceso: formData.proceso,
+                    entidad: formData.entidad,
+                    hora: formData.hora,
+                    auditorLider: formData.auditorLider,
+                  }
                 : event
             )
           );
+  
           setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
         } else {
+          // Creación de una nueva auditoría
           const response = await axios.post("http://127.0.0.1:8000/api/cronograma", {
             fechaProgramada: formData.fecha,
             horaProgramada: formData.hora,
@@ -241,7 +278,9 @@ function Cronograma() {
             descripcion: formData.descripcion,
             nombreProceso: formData.proceso,
             nombreEntidad: formData.entidad,
+            auditorLider: formData.auditorLider, 
           });
+  
           const nuevaAuditoria = {
             id: response.data.auditoria.idAuditoria,
             title: `${response.data.auditoria.nombreProceso} - ${response.data.auditoria.tipoAuditoria}`,
@@ -253,11 +292,14 @@ function Cronograma() {
             proceso: response.data.auditoria.nombreProceso,
             entidad: response.data.auditoria.nombreEntidad,
             hora: response.data.auditoria.horaProgramada,
+            auditorLider: response.data.auditoria.auditorLider,
           };
-          setEvents(prev => [...prev, nuevaAuditoria]); // Mantener este que ya está correcto
+  
+          setEvents(prev => [...prev, nuevaAuditoria]);
           setSnackbar({ open: true, message: "Auditoría creada correctamente.", severity: "success" });
-
         }
+  
+        // Reiniciar el formulario
         setFormData({
           entidad: "",
           proceso: "",
@@ -266,19 +308,20 @@ function Cronograma() {
           tipo: "",
           estado: "",
           descripcion: "",
+          auditorLider: "",
         });
+  
         handleCloseForm();
       } catch (error) {
         console.error("Error al guardar la auditoría:", error.response ? error.response.data : error.message);
         setSnackbar({ open: true, message: "Hubo un error al guardar la auditoría.", severity: "error" });
-
+      } finally {
+        setLoading(false);
       }
     } else {
-      setSnackbar({ open: true, message: "Todos los campos son obligatorios..", severity: "error" });
-
+      setSnackbar({ open: true, message: "Todos los campos son obligatorios.", severity: "warning" });
     }
   };
-
 
   // 1) Estados controlados de vista y fecha
   const [view, setView] = useState("month");
@@ -307,6 +350,12 @@ function Cronograma() {
       }}
     >
       <Title text="Cronograma de Auditorías" />
+
+      {loading && (
+        <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
+          <CircularProgress />
+        </Box>
+      )}
 
       <div style={{ height: "600px", width: "100%", maxWidth: "1000px" }}>
         <Calendar
@@ -344,14 +393,19 @@ function Cronograma() {
       {/* Se muestra el botón "Crear Auditoría" si el usuario tiene el permiso "Cronograma" */}
       {permiteAcciones() && (
         <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
-          <Button variant="contained" color="primary" onClick={handleOpenForm}>
+          <CustomButton type="generar" onClick={handleOpenForm}>
             Crear Auditoría
-          </Button>
+          </CustomButton>
         </Box>
       )}
 
       <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
-        <DialogTitle>{isEditing ? "Editar Auditoría" : "Crear Auditoría"}</DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <DialogTitleCustom 
+            title={isEditing ? "Editar Auditoría" : "Crear Auditoría"} 
+            subtitle=""
+          />
+        </Box>
         <DialogContent>
           <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%" }}>
             <FormControl fullWidth margin="dense">
@@ -415,13 +469,28 @@ function Cronograma() {
             </FormControl>
             <FormControl fullWidth margin="dense">
               <InputLabel>Estado</InputLabel>
-              <Select name="estado" value={formData.estado} onChange={handleChange}>
+              <Select name="estado" value={formData.estado} onChange={handleChange} disabled={!isEditing}>
                 <MenuItem value="Pendiente">Pendiente</MenuItem>
                 <MenuItem value="Finalizada">Finalizada</MenuItem>
                 <MenuItem value="Cancelada">Cancelada</MenuItem>
               </Select>
             </FormControl>
           </Box>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Líder Auditor</InputLabel>
+            <Select name="auditorLider" value={formData.auditorLider} onChange={handleChange}>
+              {auditores.length > 0 ? (
+                auditores.map((auditor) => (
+                  <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
+                    {`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="">Cargando...</MenuItem>
+              )}
+            </Select>
+          </FormControl>
+
           <TextField
             margin="dense"
             label="Descripción"
@@ -434,18 +503,28 @@ function Cronograma() {
             sx={{ mt: 2 }}
           />
         </DialogContent>
+
         <DialogActions>
-          <Button onClick={handleCloseForm} color="secondary">
+          <CustomButton type="cancelar" onClick={handleCloseForm} disabled={loading}>
             Cancelar
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            {isEditing ? "Guardar Cambios" : "Agregar"}
-          </Button>
+          </CustomButton>
+          <CustomButton type="guardar" onClick={handleSubmit} disabled={loading}>
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              isEditing ? "Guardar Cambios" : "Agregar"
+            )}
+          </CustomButton>
         </DialogActions>
       </Dialog>
 
       <Dialog open={openDetails} onClose={handleCloseDetails}>
-        <DialogTitle>Detalles de la Auditoría</DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <DialogTitleCustom 
+            title="Detalles de la Auditoría"
+            subtitle=""
+          />
+        </Box>
         <DialogContent>
           {selectedEvent && (
             <>
@@ -456,38 +535,30 @@ function Cronograma() {
               <Typography><strong>Tipo:</strong> {selectedEvent.tipo}</Typography>
               <Typography><strong>Estado:</strong> {selectedEvent.estado}</Typography>
               <Typography><strong>Descripción:</strong> {selectedEvent.descripcion || "Sin descripción"}</Typography>
+              <Typography><strong>Auditor Líder:</strong> {selectedEvent.auditorLider || "No asignado"}</Typography>
             </>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDetails} color="secondary">
+          <CustomButton type="cancelar" onClick={handleCloseDetails}>
             Cerrar
-          </Button>
-          {/* Se muestra el botón "Editar" si el usuario tiene el permiso "Cronograma".
-              Ajusta la condición según la política de permisos para editar */}
+          </CustomButton>
           {permiteAcciones() && (
-            <Button onClick={handleEdit} color="primary">
+            <CustomButton type="aceptar" onClick={handleEdit}>
               Editar
-            </Button>
+            </CustomButton>
           )}
-
         </DialogActions>
       </Dialog>
 
-      <Snackbar
+      <FeedbackSnackbar
         open={snackbar.open}
-        autoHideDuration={3000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert elevation={6} variant="filled" onClose={handleCloseSnackbar} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-
+        type={snackbar.severity} 
+        message={snackbar.message}
+        autoHideDuration={3000}
+      />
     </Box>
-
-
   );
 }
 

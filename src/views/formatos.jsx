@@ -1,16 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Modal, Typography, TextField, Button, Card, CardContent, CardActions } from '@mui/material';
+import { Box, Modal, Typography, TextField, Card, CardContent, CardActions, CircularProgress } from '@mui/material';
 import Title from '../components/Title';
-import FloatingActionButton from '../components/ButtonNewReport';
+import FabSubirFormato from '../components/FabSubirFormato';
+import CustomButton from '../components/Button';
+import DialogTitleCustom from '../components/TitleDialog';
+import FeedbackSnackbar from '../components/Feedback';
 
 const Formatos = () => {
   const [openModal, setOpenModal] = useState(false);
   const [nombreFormato, setNombreFormato] = useState('');
   const [archivo, setArchivo] = useState(null);
   const [formatos, setFormatos] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Cargar los formatos al montar el componente
+  // Snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
+
+  const showSnackbar = (type, title, message) => {
+    setSnackbar({ open: true, type, title, message });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
   useEffect(() => {
     const fetchFormatos = async () => {
       try {
@@ -20,15 +39,16 @@ const Formatos = () => {
         console.error('Error al obtener los formatos', error);
       }
     };
-
     fetchFormatos();
   }, []);
 
   const handleOpenModal = () => setOpenModal(true);
+
   const handleCloseModal = () => {
     setOpenModal(false);
     setNombreFormato('');
     setArchivo(null);
+    setIsLoading(false);
   };
 
   const handleFileChange = (event) => {
@@ -36,10 +56,22 @@ const Formatos = () => {
   };
 
   const handleFormatoSubmit = async () => {
-    if (!nombreFormato || !archivo) {
-      alert('Por favor, ingrese el nombre del formato y seleccione un archivo PDF.');
+    if (!nombreFormato && !archivo) {
+      showSnackbar('warning', 'Campos requeridos', 'Faltan el nombre del formato y el archivo PDF.');
       return;
     }
+
+    if (!nombreFormato) {
+      showSnackbar('warning', 'Campo requerido', 'Por favor, ingrese el nombre del formato.');
+      return;
+    }
+
+    if (!archivo) {
+      showSnackbar('warning', 'Campo requerido', 'Por favor, seleccione un archivo PDF.');
+      return;
+    }
+
+    setIsLoading(true);
 
     const formData = new FormData();
     formData.append('nombreFormato', nombreFormato);
@@ -50,12 +82,14 @@ const Formatos = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      alert('Formato guardado correctamente');
+      showSnackbar('success', 'Formato guardado', 'El formato se ha subido correctamente.');
       setFormatos([...formatos, response.data.formato]);
       handleCloseModal();
     } catch (error) {
-      alert('Error al subir el formato');
+      showSnackbar('error', 'Error al subir', 'Hubo un problema al subir el formato.');
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -66,10 +100,9 @@ const Formatos = () => {
       </Box>
 
       <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
-        <FloatingActionButton onClick={handleOpenModal} />
+        <FabSubirFormato onClick={handleOpenModal} />
       </Box>
 
-      {/* Modal para subir formatos */}
       <Modal open={openModal} onClose={handleCloseModal}>
         <Box sx={{
           position: 'absolute',
@@ -82,9 +115,17 @@ const Formatos = () => {
           p: 4,
           borderRadius: 2
         }}>
-          <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
-            Subir Formato
-          </Typography>
+          <Box sx={{
+            '& .MuiTypography-h6': {
+              textAlign: 'center !important',
+            },
+            '& .MuiTypography-subtitle2': {
+              textAlign: 'center !important',
+            },
+          }}>
+            <DialogTitleCustom title="Subir Formato" />
+          </Box>
+
           <TextField
             label="Nombre del Formato"
             variant="outlined"
@@ -93,39 +134,52 @@ const Formatos = () => {
             value={nombreFormato}
             onChange={(e) => setNombreFormato(e.target.value)}
           />
-          <input 
-            type="file" 
+
+          <input
+            type="file"
             accept="application/pdf"
-            onChange={handleFileChange} 
+            onChange={handleFileChange}
             style={{ marginBottom: 20, display: 'block', margin: '0 auto' }}
           />
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-            <Button variant="contained" onClick={handleFormatoSubmit}>Subir</Button>
-            <Button variant="outlined" onClick={handleCloseModal}>Cancelar</Button>
+            <CustomButton type="guardar" onClick={handleFormatoSubmit} disabled={isLoading}>
+              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Subir'}
+            </CustomButton>
+            <CustomButton type="cancelar" onClick={handleCloseModal} disabled={isLoading}>
+              Cancelar
+            </CustomButton>
           </Box>
         </Box>
       </Modal>
 
-      {/* Lista de formatos subidos en forma de tarjetas (Cards) */}
-      <Box sx={{ mt: 4, display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
+      {/* Lista de formatos */}
+      <Box sx={{ mt: 6, display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
         {formatos.map((formato, index) => (
           <Card key={index} sx={{ width: 300 }}>
             <CardContent>
               <Typography variant="h6" sx={{ textAlign: 'center' }}>{formato.nombreFormato}</Typography>
             </CardContent>
             <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
-                <Button 
-                    variant="contained" 
-                    color="primary" 
-                    href={`http://127.0.0.1:8000/storage/${formato.ruta}`} 
-                    download
-                >
-                    Descargar
-                </Button>
+              <CustomButton
+                type="descargar"
+                href={`http://127.0.0.1:8000/storage/${formato.ruta}`}
+                target="_blank"
+              >
+                Descargar
+              </CustomButton>
             </CardActions>
           </Card>
         ))}
       </Box>
+
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={handleCloseSnackbar}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
+      />
     </Box>
   );
 };
