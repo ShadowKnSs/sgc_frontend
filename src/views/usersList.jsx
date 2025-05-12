@@ -54,31 +54,21 @@ function UserManagement() {
         fetchUsers();
     }, []);
 
-    const handleAddUser = async (newUser) => {
-        try {
-            let response;
-            if (editingUser) {
-                response = await axios.put(`${API_URL}/usuarios/${editingUser.id}`, {
-                    ...newUser,
-                    id: editingUser.id
-                });
-                
-                setUsers(prevUsers => 
-                    prevUsers.map(user => 
-                        user.id === editingUser.id ? transformUserData(response.data.data) : user
-                    )
-                );
-            } else {
-                response = await axios.post(`${API_URL}/usuarios`, newUser);
-                setUsers(prevUsers => [...prevUsers, transformUserData(response.data.data)]);
-            }
-            
-            setError(null);
-        } catch (err) {
-            console.error("Error al guardar usuario:", err);
-            setError(err.response?.data?.message || "Error al guardar el usuario");
+    const handleAddUser = (usuarioGuardado) => {
+        if (editingUser) {
+            setUsers(prevUsers =>
+                prevUsers.map(user =>
+                    user.id === editingUser.id ? transformUserData(usuarioGuardado) : user
+                )
+            );
+        } else {
+            setUsers(prevUsers => [...prevUsers, transformUserData(usuarioGuardado)]);
         }
-    }
+
+        setError(null);
+        setEditingUser(null);
+    };
+
 
     const handleDelete = async (id) => {
         try {
@@ -121,14 +111,14 @@ function UserManagement() {
                         justifyContent="center"
                     >
                         {users.map(user => (
-                            <UserCard 
-                                key={user.id} 
-                                user={user} 
+                            <UserCard
+                                key={user.id}
+                                user={user}
                                 onEdit={() => handleEdit(user)}
                                 onDelete={() => {
                                     setUserToDelete(user);
                                     setOpenDelete(true);
-                                }} 
+                                }}
                             />
                         ))}
                     </Box>
@@ -143,10 +133,10 @@ function UserManagement() {
                 </>
             )}
 
-            <UserForm 
-                open={openForm} 
-                onClose={handleFormClose} 
-                onSubmit={handleAddUser} 
+            <UserForm
+                open={openForm}
+                onClose={handleFormClose}
+                onSubmit={handleAddUser}
                 editingUser={editingUser}
             />
 

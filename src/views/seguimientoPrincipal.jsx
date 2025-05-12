@@ -15,6 +15,7 @@ import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
+import Permiso from "../hooks/userPermiso";
 
 
 const Seguimiento = () => {
@@ -22,9 +23,8 @@ const Seguimiento = () => {
   const { idProceso } = useParams();
   const location = useLocation();
   const menuItems = useMenuProceso();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
-
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const { soloLectura, puedeEditar } = Permiso("Seguimiento");
   const [minutas, setMinutas] = useState([]);
   const [openForm, setOpenForm] = useState(false);
   const [currentMinuta, setCurrentMinuta] = useState(null);

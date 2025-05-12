@@ -22,6 +22,7 @@ import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import ConfirmEditDialog from '../components/ConfirmEditDialog';
 import NewNoticiaButton from '../components/NewCardButtom';
 
+
 // Formatea la fecha con dayjs
 function formatDate(dateString) {
   if (!dateString) return '';

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Button, Tabs, Tab, FormHelperText, CircularProgress, Box, IconButton } from "@mui/material";
+import { Dialog, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Button, Tabs, Tab, FormHelperText, CircularProgress, Box, IconButton } from "@mui/material";
 import ConfirmEdit from "./confirmEdit";
 import axios from "axios";
 import CustomButton from "./Button";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import FeedbackSnackbar from "./Feedback";
 import DialogTitleCustom from "./TitleDialog";
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = 'http://localhost:8000/api';
 
 function UserForm({ open, onClose, editingUser, onSubmit }) {
     const [formData, setFormData] = useState({
@@ -20,6 +20,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
         supervisor: "",
         expirationDateTime: "",
     });
+    const isLider = formData.roles.includes("Líder");
     const transformUserDataForAPI = (data) => {
         // Extrae RPE del correo (todo lo que está antes de "@")
         const RPE = data.email.split("@")[0];
@@ -93,7 +94,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
 
     useEffect(() => {
         const fetchSupervisores = async () => {
-            if (formData.roles.includes("Líder") && supervisores.length === 0) {
+            if (isLider && supervisores.length === 0) {
                 setLoadingSupervisores(true);
                 try {
                     const response = await axios.get(`${API_URL}/supervisores`);
@@ -108,7 +109,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
         };
 
         fetchSupervisores();
-    }, [formData.roles.includes("Líder")]);
+    }, [isLider, supervisores.length]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -152,14 +153,10 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
 
         try {
             const datosAPI = transformUserDataForAPI(formData);
+            const usuarioGuardado = await saveUser(datosAPI);
 
-            if (editingUser) {
-                setOpenConfirmEdit(true);
-            } else {
-                await saveUser(datosAPI);
-                onSubmit(datosAPI);
-                onClose();
-            }
+            onSubmit(usuarioGuardado); // ✅ solo pasa el usuario creado o editado
+            onClose(); // ✅ cerrar el modal
         } catch (error) {
             console.error("Error al guardar el usuario:", error);
         }
@@ -167,22 +164,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
 
     const saveUser = async (data) => {
         try {
-            const rolesIds = convertRolesToId(data.roles);
-
-            const payload = {
-                nombre: data.firstName,
-                apellidoPat: data.lastName,
-                apellidoMat: data.secondLastName || null,
-                correo: data.email,
-                telefono: data.phone,
-                gradoAcademico: data.academicDegree || null,
-                RPE: extractRPE(data.email),
-                pass: generatePassword(data.firstName),
-                roles: rolesIds,
-                idSupervisor: data.supervisor || null
-            };
-
-            console.log('Payload a enviar:', payload);
+            console.log('Payload a enviar:', data); // <- asegúrate de que tenga los campos correctos
 
             const url = editingUser ? `${API_URL}/usuarios/${editingUser.id}` : `${API_URL}/usuarios`;
             const method = editingUser ? "put" : "post";
@@ -190,14 +172,15 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
             const response = await axios({
                 method,
                 url,
-                data: payload,
+                data,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 }
             });
 
-            return response.data;
+            return response.data.usuario;
+
 
         } catch (error) {
             console.error('Error detallado:', {
@@ -205,9 +188,15 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                 data: error.response?.data,
                 config: error.config
             });
-            throw new Error(error.response?.data?.message || 'Error al guardar usuario');
+            throw new Error(
+                error.response?.data?.errors
+                    ? Object.values(error.response.data.errors).flat().join(" - ")
+                    : error.response?.data?.message || 'Error al guardar usuario'
+            );
+
         }
     };
+
 
     const convertRolesToId = (roles) => {
         if (!Array.isArray(roles)) return [];
@@ -224,8 +213,9 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
     const handleConfirmEdit = async () => {
         try {
             const datosAPI = transformUserDataForAPI(formData);
-            await saveUser(datosAPI);
-            onSubmit(datosAPI);
+            const usuarioActualizado = await saveUser(datosAPI);
+
+            onSubmit(usuarioActualizado); // ✅ usuario actualizado
             setOpenConfirmEdit(false);
             onClose();
         } catch (error) {

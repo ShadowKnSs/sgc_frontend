@@ -1,8 +1,9 @@
 // src/admin/AdminHome.js
 import React, { useState } from 'react';
-import { Box, Tabs, Tab, Typography } from '@mui/material';
+import { Box, Tabs, Tab} from '@mui/material';
 import AdminNewsList from '../components/AdminNewsList';
 import AdminEAList from '../components/AdminEAlist';
+import Title from '../components/Title';
 
 
 const AdminHome = () => {
@@ -14,8 +15,8 @@ const AdminHome = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h3" gutterBottom sx={{color: "secondary.main", textAlign: "center", paddingTop: 3}}>Panel de Administración</Typography>
-      <Tabs value={tabValue} onChange={handleTabChange} sx={{paddingBottom: 3}}>
+      <Title text="Panel Administrativo"></Title>
+      <Tabs value={tabValue} onChange={handleTabChange} sx={{ paddingBottom: 3 }}>
         <Tab label="Noticias" />
         <Tab label="Eventos" />
         <Tab label="Avisos" />
