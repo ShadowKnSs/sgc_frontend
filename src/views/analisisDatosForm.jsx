@@ -7,6 +7,8 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Title from '../components/Title';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
+import Permiso from "../hooks/userPermiso";
+
 
 
 const FormularioAnalisis = () => {
@@ -14,8 +16,8 @@ const FormularioAnalisis = () => {
 
   const menuItems = useMenuProceso();
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+    const { soloLectura, puedeEditar } = Permiso("Análisis de Datos");
   const [datosProceso, setDatosProceso] = useState({
     idProceso: null,
     anio: null

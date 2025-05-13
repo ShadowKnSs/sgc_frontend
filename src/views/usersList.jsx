@@ -40,7 +40,7 @@ function UserManagement() {
             email: user.correo,
             phone: user.telefono,
             academicDegree: user.gradoAcademico,
-            roles: [user.tipo_usuario?.nombreRol],
+            roles: Array.isArray(user.roles) ? user.roles.map(r => r.nombreRol) : [], // ✅ CAMBIO AQUÍ
             supervisor: user.supervisor ? {
                 id: user.supervisor.idUsuario,
                 firstName: user.supervisor.nombre,
@@ -49,6 +49,7 @@ function UserManagement() {
             } : null
         };
     };
+
 
     useEffect(() => {
         fetchUsers();

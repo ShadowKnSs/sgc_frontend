@@ -19,7 +19,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  
+
   DialogActions,
 } from "@mui/material";
 import axios from "axios";
@@ -28,6 +28,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
+import Permiso from "../hooks/userPermiso";
+
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
 
@@ -35,8 +37,8 @@ function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
   const { idRegistro } = useParams();
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const { soloLectura, puedeEditar } = Permiso("Gestión de Riesgo");
   const [modoEdicion, setModoEdicion] = useState(false);
   const menuItems = useMenuProceso();
 
@@ -94,7 +96,7 @@ function FormularioGestionRiesgos() {
   // 8) Confirmar eliminación
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
-  
+
   const fetchIdRegistro = async () => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistroGR`, {
@@ -102,9 +104,9 @@ function FormularioGestionRiesgos() {
           idRegistro
         }
       });
-      
+
       if (response.data.idRegistro) {
-        
+
         // Actualiza formData con los datos del proceso si vienen en la respuesta
         if (response.data.proceso) {
           setGestionRiesgo(prev => ({
@@ -184,17 +186,17 @@ function FormularioGestionRiesgos() {
 
 
   useEffect(() => {
-      const loadData = async () => {
-        const registroId = await fetchIdRegistro();
-        if (registroId) {
-          await fetchFormData(registroId);
-        } else {
+    const loadData = async () => {
+      const registroId = await fetchIdRegistro();
+      if (registroId) {
+        await fetchFormData(registroId);
+      } else {
 
-        }
-      };
-  
-      loadData();
-    }, [idRegistro]);
+      }
+    };
+
+    loadData();
+  }, [idRegistro]);
 
   // --------------------------------------------------------------------------
   // Función para cargar la lista de riesgos cuando tengamos idGesRies
@@ -257,7 +259,7 @@ function FormularioGestionRiesgos() {
         analisisEfectividad: item.analisisEfectividad,
       })),
     };
-};
+  };
 
   // --------------------------------------------------------------------------
   // Handler para GUARDAR la info general en la tabla gestionriesgos
@@ -458,7 +460,7 @@ function FormularioGestionRiesgos() {
   };
 
   const renderModalSection = () => {
-    
+
     switch (currentSection) {
       case 0:
         return (
@@ -527,7 +529,7 @@ function FormularioGestionRiesgos() {
             <TextField
               label="NRP"
               name="valorNRP"
-              value={nuevoRiesgo.valorNRP=(nuevoRiesgo.valorOcurrencia*nuevoRiesgo.valorSeveridad)}
+              value={nuevoRiesgo.valorNRP = (nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad)}
               onChange={handleRiesgoChange}
               type="number"
               fullWidth
@@ -591,62 +593,62 @@ function FormularioGestionRiesgos() {
       case 3:
         return (
           <>
-          <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-            Evaluación de Efectividad
-          </Typography>
-          
-          <TextField
-            label="Reevaluación Severidad"
-            name="reevaluacionSeveridad"
-            value={nuevoRiesgo.reevaluacionSeveridad}
-            onChange={handleRiesgoChange}
-            type="number"
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          
-          <TextField
-            label="Reevaluación Ocurrencia"
-            name="reevaluacionOcurrencia"
-            value={nuevoRiesgo.reevaluacionOcurrencia}
-            onChange={handleRiesgoChange}
-            type="number"
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          
-          <TextField
-            label="Reevaluación NRP"
-            name="reevaluacionNRP"
-            value={nuevoRiesgo.reevaluacionNRP = (nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad)}
-            onChange={handleRiesgoChange}
-            type="number"
-            fullWidth
-            sx={{ mb: 2 }}
-            disabled
-          />
+            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+              Evaluación de Efectividad
+            </Typography>
 
-          <TextField
-            label="Reevaluación Efectividad"
-            name="reevaluacionEfectividad"
-            value={nuevoRiesgo.reevaluacionEfectividad=
-              (nuevoRiesgo.reevaluacionNRP < nuevoRiesgo.valorNRP
-                ? "Mejoró"
-                : "No mejoró")
-            }
-            fullWidth
-            sx={{ mb: 2 }}
-          />
+            <TextField
+              label="Reevaluación Severidad"
+              name="reevaluacionSeveridad"
+              value={nuevoRiesgo.reevaluacionSeveridad}
+              onChange={handleRiesgoChange}
+              type="number"
+              fullWidth
+              sx={{ mb: 2 }}
+            />
 
-          <TextField
-            label="Análisis de Efectividad"
-            name="analisisEfectividad"
-            value={nuevoRiesgo.analisisEfectividad}
-            onChange={handleRiesgoChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-        </>
+            <TextField
+              label="Reevaluación Ocurrencia"
+              name="reevaluacionOcurrencia"
+              value={nuevoRiesgo.reevaluacionOcurrencia}
+              onChange={handleRiesgoChange}
+              type="number"
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              label="Reevaluación NRP"
+              name="reevaluacionNRP"
+              value={nuevoRiesgo.reevaluacionNRP = (nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad)}
+              onChange={handleRiesgoChange}
+              type="number"
+              fullWidth
+              sx={{ mb: 2 }}
+              disabled
+            />
+
+            <TextField
+              label="Reevaluación Efectividad"
+              name="reevaluacionEfectividad"
+              value={nuevoRiesgo.reevaluacionEfectividad =
+                (nuevoRiesgo.reevaluacionNRP < nuevoRiesgo.valorNRP
+                  ? "Mejoró"
+                  : "No mejoró")
+              }
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              label="Análisis de Efectividad"
+              name="analisisEfectividad"
+              value={nuevoRiesgo.analisisEfectividad}
+              onChange={handleRiesgoChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+          </>
 
         );
       default:
@@ -655,7 +657,7 @@ function FormularioGestionRiesgos() {
   };
 
   return (
-    
+
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
       <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
         Gestión de Riesgos: {gestionRiesgo.proceso}
@@ -798,16 +800,16 @@ function FormularioGestionRiesgos() {
                     ))}
                     {!soloLectura && (
                       <TableCell align="center">
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleEditRiesgo(riesgos[index])} 
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditRiesgo(riesgos[index])}
                           sx={{ mr: 1 }}
                         >
                           <EditIcon />
                         </IconButton>
 
-                        <IconButton 
-                          color="error" 
+                        <IconButton
+                          color="error"
                           onClick={() => handleDeleteRiesgo(riesgos[index])}
                         >
                           <DeleteIcon />
