@@ -14,21 +14,22 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
   Modal,
   Dialog,
   DialogTitle,
   DialogContent,
-
   DialogActions,
 } from "@mui/material";
 import axios from "axios";
 import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import FeedbackSnackbar from "../components/Feedback";
 import Title from "../components/Title";
+import CustomButton from "../components/Button";
+import TitleDialog from "../components/TitleDialog";
 import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
 import BusinessIcon from '@mui/icons-material/Business';
@@ -367,13 +368,13 @@ function FormularioGestionRiesgos() {
     console.log("[LOG] handleGuardarRiesgo -> nuevoRiesgo actual:", nuevoRiesgo);
 
     if (!gestionRiesgo.idGesRies) {
-      alert("No se ha guardado la información general (idGesRies es null).");
+      mostrarSnackbar("warning", "Falta información general", "Primero guarda los datos generales.");
       return;
     }
 
     // Validar campos mínimos
     if (!nuevoRiesgo.tipoRiesgo || !nuevoRiesgo.descripcion) {
-      alert("Faltan campos obligatorios (tipoRiesgo, descripción).");
+      mostrarSnackbar("warning", "Campos requeridos", "Tipo de Riesgo y Descripción son obligatorios.");
       return;
     }
 
@@ -414,6 +415,8 @@ function FormularioGestionRiesgos() {
         setSavedData(organizarRiesgos(newList));
       }
 
+      mostrarSnackbar("success", "Riesgo guardado", isEditing ? "Riesgo actualizado correctamente." : "Riesgo agregado correctamente.");
+
       // Reset modal
       setOpenModal(false);
       setCurrentSection(0);
@@ -423,7 +426,7 @@ function FormularioGestionRiesgos() {
       cargarRiesgos(gestionRiesgo.idGesRies);
     } catch (err) {
       console.error("[ERROR] al crear/editar el riesgo:", err);
-      alert("Error al crear/editar el riesgo.");
+      mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar el riesgo.");
     }
   };
 
@@ -466,7 +469,7 @@ function FormularioGestionRiesgos() {
       setSavedData(organizarRiesgos(updated));
     } catch (err) {
       console.error("[ERROR] al eliminar riesgo:", err);
-      alert("No se pudo eliminar el riesgo.");
+      mostrarSnackbar("error", "Error", "Ocurrió un problema al eliminar el riesgo.");
     } finally {
       setDeleteDialogOpen(false);
       setRowToDelete(null);
@@ -494,16 +497,14 @@ function FormularioGestionRiesgos() {
       case 0:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Identificación
-            </Typography>
+            
             <TextField
               label="Fuente"
               name="fuente"
               value={nuevoRiesgo.fuente}
               onChange={handleRiesgoChange}
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
               label="Tipo de Riesgo"
@@ -526,16 +527,14 @@ function FormularioGestionRiesgos() {
       case 1:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Análisis
-            </Typography>
+            
             <TextField
               label="Consecuencias"
               name="consecuencias"
               value={nuevoRiesgo.consecuencias}
               onChange={handleRiesgoChange}
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
               label="Severidad"
@@ -570,16 +569,14 @@ function FormularioGestionRiesgos() {
       case 2:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Tratamiento
-            </Typography>
+            
             <TextField
               label="Actividades"
               name="actividades"
               value={nuevoRiesgo.actividades}
               onChange={handleRiesgoChange}
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
               label="Acción de Mejora"
@@ -622,10 +619,7 @@ function FormularioGestionRiesgos() {
       case 3:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Evaluación de Efectividad
-            </Typography>
-
+            
             <TextField
               label="Reevaluación Severidad"
               name="reevaluacionSeveridad"
@@ -633,7 +627,7 @@ function FormularioGestionRiesgos() {
               onChange={handleRiesgoChange}
               type="number"
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, marginTop: 2 }}
             />
 
             <TextField
@@ -766,20 +760,19 @@ function FormularioGestionRiesgos() {
           {puedeEditar && (
             <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
               {!tieneGesRies ? (
-                <Button variant="contained" onClick={handleGuardarGestionRiesgos}>
+                <CustomButton onClick={handleGuardarGestionRiesgos}>
                   Guardar Datos Generales
-                </Button>
+                </CustomButton>
+
               ) : (
                 !modoEdicion ? (
-                  <Button variant="outlined" onClick={() => setModoEdicion(true)}>Editar</Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#F9B800", color: "#000" }}
-                    onClick={handleGuardarGestionRiesgos}
-                  >
+                  <CustomButton type="cancelar" onClick={() => setModoEdicion(true)}>
+                    Editar
+                  </CustomButton>) : (
+                  <CustomButton type="guardar" onClick={handleGuardarGestionRiesgos}>
                     Guardar
-                  </Button>
+                  </CustomButton>
+
                 )
               )}
             </Box>
@@ -892,8 +885,7 @@ function FormularioGestionRiesgos() {
           {/* Botón para abrir el modal y agregar un riesgo nuevo */}
           {!soloLectura && (
             <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-              <Button
-                variant="contained"
+              <CustomButton
                 onClick={() => {
                   setOpenModal(true);
                   setIsEditing(false);
@@ -925,6 +917,7 @@ function FormularioGestionRiesgos() {
                   borderRadius: "50%",
                   fontSize: 30,
                   minWidth: "auto",
+                  position: "relative",
                   backgroundColor: "#00B2E3",
                   "&:hover": {
                     backgroundColor: "#0099C3",
@@ -932,7 +925,7 @@ function FormularioGestionRiesgos() {
                 }}
               >
                 +
-              </Button>
+              </CustomButton>
             </Box>
           )}
         </>
@@ -961,25 +954,51 @@ function FormularioGestionRiesgos() {
             borderRadius: 3,
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
-            {isEditing ? "Editar Riesgo" : "Agregar Riesgo"}
-          </Typography>
+
+          <IconButton
+            onClick={() => {
+              setOpenModal(false);
+              setCurrentSection(0);
+              setIsEditing(false);
+              setEditingRiesgo(null);
+            }}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              color: "#999",
+              "&:hover": {
+                color: "#333",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+
+          <TitleDialog
+            title={isEditing ? "Editar Riesgo" : "Nuevo Riesgo"}
+            subtitle={sections[currentSection]}
+          />
           {renderModalSection()}
 
           <Box mt={2} display="flex" justifyContent="space-between">
             {currentSection > 0 && (
-              <Button variant="contained" onClick={handlePreviousSection}>
+              <CustomButton type="cancelar" onClick={handlePreviousSection}>
                 Anterior
-              </Button>
+              </CustomButton>
+
             )}
             {currentSection < 3 ? (
-              <Button variant="contained" onClick={handleNextSection}>
+              <CustomButton type="aceptar" onClick={handleNextSection}>
                 Siguiente
-              </Button>
+              </CustomButton>
+
             ) : (
-              <Button variant="contained" onClick={handleGuardarRiesgo}>
+              <CustomButton type="guardar" onClick={handleGuardarRiesgo}>
                 {isEditing ? "Actualizar" : "Guardar"}
-              </Button>
+              </CustomButton>
+
             )}
           </Box>
         </Box>
@@ -1001,12 +1020,14 @@ function FormularioGestionRiesgos() {
           <Typography>¿Estás seguro de que deseas eliminar este riesgo?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+          <CustomButton type="cancelar" onClick={() => setDeleteDialogOpen(false)}>
             Cancelar
-          </Button>
-          <Button onClick={confirmDeleteRiesgo} color="error">
+          </CustomButton>
+
+          <CustomButton type="guardar" onClick={confirmDeleteRiesgo}>
             Eliminar
-          </Button>
+          </CustomButton>
+
         </DialogActions>
       </Dialog>
     </Box>
