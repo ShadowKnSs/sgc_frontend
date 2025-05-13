@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, DialogTitle, Button, Box } from "@mui/material";
+import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import MinutaCard from "../components/CardMinuta";
@@ -52,6 +52,13 @@ const Seguimiento = () => {
     if (idRegistro) fetchMinutas();
   }, [idRegistro]);
 
+  const handleCreateMinuta = () => {
+  console.log("Clic en nueva minuta");
+  setCurrentMinuta(null); // sin datos = nueva
+  setModoEdicion(false);
+  setOpenForm(true); // abre directamente el formulario
+};
+
  const handleOpenForm = (minuta) => {
   console.log("Clic en Editar minuta:", minuta);
   setSelectedMinuta(minuta);
@@ -76,12 +83,6 @@ const Seguimiento = () => {
     setSelectedMinuta(null);
   };
 
-  /*useEffect(() => {
-  if (modoEdicion && selectedMinuta) {
-    setOpenConfirmEdit(true);
-  }
-}, [modoEdicion, selectedMinuta]);*/
-
   const handleEdit = () => {
     if (selectedMinuta) {
       setCurrentMinuta(selectedMinuta);
@@ -92,11 +93,6 @@ const Seguimiento = () => {
     } else {
       console.log("No hay minuta para editar");
     }
-  };
-
-  const handleEditMinuta = (minuta) => {
-    setSelectedMinuta(minuta);
-    setModoEdicion(true);
   };
 
   const handleDeleteMinuta = (id) => {
@@ -175,7 +171,7 @@ const Seguimiento = () => {
       </Dialog>
 
       {!soloLectura && puedeEditar && (
-        <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={() => handleOpenForm(null)}>
+        <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleCreateMinuta}>
           <AddIcon />
         </Fab>
       )}
