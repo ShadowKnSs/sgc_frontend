@@ -7,6 +7,9 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Title from '../components/Title';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
+import Permiso from "../hooks/userPermiso";
+
+
 
 
 const FormularioAnalisis = () => {
@@ -14,8 +17,8 @@ const FormularioAnalisis = () => {
 
   const menuItems = useMenuProceso();
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const { soloLectura, puedeEditar } = Permiso("Análisis de Datos");
   const [datosProceso, setDatosProceso] = useState({
     idProceso: null,
     anio: null
@@ -551,25 +554,29 @@ const FormularioAnalisis = () => {
             />
           </Grid>
         </Grid>
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 4 }}>
+        <ButtonInd
+          type="aceptar"
+          onClick={() => navigate(`/indicadores/${datosProceso.idProceso}/${datosProceso.anio}`)}
+          startIcon={<ArrowForwardIosIcon />}
+          disabled={!datosProceso.idProceso || !datosProceso.anio}
+          
+        >
+          Ir a Indicadores
+        </ButtonInd>
+
         {!soloLectura && (
           <ButtonInd
             type="guardar"
-            sx={{ mt: 2, "&:hover": { backgroundColor: "#e6a700" } }}
-            onClick={handleGuardarTodo}          >
+            onClick={handleGuardarTodo}
+          >
             Guardar
           </ButtonInd>
         )}
       </Box>
 
-      <ButtonInd
-        type="secundario"
-        sx={{ mt: 2, ml: 2 }}
-        onClick={() => navigate(`/indicadores/${datosProceso.idProceso}/${datosProceso.anio}`)}
-        startIcon={<ArrowForwardIosIcon />}
-        disabled={!datosProceso.idProceso || !datosProceso.anio}
-      >
-        Ir a Indicadores
-      </ButtonInd>
 
       {/* Notificación (Snackbar) */}
       <Snackbar

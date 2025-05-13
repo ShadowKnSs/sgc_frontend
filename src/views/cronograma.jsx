@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Tooltip, Snackbar, Alert } from "@mui/material";
+import { Box, Dialog, DialogActions, DialogContent,  ListItemText, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Tooltip, Chip, Checkbox } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -40,7 +40,7 @@ function Cronograma() {
   useEffect(() => {
     if (!usuario || !rolActivo?.nombreRol) return;
   
-    // En tu useEffect que carga las auditorías
+    // Carga las auditorías
     const fetchAuditorias = async () => {
       try {
         const response = await axios.post("http://127.0.0.1:8000/api/cronograma/filtrar", {
@@ -48,13 +48,23 @@ function Cronograma() {
           rolActivo: rolActivo.nombreRol
         });
         
-        const auditorias = response.data.map((auditoria) => {
-          // Encuentra el auditor correspondiente
-          const auditor = auditores.find(a => a.idUsuario === auditoria.auditorLider);
-          const nombreAuditor = auditor 
-            ? `${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`
+        const auditorias = await Promise.all(response.data.map(async (auditoria) => {
+          const auditorLider = auditores.find(a => a.idUsuario === auditoria.auditorLider);
+          const nombreLider = auditorLider 
+            ? `${auditorLider.nombre} ${auditorLider.apellidoPat} ${auditorLider.apellidoMat}`
             : "No asignado";
-
+    
+          let auditoresAdicionales = [];
+          try {
+            const resAdicionales = await axios.get(`http://127.0.0.1:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
+            auditoresAdicionales = resAdicionales.data.map(auditor => ({
+              id: auditor.id,
+              nombre: auditor.nombre,
+            }));
+          } catch (error) {
+            console.error("Error al obtener auditores adicionales:", error);
+          }
+    
           return {
             id: auditoria.idAuditoria,
             title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
@@ -66,12 +76,13 @@ function Cronograma() {
             proceso: auditoria.nombreProceso,
             entidad: auditoria.nombreEntidad,
             hora: auditoria.horaProgramada,
-            auditorLider: nombreAuditor, // Usamos el nombre en lugar del ID
-            auditorLiderId: auditoria.auditorLider // Guardamos el ID por si lo necesitas
+            auditorLider: nombreLider,
+            auditorLiderId: auditoria.auditorLider,
+            auditoresAdicionales: auditoresAdicionales
           };
-        });
+        }));
         
-        setEvents([...auditorias]);
+        setEvents(auditorias);
       } catch (error) {
         console.error("❌ Error al obtener las auditorías:", error);
       }
@@ -137,6 +148,7 @@ function Cronograma() {
     estado: "",
     descripcion: "",
     auditorLider: "",
+    auditoresAdicionales: []
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -207,6 +219,7 @@ function Cronograma() {
       estado: selectedEvent.estado,
       descripcion: selectedEvent.descripcion,
       auditorLider: selectedEvent.auditorLiderId || "",
+      auditoresAdicionales: selectedEvent.auditoresAdicionales?.map(a => a.id) || []
     });
     setOpenDetails(false);
     setOpenForm(true);
@@ -216,12 +229,23 @@ function Cronograma() {
   const handleCloseDetails = () => setOpenDetails(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === 'auditoresAdicionales') {
+      setFormData({
+        ...formData,
+        [name]: Array.isArray(value) ? value : [value]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   // Guarda nueva auditoría o actualiza la existente
   const handleSubmit = async () => {
-    // Verificación de que todos los campos sean llenados
     if (
       formData.entidad &&
       formData.proceso &&
@@ -237,37 +261,54 @@ function Cronograma() {
       try {
         if (isEditing) {
           // Edición de un evento existente
-          await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
-            fechaProgramada: formData.fecha,
-            horaProgramada: formData.hora,
-            tipoAuditoria: formData.tipo,
-            estado: formData.estado,
-            descripcion: formData.descripcion,
-            nombreProceso: formData.proceso,
-            nombreEntidad: formData.entidad,
-            auditorLider: formData.auditorLider,
-          });
-  
-          setEvents(prevEvents =>
-            prevEvents.map(event =>
-              event.id === selectedEvent.id
-                ? {
-                    ...event,
-                    start: new Date(`${formData.fecha}T${formData.hora}`),
-                    end: new Date(`${formData.fecha}T${formData.hora}`),
-                    descripcion: formData.descripcion,
-                    estado: formData.estado,
-                    tipo: formData.tipo,
-                    proceso: formData.proceso,
-                    entidad: formData.entidad,
-                    hora: formData.hora,
-                    auditorLider: formData.auditorLider,
-                  }
-                : event
-            )
-          );
-  
-          setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
+          try {
+            await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
+              fechaProgramada: formData.fecha,
+              horaProgramada: formData.hora,
+              tipoAuditoria: formData.tipo,
+              estado: formData.estado,
+              descripcion: formData.descripcion,
+              nombreProceso: formData.proceso,
+              nombreEntidad: formData.entidad,
+              auditorLider: formData.auditorLider,
+            });
+        
+            await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
+              idAuditoria: selectedEvent.id,
+              auditores: formData.auditoresAdicionales
+            });
+        
+            setEvents(prevEvents =>
+              prevEvents.map(event =>
+                event.id === selectedEvent.id
+                  ? {
+                      ...event,
+                      start: new Date(`${formData.fecha}T${formData.hora}`),
+                      end: new Date(`${formData.fecha}T${formData.hora}`),
+                      descripcion: formData.descripcion,
+                      estado: formData.estado,
+                      tipo: formData.tipo,
+                      proceso: formData.proceso,
+                      entidad: formData.entidad,
+                      hora: formData.hora,
+                      auditorLider: formData.auditorLider,
+                      auditoresAdicionales: formData.auditoresAdicionales.map(id => {
+                        const auditor = auditores.find(a => a.idUsuario === id);
+                        return {
+                          id,
+                          nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
+                        };
+                      })
+                    }
+                  : event
+              )
+            );
+        
+            setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
+          } catch (error) {
+            console.error("Error al actualizar auditoría:", error);
+            setSnackbar({ open: true, message: "Error al actualizar auditoría", severity: "error" });
+          }
         } else {
           // Creación de una nueva auditoría
           const response = await axios.post("http://127.0.0.1:8000/api/cronograma", {
@@ -280,7 +321,24 @@ function Cronograma() {
             nombreEntidad: formData.entidad,
             auditorLider: formData.auditorLider, 
           });
-  
+
+          const auditoresAdicionales = formData.auditoresAdicionales?.length > 0 
+            ? formData.auditoresAdicionales.map(id => {
+                const auditor = auditores.find(a => a.idUsuario === id);
+                return {
+                  id,
+                  nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
+                };
+              })
+            : [];
+
+          if (formData.auditoresAdicionales?.length > 0) {
+            await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
+              idAuditoria: response.data.auditoria.idAuditoria,
+              auditores: formData.auditoresAdicionales
+            });
+          }
+
           const nuevaAuditoria = {
             id: response.data.auditoria.idAuditoria,
             title: `${response.data.auditoria.nombreProceso} - ${response.data.auditoria.tipoAuditoria}`,
@@ -293,10 +351,18 @@ function Cronograma() {
             entidad: response.data.auditoria.nombreEntidad,
             hora: response.data.auditoria.horaProgramada,
             auditorLider: response.data.auditoria.auditorLider,
+            auditorLiderId: response.data.auditoria.auditorLider,
+            auditoresAdicionales: auditoresAdicionales
           };
-  
+
           setEvents(prev => [...prev, nuevaAuditoria]);
-          setSnackbar({ open: true, message: "Auditoría creada correctamente.", severity: "success" });
+          setSnackbar({ 
+            open: true, 
+            message: formData.auditoresAdicionales?.length > 0 
+              ? "Auditoría creada con auditores asignados correctamente" 
+              : "Auditoría creada correctamente", 
+            severity: "success" 
+          });
         }
   
         // Reiniciar el formulario
@@ -306,9 +372,10 @@ function Cronograma() {
           fecha: "",
           hora: "",
           tipo: "",
-          estado: "",
+          estado: "Pendiente",
           descripcion: "",
           auditorLider: "",
+          auditoresAdicionales: []
         });
   
         handleCloseForm();
@@ -399,90 +466,22 @@ function Cronograma() {
         </Box>
       )}
 
-      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <DialogTitleCustom 
-            title={isEditing ? "Editar Auditoría" : "Crear Auditoría"} 
-            subtitle=""
-          />
-        </Box>
-        <DialogContent>
-          <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%" }}>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Entidad</InputLabel>
-              <Select name="entidad" value={formData.entidad} onChange={handleChange}>
-                {entidades.length > 0 ? (
-                  entidades.map((entidad, index) => (
-                    <MenuItem key={index} value={entidad}>
-                      {entidad}
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem value="">Cargando...</MenuItem>
-                )}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Proceso</InputLabel>
-              <Select name="proceso" value={formData.proceso} onChange={handleChange}>
-                {procesos.length > 0 ? (
-                  procesos.map((proceso, index) => (
-                    <MenuItem key={index} value={proceso}>
-                      {proceso}
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem value="">Cargando...</MenuItem>
-                )}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%", mt: 2 }}>
-            <TextField
-              margin="dense"
-              label="Fecha"
-              name="fecha"
-              type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={formData.fecha}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Hora"
-              name="hora"
-              type="time"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={formData.hora}
-              onChange={handleChange}
-            />
-          </Box>
-          <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%", mt: 2 }}>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Tipo de Auditoría</InputLabel>
-              <Select name="tipo" value={formData.tipo} onChange={handleChange}>
-                <MenuItem value="interna">Interna</MenuItem>
-                <MenuItem value="externa">Externa</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Estado</InputLabel>
-              <Select name="estado" value={formData.estado} onChange={handleChange} disabled={!isEditing}>
-                <MenuItem value="Pendiente">Pendiente</MenuItem>
-                <MenuItem value="Finalizada">Finalizada</MenuItem>
-                <MenuItem value="Cancelada">Cancelada</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+    <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <DialogTitleCustom 
+          title={isEditing ? "Editar Auditoría" : "Crear Auditoría"} 
+          subtitle=""
+        />
+      </Box>
+      <DialogContent>
+        <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%" }}>
           <FormControl fullWidth margin="dense">
-            <InputLabel>Líder Auditor</InputLabel>
-            <Select name="auditorLider" value={formData.auditorLider} onChange={handleChange}>
-              {auditores.length > 0 ? (
-                auditores.map((auditor) => (
-                  <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
-                    {`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
+            <InputLabel>Entidad</InputLabel>
+            <Select name="entidad" value={formData.entidad} onChange={handleChange}>
+              {entidades.length > 0 ? (
+                entidades.map((entidad, index) => (
+                  <MenuItem key={index} value={entidad}>
+                    {entidad}
                   </MenuItem>
                 ))
               ) : (
@@ -490,66 +489,229 @@ function Cronograma() {
               )}
             </Select>
           </FormControl>
-
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Proceso</InputLabel>
+            <Select name="proceso" value={formData.proceso} onChange={handleChange}>
+              {procesos.length > 0 ? (
+                procesos.map((proceso, index) => (
+                  <MenuItem key={index} value={proceso}>
+                    {proceso}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="">Cargando...</MenuItem>
+              )}
+            </Select>
+          </FormControl>
+        </Box>
+        <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%", mt: 2 }}>
           <TextField
             margin="dense"
-            label="Descripción"
-            name="descripcion"
+            label="Fecha"
+            name="fecha"
+            type="date"
             fullWidth
-            multiline
-            rows={3}
-            value={formData.descripcion}
+            InputLabelProps={{ shrink: true }}
+            value={formData.fecha}
             onChange={handleChange}
-            sx={{ mt: 2 }}
           />
-        </DialogContent>
-
-        <DialogActions>
-          <CustomButton type="cancelar" onClick={handleCloseForm} disabled={loading}>
-            Cancelar
-          </CustomButton>
-          <CustomButton type="guardar" onClick={handleSubmit} disabled={loading}>
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              isEditing ? "Guardar Cambios" : "Agregar"
-            )}
-          </CustomButton>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openDetails} onClose={handleCloseDetails}>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <DialogTitleCustom 
-            title="Detalles de la Auditoría"
-            subtitle=""
+          <TextField
+            margin="dense"
+            label="Hora"
+            name="hora"
+            type="time"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={formData.hora}
+            onChange={handleChange}
           />
         </Box>
-        <DialogContent>
-          {selectedEvent && (
-            <>
-              <Typography><strong>Entidad:</strong> {selectedEvent.entidad}</Typography>
-              <Typography><strong>Proceso:</strong> {selectedEvent.proceso}</Typography>
-              <Typography><strong>Fecha:</strong> {moment(selectedEvent.start).format("LL")}</Typography>
-              <Typography><strong>Hora:</strong> {selectedEvent.hora}</Typography>
-              <Typography><strong>Tipo:</strong> {selectedEvent.tipo}</Typography>
-              <Typography><strong>Estado:</strong> {selectedEvent.estado}</Typography>
-              <Typography><strong>Descripción:</strong> {selectedEvent.descripcion || "Sin descripción"}</Typography>
-              <Typography><strong>Auditor Líder:</strong> {selectedEvent.auditorLider || "No asignado"}</Typography>
-            </>
+        <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%", mt: 2 }}>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Tipo de Auditoría</InputLabel>
+            <Select name="tipo" value={formData.tipo} onChange={handleChange}>
+              <MenuItem value="interna">Interna</MenuItem>
+              <MenuItem value="externa">Externa</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Estado</InputLabel>
+            <Select name="estado" value={formData.estado} onChange={handleChange} disabled={!isEditing}>
+              <MenuItem value="Pendiente">Pendiente</MenuItem>
+              <MenuItem value="Finalizada">Finalizada</MenuItem>
+              <MenuItem value="Cancelada">Cancelada</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Líder Auditor</InputLabel>
+          <Select 
+            name="auditorLider" 
+            value={formData.auditorLider} 
+            onChange={handleChange}
+            required
+          >
+            {auditores.length > 0 ? (
+              auditores.map((auditor) => (
+                <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
+                  {`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem value="">Cargando...</MenuItem>
+            )}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth margin="dense" sx={{ mt: 2 }}>
+          <InputLabel>Auditores Adicionales (Opcional)</InputLabel>
+          <Select
+            multiple
+            name="auditoresAdicionales"
+            value={formData.auditoresAdicionales || []}
+            onChange={handleChange}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {(selected || []).map((id) => {
+                  const auditor = auditores.find(a => a.idUsuario === id);
+                  return auditor ? (
+                    <Chip 
+                      key={id} 
+                      label={`${auditor.nombre} ${auditor.apellidoPat}`} 
+                      size="small"
+                      sx={{ margin: '2px' }}
+                    />
+                  ) : null;
+                })}
+              </Box>
+            )}
+          >
+            {auditores
+              .filter(a => formData.auditorLider ? a.idUsuario !== formData.auditorLider : true)
+              .map((auditor) => (
+                <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
+                  <Checkbox 
+                    checked={(formData.auditoresAdicionales || []).includes(auditor.idUsuario)} 
+                  />
+                  <ListItemText 
+                    primary={`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`} 
+                  />
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+
+        <TextField
+          margin="dense"
+          label="Descripción"
+          name="descripcion"
+          fullWidth
+          multiline
+          rows={3}
+          value={formData.descripcion}
+          onChange={handleChange}
+          sx={{ mt: 2 }}
+        />
+      </DialogContent>
+
+      <DialogActions>
+        <CustomButton type="cancelar" onClick={handleCloseForm} disabled={loading}>
+          Cancelar
+        </CustomButton>
+        <CustomButton type="guardar" onClick={handleSubmit} disabled={loading}>
+          {loading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            isEditing ? "Guardar Cambios" : "Agregar"
           )}
-        </DialogContent>
-        <DialogActions>
-          <CustomButton type="cancelar" onClick={handleCloseDetails}>
-            Cerrar
+        </CustomButton>
+      </DialogActions>
+    </Dialog>
+
+    <Dialog open={openDetails} onClose={handleCloseDetails} maxWidth="sm" fullWidth>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <DialogTitleCustom 
+          title="Detalles de la Auditoría"
+        />
+      </Box>
+      <DialogContent dividers>
+        {selectedEvent && (
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'max-content 1fr', 
+            gap: 2,
+            alignItems: 'center'
+          }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Entidad:</Typography>
+            <Typography>{selectedEvent.entidad}</Typography>
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Proceso:</Typography>
+            <Typography>{selectedEvent.proceso}</Typography>
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Fecha:</Typography>
+            <Typography>{moment(selectedEvent.start).format("LL")}</Typography>
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Hora:</Typography>
+            <Typography>{selectedEvent.hora}</Typography>
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Tipo:</Typography>
+            <Typography textTransform="capitalize">{selectedEvent.tipo}</Typography>
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Estado:</Typography>
+            <Typography sx={{ 
+              color: selectedEvent.estado === 'Finalizada' ? 'success.main' : 
+                    selectedEvent.estado === 'Cancelada' ? 'error.main' : 'info.main',
+              fontWeight: 500
+            }}>
+              {selectedEvent.estado}
+            </Typography>
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+              Auditor Líder:
+            </Typography>
+            <Typography>
+              {typeof selectedEvent.auditorLider === 'number'
+                ? (() => {
+                    const auditor = auditores.find(a => a.idUsuario === selectedEvent.auditorLider);
+                    return auditor 
+                      ? `${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}` 
+                      : "No asignado";
+                  })()
+                : selectedEvent.auditorLider || "No asignado"}
+            </Typography>
+
+            {selectedEvent.auditoresAdicionales?.length > 0 && (
+              <>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', alignSelf: 'start' }}>Auditores Adicionales:</Typography>
+                <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                  {selectedEvent.auditoresAdicionales.map((auditor, index) => (
+                    <Typography component="li" key={index}>
+                      {auditor.nombre}
+                    </Typography>
+                  ))}
+                </Box>
+              </>
+            )}
+            
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', alignSelf: 'start' }}>Descripción:</Typography>
+            <Typography sx={{ whiteSpace: 'pre-line' }}>
+              {selectedEvent.descripcion || "Sin descripción"}
+            </Typography>
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <CustomButton type="cancelar" onClick={handleCloseDetails}>
+          Cerrar
+        </CustomButton>
+        {permiteAcciones() && (
+          <CustomButton type="aceptar" onClick={handleEdit}>
+            Editar
           </CustomButton>
-          {permiteAcciones() && (
-            <CustomButton type="aceptar" onClick={handleEdit}>
-              Editar
-            </CustomButton>
-          )}
-        </DialogActions>
-      </Dialog>
+        )}
+      </DialogActions>
+    </Dialog>
 
       <FeedbackSnackbar
         open={snackbar.open}

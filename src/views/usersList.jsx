@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Box, Fab, CircularProgress, Alert } from "@mui/material";
+import { Box, Fab, CircularProgress, Alert, Typography, Grid } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import UserCard from "../components/userCard";
+import UserTempCard from "../components/userTempCard";
 import UserForm from "../components/userForms";
 import ConfirmDelete from "../components/confirmDelete";
 import axios from "axios";
+import Title from "../components/Title";
+import Button from "../components/Button";
 
 const API_URL = 'http://127.0.0.1:8000/api';
 
@@ -16,6 +19,8 @@ function UserManagement() {
     const [editingUser, setEditingUser] = useState(null);
     const [openDelete, setOpenDelete] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
+    const [usuariosTemporales, setUsuariosTemporales] = useState([]);
+
 
     const fetchUsers = async () => {
         try {
@@ -31,6 +36,29 @@ function UserManagement() {
         }
     };
 
+
+    const fetchUsuariosTemporales = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/usuarios-temporales`);
+            setUsuariosTemporales(res.data);
+        } catch (err) {
+            console.error('Error al cargar usuarios temporales');
+        }
+    };
+
+    const handleEliminarYActualizar = async () => {
+    try {
+        const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
+        alert(res.data.message);
+        await fetchUsuariosTemporales(); // Refresca sin recargar
+    } catch (err) {
+        console.error("Error al eliminar tokens:", err);
+        alert("Error al eliminar tokens expirados");
+    }
+};
+
+
+
     const transformUserData = (user) => {
         return {
             id: user.idUsuario,
@@ -40,7 +68,7 @@ function UserManagement() {
             email: user.correo,
             phone: user.telefono,
             academicDegree: user.gradoAcademico,
-            roles: [user.tipo_usuario?.nombreRol],
+            roles: Array.isArray(user.roles) ? user.roles.map(r => r.nombreRol) : [], // ✅ CAMBIO AQUÍ
             supervisor: user.supervisor ? {
                 id: user.supervisor.idUsuario,
                 firstName: user.supervisor.nombre,
@@ -50,8 +78,10 @@ function UserManagement() {
         };
     };
 
+
     useEffect(() => {
         fetchUsers();
+        fetchUsuariosTemporales();
     }, []);
 
     const handleAddUser = (usuarioGuardado) => {
@@ -122,6 +152,35 @@ function UserManagement() {
                             />
                         ))}
                     </Box>
+                    {usuariosTemporales.length > 0 && (
+                        <>
+                            <Title text="Usuarios Temporales" />
+
+                            <Grid container spacing={3}>
+                                {usuariosTemporales.map((temp) => (
+                                    <Grid item xs={12} sm={6} md={4} key={temp.idToken}>
+                                        <UserTempCard tempUser={temp} />
+                                    </Grid>
+                                ))}
+                            </Grid>
+
+                            <Box mt={4} display="flex" justifyContent="center">
+                                <Button
+                                    type="eliminar"
+                                    onClick={handleEliminarYActualizar}
+                                >
+                                    Eliminar Tokens Expirados
+                                </Button>
+                            </Box>
+                        </>
+                    )}
+
+
+                    {usuariosTemporales.length === 0 && (
+                        <Typography variant="body2" color="text.secondary" mt={2}>
+                            No hay usuarios temporales activos.
+                        </Typography>
+                    )}
 
                     <Fab
                         color="primary"
@@ -131,7 +190,10 @@ function UserManagement() {
                         <Add />
                     </Fab>
                 </>
+
             )}
+
+
 
             <UserForm
                 open={openForm}

@@ -14,20 +14,30 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
   Modal,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  
-  DialogActions,
 } from "@mui/material";
 import axios from "axios";
 import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import FeedbackSnackbar from "../components/Feedback";
+import Title from "../components/Title";
+import CustomButton from "../components/Button";
+import TitleDialog from "../components/TitleDialog";
+import ConfirmDelete from "../components/confirmDelete";
+import ConfirmEdit from "../components/confirmEdit";
 import useMenuProceso from "../hooks/useMenuProceso";
+import Permiso from "../hooks/userPermiso";
+import BusinessIcon from '@mui/icons-material/Business';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import SettingsIcon from '@mui/icons-material/Settings';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import { Fade } from '@mui/material';
+
+
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
 
@@ -35,10 +45,18 @@ function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
   const { idRegistro } = useParams();
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const { soloLectura, puedeEditar } = Permiso("Gestión de Riesgo");
   const [modoEdicion, setModoEdicion] = useState(false);
   const menuItems = useMenuProceso();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
+
 
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
@@ -69,6 +87,7 @@ function FormularioGestionRiesgos() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingRiesgo, setEditingRiesgo] = useState(null);
 
+
   // 7) Nuevo riesgo
   const [nuevoRiesgo, setNuevoRiesgo] = useState({
     idRiesgo: null,
@@ -94,7 +113,18 @@ function FormularioGestionRiesgos() {
   // 8) Confirmar eliminación
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
-  
+
+
+  // Funcion para mostrar snackbar (FeedBack)
+  const mostrarSnackbar = (type, title, message) => {
+    setSnackbar({ open: true, type, title, message });
+  };
+
+  const cerrarSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+
   const fetchIdRegistro = async () => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistroGR`, {
@@ -102,9 +132,9 @@ function FormularioGestionRiesgos() {
           idRegistro
         }
       });
-      
+
       if (response.data.idRegistro) {
-        
+
         // Actualiza formData con los datos del proceso si vienen en la respuesta
         if (response.data.proceso) {
           setGestionRiesgo(prev => ({
@@ -184,17 +214,17 @@ function FormularioGestionRiesgos() {
 
 
   useEffect(() => {
-      const loadData = async () => {
-        const registroId = await fetchIdRegistro();
-        if (registroId) {
-          await fetchFormData(registroId);
-        } else {
+    const loadData = async () => {
+      const registroId = await fetchIdRegistro();
+      if (registroId) {
+        await fetchFormData(registroId);
+      } else {
 
-        }
-      };
-  
-      loadData();
-    }, [idRegistro]);
+      }
+    };
+
+    loadData();
+  }, [idRegistro]);
 
   // --------------------------------------------------------------------------
   // Función para cargar la lista de riesgos cuando tengamos idGesRies
@@ -257,7 +287,7 @@ function FormularioGestionRiesgos() {
         analisisEfectividad: item.analisisEfectividad,
       })),
     };
-};
+  };
 
   // --------------------------------------------------------------------------
   // Handler para GUARDAR la info general en la tabla gestionriesgos
@@ -266,7 +296,8 @@ function FormularioGestionRiesgos() {
     console.log("[LOG] handleGuardarGestionRiesgos -> gestionRiesgo actual:", gestionRiesgo);
 
     if (!idRegistro) {
-      alert("No hay idRegistro, no se puede guardar en gestionriesgos.");
+      mostrarSnackbar("error", "Registro faltante", "No hay idRegistro, no se puede guardar.");
+
       return;
     }
 
@@ -282,8 +313,9 @@ function FormularioGestionRiesgos() {
       const payload = {
         idRegistro: idRegistro,
         elaboro: gestionRiesgo.elaboro,
-        fechaelaboracion: gestionRiesgo.fechaelaboracion,
+        fechaelaboracion: new Date().toISOString().split("T")[0],
       };
+
 
       console.log(`[LOG] Enviando ${method} a ${url} con payload:`, payload);
 
@@ -299,13 +331,14 @@ function FormularioGestionRiesgos() {
       }
 
       const result = await response.json();
-      console.log("[LOG] gestionriesgos guardado/actualizado:", result);
-
-      setGestionRiesgo((prev) => ({
+      setGestionRiesgo(prev => ({
         ...prev,
         idGesRies: result.idGesRies,
+        fechaelaboracion: result.fechaelaboracion,
       }));
+      setModoEdicion(false);
       setTieneGesRies(true);
+
 
       if (!tieneGesRies) {
         // Significa que era la primera vez
@@ -313,10 +346,12 @@ function FormularioGestionRiesgos() {
         cargarRiesgos(result.idGesRies);
       }
 
-      alert("Datos generales guardados correctamente.");
+      mostrarSnackbar("success", "Guardado", "Datos generales guardados correctamente.");
+
     } catch (err) {
       console.error("[ERROR] al guardar la información general:", err);
-      alert("Error al guardar la información general.");
+      mostrarSnackbar("error", "Error", "Error al guardar la información general.");
+
     }
   };
 
@@ -329,6 +364,18 @@ function FormularioGestionRiesgos() {
   };
 
   // --------------------------------------------------------------------------
+  // Handler para abirir modal
+  // --------------------------------------------------------------------------
+  const handleRequestEditRiesgo = () => {
+    if (isEditing) {
+      setConfirmEditOpen(true); // Mostrar modal de confirmación
+    } else {
+      handleGuardarRiesgo(); // Si es nuevo, guarda directo
+    }
+  };
+
+
+  // --------------------------------------------------------------------------
   // Handler para CREAR/EDITAR un riesgo
   // --------------------------------------------------------------------------
   const handleGuardarRiesgo = async () => {
@@ -336,13 +383,13 @@ function FormularioGestionRiesgos() {
     console.log("[LOG] handleGuardarRiesgo -> nuevoRiesgo actual:", nuevoRiesgo);
 
     if (!gestionRiesgo.idGesRies) {
-      alert("No se ha guardado la información general (idGesRies es null).");
+      mostrarSnackbar("warning", "Falta información general", "Primero guarda los datos generales.");
       return;
     }
 
     // Validar campos mínimos
     if (!nuevoRiesgo.tipoRiesgo || !nuevoRiesgo.descripcion) {
-      alert("Faltan campos obligatorios (tipoRiesgo, descripción).");
+      mostrarSnackbar("warning", "Campos requeridos", "Tipo de Riesgo y Descripción son obligatorios.");
       return;
     }
 
@@ -383,6 +430,8 @@ function FormularioGestionRiesgos() {
         setSavedData(organizarRiesgos(newList));
       }
 
+      mostrarSnackbar("success", "Riesgo guardado", isEditing ? "Riesgo actualizado correctamente." : "Riesgo agregado correctamente.");
+
       // Reset modal
       setOpenModal(false);
       setCurrentSection(0);
@@ -392,7 +441,7 @@ function FormularioGestionRiesgos() {
       cargarRiesgos(gestionRiesgo.idGesRies);
     } catch (err) {
       console.error("[ERROR] al crear/editar el riesgo:", err);
-      alert("Error al crear/editar el riesgo.");
+      mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar el riesgo.");
     }
   };
 
@@ -401,11 +450,8 @@ function FormularioGestionRiesgos() {
   // --------------------------------------------------------------------------
   const handleEditRiesgo = (riesgo) => {
     console.log("[LOG] handleEditRiesgo -> riesgo a editar:", riesgo);
-    setIsEditing(true);
     setEditingRiesgo(riesgo);
-    setNuevoRiesgo(riesgo);
-    setCurrentSection(0);
-    setOpenModal(true);
+    setConfirmEditOpen(true);
   };
 
   // --------------------------------------------------------------------------
@@ -435,7 +481,7 @@ function FormularioGestionRiesgos() {
       setSavedData(organizarRiesgos(updated));
     } catch (err) {
       console.error("[ERROR] al eliminar riesgo:", err);
-      alert("No se pudo eliminar el riesgo.");
+      mostrarSnackbar("error", "Error", "Ocurrió un problema al eliminar el riesgo.");
     } finally {
       setDeleteDialogOpen(false);
       setRowToDelete(null);
@@ -458,21 +504,19 @@ function FormularioGestionRiesgos() {
   };
 
   const renderModalSection = () => {
-    
+
     switch (currentSection) {
       case 0:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Identificación
-            </Typography>
+
             <TextField
               label="Fuente"
               name="fuente"
               value={nuevoRiesgo.fuente}
               onChange={handleRiesgoChange}
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
               label="Tipo de Riesgo"
@@ -488,6 +532,8 @@ function FormularioGestionRiesgos() {
               value={nuevoRiesgo.descripcion}
               onChange={handleRiesgoChange}
               fullWidth
+              multiline
+              minRows={3}
               sx={{ mb: 2 }}
             />
           </>
@@ -495,16 +541,14 @@ function FormularioGestionRiesgos() {
       case 1:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Análisis
-            </Typography>
+
             <TextField
               label="Consecuencias"
               name="consecuencias"
               value={nuevoRiesgo.consecuencias}
               onChange={handleRiesgoChange}
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
               label="Severidad"
@@ -527,7 +571,7 @@ function FormularioGestionRiesgos() {
             <TextField
               label="NRP"
               name="valorNRP"
-              value={nuevoRiesgo.valorNRP=(nuevoRiesgo.valorOcurrencia*nuevoRiesgo.valorSeveridad)}
+              value={nuevoRiesgo.valorNRP = (nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad)}
               onChange={handleRiesgoChange}
               type="number"
               fullWidth
@@ -539,16 +583,16 @@ function FormularioGestionRiesgos() {
       case 2:
         return (
           <>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              Tratamiento
-            </Typography>
+
             <TextField
               label="Actividades"
               name="actividades"
               value={nuevoRiesgo.actividades}
               onChange={handleRiesgoChange}
               fullWidth
-              sx={{ mb: 2 }}
+              multiline
+              minRows={3}
+              sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
               label="Acción de Mejora"
@@ -591,62 +635,59 @@ function FormularioGestionRiesgos() {
       case 3:
         return (
           <>
-          <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-            Evaluación de Efectividad
-          </Typography>
-          
-          <TextField
-            label="Reevaluación Severidad"
-            name="reevaluacionSeveridad"
-            value={nuevoRiesgo.reevaluacionSeveridad}
-            onChange={handleRiesgoChange}
-            type="number"
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          
-          <TextField
-            label="Reevaluación Ocurrencia"
-            name="reevaluacionOcurrencia"
-            value={nuevoRiesgo.reevaluacionOcurrencia}
-            onChange={handleRiesgoChange}
-            type="number"
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          
-          <TextField
-            label="Reevaluación NRP"
-            name="reevaluacionNRP"
-            value={nuevoRiesgo.reevaluacionNRP = (nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad)}
-            onChange={handleRiesgoChange}
-            type="number"
-            fullWidth
-            sx={{ mb: 2 }}
-            disabled
-          />
 
-          <TextField
-            label="Reevaluación Efectividad"
-            name="reevaluacionEfectividad"
-            value={nuevoRiesgo.reevaluacionEfectividad=
-              (nuevoRiesgo.reevaluacionNRP < nuevoRiesgo.valorNRP
-                ? "Mejoró"
-                : "No mejoró")
-            }
-            fullWidth
-            sx={{ mb: 2 }}
-          />
+            <TextField
+              label="Reevaluación Severidad"
+              name="reevaluacionSeveridad"
+              value={nuevoRiesgo.reevaluacionSeveridad}
+              onChange={handleRiesgoChange}
+              type="number"
+              fullWidth
+              sx={{ mb: 2, marginTop: 2 }}
+            />
 
-          <TextField
-            label="Análisis de Efectividad"
-            name="analisisEfectividad"
-            value={nuevoRiesgo.analisisEfectividad}
-            onChange={handleRiesgoChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-        </>
+            <TextField
+              label="Reevaluación Ocurrencia"
+              name="reevaluacionOcurrencia"
+              value={nuevoRiesgo.reevaluacionOcurrencia}
+              onChange={handleRiesgoChange}
+              type="number"
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              label="Reevaluación NRP"
+              name="reevaluacionNRP"
+              value={nuevoRiesgo.reevaluacionNRP = (nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad)}
+              onChange={handleRiesgoChange}
+              type="number"
+              fullWidth
+              sx={{ mb: 2 }}
+              disabled
+            />
+
+            <TextField
+              label="Reevaluación Efectividad"
+              name="reevaluacionEfectividad"
+              value={nuevoRiesgo.reevaluacionEfectividad =
+                (nuevoRiesgo.reevaluacionNRP < nuevoRiesgo.valorNRP
+                  ? "Mejoró"
+                  : "No mejoró")
+              }
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              label="Análisis de Efectividad"
+              name="analisisEfectividad"
+              value={nuevoRiesgo.analisisEfectividad}
+              onChange={handleRiesgoChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+          </>
 
         );
       default:
@@ -654,71 +695,111 @@ function FormularioGestionRiesgos() {
     }
   };
 
+  const valorNRP = nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad || "";
+  const reevaluacionNRP = nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad || "";
+  const reevaluacionEfectividad = reevaluacionNRP < valorNRP ? "Mejoró" : "No mejoró";
+
   return (
-    
+
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
-      <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-        Gestión de Riesgos: {gestionRiesgo.proceso}
-      </Typography>
+      <Title text="Gestión de Riesgos"></Title>
 
       <MenuNavegacionProceso items={menuItems} />
 
       {/* === Sección de Info General (gestionriesgos) === */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-          Información General
-        </Typography>
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          {/* Entidad, macroproceso y proceso (solo lectura si deseas) */}
-          <TextField
-            label="Entidad"
-            value={gestionRiesgo.entidad}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, entidad: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Macroproceso"
-            value={gestionRiesgo.macroproceso}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, macroproceso: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Proceso"
-            value={gestionRiesgo.proceso}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, proceso: e.target.value })}
-            fullWidth
-          />
-          {/* elaboro y fechaelaboracion (el usuario los edita) */}
-          <TextField
-            label="Elaboró"
-            value={gestionRiesgo.elaboro}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Fecha"
-            type="date"
-            value={gestionRiesgo.fechaelaboracion}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, fechaelaboracion: e.target.value })}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-        </Box>
+      <Fade in timeout={600}>
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+            Información General
+          </Typography>
 
-        {puedeEditar && (
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            {!tieneGesRies ? (
-              <Button variant="contained" onClick={handleGuardarGestionRiesgos}>Guardar Datos Generales</Button>
-            ) : (
-              !modoEdicion ? (
-                <Button variant="outlined" onClick={() => setModoEdicion(true)}>Editar</Button>
-              ) : (
-                <Button variant="contained" onClick={handleGuardarGestionRiesgos} sx={{ backgroundColor: "#F9B800", color: "#000" }}>Guardar</Button>
-              )
-            )}
+          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+            {/* ENTIDAD */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <BusinessIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Entidad
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.entidad || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* MACROPROCESO */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <AccountTreeIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Macroproceso
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.macroproceso || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* PROCESO */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SettingsIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Proceso
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.proceso || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* FECHA AUTOMÁTICA */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <EventNoteIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Fecha de elaboración
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.fechaelaboracion}</Typography>
+            </Box>
+
+            {/* ELABORÓ (único editable) */}
+            <Box sx={{ display: "flex", flexDirection: "column", gridColumn: "1 / -1" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <EditNoteIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Elaboró
+                </Typography>
+              </Box>
+              <TextField
+                value={gestionRiesgo.elaboro}
+                onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })}
+                fullWidth
+                disabled={!modoEdicion}
+                sx={{ mt: 1 }}
+              />
+            </Box>
           </Box>
-        )}
-      </Paper>
+
+          {/* Botones de acción */}
+          {puedeEditar && (
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              {!tieneGesRies ? (
+                <CustomButton onClick={handleGuardarGestionRiesgos}>
+                  Guardar Datos Generales
+                </CustomButton>
+
+              ) : (
+                !modoEdicion ? (
+                  <CustomButton type="cancelar" onClick={() => setModoEdicion(true)}>
+                    Editar
+                  </CustomButton>) : (
+                  <CustomButton type="guardar" onClick={handleGuardarGestionRiesgos}>
+                    Guardar
+                  </CustomButton>
+
+                )
+              )}
+            </Box>
+          )}
+        </Paper>
+      </Fade>
+
 
       {/* === Tabs para los riesgos (solo si ya existe idGesRies) === */}
       {tieneGesRies && gestionRiesgo.idGesRies && (
@@ -791,23 +872,43 @@ function FormularioGestionRiesgos() {
               <TableBody>
                 {savedData[selectedTab]?.map((row, index) => (
                   <TableRow key={index}>
-                    {Object.values(row).map((value, i) => (
-                      <TableCell key={i} align="center" sx={{ borderBottom: "1px solid #e0e0e0" }}>
-                        {value}
-                      </TableCell>
-                    ))}
+                    {Object.entries(row).map(([key, value], i) => {
+                      const isEfectividad = key.toLowerCase().includes("efectividad");
+
+                      let bgColor = "transparent";
+                      if (isEfectividad && typeof value === "string") {
+                        const lowerValue = value?.toLowerCase().trim();
+                        if (lowerValue === "mejoró") bgColor = "#C8E6C9"; // verde
+                        else if (lowerValue === "no mejoró") bgColor = "#FFCDD2"; // rojo
+                      }
+
+                      return (
+                        <TableCell
+                          key={i}
+                          align="center"
+                          sx={{
+                            borderBottom: "1px solid #e0e0e0",
+                            bgcolor: bgColor,
+                            fontWeight: isEfectividad ? 600 : "normal",
+                          }}
+                        >
+                          {value}
+                        </TableCell>
+                      );
+                    })}
+
                     {!soloLectura && (
                       <TableCell align="center">
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleEditRiesgo(riesgos[index])} 
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditRiesgo(riesgos[index])}
                           sx={{ mr: 1 }}
                         >
                           <EditIcon />
                         </IconButton>
 
-                        <IconButton 
-                          color="error" 
+                        <IconButton
+                          color="error"
                           onClick={() => handleDeleteRiesgo(riesgos[index])}
                         >
                           <DeleteIcon />
@@ -824,8 +925,7 @@ function FormularioGestionRiesgos() {
           {/* Botón para abrir el modal y agregar un riesgo nuevo */}
           {!soloLectura && (
             <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-              <Button
-                variant="contained"
+              <CustomButton
                 onClick={() => {
                   setOpenModal(true);
                   setIsEditing(false);
@@ -857,6 +957,7 @@ function FormularioGestionRiesgos() {
                   borderRadius: "50%",
                   fontSize: 30,
                   minWidth: "auto",
+                  position: "relative",
                   backgroundColor: "#00B2E3",
                   "&:hover": {
                     backgroundColor: "#0099C3",
@@ -864,7 +965,7 @@ function FormularioGestionRiesgos() {
                 }}
               >
                 +
-              </Button>
+              </CustomButton>
             </Box>
           )}
         </>
@@ -880,6 +981,7 @@ function FormularioGestionRiesgos() {
           setEditingRiesgo(null);
         }}
       >
+
         <Box
           sx={{
             position: "absolute",
@@ -893,46 +995,91 @@ function FormularioGestionRiesgos() {
             borderRadius: 3,
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
-            {isEditing ? "Editar Riesgo" : "Agregar Riesgo"}
-          </Typography>
+
+          <IconButton
+            onClick={() => {
+              setOpenModal(false);
+              setCurrentSection(0);
+              setIsEditing(false);
+              setEditingRiesgo(null);
+            }}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              color: "#999",
+              "&:hover": {
+                color: "#333",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+
+          <TitleDialog
+            title={isEditing ? "Editar Riesgo" : "Nuevo Riesgo"}
+            subtitle={sections[currentSection]}
+          />
           {renderModalSection()}
 
-          <Box mt={2} display="flex" justifyContent="space-between">
+          <Box mt={2} display="flex" justifyContent={currentSection === 0 ? "flex-end" : "space-between"}>
             {currentSection > 0 && (
-              <Button variant="contained" onClick={handlePreviousSection}>
+              <CustomButton type="cancelar" onClick={handlePreviousSection}>
                 Anterior
-              </Button>
+              </CustomButton>
             )}
+
             {currentSection < 3 ? (
-              <Button variant="contained" onClick={handleNextSection}>
+              <CustomButton type="aceptar" onClick={handleNextSection}>
                 Siguiente
-              </Button>
+              </CustomButton>
             ) : (
-              <Button variant="contained" onClick={handleGuardarRiesgo}>
+              <CustomButton type="guardar" onClick={handleRequestEditRiesgo}>
                 {isEditing ? "Actualizar" : "Guardar"}
-              </Button>
+              </CustomButton>
             )}
           </Box>
         </Box>
+
       </Modal>
 
+      {/* SnackBars */}
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={cerrarSnackbar}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
+      />
+
       {/* Diálogo de confirmación para eliminar */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Confirmar Eliminación</DialogTitle>
-        <DialogContent>
-          <Typography>¿Estás seguro de que deseas eliminar este riesgo?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={confirmDeleteRiesgo} color="error">
-            Eliminar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDelete
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        entityType="riesgo"
+        entityName={`el riesgo ${rowToDelete?.fuente}`}
+        onConfirm={confirmDeleteRiesgo}
+      />
+
+      <ConfirmEdit
+        open={confirmEditOpen}
+        onClose={() => setConfirmEditOpen(false)}
+        entityType="riesgo"
+        entityName={` el riesgo ${editingRiesgo?.fuente}`}
+        onConfirm={() => {
+          setNuevoRiesgo(editingRiesgo);
+          setIsEditing(true);
+          setCurrentSection(0);
+          setOpenModal(true);
+          setConfirmEditOpen(false); // opcional pero recomendable para limpiar estado
+        }}
+      />
+
+
     </Box>
+
+
   );
 }
 

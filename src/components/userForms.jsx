@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogActions, TextField, FormControl, InputLabe
 import ConfirmEdit from "./confirmEdit";
 import axios from "axios";
 import CustomButton from "./Button";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import FeedbackSnackbar from "./Feedback";
 import DialogTitleCustom from "./TitleDialog";
 const API_URL = 'http://localhost:8000/api';
 
@@ -23,10 +21,9 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
     const isLider = formData.roles.includes("Líder");
     const transformUserDataForAPI = (data) => {
         // Extrae RPE del correo (todo lo que está antes de "@")
-        const RPE = data.email.split("@")[0];
-        // Toma el primer nombre
-        const firstNameForPass = data.firstName.split(" ")[0];
-        const pass = firstNameForPass + "123";
+        const RPE = extractRPE(data.email);
+        const pass = generatePassword(data.firstName);
+
         // Transforma los roles: de los nombres seleccionados se obtienen los id correspondientes
         // Se asume que rolesList ya está cargado en el estado
         const rolesTransformed = rolesList
@@ -128,8 +125,30 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
     };
 
     const generatePassword = (firstName) => {
-        return `${firstName.toLowerCase()}123`;
+        const primerNombre = firstName.trim().split(" ")[0];
+        return `${primerNombre.toLowerCase()}12345678`;
     };
+
+    const getDigitsOnly = (value) => value.replace(/\D/g, "").slice(0, 10);
+
+    const formatPhoneNumber = (value) => {
+        const digits = getDigitsOnly(value);
+        const parts = [];
+
+        if (digits.length > 0) parts.push(digits.slice(0, 3));
+        if (digits.length > 3) parts.push(digits.slice(3, 6));
+        if (digits.length > 6) parts.push(digits.slice(6, 8));
+        if (digits.length > 8) parts.push(digits.slice(8, 10));
+
+        return parts.join("-");
+    };
+
+    const handlePhoneChange = (e) => {
+        const onlyDigits = getDigitsOnly(e.target.value);
+        setFormData(prev => ({ ...prev, phone: onlyDigits }));
+    };
+
+
 
     const validateForm = () => {
         const newErrors = {};
@@ -299,44 +318,39 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                         <TextField
                             label="Teléfono"
                             name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
+                            value={formatPhoneNumber(formData.phone)} // sólo visual
+                            onChange={handlePhoneChange}
+                            inputProps={{
+                                inputMode: "numeric",
+                                pattern: "[0-9]*",
+                                maxLength: 13, // límite visual (ej. 123-456-78-90 = 13 caracteres)
+                            }}
                             fullWidth
                             margin="dense"
                             error={Boolean(errors.phone)}
                             helperText={errors.phone}
                         />
-                        <FormControl fullWidth margin="dense">
-                            <InputLabel>Grado Académico</InputLabel>
+
+                        <FormControl fullWidth margin="dense" variant="outlined">
+                            <InputLabel id="grado-label">Grado Académico</InputLabel>
                             <Select
+                                labelId="grado-label"
+                                id="grado-academico"
                                 name="academicDegree"
                                 value={formData.academicDegree}
                                 onChange={handleChange}
+                                label="Grado Académico"
                             >
                                 <MenuItem value="Licenciatura">Licenciatura</MenuItem>
                                 <MenuItem value="Maestría">Maestría</MenuItem>
                                 <MenuItem value="Doctorado">Doctorado</MenuItem>
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth margin="dense" error={Boolean(errors.roles || errors.rolesLoad)}>
-                            <InputLabel shrink>
-                                <Box display="flex" alignItems="center" gap={1}>
-                                    Roles {loadingRoles && "(Cargando...)"}
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => setOpenInfo(true)}
-                                        sx={{
-                                            padding: 0,
-                                            color: "#185FA4",
-                                            '&:hover': { backgroundColor: 'transparent' }
-                                        }}
-                                    >
-                                        <InfoOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </InputLabel>
 
+                        <FormControl fullWidth margin="dense" error={Boolean(errors.roles || errors.rolesLoad)} variant="outlined">
+                            <InputLabel id="roles-label">Roles</InputLabel>
                             <Select
+                                labelId="roles-label"
                                 name="roles"
                                 multiple
                                 value={formData.roles}
@@ -360,25 +374,19 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
 
                             {errors.roles && <FormHelperText>{errors.roles}</FormHelperText>}
                             {errors.rolesLoad && <FormHelperText error>{errors.rolesLoad}</FormHelperText>}
-
-                            <FeedbackSnackbar
-                                open={openInfo}
-                                onClose={() => setOpenInfo(false)}
-                                type="info"
-                                title="Información"
-                                message="Un usuario puede tener hasta dos roles."
-                                autoHideDuration={5000}
-                            />
                         </FormControl>
 
+
                         {formData.roles.includes("Líder") && (
-                            <FormControl fullWidth margin="dense" error={Boolean(errors.supervisor || errors.supervisoresLoad)}>
-                                <InputLabel>Supervisor</InputLabel>
+                            <FormControl fullWidth margin="dense" error={Boolean(errors.supervisor || errors.supervisoresLoad)} variant="outlined">
+                                <InputLabel id="supervisor-label">Supervisor</InputLabel>
                                 <Select
+                                    labelId="supervisor-label"
                                     name="supervisor"
                                     value={formData.supervisor || ""}
                                     onChange={handleChange}
                                     disabled={loadingSupervisores}
+                                    label="Supervisor"
                                 >
                                     {loadingSupervisores ? (
                                         <MenuItem disabled>
@@ -400,6 +408,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                                 {errors.supervisor && <FormHelperText>{errors.supervisor}</FormHelperText>}
                                 {errors.supervisoresLoad && <FormHelperText error>{errors.supervisoresLoad}</FormHelperText>}
                             </FormControl>
+
                         )}
                     </>
                 ) : (

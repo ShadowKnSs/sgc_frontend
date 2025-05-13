@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     Dialog,
-    DialogTitle,
     DialogContent,
     DialogActions,
     IconButton,
@@ -10,8 +9,9 @@ import {
     TextField, Box
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import DialogActionButtons from '../DialogActionButtons';
+import TitleDialog from '../TitleDialog';
 import dayjs from 'dayjs';
+import CustomButton from "../Button";
 
 const AdminEAModal = ({ open, onClose, onRequestEdit, editItem, tipo }) => {
     const [file, setFile] = useState(null);
@@ -71,17 +71,23 @@ const AdminEAModal = ({ open, onClose, onRequestEdit, editItem, tipo }) => {
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle>
-                {editItem ? `Editar ${tipo}` : `Crear ${tipo}`}
-                <IconButton
-                    aria-label="close"
-                    onClick={onClose}
-                    sx={{ position: 'absolute', right: 8, top: 8 }}
-                >
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
 
+            <Box sx={{ position: 'relative' }}>
+          <TitleDialog title={editItem ? `Editar ${tipo}` : `Crear ${tipo}` } subtitle={editItem ? `${tipo} #${editItem.idEventosAvisos} ` : null} />
+          <IconButton
+            aria-label="close"
+            onClick={onClose}
+            sx={{
+              position: 'absolute',
+              right: 12,
+              top: 12,
+              color: "#999"
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
             <DialogContent dividers>
                 <TextField
                     label="Fecha de Publicación"
@@ -97,7 +103,7 @@ const AdminEAModal = ({ open, onClose, onRequestEdit, editItem, tipo }) => {
                 <Button
                     variant="contained"
                     component="label"
-                    sx={{ mt: 1, backgroundColor: "secondary.main", display: "flex" }}
+                    sx={{ mt: 1, backgroundColor: "#68A2C9", display: "flex" }}
                 >
                     Subir archivo
                     <input
@@ -132,15 +138,13 @@ const AdminEAModal = ({ open, onClose, onRequestEdit, editItem, tipo }) => {
                 )}
             </DialogContent>
 
-            <DialogActions>
-                <DialogActionButtons
-                    onCancel={onClose}
-                    onSave={handleSubmit}
-                    saveText={editItem ? 'Editar' : 'Crear'}
-                    cancelText="Cancelar"
-                    saveColor="#f9b800"
-                    cancelColor="#0056b3"
-                />
+            <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+                <CustomButton type="guardar" onClick={handleSubmit}>
+                    {editItem ? "Editar" : "Crear"}
+                </CustomButton>
+                <CustomButton type="cancelar" onClick={onClose}>
+                    Cancelar
+                </CustomButton>
             </DialogActions>
         </Dialog>
     );
