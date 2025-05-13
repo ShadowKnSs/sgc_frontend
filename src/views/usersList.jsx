@@ -47,15 +47,15 @@ function UserManagement() {
     };
 
     const handleEliminarYActualizar = async () => {
-    try {
-        const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
-        alert(res.data.message);
-        await fetchUsuariosTemporales(); // Refresca sin recargar
-    } catch (err) {
-        console.error("Error al eliminar tokens:", err);
-        alert("Error al eliminar tokens expirados");
-    }
-};
+        try {
+            const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
+            alert(res.data.message);
+            await fetchUsuariosTemporales(); // Refresca sin recargar
+        } catch (err) {
+            console.error("Error al eliminar tokens:", err);
+            alert("Error al eliminar tokens expirados");
+        }
+    };
 
 
 
@@ -154,7 +154,10 @@ function UserManagement() {
                     </Box>
                     {usuariosTemporales.length > 0 && (
                         <>
-                            <Title text="Usuarios Temporales" />
+                            <Box sx={{marginTop: 3}}>
+                                <Title text="Usuarios Temporales" />
+                            </Box>
+
 
                             <Grid container spacing={3}>
                                 {usuariosTemporales.map((temp) => (

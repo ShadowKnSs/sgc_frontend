@@ -426,30 +426,38 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                             margin="dense"
                             InputLabelProps={{ shrink: true }}
                         />
-                        <Button variant="contained" color="primary" onClick={generarToken}>
-                            Generar Token
-                        </Button>
+                        
                     </>
                 )}
             </DialogContent>
             <DialogActions>
-                <CustomButton type="cancelar" onClick={onClose}> {"Cancelar"} </CustomButton>
-                <CustomButton
-                    type="Guardar"
-                    onClick={handleSubmit}
-                    disabled={
-                        !formData.firstName ||
-                        !formData.lastName ||
-                        !formData.email ||
-                        !formData.phone ||
-                        formData.roles.length === 0 ||
-                        Boolean(errors.firstName || errors.lastName || errors.email || errors.phone || errors.roles)
-                    }
-                >
-                    {editingUser ? "Actualizar Usuario" : "Guardar"}
-                </CustomButton>
+                <CustomButton type="cancelar" onClick={onClose}>Cancelar</CustomButton>
 
+                {tab === 0 ? (
+                    <CustomButton
+                        type="Guardar"
+                        onClick={handleSubmit}
+                        disabled={
+                            !formData.firstName ||
+                            !formData.lastName ||
+                            !formData.email ||
+                            !formData.phone ||
+                            formData.roles.length === 0 ||
+                            Boolean(errors.firstName || errors.lastName || errors.email || errors.phone || errors.roles)
+                        }
+                    >
+                        {editingUser ? "Actualizar Usuario" : "Guardar"}
+                    </CustomButton>
+                ) : (
+                    <CustomButton type="guardar" onClick={async () => {
+                        await generarToken();
+                        onClose(); 
+                    }}>
+                        Generar Token
+                    </CustomButton>
+                )}
             </DialogActions>
+
             <ConfirmEdit
                 open={openConfirmEdit}
                 onClose={() => setOpenConfirmEdit(false)}
