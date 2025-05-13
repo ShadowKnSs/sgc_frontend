@@ -17,10 +17,10 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 
 import AdminEAModal from './Modals/AdminEAModal';
-import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
-import ConfirmEditDialog from '../components/ConfirmEditDialog';
+import ConfirmDelete from '../components/confirmDelete'; 
+import ConfirmEdit from '../components/confirmEdit';     
 import NewEAButton from "../components/NewCardButtom";
-import ConfirmDelete from './confirmDelete';
+
 
 function formatDate(dateString) {
   if (!dateString) return '';
@@ -263,20 +263,22 @@ const AdminEAList = ({ tipo }) => {
       )}
 
       {/* Confirmar Eliminación */}
-      <ConfirmDeleteDialog
+      <ConfirmDelete
         open={confirmDeleteOpen}
         onClose={handleCloseDeleteDialog}
         onConfirm={handleConfirmDelete}
-        itemName={`${tipo} #${deleteItem ? deleteItem.idEventosAvisos : ''}`}
+        entityType="noticia"
+        entityName={`${tipo} #${deleteItem ? deleteItem.idEventosAvisos : ''}`}
       />
       
 
       {/* Confirmar Edición */}
-      <ConfirmEditDialog
+      <ConfirmEdit
         open={confirmEditOpen}
         onClose={handleCloseEditDialog}
         onConfirm={handleConfirmEdit}
-        itemName={editItem ? `${tipo} #${editItem.idEventosAvisos}` : `Nuevo ${tipo}`}
+        entityType="noticia"
+        entityName={editItem ? `${tipo} #${editItem.idEventosAvisos}` : `Nuevo ${tipo}`}
       />
 
       {/* Snackbar */}

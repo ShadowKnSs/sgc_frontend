@@ -4,8 +4,9 @@ import {
   Dialog, DialogContent, DialogActions, IconButton, TextField, Button, Typography, Snackbar, Alert, Box
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import DialogActionButtons from '../DialogActionButtons';
 import TitleDialog from '../TitleDialog';
+import CustomButton from "../Button";
+
 
 const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
   const [titulo, setTitulo] = useState('');
@@ -126,7 +127,7 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
           <Typography variant="subtitle1" sx={{ mt: 2 }}>
             Subir Imagen
           </Typography>
-          <Button variant="contained" component="label" sx={{ mt: 1, backgroundColor: "secondary.main", display: "flex" }}>
+          <Button variant="contained" component="label" sx={{ mt: 1, backgroundColor: "#68A2C9", display: "flex" }}>
             Seleccionar Imagen
             <input
               hidden
@@ -160,16 +161,15 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
           )}
         </DialogContent>
 
-        <DialogActions>
-          <DialogActionButtons
-            onCancel={onClose}
-            onSave={handleSubmit}
-            saveText={editItem ? 'Editar' : 'Crear'}
-            cancelText="Cancelar"
-            saveColor="terciary.main"
-            cancelColor="primary.main"
-          />
+        <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+          <CustomButton type="guardar" onClick={handleSubmit}>
+            {editItem ? "Editar" : "Crear"}
+          </CustomButton>
+          <CustomButton type="cancelar" onClick={onClose}>
+            Cancelar
+          </CustomButton>
         </DialogActions>
+
       </Dialog >
 
       {/* Snackbar de Error */}

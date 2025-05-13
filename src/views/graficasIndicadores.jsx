@@ -9,7 +9,6 @@ import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
 import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
 import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
 import Title from '../components/Title';
-import Subtitle from '../components/Subtitle';
 const GraficasPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,32 +78,32 @@ const GraficasPage = () => {
       <Title text="Vista Gáficas"></Title>
 
       <Box sx={{ my: 4 }}>
-        <Typography variant="h5" gutterBottom>Indicadores de Plan de Control</Typography>
+        <Typography variant="h5" gutterBottom sx={{color: "#68A2C9"}}>Indicadores de Plan de Control</Typography>
         <PlanControlBarChart idProceso={idProceso} />
       </Box>
 
       <Box sx={{ my: 4 }}>
-        <Typography variant="h5" gutterBottom>Encuesta de Satisfacción</Typography>
+        <Typography variant="h5" sx={{color: "#68A2C9"}} gutterBottom>Encuesta de Satisfacción</Typography>
         {encuestaId ? <GraficaEncuesta id={encuestaId} /> : <Alert severity="info">No se encontró indicador de encuesta.</Alert>}
       </Box>
 
       <Box sx={{ my: 4 }}>
-        <Typography variant="h5" gutterBottom>Retroalimentación</Typography>
+        <Typography variant="h5" sx={{color: "#68A2C9"}} gutterBottom>Retroalimentación</Typography>
         {retroList.length > 0 ? <GraficaRetroalimentacion retroList={retroList} /> : <Alert severity="info">No se encontraron indicadores de retroalimentación.</Alert>}
       </Box>
 
       <Box sx={{ my: 4 }}>
-        <Typography variant="h5" gutterBottom>Mapa de Proceso</Typography>
+        <Typography variant="h5" sx={{color: "#68A2C9"}} gutterBottom>Mapa de Proceso</Typography>
         <GraficaMapaProceso idProceso={idProceso} />
       </Box>
 
       <Box sx={{ my: 4 }}>
-        <Typography variant="h5" gutterBottom>Gestión de Riesgos</Typography>
+        <Typography variant="h5" sx={{color: "#68A2C9"}} gutterBottom>Gestión de Riesgos</Typography>
         <GraficaRiesgos idRegistro={idRegistro} />
       </Box>
 
       <Box sx={{ my: 4 }}>
-        <Typography variant="h5" gutterBottom>Evaluación de Proveedores</Typography>
+        <Typography variant="h5" sx={{color: "#68A2C9"}} gutterBottom>Evaluación de Proveedores</Typography>
         {evaluacionId ? <GraficaEvaluacionProveedores id={evaluacionId} /> : <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>}
       </Box>
     </Container>

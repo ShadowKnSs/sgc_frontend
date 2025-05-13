@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogActions, TextField, FormControl, InputLabe
 import ConfirmEdit from "./confirmEdit";
 import axios from "axios";
 import CustomButton from "./Button";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import FeedbackSnackbar from "./Feedback";
 import DialogTitleCustom from "./TitleDialog";
 const API_URL = 'http://localhost:8000/api';
 

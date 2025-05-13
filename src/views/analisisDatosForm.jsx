@@ -11,13 +11,14 @@ import Permiso from "../hooks/userPermiso";
 
 
 
+
 const FormularioAnalisis = () => {
   const { idRegistro } = useParams();
 
   const menuItems = useMenuProceso();
   const location = useLocation();
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
-    const { soloLectura, puedeEditar } = Permiso("Análisis de Datos");
+  const { soloLectura, puedeEditar } = Permiso("Análisis de Datos");
   const [datosProceso, setDatosProceso] = useState({
     idProceso: null,
     anio: null
@@ -553,25 +554,29 @@ const FormularioAnalisis = () => {
             />
           </Grid>
         </Grid>
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 4 }}>
+        <ButtonInd
+          type="aceptar"
+          onClick={() => navigate(`/indicadores/${datosProceso.idProceso}/${datosProceso.anio}`)}
+          startIcon={<ArrowForwardIosIcon />}
+          disabled={!datosProceso.idProceso || !datosProceso.anio}
+          
+        >
+          Ir a Indicadores
+        </ButtonInd>
+
         {!soloLectura && (
           <ButtonInd
             type="guardar"
-            sx={{ mt: 2, "&:hover": { backgroundColor: "#e6a700" } }}
-            onClick={handleGuardarTodo}          >
+            onClick={handleGuardarTodo}
+          >
             Guardar
           </ButtonInd>
         )}
       </Box>
 
-      <ButtonInd
-        type="secundario"
-        sx={{ mt: 2, ml: 2 }}
-        onClick={() => navigate(`/indicadores/${datosProceso.idProceso}/${datosProceso.anio}`)}
-        startIcon={<ArrowForwardIosIcon />}
-        disabled={!datosProceso.idProceso || !datosProceso.anio}
-      >
-        Ir a Indicadores
-      </ButtonInd>
 
       {/* Notificación (Snackbar) */}
       <Snackbar

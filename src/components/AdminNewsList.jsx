@@ -18,8 +18,8 @@ import axios from 'axios';
 
 // Componentes locales
 import AdminNewsModal from './Modals/AdminNewsModal';
-import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
-import ConfirmEditDialog from '../components/ConfirmEditDialog';
+import ConfirmDelete from '../components/confirmDelete'; 
+import ConfirmEdit from '../components/confirmEdit';     
 import NewNoticiaButton from '../components/NewCardButtom';
 
 
@@ -49,7 +49,7 @@ const AdminNewsList = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-  
+
 
   // Cargar noticias al montar
   useEffect(() => {
@@ -60,7 +60,7 @@ const AdminNewsList = () => {
   const fetchNews = async () => {
     try {
       const resp = await axios.get('http://127.0.0.1:8000/api/noticias');
-      setNews(resp.data); 
+      setNews(resp.data);
     } catch (error) {
       console.error('Error al cargar noticias:', error);
       setSnackbarMessage('Error al cargar noticias');
@@ -214,36 +214,51 @@ const AdminNewsList = () => {
           <Grid item xs={12} sm={6} md={4} key={item.idNoticias}>
             <Card
               sx={{
+                height: '100%', // 👈 asegura que todas tengan misma altura en Grid
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
                 transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 '&:hover': {
-                  transform: 'scale(1.05)',
+                  transform: 'scale(1.03)',
                   boxShadow: '0 4px 12px #2dc1df',
                 },
               }}
             >
-              {/* Mostrar la imagen devuelta por el backend */}
               {item.rutaImg && (
                 <CardMedia
                   component="img"
                   height="150"
-                  image={item.rutaImg.startsWith('http') 
-                    ? item.rutaImg 
+                  image={item.rutaImg.startsWith('http')
+                    ? item.rutaImg
                     : `http://127.0.0.1:8000${item.rutaImg}`
                   }
                   alt={item.titulo}
                 />
               )}
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
+
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" gutterBottom noWrap>
                   {item.titulo}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.descripcion?.substring(0, 150)}...
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    mb: 1,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {item.descripcion}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Fecha: {formatDate(item.fechaPublicacion)}
                 </Typography>
               </CardContent>
+
               <CardActions sx={{ justifyContent: 'flex-end' }}>
                 <IconButton
                   sx={{ color: 'primary.main' }}
@@ -260,6 +275,7 @@ const AdminNewsList = () => {
               </CardActions>
             </Card>
           </Grid>
+
         ))}
       </Grid>
 
@@ -279,20 +295,22 @@ const AdminNewsList = () => {
       )}
 
       {/* Confirmar Eliminación */}
-      <ConfirmDeleteDialog
-        open={confirmDeleteOpen}
-        onClose={handleCloseDeleteDialog}
-        onConfirm={handleConfirmDelete}
-        itemName={deleteItem ? deleteItem.titulo : ''}
-      />
+      <ConfirmDelete
+  open={confirmDeleteOpen}
+  onClose={handleCloseDeleteDialog}
+  onConfirm={handleConfirmDelete}
+  entityType="noticia"
+  entityName={deleteItem ? deleteItem.titulo : ''}
+/>
 
       {/* Confirmar Edición */}
-      <ConfirmEditDialog
-        open={confirmEditOpen}
-        onClose={handleCloseEditDialog}
-        onConfirm={handleConfirmEdit}
-        itemName={editItem ? editItem.titulo : 'Noticia nueva'}
-      />
+      <ConfirmEdit
+  open={confirmEditOpen}
+  onClose={handleCloseEditDialog}
+  onConfirm={handleConfirmEdit}
+  entityType="noticia"
+  entityName={editItem ? editItem.titulo : 'Noticia nueva'}
+/>
 
       {/* Snackbar para mensajes */}
       <Snackbar
