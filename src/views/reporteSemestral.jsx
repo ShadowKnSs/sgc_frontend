@@ -21,17 +21,18 @@ const ReporteSemestral = () => {
     const { data, anio, periodo } = location.state || {};
 
     const [datosRiesgos, datosIndicadores, datosAccionesMejora, datosAuditorias, datosSeguimiento] = data;
+    console.log("datos de ",datosRiesgos, datosIndicadores, datosAccionesMejora, datosAuditorias, datosSeguimiento );
 
 
     const handleDownloadPDF = async () => {
         try {
             console.log("Iniciando la captura de imágenes...");
-    
+
             // Referencias a los componentes
             const riesgosRef = document.getElementById("riesgos-chart");
             const indicadoresRef = document.getElementById("indicadores-report");
             const indicadoresPRef = document.getElementById("indicadores-report-pastel");
-    
+
             // Función para capturar una imagen de un componente
             const captureImage = async (element, name) => {
                 if (!element) {
@@ -46,12 +47,12 @@ const ReporteSemestral = () => {
                     return null;
                 }
             };
-    
+
             // Capturar las imágenes de cada componente
             const riesgosImage = await captureImage(riesgosRef, "riesgos-chart");
             const indicadoresImage = await captureImage(indicadoresRef, "indicadores-report");
             const indicadoresPImage = await captureImage(indicadoresPRef, "indicadores-report-pastel");
-    
+
             // Datos a enviar
             const payload = {
                 fortalezas,
@@ -69,12 +70,12 @@ const ReporteSemestral = () => {
                     datosIndicadores,
                     datosAccionesMejora,
                     datosAuditorias,
-                    datosSeguimiento,
+                   datosSeguimiento,
                 },
             };
-    
+
             console.log("Datos enviados al backend:", JSON.stringify(payload, null, 2));
-    
+
             // Enviar los datos al backend para generar el PDF
             const response = await fetch("http://127.0.0.1:8000/api/generar-pdf", {
                 method: "POST",
@@ -83,18 +84,18 @@ const ReporteSemestral = () => {
                 },
                 body: JSON.stringify(payload),
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Error en la respuesta del servidor: ${response.status}`);
             }
-    
+
             console.log("PDF generado correctamente, iniciando descarga...");
-    
+
             const blob = await response.blob();
             if (blob.size === 0) {
                 throw new Error("El archivo PDF generado está vacío.");
             }
-    
+
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
@@ -103,7 +104,7 @@ const ReporteSemestral = () => {
             a.click();
             document.body.removeChild(a);
             console.log("Descarga completada.");
-    
+
             // **Registrar en la base de datos que se generó el reporte**
             const registroPayload = {
                 anio,
@@ -114,7 +115,7 @@ const ReporteSemestral = () => {
                 fechaGeneracion: new Date().toISOString().slice(0, 19).replace("T", " "),
                 ubicacion: "ruta/del/reporte-semestral.pdf"
             };
-    
+
             const registroResponse = await fetch("http://127.0.0.1:8000/api/reporte-semestral", {
                 method: "POST",
                 headers: {
@@ -122,21 +123,21 @@ const ReporteSemestral = () => {
                 },
                 body: JSON.stringify(registroPayload),
             });
-    
+
             if (!registroResponse.ok) {
                 throw new Error("Error al registrar el reporte en la base de datos.");
             }
-    
+
             console.log("Registro de reporte semestral guardado en la base de datos.");
-    
+
             // **Redirigir a la vista anterior**
             window.location.href = "/principalReportSem";
-            
+
         } catch (error) {
             console.error("Error en el proceso:", error);
         }
     };
-    
+
 
     return (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 5 }}>
@@ -159,7 +160,6 @@ const ReporteSemestral = () => {
                             <RiesgosTable data={datosRiesgos} />
                         </Box>
                     )}
-
                     {datosIndicadores && datosIndicadores.length > 0 && (
                         <Box sx={{ mt: 6, mb: 5 }}>
                             <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
@@ -177,7 +177,6 @@ const ReporteSemestral = () => {
                             </Box>
                         </Box>
                     )}
-
                     {datosAccionesMejora && datosAccionesMejora.length > 0 && (
                         <Box sx={{ mt: 6, mb: 3 }}>
                             <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
@@ -187,7 +186,6 @@ const ReporteSemestral = () => {
                         </Box>
 
                     )}
-
                     {datosAuditorias && datosAuditorias.length > 0 && (
                         <Box sx={{ mt: 6, mb: 3 }}>
                             <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
@@ -257,6 +255,7 @@ const ReporteSemestral = () => {
 
                     )}
 
+
                     <Box sx={{ mt: 6 }}>
                         <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
                             Conclusión
@@ -309,3 +308,114 @@ const ReporteSemestral = () => {
 };
 
 export default ReporteSemestral;
+
+/*{datosAccionesMejora && datosAccionesMejora.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 3 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Acciones de Mejora
+                            </Typography>
+                            <AccionesMejora data={datosAccionesMejora} />
+                        </Box>
+
+                    )}*/
+
+/*{datosAuditorias && datosAuditorias.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 3 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Auditorías Internas
+                            </Typography>
+                            <AuditoriasInternas data={datosAuditorias} />
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                placeholder="Escribe las fortalezas identificadas..."
+                                variant="outlined"
+                                inputProps={{ maxLength: 500 }}
+                                value={fortalezas}
+                                onChange={(e) => setFortalezas(e.target.value)}
+                                sx={{
+                                    mt: 3,
+                                    mb: 3,
+                                    backgroundColor: "#F5F5F5",
+                                    borderRadius: "8px",
+                                    "& .MuiOutlinedInput-root": {
+                                        "& fieldset": { borderColor: "#B0BEC5" }, // Color del borde normal
+                                        "&:hover fieldset": { borderColor: "#1976D2" }, // Color del borde al pasar el mouse
+                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" }, // Color y grosor del borde al hacer foco
+                                    },
+                                    "& .MuiInputBase-input": {
+                                        fontSize: "16px",
+                                        padding: "12px",
+                                    },
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                placeholder="Escribe las debilidades identificadas..."
+                                variant="outlined"
+                                inputProps={{ maxLength: 500 }}
+                                value={debilidades}
+                                onChange={(e) => setDebilidades(e.target.value)}
+                                sx={{
+                                    backgroundColor: "#F5F5F5",
+                                    borderRadius: "8px",
+                                    "& .MuiOutlinedInput-root": {
+                                        "& fieldset": { borderColor: "#B0BEC5" },
+                                        "&:hover fieldset": { borderColor: "#1976D2" },
+                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" },
+                                    },
+                                    "& .MuiInputBase-input": {
+                                        fontSize: "16px",
+                                        padding: "12px",
+                                    },
+                                }}
+                            />
+                        </Box>
+
+                    )}*/
+
+/*{datosSeguimiento && datosSeguimiento.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 3 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Seguimiento
+                            </Typography>
+                            <Seguimiento data={datosSeguimiento} />
+                        </Box>
+
+                    )}*/
+
+/*{datosRiesgos && datosRiesgos.length > 0 && (
+                        <Box sx={{ mt: 5, mb: 5 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Gestión de Riesgos
+                            </Typography>
+                            <Box id="riesgos-chart" >
+                                <RiesgosChart data={datosRiesgos} />
+                            </Box>
+                            <RiesgosTable data={datosRiesgos} />
+                        </Box>
+                    )}
+
+                    {datosIndicadores && datosIndicadores.length > 0 && (
+                        <Box sx={{ mt: 6, mb: 5 }}>
+                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                                Indicadores
+                            </Typography>
+                            <Box id="indicadores-report">
+                                <IndicadoresReport data={datosIndicadores} />
+                            </Box>
+                            <IndicadoresTable data={datosIndicadores} />
+                            <Typography sx={{ mt: 4, mb: 2, fontWeight: "bold", fontSize: "24px", color: "#004A98" }}>
+                                Porcentaje de Cumplimiento e Incumplimiento Semestral
+                            </Typography>
+                            <Box id="indicadores-report-pastel">
+                                <IndicadoresPastel data={datosIndicadores} />
+                            </Box>
+                        </Box>
+                    )}
+*/

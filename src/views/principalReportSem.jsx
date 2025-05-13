@@ -73,17 +73,19 @@ const PrincipalReportSem = () => {
     const fetchData = async (anio, periodo) => {
         try {
             const urls = [
-                `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
-                `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
+               `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
+               `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
                 `http://127.0.0.1:8000/api/get-acciones-sem?anio=${anio}&periodo=${periodo}`,
-                `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
+               `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
                 `http://127.0.0.1:8000/api/get-seguimiento-sem?anio=${anio}&periodo=${periodo}`,
             ];
 
             const responses = await Promise.all(urls.map(url => fetch(url)));
             const results = await Promise.all(responses.map(res => res.json()));
 
-            const nombresListas = ["Riesgos", "Indicadores", "Acciones de Mejora", "Auditorías", "Seguimiento"];
+            const nombresListas = ["Riesgos", "Indicadores", "AccionesMejora", "Auditorías", "Seguimiento"];
+            //const nombresListas = ["Riesgos", "Indicadores","Auditorías","Seguimiento"];
+
 
             let hayDatos = false;
             results.forEach((lista, index) => {

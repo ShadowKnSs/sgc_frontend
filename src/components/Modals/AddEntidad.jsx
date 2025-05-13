@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {TextField,MenuItem,Button,Typography,Grid, Box, IconButton} from '@mui/material';
+import { TextField, MenuItem, Button, Typography, Grid, Box, IconButton } from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
 import SchoolIcon from '@mui/icons-material/School';
@@ -41,41 +41,41 @@ const iconOptions = [
   { name: 'AccountBalance', component: <AccountBalanceOutlinedIcon /> },
   { name: 'HomeWork', component: <HomeWorkIcon /> },
   { name: 'Yard', component: <YardOutlinedIcon /> },
-  { name: 'Science', component: <ScienceOutlinedIcon/>},
-  { name: 'Biotech', component: <BiotechOutlinedIcon/>},
-  { name: 'Psychology', component: <PsychologyOutlinedIcon/>},
-  { name: 'Medical', component:< MedicalInformationOutlinedIcon/> },
-  { name: 'Bloodtype', component: <BloodtypeOutlinedIcon/>},
-  { name: 'LocalHospital', component: <LocalHospitalOutlinedIcon/>},
-  { name: 'Topic', component: <TopicOutlinedIcon/>},
-  { name: 'Assignment', component: <AssignmentOutlinedIcon/>},
-  { name: 'Article', component:<ArticleOutlinedIcon/> },
-  { name: 'ImportContacts', component: <ImportContactsOutlinedIcon/>},
-  { name: 'AutoStories', component: <AutoStoriesOutlinedIcon/>},
-  { name: 'LocalLibrary', component: <LocalLibraryOutlinedIcon/>},
-  { name: 'Lightbulb', component:<LightbulbOutlinedIcon/> },
-  { name: 'Settings', component:<SettingsOutlinedIcon/> },
-  { name: 'PeopleOutline', component: <PeopleOutlineOutlinedIcon/>},
-  { name: 'SocialDistance', component: <SocialDistanceOutlinedIcon/>},
-  { name: 'Groups', component: <GroupsOutlinedIcon/>},
-  { name: 'Gavel', component: <GavelOutlinedIcon/>},
-  { name: 'Balance', component: <BalanceOutlinedIcon/>},
-  { name: 'Assessment', component: <AssessmentOutlinedIcon/>},
-  { name: 'Timeline', component: <TimelineOutlinedIcon/>},
-  { name: 'Paid', component: <PaidOutlinedIcon/>},
-  { name: 'RequestQuote', component: <RequestQuoteOutlinedIcon/>},
-  { name: 'Translate', component: <TranslateOutlinedIcon/>},
-  { name: 'Campaign', component: <CampaignOutlinedIcon/>},
-  { name: 'LaptopChromebook', component: <LaptopChromebookOutlinedIcon/>},
-  
+  { name: 'Science', component: <ScienceOutlinedIcon /> },
+  { name: 'Biotech', component: <BiotechOutlinedIcon /> },
+  { name: 'Psychology', component: <PsychologyOutlinedIcon /> },
+  { name: 'Medical', component: < MedicalInformationOutlinedIcon /> },
+  { name: 'Bloodtype', component: <BloodtypeOutlinedIcon /> },
+  { name: 'LocalHospital', component: <LocalHospitalOutlinedIcon /> },
+  { name: 'Topic', component: <TopicOutlinedIcon /> },
+  { name: 'Assignment', component: <AssignmentOutlinedIcon /> },
+  { name: 'Article', component: <ArticleOutlinedIcon /> },
+  { name: 'ImportContacts', component: <ImportContactsOutlinedIcon /> },
+  { name: 'AutoStories', component: <AutoStoriesOutlinedIcon /> },
+  { name: 'LocalLibrary', component: <LocalLibraryOutlinedIcon /> },
+  { name: 'Lightbulb', component: <LightbulbOutlinedIcon /> },
+  { name: 'Settings', component: <SettingsOutlinedIcon /> },
+  { name: 'PeopleOutline', component: <PeopleOutlineOutlinedIcon /> },
+  { name: 'SocialDistance', component: <SocialDistanceOutlinedIcon /> },
+  { name: 'Groups', component: <GroupsOutlinedIcon /> },
+  { name: 'Gavel', component: <GavelOutlinedIcon /> },
+  { name: 'Balance', component: <BalanceOutlinedIcon /> },
+  { name: 'Assessment', component: <AssessmentOutlinedIcon /> },
+  { name: 'Timeline', component: <TimelineOutlinedIcon /> },
+  { name: 'Paid', component: <PaidOutlinedIcon /> },
+  { name: 'RequestQuote', component: <RequestQuoteOutlinedIcon /> },
+  { name: 'Translate', component: <TranslateOutlinedIcon /> },
+  { name: 'Campaign', component: <CampaignOutlinedIcon /> },
+  { name: 'LaptopChromebook', component: <LaptopChromebookOutlinedIcon /> },
+
 ];
 
-const AddEntidad = ({ onSubmit, initialData , onClose}) => {
+const AddEntidad = ({ onSubmit, initialData, onClose }) => {
   const [form, setForm] = useState({
     nombreEntidad: '',
     tipo: '',
     ubicacion: '',
-    icono:''
+    icono: ''
   });
 
   const [selectedIcon, setSelectedIcon] = useState(iconOptions[0].name);
@@ -169,17 +169,18 @@ const AddEntidad = ({ onSubmit, initialData , onClose}) => {
       <Box sx={{ textAlign: 'right', mt: 3 }}>
         <CustomButton type="cancelar" onClick={onClose}> {"Cancelar"} </CustomButton>
         <CustomButton
-                            type="Guardar"
-                            onClick={handleSubmit}
-                            disabled={
-                                !form.tipo ||
-                                !form.nombreEntidad ||
-                                !form.ubicacion 
-                            }
-                        >
-                            {"Guardar"}
-                        </CustomButton>
-       
+          type="Guardar"
+          onClick={handleSubmit}
+          disabled={
+            !form.tipo ||
+            !form.nombreEntidad ||
+            !form.ubicacion
+          }
+          sx={{ ml: 2 }}
+        >
+          {"Guardar"}
+        </CustomButton>
+
       </Box>
     </Box>
   );
