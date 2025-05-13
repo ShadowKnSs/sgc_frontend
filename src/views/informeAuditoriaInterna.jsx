@@ -1,12 +1,12 @@
 import axios from "axios";
 import { Box, Grid, Typography, Button, TextField, MenuItem } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import MensajeAlert from '../components/MensajeAlert';
+import ErrorAlert from '../components/ErrorAlert';
 
 function InformeAud() {
-  const entidad = "Nombre de la Entidad";
-  const proceso = "Nombre del Proceso";
-  const lider = "Nombre del Líder";
-  
   // Estado para los criterios
   const [criterios, setCriterios] = useState([""]);
   const [equipoAuditor, setEquipoAuditor] = useState([{ rol: "", auditor: "" }]);
@@ -23,6 +23,112 @@ function InformeAud() {
     { nombre: "", observaciones: "" }
   ]);
   const [plazos, setPlazos] = useState([""]);
+  const location = useLocation();
+  const idProceso = location.state?.idProceso;
+  const idRegistro = location.state?.idRegistro;
+  const [entidad, setEntidad] = useState("");
+  const [proceso, setProceso] = useState("");
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const [lider, setLider] = useState(usuario?.nombre || "");
+  const navigate = useNavigate();
+  const modoEdicion = location.state?.modoEdicion || false;
+  const datosAuditoria = location.state?.datosAuditoria || null;
+  const [mensaje, setMensaje] = useState(null);
+  const [error, setError] = useState(null);
+  const [auditoresDisponibles, setAuditoresDisponibles] = useState([]);
+
+  useEffect(() => {
+    const fetchAuditores = async () => {
+      try {
+        const res = await axios.get('http://localhost:8000/api/auditores/basico');
+        setAuditoresDisponibles(res.data.data); // accede a la propiedad 'data' dentro de 'data'
+      } catch (error) {
+        console.error("Error al cargar auditores:", error);
+      }
+    };
+    fetchAuditores();
+  }, []);
+
+  useEffect(() => {
+    if (!modoEdicion) {
+      setEquipoAuditor([{ rol: 'Auditor Líder', auditor: lider }]);
+    }
+  }, [modoEdicion, lider]);
+
+  useEffect(() => {
+    const fetchDatos = async () => {
+      try {
+        const procesoRes = await axios.get(`http://localhost:8000/api/procesos/${idProceso}`);
+        const procesoData = procesoRes.data.proceso;
+        setProceso(procesoData.nombreProceso);
+
+        const entidadRes = await axios.get(`http://localhost:8000/api/entidades/${procesoData.idEntidad}`);
+        setEntidad(entidadRes.data.nombreEntidad);
+      } catch (error) {
+        console.error("Error al obtener datos:", error);
+      }
+    };
+
+    if (idProceso) fetchDatos();
+  }, [idProceso]);
+
+  useEffect(() => {
+    const { modoEdicion, datosAuditoria } = location.state || {};
+
+    const fetchAuditoria = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8000/api/auditorias/${datosAuditoria.idAuditorialInterna}`);
+        const data = res.data;
+
+        setFecha(data.fecha || '');
+        setObjetivo(data.objetivoAud || '');
+        setAlcance(data.alcanceAud || '');
+        setFortalezas(data.fortalezas || '');
+        setDebilidades(data.debilidades || '');
+        setLider(data.auditorLider || '');
+
+        setCriterios((data.criterios || []).map(item => item.criterio));
+
+        setEquipoAuditor((data.equipo_auditor || []).map(item => ({
+          rol: item.rolAsignado || "",
+          auditor: item.nombreAuditor || ""
+        })));
+
+        setPersonalAuditado((data.personal_auditado || []).map(item => ({
+          nombre: item.nombre || "",
+          cargo: item.cargo || ""
+        })));
+
+        setVerificaciones((data.verificacion_ruta || []).map(item => ({
+          criterio: item.criterio || "",
+          reqAsociado: item.reqAsociado || "",
+          observaciones: item.observaciones || "",
+          evidencia: item.evidencia || "",
+          hallazgo: item.tipoHallazgo || ""
+        })));
+
+        setPuntosMejora((data.puntos_mejora || []).map(item => ({
+          reqISO: item.reqISO || "",
+          descripcion: item.descripcion || "",
+          evidencia: item.evidencia || ""
+        })));
+
+        setConclusiones((data.conclusiones || []).map(item => ({
+          nombre: item.nombre || "",
+          observaciones: item.descripcionConclusion || ""
+        })));
+
+        setPlazos((data.plazos || []).map(item => item.descripcion || ""));
+
+      } catch (err) {
+        console.error("Error al cargar auditoría para edición:", err);
+      }
+    };
+
+    if (modoEdicion && datosAuditoria?.idAuditorialInterna) {
+      fetchAuditoria();
+    }
+  }, [location.state]);
 
   // Funciones para los criterios
   const agregarCriterio = () => setCriterios([...criterios, ""]);
@@ -97,7 +203,7 @@ function InformeAud() {
   const handleGuardar = async () => {
     try {
       const payload = {
-        idRegistro: 7, // puedes cambiar esto si viene de otro lado
+        idRegistro: idRegistro,
         fecha: fecha,
         objetivoAud: objetivo,
         alcanceAud: alcance,
@@ -150,18 +256,53 @@ function InformeAud() {
         
       };
   
-      const res = await axios.post("http://localhost:8000/api/auditorias", payload);
+      let res;
+      if (modoEdicion && datosAuditoria?.idAuditorialInterna) {
+        res = await axios.put(`http://localhost:8000/api/auditorias/${datosAuditoria.idAuditorialInterna}`, payload);
+      } else {
+        res = await axios.post("http://localhost:8000/api/auditorias", payload);
+      }
       console.log("Respuesta del servidor:", res.data);
-      alert("Auditoría guardada correctamente");
+      setMensaje({ tipo: 'success', texto: 'Auditoría guardada correctamente' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        setMensaje(null);
+        navigate(-1);
+      }, 3000);
     } catch (err) {
       console.error("Error al guardar auditoría:", err);
-      alert("Error al guardar la auditoría");
+      setError("Error al guardar la auditoría");
     }
   };
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-      <Box sx={{ width: "100%", maxWidth: "900px", backgroundColor: "white", padding: 4, borderRadius: "8px" }}>
+    <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh" }}>
+      
+      {/* Mensajes arriba del todo */}
+      {mensaje && (
+        <MensajeAlert
+          tipo={mensaje.tipo}
+          texto={mensaje.texto}
+          onClose={() => setMensaje(null)}
+        />
+      )}
+
+      {error && (
+        <ErrorAlert message={error} />
+      )}
+
+      {/* Contenedor principal del formulario */}
+      <Box
+        id="formulario-auditoria"
+        sx={{
+          width: "100%",
+          maxWidth: "900px",
+          margin: "0 auto",
+          backgroundColor: "white",
+          padding: 4,
+          borderRadius: "8px",
+        }}
+      >
         <h1
           style={{
             textAlign: "center",
@@ -172,7 +313,6 @@ function InformeAud() {
         >
           Informe de Auditoría
         </h1>
-        
         <Box>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={4}>
@@ -248,27 +388,44 @@ function InformeAud() {
               {equipoAuditor.map((item, index) => (
                 <Grid container spacing={2} alignItems="center" mt={1} key={index}>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Rol" variant="outlined" value={item.rol}
+                    <TextField
+                      fullWidth
+                      label="Rol"
+                      variant="outlined"
+                      value={item.rol}
                       onChange={(e) => {
                         const nuevos = [...equipoAuditor];
                         nuevos[index].rol = e.target.value;
                         setEquipoAuditor(nuevos);
                       }}
+                      disabled={index === 0}
                     />
                   </Grid>
-                  <Grid item xs={6}>
-                    <TextField select fullWidth label="Nombre Auditor" variant="outlined" value={item.auditor}
-                      onChange={(e) => {
-                        const nuevos = [...equipoAuditor];
-                        nuevos[index].auditor = e.target.value;
-                        setEquipoAuditor(nuevos);
-                      }}
-                    >
-                      <MenuItem value="Juan Pérez">Juan Pérez</MenuItem>
-                      <MenuItem value="Ana Gómez">Ana Gómez</MenuItem>
-                    </TextField>
-                  </Grid>
-
+                    <Grid item xs={6}>
+                      {index === 0 ? (
+                        <TextField
+                          fullWidth
+                          label="Nombre Auditor"
+                          variant="outlined"
+                          value={item.auditor}
+                          disabled
+                        />
+                      ) : (
+                      <TextField select fullWidth label="Nombre Auditor" variant="outlined" value={item.auditor}
+                        onChange={(e) => {
+                          const nuevos = [...equipoAuditor];
+                          nuevos[index].auditor = e.target.value;
+                          setEquipoAuditor(nuevos);
+                        }}
+                      >
+                        {auditoresDisponibles.map((auditor) => (
+                          <MenuItem key={auditor.idUsuario} value={`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}>
+                            {`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      )}
+                    </Grid>
                   <Grid item xs={12} display="flex" justifyContent="flex-end">
                     <Typography
                       variant="body2"
