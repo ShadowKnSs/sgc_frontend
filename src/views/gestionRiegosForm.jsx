@@ -15,10 +15,6 @@ import {
   TableHead,
   TableRow,
   Modal,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import axios from "axios";
 import IconButton from '@mui/material/IconButton';
@@ -30,6 +26,8 @@ import FeedbackSnackbar from "../components/Feedback";
 import Title from "../components/Title";
 import CustomButton from "../components/Button";
 import TitleDialog from "../components/TitleDialog";
+import ConfirmDelete from "../components/confirmDelete";
+import ConfirmEdit from "../components/confirmEdit";
 import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
 import BusinessIcon from '@mui/icons-material/Business';
@@ -38,6 +36,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import { Fade } from '@mui/material';
+
 
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
@@ -56,6 +55,8 @@ function FormularioGestionRiesgos() {
     title: "",
     message: "",
   });
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
+
 
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
@@ -361,6 +362,18 @@ function FormularioGestionRiesgos() {
   };
 
   // --------------------------------------------------------------------------
+  // Handler para abirir modal
+  // --------------------------------------------------------------------------
+  const handleRequestEditRiesgo = () => {
+    if (isEditing) {
+      setConfirmEditOpen(true); // Mostrar modal de confirmación
+    } else {
+      handleGuardarRiesgo(); // Si es nuevo, guarda directo
+    }
+  };
+
+
+  // --------------------------------------------------------------------------
   // Handler para CREAR/EDITAR un riesgo
   // --------------------------------------------------------------------------
   const handleGuardarRiesgo = async () => {
@@ -435,11 +448,8 @@ function FormularioGestionRiesgos() {
   // --------------------------------------------------------------------------
   const handleEditRiesgo = (riesgo) => {
     console.log("[LOG] handleEditRiesgo -> riesgo a editar:", riesgo);
-    setIsEditing(true);
     setEditingRiesgo(riesgo);
-    setNuevoRiesgo(riesgo);
-    setCurrentSection(0);
-    setOpenModal(true);
+    setConfirmEditOpen(true);
   };
 
   // --------------------------------------------------------------------------
@@ -497,7 +507,7 @@ function FormularioGestionRiesgos() {
       case 0:
         return (
           <>
-            
+
             <TextField
               label="Fuente"
               name="fuente"
@@ -527,7 +537,7 @@ function FormularioGestionRiesgos() {
       case 1:
         return (
           <>
-            
+
             <TextField
               label="Consecuencias"
               name="consecuencias"
@@ -569,7 +579,7 @@ function FormularioGestionRiesgos() {
       case 2:
         return (
           <>
-            
+
             <TextField
               label="Actividades"
               name="actividades"
@@ -619,7 +629,7 @@ function FormularioGestionRiesgos() {
       case 3:
         return (
           <>
-            
+
             <TextField
               label="Reevaluación Severidad"
               name="reevaluacionSeveridad"
@@ -941,6 +951,7 @@ function FormularioGestionRiesgos() {
           setEditingRiesgo(null);
         }}
       >
+
         <Box
           sx={{
             position: "absolute",
@@ -995,13 +1006,14 @@ function FormularioGestionRiesgos() {
               </CustomButton>
 
             ) : (
-              <CustomButton type="guardar" onClick={handleGuardarRiesgo}>
+              <CustomButton type="guardar" onClick={handleRequestEditRiesgo}>
                 {isEditing ? "Actualizar" : "Guardar"}
               </CustomButton>
 
             )}
           </Box>
         </Box>
+
       </Modal>
 
       {/* SnackBars */}
@@ -1014,22 +1026,29 @@ function FormularioGestionRiesgos() {
       />
 
       {/* Diálogo de confirmación para eliminar */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Confirmar Eliminación</DialogTitle>
-        <DialogContent>
-          <Typography>¿Estás seguro de que deseas eliminar este riesgo?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <CustomButton type="cancelar" onClick={() => setDeleteDialogOpen(false)}>
-            Cancelar
-          </CustomButton>
+      <ConfirmDelete
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        entityType="riesgo"
+        entityName={`el riesgo ${rowToDelete?.fuente}`}
+        onConfirm={confirmDeleteRiesgo}
+      />
 
-          <CustomButton type="guardar" onClick={confirmDeleteRiesgo}>
-            Eliminar
-          </CustomButton>
+      <ConfirmEdit
+        open={confirmEditOpen}
+        onClose={() => setConfirmEditOpen(false)}
+        entityType="riesgo"
+        entityName={` el riesgo ${editingRiesgo?.fuente}`}
+        onConfirm={() => {
+          setNuevoRiesgo(editingRiesgo);
+          setIsEditing(true);
+          setCurrentSection(0);
+          setOpenModal(true);
+          setConfirmEditOpen(false); // opcional pero recomendable para limpiar estado
+        }}
+      />
 
-        </DialogActions>
-      </Dialog>
+
     </Box>
 
 
