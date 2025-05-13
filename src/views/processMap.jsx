@@ -108,12 +108,12 @@ function ProcessMapView({ idProceso, soloLectura }) {
   useEffect(() => {
     // Obtener datos del proceso (puedes filtrar con tu idProceso si quieres)
     axios.get(`http://localhost:8000/api/procesos/${idProceso}`)
-    .then((response) => {
-      if (response.data.proceso) {
-        setProceso(response.data.proceso);
-      }
-    })
-    .catch((error) => console.error("Error al obtener datos del proceso:", error));  
+      .then((response) => {
+        if (response.data.proceso) {
+          setProceso(response.data.proceso);
+        }
+      })
+      .catch((error) => console.error("Error al obtener datos del proceso:", error));
 
     // Obtener datos del mapa de procesos
     axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
@@ -202,38 +202,54 @@ function ProcessMapView({ idProceso, soloLectura }) {
 
   const handleSaveChanges = async () => {
     try {
-      if (!mapaProceso.idMapaProceso || soloLectura) {
-        console.error("No hay un idMapaProceso para actualizar");
-        return;
+      if (soloLectura) return;
+
+      const payload = {
+        idProceso: idProceso,
+        documentos: mapaProceso.documentos || "",
+        fuente: mapaProceso.fuente || "",
+        material: mapaProceso.material || "",
+        requisitos: mapaProceso.requisitos || "",
+        salidas: mapaProceso.salidas || "",
+        receptores: mapaProceso.receptores || "",
+        puestosInvolucrados: mapaProceso.puestosInvolucrados || ""
+      };
+
+      if (!mapaProceso.idMapaProceso) {
+        // CREACIÓN
+        const res = await axios.post("http://localhost:8000/api/mapaproceso", payload);
+        setMapaProceso(res.data); // Guarda el nuevo idMapaProceso
+        setAlerta({ tipo: "success", texto: "Mapa de proceso creado correctamente." });
+      } else {
+        // ACTUALIZACIÓN
+        await axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, payload);
+        setAlerta({ tipo: "success", texto: "Cambios guardados correctamente." });
       }
-      axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, mapaProceso)
-        .then((resp) => {
-          console.log("MapaProceso actualizado:", resp.data);
-          setEditMode(false);
-        })
-        .catch((error) => console.error("Error al actualizar mapaProceso:", error));
-      setAlerta({ tipo: "success", texto: "Cambios guardados correctamente." });
+
+      setEditMode(false);
       setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
+
     } catch (error) {
       console.error("Error al guardar:", error);
-      setAlerta({ tipo: "error", texto: "Ocurrió un error al guardar los cambios." });
+      setAlerta({ tipo: "error", texto: "Ocurrió un error al guardar el mapa de proceso." });
       setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
     }
   };
+
   /**
    * 7) Eliminar un registro de indmapaproceso
    */
   const handleDeleteUser = (indicador) => {
     setIndicadorAEliminar(indicador);
     setConfirmDialogOpen(true);
-  };  
+  };
   /**
    * 8) Editar un registro (indicador)
    */
 
   const confirmarEliminarIndicador = () => {
     if (!indicadorAEliminar) return;
-  
+
     axios.delete(`http://localhost:8000/api/indmapaproceso/${indicadorAEliminar.idIndicador}`)
       .then(() => {
         setUsers((prev) => prev.filter((u) => u.idIndicador !== indicadorAEliminar.idIndicador));
@@ -248,15 +264,15 @@ function ProcessMapView({ idProceso, soloLectura }) {
         setIndicadorAEliminar(null);
       });
   };
-  
+
   const handleEditUser = (user) => {
     setEditUser(user);
     setEditFormOpen(true);
   };
-  
+
   const handleSaveEditUser = () => {
     if (!editUser) return;
-  
+
     axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
       idProceso: idProceso,
       descripcion: editUser.descripcion,
@@ -276,7 +292,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
       })
       .catch((error) => console.error("Error al actualizar indicador:", error));
   };
-  
+
   /**
    * Render principal
    */
@@ -464,7 +480,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
 
       {/* Botón flotante para abrir formulario de crear */}
       <Box sx={{ position: "fixed", bottom: 16, right: 30, paddingRight: 5 }}>
-      {!soloLectura && (<Fab
+        {!soloLectura && (<Fab
           color="primary"
           sx={{
             width: 56,
@@ -476,7 +492,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
           onClick={() => setOpenForm(true)}
         >
           <Add />
-        </Fab> )}
+        </Fab>)}
       </Box>
 
       {/* Diálogo para crear nuevo indicador */}
@@ -709,22 +725,22 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
           </CardContent>
         </>
       ) : (
-      <Typography
-        variant="body1"
-        fontWeight="500"
-        color="#004A98"
-        sx={{
-          textAlign: "center",
-          paddingX: 1,
-          display: "-webkit-box",
-          WebkitLineClamp: 3, // muestra máximo 3 líneas
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-          textOverflow: "ellipsis"
-        }}
-      >
-        {user.descripcion || "Sin descripción"}
-      </Typography>
+        <Typography
+          variant="body1"
+          fontWeight="500"
+          color="#004A98"
+          sx={{
+            textAlign: "center",
+            paddingX: 1,
+            display: "-webkit-box",
+            WebkitLineClamp: 3, // muestra máximo 3 líneas
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}
+        >
+          {user.descripcion || "Sin descripción"}
+        </Typography>
       )}
     </Card>
   );

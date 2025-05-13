@@ -8,13 +8,12 @@ import CardRegistros from "../components/CardRegistros";
 import ModalForm from "../components/Modals/ModalForm";
 import DetailsModal from "../components/Modals/DetailsModal";
 
-const PlanTrabajoFormV = () => {
+const PlanTrabajoFormV = ({soloLectura, puedeEditar}) => {
   // Extraemos idRegistro de la URL
   const { idRegistro } = useParams();
   console.log("ID Registro recibido:", idRegistro);
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+  
 
   // Estado del formulario principal (se llenará con datos desde el backend)
   const [formData, setFormData] = useState({

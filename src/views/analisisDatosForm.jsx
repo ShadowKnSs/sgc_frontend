@@ -8,6 +8,11 @@ import Title from '../components/Title';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
+import BusinessIcon from '@mui/icons-material/Business';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import SettingsIcon from '@mui/icons-material/Settings';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import { Fade } from '@mui/material';
 
 
 
@@ -23,6 +28,8 @@ const FormularioAnalisis = () => {
     idProceso: null,
     anio: null
   });
+
+  const [modoEdicion, setModoEdicion] = useState(false);
 
 
   const navigate = useNavigate();
@@ -268,15 +275,27 @@ const FormularioAnalisis = () => {
     }));
 
     try {
-      console.log({
+      console.log("🛠️ Enviando datos al backend: ", {
         periodoEvaluacion: formData.periodoEvaluacion,
         secciones
       });
+
       await axios.put(`http://localhost:8000/api/analisisDatos/${idRegistro}/guardar-completo`, {
         periodoEvaluacion: formData.periodoEvaluacion,
         secciones
       });
+
+      console.log("✅ Datos guardados correctamente");
+
+      // ✅ Actualizar localmente sin recargar
+      setFormData(prev => ({
+        ...prev,
+        periodoEvaluacion: formData.periodoEvaluacion
+      }));
+      setModoEdicion(false);
+
       showSnackbar("Datos guardados correctamente");
+
     } catch (err) {
       showSnackbar("Error al guardar", "error");
       console.error(err);
@@ -369,44 +388,76 @@ const FormularioAnalisis = () => {
     <Box sx={{ width: "80%", margin: "auto", mt: 5, p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
       <Title text="Análisis de Datos"></Title>
       <MenuNavegacionProceso items={menuItems} />
-      <Grid container spacing={3}>
-        <Grid item xs={6}>
-          <TextField
-            label="Entidad"
-            name="entidad"
-            value={formData.entidad}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Nombre del Macroproceso"
-            name="macroproceso"
-            value={formData.macroproceso}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            label="Nombre del Proceso"
-            name="proceso"
-            value={formData.proceso}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Período de Evaluación"
-            name="periodoEvaluacion"
-            value={formData.periodoEvaluacion}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-        </Grid>
-      </Grid>
+      <Fade in timeout={600}>
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+            Información General
+          </Typography>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+            {/* Entidad */}
+            <Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <BusinessIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>Entidad</Typography>
+              </Box>
+              <Typography sx={{ ml: 4 }}>{formData.entidad || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* Macroproceso */}
+            <Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <AccountTreeIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>Macroproceso</Typography>
+              </Box>
+              <Typography sx={{ ml: 4 }}>{formData.macroproceso || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* Proceso */}
+            <Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SettingsIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>Proceso</Typography>
+              </Box>
+              <Typography sx={{ ml: 4 }}>{formData.proceso || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* Periodo de Evaluación */}
+            <Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <EventNoteIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>Período de Evaluación</Typography>
+              </Box>
+              {modoEdicion ? (
+                <TextField
+                  name="periodoEvaluacion"
+                  value={formData.periodoEvaluacion}
+                  onChange={handleChange}
+                  fullWidth
+                  sx={{ mt: 1 }}
+                />
+              ) : (
+                <Typography sx={{ ml: 4 }}>{formData.periodoEvaluacion || "Sin definir"}</Typography>
+              )}
+            </Box>
+          </Box>
+
+          {puedeEditar && (
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              {!modoEdicion ? (
+                <ButtonInd type="cancelar" onClick={() => setModoEdicion(true)}>
+                  Editar
+                </ButtonInd>
+              ) : (
+                <ButtonInd type="guardar" onClick={handleGuardarTodo}>
+                  Guardar
+                </ButtonInd>
+              )}
+            </Box>
+          )}
+        </Paper>
+      </Fade>
+
 
       <AppBar position="static" sx={{ bgcolor: "#0056b3", borderRadius: 3, mt: 3 }}>
         <Tabs
@@ -562,7 +613,7 @@ const FormularioAnalisis = () => {
           onClick={() => navigate(`/indicadores/${datosProceso.idProceso}/${datosProceso.anio}`)}
           startIcon={<ArrowForwardIosIcon />}
           disabled={!datosProceso.idProceso || !datosProceso.anio}
-          
+
         >
           Ir a Indicadores
         </ButtonInd>

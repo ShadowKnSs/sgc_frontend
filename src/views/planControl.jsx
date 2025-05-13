@@ -482,7 +482,7 @@ function UserCard({ actividad, onSelect, onClose, isActive, isSmall }) {
                 { title: "Tratamiento", value: actividad.tratamiento }
               ].map((field, index) => (
                 <TableContainer
-                  key={index}
+                  key={field.title}
                   component={Paper}
                   sx={{
                     width: "100%",

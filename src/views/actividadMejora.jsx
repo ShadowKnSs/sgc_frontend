@@ -1,23 +1,28 @@
-import React, { useState } from "react";
-import { useParams, useLocation} from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { Box, Container, Button, IconButton } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import PlanCorrectivoContainer from "../components/PlanCorrectivoContainer"; // Asegúrate de la ruta correcta
-import FormProyMejora from "../components/Forms/FormProyMejora";
+// import FormProyMejora from "../components/Forms/FormProyMejora";
 // import ProyectosMejoraCards from "../components/ProyectoMejoraCards";
+import ProyectoMejoraContainer from "../components/ProyectoMejoraContainer"; // asegúrate de importar correctamente
 
 import PlanTrabajo from "../views/planTrabajoForm";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
+import Permiso from "../hooks/userPermiso";
+import axios from 'axios';
 
 
 const ProcessView = () => {
   // Recibimos parámetros de la URL: por ejemplo, idRegistro y title
-  const { idRegistro} = useParams();
-  console.log("ProcessView - idRegistro recibido:", idRegistro);
+  const { idRegistro } = useParams();
   const location = useLocation();
-  const idProceso = location.state?.idProceso;
+  const idProceso = location.state?.idProceso || JSON.parse(localStorage.getItem("idProceso"));
+  console.log("El id Proceso es:", idProceso);
+  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const { soloLectura, puedeEditar } = Permiso("Acciones de Mejora");
   const menuItems = useMenuProceso();
   const [selectedTab, setSelectedTab] = useState(0);
   const sections = [
@@ -25,23 +30,52 @@ const ProcessView = () => {
     "Plan de Trabajo",
     "Proyecto de Mejora",
   ];
+  const [datosProceso, setDatosProceso] = useState({
+    idProceso: null,
+    anio: null
+  });
+
+
+
+  useEffect(() => {
+    const fetchProceso = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/api/getIdRegistro`, {
+          params: { idRegistro }
+        });
+        if (response.data?.proceso?.idProceso) {
+          setDatosProceso({
+            idProceso: response.data.proceso.idProceso,
+            anio: response.data.anio
+          });
+        }
+      } catch (error) {
+        console.error("Error al obtener el idProceso desde idRegistro");
+      }
+    };
+
+    if (!idProceso && idRegistro) {
+      fetchProceso();
+    }
+  }, [idProceso, idRegistro]);
 
   const renderContent = () => {
     switch (sections[selectedTab]) {
       case "Plan de Acción Correctivo":
-        return <PlanCorrectivoContainer idProceso={idProceso}/>;
+        return <PlanCorrectivoContainer idProceso={datosProceso.idProceso} soloLectura={soloLectura} puedeEditar={puedeEditar} />;
       case "Plan de Trabajo":
         return (
           <Box>
-            <PlanTrabajo idRegistro={idRegistro}  />
+            <PlanTrabajo idRegistro={idRegistro} soloLectura={soloLectura} puedeEditar={puedeEditar} />
           </Box>
         );
       case "Proyecto de Mejora":
         return (
-          <Box>
-            <FormProyMejora idRegistro={idRegistro} />
-            {/* <ProyectosMejoraCards /> */}
-          </Box>
+          <ProyectoMejoraContainer
+            idRegistro={idRegistro}
+            soloLectura={soloLectura}
+            puedeEditar={puedeEditar}
+          />
         );
       default:
         return <h2>Seleccione una opción</h2>;
@@ -54,9 +88,11 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl">
-      <ContextoProcesoEntidad idProceso={idProceso} /> 
+      {datosProceso.idProceso && (
+        <ContextoProcesoEntidad idProceso={datosProceso.idProceso} />
+      )}
       <MenuNavegacionProceso items={menuItems} />
-      
+
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 2 }}>
         <IconButton onClick={() => scrollNav("left")} sx={{ color: "secondary.main", mx: 1 }}>
           <ArrowBackIos />

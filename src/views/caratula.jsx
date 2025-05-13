@@ -85,7 +85,7 @@ const Caratula = ({ puedeEditar }) => {
 
     try {
       if (!existe) {
-        const res = await axios.post("http://localhost:8000/api/caratulas", payload);
+        const res = await axios.post("http://localhost:8000/api/caratula", payload);
         setExiste(true);
         setCaratulaId(res.data.idCaratula);
       } else {
@@ -100,10 +100,10 @@ const Caratula = ({ puedeEditar }) => {
     
     } catch (error) {
       console.error("Error al guardar la carátula:", error);
-      setAlerta({ tipo: "error", texto: "Ocurrió un error al guardar la carátula." });
-      setTimeout(() => {
-        setAlerta({ tipo: "", texto: "" });
-      }, 4000);
+      // setAlerta({ tipo: "error", texto: "Ocurrió un error al guardar la carátula." });
+      // setTimeout(() => {
+      //   setAlerta({ tipo: "", texto: "" });
+      // }, 4000);
     }    
   }; 
 

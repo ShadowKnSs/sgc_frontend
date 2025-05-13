@@ -15,10 +15,9 @@ import {
 import Title from "../Title";
 import axios from "axios";
 
-function ProyectoMejoraVertical() {
+function ProyectoMejoraVertical({soloLectura, puedeEditar}) {
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+ 
 
   const [activeStep, setActiveStep] = useState(0);
   const navigate = useNavigate();

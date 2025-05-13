@@ -14,10 +14,9 @@ import axios from "axios";
 import { useLocation, useParams } from "react-router-dom";
 
 
-function PlanCorrectivoContainer({ idProceso }) {
+function PlanCorrectivoContainer({idProceso, soloLectura, puedeEditar}) {
   const location = useLocation();
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false
+  
   const { idRegistro } = useParams();
 
   const [records, setRecords] = useState([]);
