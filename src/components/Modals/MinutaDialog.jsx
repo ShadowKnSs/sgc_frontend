@@ -7,10 +7,6 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) 
   console.log("minuta Dialog", minuta);
   if (!minuta) return null;
 
-  const handleEdit = () => {
-    onEdit(minuta);
-    onClose();
-  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
@@ -111,7 +107,7 @@ const MinutaDialog = ({ open, onClose, minuta, onEdit, onDelete, soloLectura }) 
           <Grid item>
             {!soloLectura && (
               <>
-                <Button onClick={handleEdit} color="primary" variant="outlined" sx={{ marginRight: 2 }}>
+                <Button onClick={onEdit} color="primary" variant="outlined" sx={{ marginRight: 2 }}>
                   Editar
                 </Button>
                 <Button onClick={() => onDelete(minuta.idSeguimiento)} color="error" variant="outlined">
