@@ -24,6 +24,10 @@ const GestionEntidades = () => {
   const [entidadAEditar, setEntidadAEditar] = useState(null); // objeto 
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [entidadEditada, setEntidadEditada] = useState(null); // guarda temporalmente lo editado
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+    const abrirModal = () => setModalAbierto(true);
+    const cerrarModal = () => setModalAbierto(false);
 
   useEffect(() => {
     obtenerEntidades();
@@ -163,6 +167,7 @@ const GestionEntidades = () => {
         <DialogTitleCustom title = {modoEdicion ? 'Editar Entidad' : 'Nueva Entidad'} />
         <DialogContent>
           <AddEntidad
+            onClose={handleCloseDialog}
             onSubmit={handleSubmitEntidad}
             initialData={entidadAEditar}
           />
