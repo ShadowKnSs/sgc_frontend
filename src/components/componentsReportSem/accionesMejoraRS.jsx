@@ -3,9 +3,12 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 
 // Función para definir el color del estado
 const getEstadoColor = (estado) => {
-    if (estado.toLowerCase() === "en proceso") return "#F9B800"; // Amarillo
-    if (estado.toLowerCase() === "cerrado") return "#4CAF50"; // Verde
-    return "transparent"; // Por si acaso hay otro estado
+    if (typeof estado !== 'string') return "transparent"; // Previene errores
+    const estadoNormalizado = estado.toLowerCase();
+
+    if (estadoNormalizado === "en proceso") return "#F9B800"; // Amarillo
+    if (estadoNormalizado === "cerrado") return "#4CAF50";   // Verde
+    return "transparent"; // Color por defecto
 };
 
 const AccionesMejora = ({ data }) => {
@@ -42,7 +45,7 @@ const AccionesMejora = ({ data }) => {
                                         borderRadius: "5px",
                                     }}
                                 >
-                                    {item.estado}
+                                    {item.estado || "Sin estado"}
                                 </TableCell>
                             </TableRow>
                         ))}
