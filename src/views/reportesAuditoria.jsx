@@ -281,4 +281,4 @@ const ReportesAuditoria = () => {
     );
 };
 
-            export default ReportesAuditoria;
+export default ReportesAuditoria;

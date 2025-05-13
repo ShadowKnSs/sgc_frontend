@@ -84,7 +84,7 @@ const AppRoutes = () => {
           <Route path="/auditorias/:id" element={<InformeAuditoriaInterna />} />
           <Route path="/vista-previa/:idAuditorialInterna" element={<VistaPreviaAud />} />
           <Route path="informe-auditoria" element={<InformeAuditoria />}/>
-          <Route path="/auditoria/:idRegistro" element={<InformeAuditoria />} />
+          <Route path="/auditoria/:idRegistro" element={<AuditoriaProceso />} />
           <Route path="cronograma" element={<Cronograma />}/>
           <Route path="manual-calidad" element={<ManualCalidad />}/>
           <Route path="manual-operativo" element={<ManualOperativo />} />
