@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect} from "react";
 import { Dialog, DialogActions, DialogContent } from '@mui/material';
 import DialogTitleCustom from './TitleDialog';
 import CustomButton from './Button';
@@ -19,7 +19,10 @@ const getEditMessage = (type, name) => {
   };
   
   const ConfirmEdit = ({ open, onClose, entityType, entityName, onConfirm }) => {
-    console.log("entityName en ConfirmEdit:", entityName); 
+    useEffect(() => {
+  console.log("ConfirmEdit recibió entityName:", entityName);
+}, [entityName]);
+
     return (
       <Dialog open={open} onClose={onClose}>
         <DialogTitleCustom title="Confirmar Edición" />

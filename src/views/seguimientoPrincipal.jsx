@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, DialogTitle, Button, Box } from "@mui/material";
+import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import MinutaCard from "../components/CardMinuta";
@@ -26,19 +26,17 @@ const Seguimiento = () => {
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso("Seguimiento");
   const [minutas, setMinutas] = useState([]);
-  const [openForm, setOpenForm] = useState(false);
-  const [currentMinuta, setCurrentMinuta] = useState(null);
-  const [openMinutaDialog, setOpenMinutaDialog] = useState(false);
-  const [selectedMinuta, setSelectedMinuta] = useState(null);
-
   const [openInfo, setOpenInfo] = useState(false);
   const [snackbarType, setSnackbarType] = useState('');
   const [snackbarMessage, setSnackbarMessage] = useState('');
-
-  const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [selectedMinutaId, setSelectedMinutaId] = useState(null);
-  const [minutaToEdit, setMinutaToEdit] = useState(null);
+  const [selectedMinuta, setSelectedMinuta] = useState(null);
+  const [currentMinuta, setCurrentMinuta] = useState(null);
+  const [openMinutaDialog, setOpenMinutaDialog] = useState(false);
+  const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
+  const [openForm, setOpenForm] = useState(false);
+  const [modoEdicion, setModoEdicion] = useState(false);
 
   useEffect(() => {
     const fetchMinutas = async () => {
@@ -54,10 +52,20 @@ const Seguimiento = () => {
     if (idRegistro) fetchMinutas();
   }, [idRegistro]);
 
-  const handleOpenForm = (minuta) => {
-    setCurrentMinuta(minuta);
-    setOpenForm(true);
-  };
+  const handleCreateMinuta = () => {
+  console.log("Clic en nueva minuta");
+  setCurrentMinuta(null); // sin datos = nueva
+  setModoEdicion(false);
+  setOpenForm(true); // abre directamente el formulario
+};
+
+ const handleOpenForm = (minuta) => {
+  console.log("Clic en Editar minuta:", minuta);
+  setSelectedMinuta(minuta);
+  setModoEdicion(true);
+  setOpenConfirmEdit(true);
+};
+
 
   const handleCloseForm = () => {
     setOpenForm(false);
@@ -65,6 +73,7 @@ const Seguimiento = () => {
   };
 
   const handleOpenMinutaDialog = (minuta) => {
+    setModoEdicion(false); // Solo para ver, no editar
     setSelectedMinuta(minuta);
     setOpenMinutaDialog(true);
   };
@@ -74,36 +83,16 @@ const Seguimiento = () => {
     setSelectedMinuta(null);
   };
 
-  /*const handleEdit = (minuta) => {
-    if (minuta) {
-      setCurrentMinuta(minuta);
-      setOpenConfirmEdit(false);
-      setOpenMinutaDialog(false);
-      setOpenForm(true);
-    } else {
-      console.log("No hay minuta para editar");
-    }
-  };*/
   const handleEdit = () => {
     if (selectedMinuta) {
       setCurrentMinuta(selectedMinuta);
       setOpenConfirmEdit(false);
       setOpenMinutaDialog(false);
+      setModoEdicion(false);
       setOpenForm(true);
     } else {
       console.log("No hay minuta para editar");
     }
-  };
-  useEffect(() => {
-    console.log("selectedMinuta actualizado:", selectedMinuta);
-  }, [selectedMinuta]);
-
-
-  const handleEditMinuta = (id) => {
-    const minuta = minutas.find((m) => m.idSeguimiento === id);
-    console.log("minutaaaaaa", id); // Verifica si encontramos la minuta
-    setSelectedMinuta(minuta);
-    setOpenConfirmEdit(true);
   };
 
   const handleDeleteMinuta = (id) => {
@@ -157,7 +146,6 @@ const Seguimiento = () => {
               lugar={minuta.lugar}
               duracion={minuta.duracion}
               onClick={() => handleOpenMinutaDialog(minuta)}
-              onEdit={() => handleOpenForm(minuta)}
               soloLectura={soloLectura}
             />
           </Grid>
@@ -168,7 +156,7 @@ const Seguimiento = () => {
         open={openMinutaDialog}
         onClose={handleCloseMinutaDialog}
         minuta={selectedMinuta}
-        onEdit={handleEditMinuta}
+        onEdit={() => handleOpenForm(selectedMinuta)}
         onDelete={handleDeleteMinuta}
         soloLectura={soloLectura}
       />
@@ -183,7 +171,7 @@ const Seguimiento = () => {
       </Dialog>
 
       {!soloLectura && puedeEditar && (
-        <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={() => handleOpenForm(null)}>
+        <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleCreateMinuta}>
           <AddIcon />
         </Fab>
       )}
@@ -200,8 +188,9 @@ const Seguimiento = () => {
         onClose={() => setOpenConfirmEdit(false)}
         onConfirm={handleEdit}
         entityType="minuta"
-        entityName={selectedMinuta ? selectedMinuta.fecha : ""}
+        entityName={selectedMinuta?.fecha || ""}
       />
+
       <ConfirmDelete
         open={openDelete}
         onClose={() => setOpenDelete(false)}

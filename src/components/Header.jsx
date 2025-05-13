@@ -129,7 +129,6 @@ function Header() {
     navigate("/login");
   };
 
-
   if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
     itemsFiltrados.push({
       title: "Mi Proceso",
