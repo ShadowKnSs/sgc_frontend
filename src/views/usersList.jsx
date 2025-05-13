@@ -26,7 +26,8 @@ function UserManagement() {
         try {
             setLoading(true);
             const response = await axios.get(`${API_URL}/usuarios`);
-            setUsers(response.data.data.map(transformUserData));
+            setUsers(response.data.data.map(transformUserData).filter(Boolean));
+
             setError(null);
         } catch (err) {
             setError("Error al cargar los usuarios");
@@ -60,6 +61,10 @@ function UserManagement() {
 
 
     const transformUserData = (user) => {
+        if (!user || typeof user !== 'object') return null;
+
+        const hasSupervisor = user.supervisor && typeof user.supervisor === 'object';
+
         return {
             id: user.idUsuario,
             firstName: user.nombre,
@@ -68,8 +73,8 @@ function UserManagement() {
             email: user.correo,
             phone: user.telefono,
             academicDegree: user.gradoAcademico,
-            roles: Array.isArray(user.roles) ? user.roles.map(r => r.nombreRol) : [], // ✅ CAMBIO AQUÍ
-            supervisor: user.supervisor ? {
+            roles: Array.isArray(user.roles) ? user.roles.map(r => r.nombreRol) : [],
+            supervisor: hasSupervisor ? {
                 id: user.supervisor.idUsuario,
                 firstName: user.supervisor.nombre,
                 lastName: user.supervisor.apellidoPat,
@@ -77,6 +82,7 @@ function UserManagement() {
             } : null
         };
     };
+
 
 
     useEffect(() => {
@@ -154,7 +160,7 @@ function UserManagement() {
                     </Box>
                     {usuariosTemporales.length > 0 && (
                         <>
-                            <Box sx={{marginTop: 3}}>
+                            <Box sx={{ marginTop: 3 }}>
                                 <Title text="Usuarios Temporales" />
                             </Box>
 

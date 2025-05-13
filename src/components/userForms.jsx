@@ -129,7 +129,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         return `${primerNombre.toLowerCase()}12345678`;
     };
 
-    const getDigitsOnly = (value) => value.replace(/\D/g, "").slice(0, 10);
+    const getDigitsOnly = (value) => (value || "").replace(/\D/g, "").slice(0, 10);
 
     const formatPhoneNumber = (value) => {
         const digits = getDigitsOnly(value);
@@ -426,7 +426,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                             margin="dense"
                             InputLabelProps={{ shrink: true }}
                         />
-                        
+
                     </>
                 )}
             </DialogContent>
@@ -451,7 +451,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                 ) : (
                     <CustomButton type="guardar" onClick={async () => {
                         await generarToken();
-                        onClose(); 
+                        onClose();
                     }}>
                         Generar Token
                     </CustomButton>
