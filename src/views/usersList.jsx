@@ -199,6 +199,7 @@ function UserManagement() {
                 open={openForm}
                 onClose={handleFormClose}
                 onSubmit={handleAddUser}
+                onTokenCreated={fetchUsuariosTemporales}
                 editingUser={editingUser}
             />
 

@@ -6,7 +6,7 @@ import CustomButton from "./Button";
 import DialogTitleCustom from "./TitleDialog";
 const API_URL = 'http://localhost:8000/api';
 
-function UserForm({ open, onClose, editingUser, onSubmit }) {
+function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -254,6 +254,9 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
             const data = await response.json();
             if (response.ok) {
                 alert(`Token generado: ${data.token}\nExpira: ${data.expiracion}`);
+                if (typeof onTokenCreated === "function") {
+                    onTokenCreated(); // <- esto actualiza la lista
+                }
             } else {
                 alert("Error al generar el token: " + data.message);
             }
