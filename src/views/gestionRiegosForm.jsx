@@ -87,6 +87,7 @@ function FormularioGestionRiesgos() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingRiesgo, setEditingRiesgo] = useState(null);
 
+
   // 7) Nuevo riesgo
   const [nuevoRiesgo, setNuevoRiesgo] = useState({
     idRiesgo: null,
@@ -122,6 +123,7 @@ function FormularioGestionRiesgos() {
   const cerrarSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
+
 
   const fetchIdRegistro = async () => {
     try {
@@ -530,6 +532,8 @@ function FormularioGestionRiesgos() {
               value={nuevoRiesgo.descripcion}
               onChange={handleRiesgoChange}
               fullWidth
+              multiline
+              minRows={3}
               sx={{ mb: 2 }}
             />
           </>
@@ -586,6 +590,8 @@ function FormularioGestionRiesgos() {
               value={nuevoRiesgo.actividades}
               onChange={handleRiesgoChange}
               fullWidth
+              multiline
+              minRows={3}
               sx={{ mb: 2, marginTop: 2 }}
             />
             <TextField
@@ -688,6 +694,10 @@ function FormularioGestionRiesgos() {
         return null;
     }
   };
+
+  const valorNRP = nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad || "";
+  const reevaluacionNRP = nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad || "";
+  const reevaluacionEfectividad = reevaluacionNRP < valorNRP ? "Mejoró" : "No mejoró";
 
   return (
 
@@ -862,11 +872,31 @@ function FormularioGestionRiesgos() {
               <TableBody>
                 {savedData[selectedTab]?.map((row, index) => (
                   <TableRow key={index}>
-                    {Object.values(row).map((value, i) => (
-                      <TableCell key={i} align="center" sx={{ borderBottom: "1px solid #e0e0e0" }}>
-                        {value}
-                      </TableCell>
-                    ))}
+                    {Object.entries(row).map(([key, value], i) => {
+                      const isEfectividad = key.toLowerCase().includes("efectividad");
+
+                      let bgColor = "transparent";
+                      if (isEfectividad && typeof value === "string") {
+                        const lowerValue = value?.toLowerCase().trim();
+                        if (lowerValue === "mejoró") bgColor = "#C8E6C9"; // verde
+                        else if (lowerValue === "no mejoró") bgColor = "#FFCDD2"; // rojo
+                      }
+
+                      return (
+                        <TableCell
+                          key={i}
+                          align="center"
+                          sx={{
+                            borderBottom: "1px solid #e0e0e0",
+                            bgcolor: bgColor,
+                            fontWeight: isEfectividad ? 600 : "normal",
+                          }}
+                        >
+                          {value}
+                        </TableCell>
+                      );
+                    })}
+
                     {!soloLectura && (
                       <TableCell align="center">
                         <IconButton
@@ -993,23 +1023,21 @@ function FormularioGestionRiesgos() {
           />
           {renderModalSection()}
 
-          <Box mt={2} display="flex" justifyContent="space-between">
+          <Box mt={2} display="flex" justifyContent={currentSection === 0 ? "flex-end" : "space-between"}>
             {currentSection > 0 && (
               <CustomButton type="cancelar" onClick={handlePreviousSection}>
                 Anterior
               </CustomButton>
-
             )}
+
             {currentSection < 3 ? (
               <CustomButton type="aceptar" onClick={handleNextSection}>
                 Siguiente
               </CustomButton>
-
             ) : (
               <CustomButton type="guardar" onClick={handleRequestEditRiesgo}>
                 {isEditing ? "Actualizar" : "Guardar"}
               </CustomButton>
-
             )}
           </Box>
         </Box>
