@@ -27,8 +27,16 @@ import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
+import FeedbackSnackbar from "../components/Feedback";
+import Title from "../components/Title";
 import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
+import BusinessIcon from '@mui/icons-material/Business';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import SettingsIcon from '@mui/icons-material/Settings';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import { Fade } from '@mui/material';
 
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
@@ -41,6 +49,12 @@ function FormularioGestionRiesgos() {
   const { soloLectura, puedeEditar } = Permiso("Gestión de Riesgo");
   const [modoEdicion, setModoEdicion] = useState(false);
   const menuItems = useMenuProceso();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
 
 
   // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
@@ -96,6 +110,16 @@ function FormularioGestionRiesgos() {
   // 8) Confirmar eliminación
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
+
+
+  // Funcion para mostrar snackbar (FeedBack)
+  const mostrarSnackbar = (type, title, message) => {
+    setSnackbar({ open: true, type, title, message });
+  };
+
+  const cerrarSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   const fetchIdRegistro = async () => {
     try {
@@ -268,7 +292,8 @@ function FormularioGestionRiesgos() {
     console.log("[LOG] handleGuardarGestionRiesgos -> gestionRiesgo actual:", gestionRiesgo);
 
     if (!idRegistro) {
-      alert("No hay idRegistro, no se puede guardar en gestionriesgos.");
+      mostrarSnackbar("error", "Registro faltante", "No hay idRegistro, no se puede guardar.");
+
       return;
     }
 
@@ -284,8 +309,9 @@ function FormularioGestionRiesgos() {
       const payload = {
         idRegistro: idRegistro,
         elaboro: gestionRiesgo.elaboro,
-        fechaelaboracion: gestionRiesgo.fechaelaboracion,
+        fechaelaboracion: new Date().toISOString().split("T")[0],
       };
+
 
       console.log(`[LOG] Enviando ${method} a ${url} con payload:`, payload);
 
@@ -301,13 +327,14 @@ function FormularioGestionRiesgos() {
       }
 
       const result = await response.json();
-      console.log("[LOG] gestionriesgos guardado/actualizado:", result);
-
-      setGestionRiesgo((prev) => ({
+      setGestionRiesgo(prev => ({
         ...prev,
         idGesRies: result.idGesRies,
+        fechaelaboracion: result.fechaelaboracion,
       }));
+      setModoEdicion(false);
       setTieneGesRies(true);
+
 
       if (!tieneGesRies) {
         // Significa que era la primera vez
@@ -315,10 +342,12 @@ function FormularioGestionRiesgos() {
         cargarRiesgos(result.idGesRies);
       }
 
-      alert("Datos generales guardados correctamente.");
+      mostrarSnackbar("success", "Guardado", "Datos generales guardados correctamente.");
+
     } catch (err) {
       console.error("[ERROR] al guardar la información general:", err);
-      alert("Error al guardar la información general.");
+      mostrarSnackbar("error", "Error", "Error al guardar la información general.");
+
     }
   };
 
@@ -659,68 +688,105 @@ function FormularioGestionRiesgos() {
   return (
 
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
-      <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-        Gestión de Riesgos: {gestionRiesgo.proceso}
-      </Typography>
+      <Title text="Gestión de Riesgos"></Title>
 
       <MenuNavegacionProceso items={menuItems} />
 
       {/* === Sección de Info General (gestionriesgos) === */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-          Información General
-        </Typography>
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          {/* Entidad, macroproceso y proceso (solo lectura si deseas) */}
-          <TextField
-            label="Entidad"
-            value={gestionRiesgo.entidad}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, entidad: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Macroproceso"
-            value={gestionRiesgo.macroproceso}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, macroproceso: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Proceso"
-            value={gestionRiesgo.proceso}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, proceso: e.target.value })}
-            fullWidth
-          />
-          {/* elaboro y fechaelaboracion (el usuario los edita) */}
-          <TextField
-            label="Elaboró"
-            value={gestionRiesgo.elaboro}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Fecha"
-            type="date"
-            value={gestionRiesgo.fechaelaboracion}
-            onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, fechaelaboracion: e.target.value })}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-        </Box>
+      <Fade in timeout={600}>
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
+            Información General
+          </Typography>
 
-        {puedeEditar && (
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            {!tieneGesRies ? (
-              <Button variant="contained" onClick={handleGuardarGestionRiesgos}>Guardar Datos Generales</Button>
-            ) : (
-              !modoEdicion ? (
-                <Button variant="outlined" onClick={() => setModoEdicion(true)}>Editar</Button>
-              ) : (
-                <Button variant="contained" onClick={handleGuardarGestionRiesgos} sx={{ backgroundColor: "#F9B800", color: "#000" }}>Guardar</Button>
-              )
-            )}
+          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+            {/* ENTIDAD */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <BusinessIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Entidad
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.entidad || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* MACROPROCESO */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <AccountTreeIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Macroproceso
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.macroproceso || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* PROCESO */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SettingsIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Proceso
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.proceso || "Sin asignar"}</Typography>
+            </Box>
+
+            {/* FECHA AUTOMÁTICA */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <EventNoteIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Fecha de elaboración
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.fechaelaboracion}</Typography>
+            </Box>
+
+            {/* ELABORÓ (único editable) */}
+            <Box sx={{ display: "flex", flexDirection: "column", gridColumn: "1 / -1" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <EditNoteIcon color="primary" />
+                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
+                  Elaboró
+                </Typography>
+              </Box>
+              <TextField
+                value={gestionRiesgo.elaboro}
+                onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })}
+                fullWidth
+                disabled={!modoEdicion}
+                sx={{ mt: 1 }}
+              />
+            </Box>
           </Box>
-        )}
-      </Paper>
+
+          {/* Botones de acción */}
+          {puedeEditar && (
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              {!tieneGesRies ? (
+                <Button variant="contained" onClick={handleGuardarGestionRiesgos}>
+                  Guardar Datos Generales
+                </Button>
+              ) : (
+                !modoEdicion ? (
+                  <Button variant="outlined" onClick={() => setModoEdicion(true)}>Editar</Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    sx={{ backgroundColor: "#F9B800", color: "#000" }}
+                    onClick={handleGuardarGestionRiesgos}
+                  >
+                    Guardar
+                  </Button>
+                )
+              )}
+            </Box>
+          )}
+        </Paper>
+      </Fade>
+
 
       {/* === Tabs para los riesgos (solo si ya existe idGesRies) === */}
       {tieneGesRies && gestionRiesgo.idGesRies && (
@@ -919,6 +985,15 @@ function FormularioGestionRiesgos() {
         </Box>
       </Modal>
 
+      {/* SnackBars */}
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={cerrarSnackbar}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
+      />
+
       {/* Diálogo de confirmación para eliminar */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirmar Eliminación</DialogTitle>
@@ -935,6 +1010,8 @@ function FormularioGestionRiesgos() {
         </DialogActions>
       </Dialog>
     </Box>
+
+
   );
 }
 
