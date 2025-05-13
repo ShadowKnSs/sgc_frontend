@@ -1,58 +1,15 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Fab, Button, Modal, TextField, MenuItem } from "@mui/material";
+import { Box, Fab, Button, Modal, TextField, MenuItem, Typography } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import FiltroAuditoria from "../components/buscadorAuditoria"
-
-const ReportCard = ({ report, onDelete }) => {
-    return (
-        <Box
-            sx={{
-                backgroundColor: "#F9F8F8",
-                boxShadow: 2,
-                borderRadius: 2,
-                p: 2,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "start",
-                width: 300,
-                height: 130,
-                justifyContent: "space-between",
-            }}
-        >
-            <h3 style={{ fontSize: "1.3rem", fontWeight: "bold", textAlign: "left", marginTop: "-3px" }}>{report.title}</h3>
-            <p style={{ fontSize: "0.9rem", color: "#6c757d", textAlign: "left", marginTop: "-10px" }}>Fecha Auditoría {report.date}</p>
-            <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
-                <Button
-                    variant="contained"
-                    sx={{
-                        backgroundColor: "#B00020",
-                        borderRadius: "50px",
-                        top: "-5px",
-                        right: "5px",
-                        padding: "6px 20px",
-                        textTransform: "none",
-                        fontWeight: "bold"
-                    }}
-                    onClick={() => onDelete(report.id)}
-                >
-                    Eliminar
-                </Button>
-                <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#004A98", borderRadius: "50px", top: -5, padding: "6px 20px", textTransform: "none", fontWeight: "bold" }}
-                    onClick={() => window.open(`http://localhost:8000/api/reporte-pdf/${report.idAuditorialInterna}`, '_blank')}
-                >
-                    Descargar
-                </Button>
-            </Box>
-        </Box>
-    );
-};
+import Title from "../components/Title";
+import { CircularProgress } from "@mui/material";
+import MensajeAlert from "../components/MensajeAlert";
+import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 
 const ReportesAuditoria = () => {
-
     const [reports, setReports] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const [auditorias, setAuditorias] = useState([]);
@@ -61,6 +18,12 @@ const ReportesAuditoria = () => {
     const [idAEliminar, setIdAEliminar] = useState(null);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [alerta, setAlerta] = useState({ tipo: "", mensaje: "" });
+    const [entidades, setEntidades] = useState([]);
+    const [procesos, setProcesos] = useState([]);
+    const [entidadSeleccionada, setEntidadSeleccionada] = useState("");
+    const [procesoSeleccionado, setProcesoSeleccionado] = useState("");
 
     const navigate = useNavigate();
 
@@ -72,36 +35,43 @@ const ReportesAuditoria = () => {
     const fetchAuditorias = async () => {
         try {
             const res = await axios.get("http://localhost:8000/api/auditorias");
-            setAuditorias(res.data); // aquí puedes mapear también si lo prefieres
+            setAuditorias(res.data);
         } catch (err) {
             console.error("Error al obtener auditorías:", err);
         }
     };
 
     const fetchReportes = async () => {
+        setLoading(true);
         try {
             const res = await axios.get("http://localhost:8000/api/reportesauditoria");
             const datos = res.data.map((r) => ({
                 id: r.idReporte,
                 idAuditorialInterna: r.idAuditorialInterna,
-                title: "Auditoría Interna", // puedes agregar luego más info
+                title: "Auditoría Interna",
                 date: new Date(r.fechaGeneracion).toLocaleDateString(),
             }));
             setReports(datos);
         } catch (err) {
             console.error("Error al obtener reportes:", err);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleEliminarReporte = async () => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:8000/api/reportesauditoria/${idAEliminar}`);
             setReports(reports.filter(r => r.id !== idAEliminar));
             setOpenConfirm(false);
             setIdAEliminar(null);
+            setAlerta({ tipo: "success", mensaje: "Reporte eliminado correctamente" });
         } catch (err) {
             console.error("Error al eliminar reporte:", err);
             alert("Error al eliminar el reporte");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -140,7 +110,7 @@ const ReportesAuditoria = () => {
         const cargarAuditorias = async () => {
             try {
                 const res = await axios.get("http://localhost:8000/api/auditorias");
-                setAuditorias(res.data); // Asegúrate que esto sea un array de auditorías con `fecha` y `idAuditorialInterna`
+                setAuditorias(res.data);
             } catch (err) {
                 console.error("Error al cargar auditorías:", err);
             }
@@ -151,9 +121,54 @@ const ReportesAuditoria = () => {
         }
     }, [openModal]);
 
+    useEffect(() => {
+        fetchReportes();
+        const cargarDatos = async () => {
+            try {
+                const resEntidades = await axios.get("http://localhost:8000/api/entidades");
+                setEntidades(resEntidades.data);
+
+                const resAuditorias = await axios.get("http://localhost:8000/api/auditorias");
+                setAuditorias(resAuditorias.data);
+            } catch (err) {
+                console.error("Error al cargar datos:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        cargarDatos();
+    }, []);
+
+    useEffect(() => {
+        const cargarProcesos = async () => {
+            if (!entidadSeleccionada) return;
+            try {
+                const resProcesos = await axios.get(`http://localhost:8000/api/procesos?entidad_id=${entidadSeleccionada}`);
+                setProcesos(resProcesos.data);
+            } catch (err) {
+                console.error("Error al cargar procesos:", err);
+            }
+        };
+        cargarProcesos();
+    }, [entidadSeleccionada]);
+
     return (
         <Box sx={{ p: 1, textAlign: "center", display: "flex", flexDirection: "row", position: "relative" }}>
-
+    {loading && (
+        <Box sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999
+        }}>
+            <CircularProgress size={60} color="primary" />
+        </Box>
+        )}
             {/* 🔍 Línea lateral clickeable */}
             <Box
                 onClick={() => setSearchOpen(!searchOpen)}
@@ -181,18 +196,11 @@ const ReportesAuditoria = () => {
             />
 
             {/* 🎯 Contenido principal */}
-            <Box sx={{ flex: 1 }}>
-                <h1 style={{
-                    fontSize: "3rem",
-                    fontWeight: "bold",
-                    color: "#004A98",
-                    marginBottom: "3rem",
-                    textAlign: "center",
-                    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)"
-                }}>
-                    Reportes Auditoría
-                </h1>
-
+            <Box sx={{ flex: 1, p: 4 }}>
+                <Title text="Reportes Auditoría" />
+                {alerta.mensaje && (
+                    <MensajeAlert tipo={alerta.tipo} mensaje={alerta.mensaje} />
+                )}
                 <Box
                     display="grid"
                     gridTemplateColumns="repeat(3, 1fr)"
@@ -251,34 +259,89 @@ const ReportesAuditoria = () => {
                         </Box>
                     </Box>
                 </Modal>
-                <Modal open={openConfirm} onClose={() => setOpenConfirm(false)}>
-                    <Box sx={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 380,
-                        bgcolor: "white",
-                        boxShadow: 24,
-                        p: 4,
-                        borderRadius: 3,
-                        textAlign: "center"
-                    }}>
-                        <h2 style={{ marginBottom: "1rem", color: "#B00020" }}>¿Eliminar Reporte?</h2>
-                        <p>Esta acción no se puede deshacer.</p>
-                        <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
-                            <Button variant="outlined" onClick={() => setOpenConfirm(false)} sx={{ borderRadius: '50px' }}>
-                                Cancelar
-                            </Button>
-                            <Button variant="contained" color="error" onClick={handleEliminarReporte} sx={{ borderRadius: '50px' }}>
-                                Confirmar
-                            </Button>
-                        </Box>
-                    </Box>
-                </Modal>
+                <ConfirmDeleteDialog
+                    open={openConfirm}
+                    onClose={() => setOpenConfirm(false)}
+                    onConfirm={handleEliminarReporte}
+                    titulo="¿Eliminar Reporte?"
+                    subtitulo="Esta acción no se puede deshacer."
+                />
             </Box>
         </Box>
     );
+};
+
+const ReportCard = ({ report, onDelete }) => {
+  return (
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        borderRadius: "8px",
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        width: 320,
+        minHeight: 160,
+        borderLeft: "6px solid #004A98",
+        transition: "transform 0.2s",
+        "&:hover": {
+          transform: "translateY(-4px)"
+        }
+      }}
+    >
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
+          {report.titulo || "Auditoría Interna"}
+        </Typography>
+        <Typography variant="body2">
+          <b>Entidad:</b> {report.entidad || "Sin entidad"}
+        </Typography>
+        <Typography variant="body2">
+          <b>Líder:</b> {report.lider || "Sin líder"}
+        </Typography>
+        <Typography variant="body2">
+          <b>Fecha:</b> {report.date}
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "#004A98",
+            borderRadius: "8px",
+            textTransform: "none",
+            fontWeight: "bold",
+            "&:hover": {
+              backgroundColor: "#00336b"
+            }
+          }}
+          onClick={() => window.open(`http://localhost:8000/api/reporte-pdf/${report.idAuditorialInterna}`, '_blank')}
+        >
+          Descargar
+        </Button>
+
+        <Button
+          variant="outlined"
+          sx={{
+            color: "#B00020",
+            borderColor: "#B00020",
+            borderRadius: "8px",
+            textTransform: "none",
+            fontWeight: "bold",
+            "&:hover": {
+              backgroundColor: "#fbe9e7"
+            }
+          }}
+          onClick={() => onDelete(report.id)}
+        >
+          Eliminar
+        </Button>
+      </Box>
+    </Box>
+  );
 };
 
 export default ReportesAuditoria;

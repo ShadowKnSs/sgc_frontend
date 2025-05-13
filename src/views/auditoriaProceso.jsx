@@ -17,12 +17,13 @@ import MensajeAlert from '../components/MensajeAlert';
 import ErrorAlert from '../components/ErrorAlert';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import axios from "axios";
+import { CircularProgress } from '@mui/material';
+
 
 const AuditoriaProceso = () => {
   const { idRegistro } = useParams(); // ID de la carpeta (representa el año)
   const location = useLocation();
   const navigate = useNavigate();
-
   const idProceso = location.state?.idProceso;
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
@@ -37,6 +38,7 @@ const AuditoriaProceso = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [auditoriaAEliminar, setAuditoriaAEliminar] = useState(null);
   const [errorCarga, setErrorCarga] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -99,6 +101,8 @@ const AuditoriaProceso = () => {
       } catch (error) {
         console.error("Error al cargar auditorías:", error);
         setErrorCarga("Error al cargar las auditorías del proceso.");
+      } finally {
+        setCargando(false);
       }
     };
 
@@ -129,7 +133,22 @@ const AuditoriaProceso = () => {
     if (errorCarga) {
       return <ErrorAlert message={errorCarga} />;
     }
-    return <Typography variant="h6" color="error" sx={{ mt: 4, textAlign: "center" }}>Error: ID del proceso no recibido.</Typography>;
+    return (
+      <Typography variant="h6" color="error" sx={{ mt: 4, textAlign: "center" }}>
+        Error: ID del proceso no recibido.
+      </Typography>
+    );
+  }
+
+  if (cargando) {
+    return (
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="40vh">
+        <CircularProgress size={60} thickness={5} />
+        <Typography variant="subtitle1" mt={2}>
+          Cargando auditorías...
+        </Typography>
+      </Box>
+    );
   }
 
   return (
@@ -149,9 +168,11 @@ const AuditoriaProceso = () => {
       <Title text={`Auditorías del Proceso de ${nombreProceso} de la ${nombreEntidad}`} />
       <Grid container spacing={3}>
         {auditorias.length === 0 ? (
-          <Typography variant="body1" color="text.secondary" sx={{ ml: 2 }}>
-            No se han registrado auditorías en el año {anioRegistro}.
-          </Typography>
+          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '30vh' }}>
+            <Typography variant="body1" color="text.secondary" align="center">
+              No se han registrado auditorías en el año {anioRegistro}.
+            </Typography>
+          </Grid>
         ) : (
           auditorias.map((auditoria, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>

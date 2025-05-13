@@ -35,6 +35,25 @@ function InformeAud() {
   const datosAuditoria = location.state?.datosAuditoria || null;
   const [mensaje, setMensaje] = useState(null);
   const [error, setError] = useState(null);
+  const [auditoresDisponibles, setAuditoresDisponibles] = useState([]);
+
+  useEffect(() => {
+    const fetchAuditores = async () => {
+      try {
+        const res = await axios.get('http://localhost:8000/api/auditores/basico');
+        setAuditoresDisponibles(res.data.data); // accede a la propiedad 'data' dentro de 'data'
+      } catch (error) {
+        console.error("Error al cargar auditores:", error);
+      }
+    };
+    fetchAuditores();
+  }, []);
+
+  useEffect(() => {
+    if (!modoEdicion) {
+      setEquipoAuditor([{ rol: 'Auditor Líder', auditor: lider }]);
+    }
+  }, [modoEdicion, lider]);
 
   useEffect(() => {
     const fetchDatos = async () => {
@@ -369,27 +388,44 @@ function InformeAud() {
               {equipoAuditor.map((item, index) => (
                 <Grid container spacing={2} alignItems="center" mt={1} key={index}>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Rol" variant="outlined" value={item.rol}
+                    <TextField
+                      fullWidth
+                      label="Rol"
+                      variant="outlined"
+                      value={item.rol}
                       onChange={(e) => {
                         const nuevos = [...equipoAuditor];
                         nuevos[index].rol = e.target.value;
                         setEquipoAuditor(nuevos);
                       }}
+                      disabled={index === 0}
                     />
                   </Grid>
-                  <Grid item xs={6}>
-                    <TextField select fullWidth label="Nombre Auditor" variant="outlined" value={item.auditor}
-                      onChange={(e) => {
-                        const nuevos = [...equipoAuditor];
-                        nuevos[index].auditor = e.target.value;
-                        setEquipoAuditor(nuevos);
-                      }}
-                    >
-                      <MenuItem value="Juan Pérez">Juan Pérez</MenuItem>
-                      <MenuItem value="Ana Gómez">Ana Gómez</MenuItem>
-                    </TextField>
-                  </Grid>
-
+                    <Grid item xs={6}>
+                      {index === 0 ? (
+                        <TextField
+                          fullWidth
+                          label="Nombre Auditor"
+                          variant="outlined"
+                          value={item.auditor}
+                          disabled
+                        />
+                      ) : (
+                      <TextField select fullWidth label="Nombre Auditor" variant="outlined" value={item.auditor}
+                        onChange={(e) => {
+                          const nuevos = [...equipoAuditor];
+                          nuevos[index].auditor = e.target.value;
+                          setEquipoAuditor(nuevos);
+                        }}
+                      >
+                        {auditoresDisponibles.map((auditor) => (
+                          <MenuItem key={auditor.idUsuario} value={`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}>
+                            {`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      )}
+                    </Grid>
                   <Grid item xs={12} display="flex" justifyContent="flex-end">
                     <Typography
                       variant="body2"
