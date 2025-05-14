@@ -311,6 +311,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.nombreActividad}
             onChange={(e) =>
               setNewActividad({ ...newActividad, nombreActividad: e.target.value })
@@ -324,6 +326,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.procedimiento}
             onChange={(e) =>
               setNewActividad({ ...newActividad, procedimiento: e.target.value })
@@ -333,23 +337,12 @@ function ProcessMapView({ idProceso, soloLectura }) {
           />
 
           <TextField
-            label="Criterio de Aceptación"
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2 }}
-            value={newActividad.criterioAceptacion}
-            onChange={(e) =>
-              setNewActividad({ ...newActividad, criterioAceptacion: e.target.value })
-            }
-            error={!!errors.criterioAceptacion}
-            helperText={errors.criterioAceptacion}
-          />
-
-          <TextField
             label="Características a Verificar"
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.caracteristicasVerificar}
             onChange={(e) =>
               setNewActividad({ ...newActividad, caracteristicasVerificar: e.target.value })
@@ -359,10 +352,27 @@ function ProcessMapView({ idProceso, soloLectura }) {
           />
 
           <TextField
+            label="Criterio de Aceptación"
+            fullWidth
+            variant="outlined"
+            sx={{ mb: 2 }}
+            multiline
+            minRows={3}
+            value={newActividad.criterioAceptacion}
+            onChange={(e) =>
+              setNewActividad({ ...newActividad, criterioAceptacion: e.target.value })
+            }
+            error={!!errors.criterioAceptacion}
+            helperText={errors.criterioAceptacion}
+          />
+
+          <TextField
             label="Frecuencia"
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.frecuencia}
             onChange={(e) => setNewActividad({ ...newActividad, frecuencia: e.target.value })}
             error={!!errors.frecuencia}
@@ -370,10 +380,12 @@ function ProcessMapView({ idProceso, soloLectura }) {
           />
 
           <TextField
-            label="Identificación de Salida"
+            label="Identificación de Salidas No Conformes"
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.identificacionSalida}
             onChange={(e) =>
               setNewActividad({ ...newActividad, identificacionSalida: e.target.value })
@@ -383,36 +395,44 @@ function ProcessMapView({ idProceso, soloLectura }) {
           />
 
           <TextField
-            label="Registro de Salidas"
+            label="Tratamiento"
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
+            value={newActividad.tratamiento}
+            onChange={(e) => setNewActividad({ ...newActividad, tratamiento: e.target.value })}
+            error={!!errors.tratamiento}
+            helperText={errors.tratamiento}
+          />
+
+          <TextField
+            label="Registro de Salidas No Conformes"
+            fullWidth
+            variant="outlined"
+            sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.registroSalida}
-            onChange={(e) => setNewActividad({ ...newActividad, registroSalida: e.target.value })}
+            onChange={(e) =>
+              setNewActividad({ ...newActividad, registroSalida: e.target.value })
+            }
             error={!!errors.registroSalida}
             helperText={errors.registroSalida}
           />
 
           <TextField
-            label="Responsable"
+            label="Responsable de Liberación"
             fullWidth
             variant="outlined"
             sx={{ mb: 2 }}
+            multiline
+            minRows={3}
             value={newActividad.responsable}
             onChange={(e) => setNewActividad({ ...newActividad, responsable: e.target.value })}
             error={!!errors.responsable}
             helperText={errors.responsable}
-          />
-
-          <TextField
-            label="Tratamiento"
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2 }}
-            value={newActividad.tratamiento}
-            onChange={(e) => setNewActividad({ ...newActividad, tratamiento: e.target.value })}
-            error={!!errors.tratamiento}
-            helperText={errors.tratamiento}
           />
         </DialogContent>
         <DialogActions>

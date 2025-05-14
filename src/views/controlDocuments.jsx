@@ -15,7 +15,7 @@ const initialNewUserState = {
   codigoDocumento: "",
   tipoDocumento: "",
   fechaRevision: "",
-  fechaVersion: "",
+  fechaVersion: null,
   noRevision: 0,
   noCopias: 0,
   tiempoRetencion: 0,
@@ -105,7 +105,9 @@ function ProcessMapView({ soloLectura, idProceso }) {
     if (!newUser.nombreDocumento?.trim()) tempErrors.nombreDocumento = "Este campo es obligatorio";
     if (!newUser.tipoDocumento) tempErrors.tipoDocumento = "Debe seleccionar un tipo de documento";
     if (!newUser.fechaRevision) tempErrors.fechaRevision = "Debe seleccionar una fecha";
-    if (!newUser.fechaVersion) tempErrors.fechaVersion = "Debe seleccionar una fecha";
+    if (newUser.tipoDocumento === "externo" && !newUser.fechaVersion) {
+      tempErrors.fechaVersion = "Debe seleccionar una fecha";
+    }
     if (!newUser.lugarAlmacenamiento?.trim()) tempErrors.lugarAlmacenamiento = "Este campo es obligatorio";
     if (!newUser.medioAlmacenamiento) tempErrors.medioAlmacenamiento = "Debe seleccionar un medio de almacenamiento";
     if (!newUser.disposicion?.trim()) tempErrors.disposicion = "Este campo es obligatorio";
@@ -122,14 +124,16 @@ function ProcessMapView({ soloLectura, idProceso }) {
       idProceso,
       responsable: newUser.usuarios.join(", "),
     };    
-  
+  console.log("Payload:", payload)
     axios.post("http://localhost:8000/api/documentos", payload)
       .then((res) => {
         setUsers(prev => [...prev, res.data]);
         setOpenForm(false);
         setNewUser(initialNewUserState);  // como antes
       })
-      .catch(console.error);
+    .catch((error) => {
+      console.error("Error al crear documento:", error.response?.data);
+    });
   };
   
   const handleEditDocument = (doc) => {
@@ -284,31 +288,42 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 />
 
                 <TextField
-                  label="Código del Documento"
-                  fullWidth
-                  variant="outlined"
-                  value={newUser.codigoDocumento}
-                  onChange={(e) => setNewUser({ ...newUser, codigoDocumento: e.target.value })}
-                  error={!!errors.codigoDocumento}
-                  helperText={errors.codigoDocumento}
-                />
-
-                <TextField
                   label="Tipo de Documento"
                   fullWidth
                   select
                   variant="outlined"
                   value={newUser.tipoDocumento}
-                  onChange={(e) => setNewUser({ ...newUser, tipoDocumento: e.target.value })}
+                  onChange={(e) => {
+                    const tipo = e.target.value;
+                    setNewUser({
+                      ...newUser,
+                      tipoDocumento: tipo,
+                      fechaVersion: tipo === "externo" ? newUser.fechaVersion : null
+                    });
+                  }}
                   error={!!errors.tipoDocumento}
                   helperText={errors.tipoDocumento}
                 >
-                  <MenuItem value="interno">interno</MenuItem>
-                  <MenuItem value="externo">externo</MenuItem>
+                  <MenuItem value="interno">INT</MenuItem>
+                  <MenuItem value="externo">EXT</MenuItem>
                 </TextField>
 
+                {newUser.tipoDocumento === "externo" && (
+                  <TextField
+                    label="Fecha de Última Versión"
+                    fullWidth
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    value={newUser.fechaVersion}
+                    onChange={(e) => setNewUser({ ...newUser, fechaVersion: e.target.value })}
+                    error={!!errors.fechaVersion}
+                    helperText={errors.fechaVersion}
+                  />
+                )}
+
                 <TextField
-                  label="Fecha de Revisión"
+                  label="Revisión (Aplica para Documentos Internos)"
                   fullWidth
                   type="date"
                   InputLabelProps={{ shrink: true }}
@@ -320,31 +335,46 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 />
 
                 <TextField
-                  label="Fecha de Versión"
+                  label="Responsable"
                   fullWidth
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
                   variant="outlined"
-                  value={newUser.fechaVersion}
-                  onChange={(e) => setNewUser({ ...newUser, fechaVersion: e.target.value })}
-                  error={!!errors.fechaVersion}
-                  helperText={errors.fechaVersion}
+                  value={newUser.responsable}
+                  onChange={(e) => setNewUser({ ...newUser, responsable: e.target.value })}
+                  error={!!errors.responsable}
+                  helperText={errors.responsable}
                 />
 
-                <TextField
-                  label="Número de Revisiones"
-                  fullWidth
-                  type="number"
-                  variant="outlined"
-                  value={newUser.noRevision}
-                  onChange={(e) => setNewUser({ ...newUser, noRevision: parseInt(e.target.value) || 0 })}
-                  error={!!errors.noRevision}
-                  helperText={errors.noRevision}
-                  inputProps={{ min: 0 }}
-                />
+                <Box>
+                  <Typography sx={{ fontWeight: "bold", mb: 1 }}>Usuarios:</Typography>
+                  <FormGroup row>
+                    {[
+                      "ALUMNOS",
+                      "PERSONAL ADMINISTRATIVO",
+                      "FUNCIONARIADO",
+                      "FUNCIONARIOS",
+                      "COORDINADORES DE SERVICIO SOCIAL"
+                    ].map((usuario) => (
+                      <FormControlLabel
+                        key={usuario}
+                        control={
+                          <Checkbox
+                            checked={newUser.usuarios.includes(usuario)}
+                            onChange={(e) => {
+                              const updated = e.target.checked
+                                ? [...newUser.usuarios, usuario]
+                                : newUser.usuarios.filter((u) => u !== usuario);
+                              setNewUser({ ...newUser, usuarios: updated });
+                            }}
+                          />
+                        }
+                        label={usuario}
+                      />
+                    ))}
+                  </FormGroup>
+                </Box>
 
                 <TextField
-                  label="Número de Copias"
+                  label="No. Copias"
                   fullWidth
                   type="number"
                   variant="outlined"
@@ -356,7 +386,22 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 />
 
                 <TextField
-                  label="Tiempo de Retención (años)"
+                  label="Medio de Almacenamiento"
+                  fullWidth
+                  select
+                  variant="outlined"
+                  value={newUser.medioAlmacenamiento}
+                  onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
+                  error={!!errors.medioAlmacenamiento}
+                  helperText={errors.medioAlmacenamiento}
+                >
+                  <MenuItem value="Físico">Físico</MenuItem>
+                  <MenuItem value="Digital">Digital</MenuItem>
+                  <MenuItem value="Ambos">Ambos</MenuItem>
+                </TextField>
+
+                <TextField
+                  label="Tiempo de Retención"
                   fullWidth
                   type="number"
                   variant="outlined"
@@ -378,22 +423,7 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 />
 
                 <TextField
-                  label="Medio de Almacenamiento"
-                  fullWidth
-                  select
-                  variant="outlined"
-                  value={newUser.medioAlmacenamiento}
-                  onChange={(e) => setNewUser({ ...newUser, medioAlmacenamiento: e.target.value })}
-                  error={!!errors.medioAlmacenamiento}
-                  helperText={errors.medioAlmacenamiento}
-                >
-                  <MenuItem value="Físico">Físico</MenuItem>
-                  <MenuItem value="Digital">Digital</MenuItem>
-                  <MenuItem value="Ambos">Ambos</MenuItem>
-                </TextField>
-
-                <TextField
-                  label="Disposición"
+                  label="Disposición después del Periodo de Retención"
                   fullWidth
                   variant="outlined"
                   value={newUser.disposicion}
@@ -401,29 +431,6 @@ function ProcessMapView({ soloLectura, idProceso }) {
                   error={!!errors.disposicion}
                   helperText={errors.disposicion}
                 />
-                <Box>
-                  
-                <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
-                  <FormGroup row>
-                  {["ALUMNOS", "PERSONAL ADMINISTRATIVO"].map(user => (
-                    <FormControlLabel
-                      key={user}
-                      control={
-                        <Checkbox
-                          checked={editDoc?.usuarios?.includes(user)}
-                          onChange={(e) => {
-                            const updated = e.target.checked
-                              ? [...editDoc.usuarios, user]
-                              : editDoc.usuarios.filter(u => u !== user);
-                            setEditDoc({ ...editDoc, usuarios: updated });
-                          }}
-                        />
-                      }
-                      label={user}
-                    />
-                  ))}
-                  </FormGroup>
-                </Box>
               </Box>
             </DialogContent>
             <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
@@ -462,6 +469,7 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 value={editDoc?.nombreDocumento || ""}
                 onChange={(e) => setEditDoc({ ...editDoc, nombreDocumento: e.target.value })}
               />
+
               <TextField
                 label="Código del Documento"
                 fullWidth
@@ -469,64 +477,91 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 value={editDoc?.codigoDocumento || ""}
                 onChange={(e) => setEditDoc({ ...editDoc, codigoDocumento: e.target.value })}
               />
+
               <TextField
                 label="Tipo de Documento"
                 fullWidth
                 select
                 variant="outlined"
                 value={editDoc?.tipoDocumento || ""}
-                onChange={(e) => setEditDoc({ ...editDoc, tipoDocumento: e.target.value })}
+                onChange={(e) => {
+                  const tipo = e.target.value;
+                  setEditDoc({
+                    ...editDoc,
+                    tipoDocumento: tipo,
+                    fechaVersion: tipo === "externo" ? editDoc.fechaVersion : null
+                  });
+                }}
               >
-                <MenuItem value="interno">interno</MenuItem>
-                <MenuItem value="externo">externo</MenuItem>
+                <MenuItem value="interno">INT</MenuItem>
+                <MenuItem value="externo">EXT</MenuItem>
               </TextField>
+
+              {editDoc?.tipoDocumento === "externo" && (
+                <TextField
+                  label="Fecha de Última Versión"
+                  fullWidth
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  variant="outlined"
+                  value={editDoc.fechaVersion || ""}
+                  onChange={(e) => setEditDoc({ ...editDoc, fechaVersion: e.target.value })}
+                />
+              )}
+
               <TextField
-                label="Fecha de Revisión"
+                label="Revisión (Aplica para Documentos Internos)"
                 fullWidth
                 type="date"
                 InputLabelProps={{ shrink: true }}
+                variant="outlined"
                 value={editDoc?.fechaRevision || ""}
                 onChange={(e) => setEditDoc({ ...editDoc, fechaRevision: e.target.value })}
               />
+
+              <Box>
+                <Typography sx={{ fontWeight: "bold", mb: 1 }}>Usuarios:</Typography>
+                <FormGroup row>
+                  {[
+                    "ALUMNOS",
+                    "PERSONAL ADMINISTRATIVO",
+                    "FUNCIONARIADO",
+                    "FUNCIONARIOS",
+                    "COORDINADORES DE SERVICIO SOCIAL"
+                  ].map((usuario) => (
+                    <FormControlLabel
+                      key={usuario}
+                      control={
+                        <Checkbox
+                          checked={editDoc.usuarios?.includes(usuario)}
+                          onChange={(e) => {
+                            const updated = e.target.checked
+                              ? [...editDoc.usuarios, usuario]
+                              : editDoc.usuarios.filter((u) => u !== usuario);
+                            setEditDoc({ ...editDoc, usuarios: updated });
+                          }}
+                        />
+                      }
+                      label={usuario}
+                    />
+                  ))}
+                </FormGroup>
+              </Box>
+
               <TextField
-                label="Fecha de Versión"
-                fullWidth
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={editDoc?.fechaVersion || ""}
-                onChange={(e) => setEditDoc({ ...editDoc, fechaVersion: e.target.value })}
-              />
-              <TextField
-                label="Número de Revisiones"
+                label="No. Copias"
                 fullWidth
                 type="number"
-                value={editDoc?.noRevision || ""}
-                onChange={(e) => setEditDoc({ ...editDoc, noRevision: parseInt(e.target.value) || 0 })}
-              />
-              <TextField
-                label="Número de Copias"
-                fullWidth
-                type="number"
-                value={editDoc?.noCopias || ""}
+                variant="outlined"
+                value={editDoc?.noCopias || 0}
                 onChange={(e) => setEditDoc({ ...editDoc, noCopias: parseInt(e.target.value) || 0 })}
               />
-              <TextField
-                label="Tiempo de Retención (años)"
-                fullWidth
-                type="number"
-                value={editDoc?.tiempoRetencion || ""}
-                onChange={(e) => setEditDoc({ ...editDoc, tiempoRetencion: parseInt(e.target.value) || 0 })}
-              />
-              <TextField
-                label="Lugar de Almacenamiento"
-                fullWidth
-                value={editDoc?.lugarAlmacenamiento || ""}
-                onChange={(e) => setEditDoc({ ...editDoc, lugarAlmacenamiento: e.target.value })}
-              />
+
               <TextField
                 label="Medio de Almacenamiento"
                 fullWidth
                 select
+                variant="outlined"
                 value={editDoc?.medioAlmacenamiento || ""}
                 onChange={(e) => setEditDoc({ ...editDoc, medioAlmacenamiento: e.target.value })}
               >
@@ -534,36 +569,33 @@ function ProcessMapView({ soloLectura, idProceso }) {
                 <MenuItem value="Digital">Digital</MenuItem>
                 <MenuItem value="Ambos">Ambos</MenuItem>
               </TextField>
+
               <TextField
-                label="Disposición"
+                label="Tiempo de Retención"
                 fullWidth
+                type="number"
+                variant="outlined"
+                value={editDoc?.tiempoRetencion || 0}
+                onChange={(e) => setEditDoc({ ...editDoc, tiempoRetencion: parseInt(e.target.value) || 0 })}
+              />
+
+              <TextField
+                label="Lugar de Almacenamiento"
+                fullWidth
+                variant="outlined"
+                value={editDoc?.lugarAlmacenamiento || ""}
+                onChange={(e) => setEditDoc({ ...editDoc, lugarAlmacenamiento: e.target.value })}
+              />
+
+              <TextField
+                label="Disposición después del Periodo de Retención"
+                fullWidth
+                variant="outlined"
                 value={editDoc?.disposicion || ""}
                 onChange={(e) => setEditDoc({ ...editDoc, disposicion: e.target.value })}
               />
             </Box>
-            <Box>
-        <Typography sx={{ fontWeight: "bold" }}>Usuarios:</Typography>
-        <FormGroup row>
-          {["ALUMNOS", "PERSONAL ADMINISTRATIVO"].map(user => (
-            <FormControlLabel
-              key={user}
-              control={
-                <Checkbox
-                  checked={editDoc?.usuarios?.includes(user)}
-                  onChange={(e) => {
-                    const updated = e.target.checked
-                      ? [...editDoc.usuarios, user]
-                      : editDoc.usuarios.filter(u => u !== user);
-                    setEditDoc({ ...editDoc, usuarios: updated });
-                  }}
-                />
-              }
-              label={user}
-            />
-          ))}
-        </FormGroup>
-      </Box>
-    </DialogContent>
+          </DialogContent>
     <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
       <Button
         onClick={() => setEditDialogOpen(false)}
