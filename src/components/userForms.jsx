@@ -17,8 +17,29 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         roles: [],
         supervisor: "",
         expirationDateTime: "",
+        procesosSupervisor: [],
     });
     const isLider = formData.roles.includes("Líder");
+    const [listaProcesos, setListaProcesos] = useState([]);
+    const [procesosAsignados, setProcesosAsignados] = useState([]); // array de idProceso
+
+    useEffect(() => {
+        const fetchProcesos = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/procesos-con-entidad`);
+
+                setListaProcesos(response.data.procesos);
+            } catch (error) {
+                console.error("Error al obtener procesos:", error);
+            }
+        };
+
+        if (formData.roles.includes("Supervisor")) {
+            fetchProcesos();
+        }
+    }, [formData.roles]);
+
+
     const transformUserDataForAPI = (data) => {
         // Extrae RPE del correo (todo lo que está antes de "@")
         const RPE = extractRPE(data.email);
@@ -73,7 +94,10 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         }
 
         if (editingUser) {
-            setFormData(editingUser);
+            setFormData({
+                ...editingUser,
+                procesosSupervisor: editingUser.procesosSupervisor || [], // ← asegura array
+            });
         } else {
             setFormData({
                 firstName: "",
@@ -85,6 +109,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                 roles: [],
                 supervisor: "",
                 expirationDateTime: "",
+                procesosSupervisor: [],
             });
         }
     }, [open, editingUser]);
@@ -107,6 +132,22 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
 
         fetchSupervisores();
     }, [isLider, supervisores.length]);
+
+    useEffect(() => {
+        const fetchProcesos = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/procesos`);
+                setProcesosAsignados(response.data.data || []);
+            } catch (err) {
+                console.error("Error al cargar procesos:", err);
+            }
+        };
+
+        if (formData.roles.includes("Supervisor")) {
+            fetchProcesos();
+        }
+    }, [formData.roles]);
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -183,38 +224,47 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
 
     const saveUser = async (data) => {
         try {
-            console.log('Payload a enviar:', data); // <- asegúrate de que tenga los campos correctos
+            console.log('Payload a enviar:', data);
 
-            const url = editingUser ? `${API_URL}/usuarios/${editingUser.id}` : `${API_URL}/usuarios`;
+            const url = editingUser
+                ? `${API_URL}/usuarios/${editingUser.id}`
+                : `${API_URL}/usuarios`;
+
             const method = editingUser ? "put" : "post";
+
+            // Si el usuario tiene rol Supervisor, se espera también procesosSupervisor en data
+            const payload = {
+                ...data,
+                procesosSupervisor: procesosAsignados,
+            };
 
             const response = await axios({
                 method,
                 url,
-                data,
+                data: payload,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
             });
 
             return response.data.usuario;
 
-
         } catch (error) {
-            console.error('Error detallado:', {
+            console.error("Error detallado:", {
                 status: error.response?.status,
                 data: error.response?.data,
                 config: error.config
             });
+
             throw new Error(
                 error.response?.data?.errors
                     ? Object.values(error.response.data.errors).flat().join(" - ")
                     : error.response?.data?.message || 'Error al guardar usuario'
             );
-
         }
     };
+
 
 
     const convertRolesToId = (roles) => {
@@ -378,6 +428,32 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                             {errors.roles && <FormHelperText>{errors.roles}</FormHelperText>}
                             {errors.rolesLoad && <FormHelperText error>{errors.rolesLoad}</FormHelperText>}
                         </FormControl>
+
+                        {formData.roles.includes("Supervisor") && (
+                            <FormControl fullWidth margin="dense">
+                                <InputLabel id="procesos-label">Procesos que supervisa</InputLabel>
+                                <Select
+                                    labelId="procesos-label"
+                                    multiple
+                                    value={procesosAsignados}
+                                    onChange={(e) => setProcesosAsignados(e.target.value)}
+                                    renderValue={(selected) => selected
+                                        .map(id => {
+                                            const item = listaProcesos.find(p => p.idProceso === id);
+                                            return item ? item.nombreCompleto : id;
+                                        })
+                                        .join(", ")
+                                    }
+                                >
+                                    {listaProcesos.map((proceso) => (
+                                        <MenuItem key={proceso.idProceso} value={proceso.idProceso}>
+                                            {proceso.nombreCompleto}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
+
 
 
                         {formData.roles.includes("Líder") && (
