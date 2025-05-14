@@ -28,7 +28,9 @@ const Caratula = ({ puedeEditar }) => {
     axios.get(`http://localhost:8000/api/caratulas/proceso/${idProceso}`)
       .then((res) => {
         const data = res.data;
-        if (data) {
+          console.log("Datos recibidos del backend:", data); // 👈
+
+        if (data && data.idCaratula) {
           setExiste(true);
           setCaratulaId(data.idCaratula);
           setPersonas([
@@ -36,6 +38,9 @@ const Caratula = ({ puedeEditar }) => {
             { nombre: data.revisoNombre, cargo: data.revisoCargo, fijo: "Revisó", editando: false },
             { nombre: data.aproboNombre, cargo: data.aproboCargo, fijo: "Aprobó", editando: false },
           ]);
+        } else {
+          setExiste(false);
+          setCaratulaId(null);
         }
       })
       .catch(() => {
@@ -86,9 +91,18 @@ const Caratula = ({ puedeEditar }) => {
     try {
       if (!existe) {
         const res = await axios.post("http://localhost:8000/api/caratula", payload);
-        setExiste(true);
-        setCaratulaId(res.data.idCaratula);
+        const newId = res.data?.idCaratula;
+        if (newId) {
+          setExiste(true);
+          setCaratulaId(newId);
+        } else {
+          throw new Error("No se recibió idCaratula del backend.");
+        }
       } else {
+        if (!caratulaId) {
+          console.error("ID de carátula no definido");
+          return;
+        }
         await axios.put(`http://localhost:8000/api/caratulas/${caratulaId}`, payload);
         cargarCaratula();
       }
@@ -127,13 +141,14 @@ const Caratula = ({ puedeEditar }) => {
               <>
                 <TextField
                   fullWidth variant="standard"
-                  value={persona.nombre}
+                  value={persona.nombre || ""}
                   onChange={(e) => handleChange(index, "nombre", e.target.value)}
                   sx={{ textAlign: "center", mb: 1 }}
                 />
                 <TextField
                   fullWidth variant="standard"
-                  value={persona.cargo}
+                  value={persona.cargo || ""}
+
                   onChange={(e) => handleChange(index, "cargo", e.target.value)}
                   sx={{ textAlign: "center", mb: 1 }}
                 />

@@ -24,7 +24,7 @@ const AuditoriaProceso = () => {
   const { idRegistro } = useParams(); // ID de la carpeta (representa el año)
   const location = useLocation();
   const navigate = useNavigate();
-  const idProceso = location.state?.idProceso;
+  const idProceso = location.state?.idProceso || localStorage.getItem("idProcesoActivo");
   const soloLectura = location.state?.soloLectura ?? true;
   const puedeEditar = location.state?.puedeEditar ?? false;
   const [nombreProceso, setNombreProceso] = useState("");

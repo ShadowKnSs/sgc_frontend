@@ -54,6 +54,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
     descripcion: "",
     formula: "",
     periodo: "",
+    responsable: "",
+    meta: ""
   });
 
   // EJEMPLO: info de Proceso / Mapa de Proceso
@@ -174,10 +176,12 @@ function ProcessMapView({ idProceso, soloLectura }) {
 
     // Asumimos que en IndMapaProceso se requiere idProceso:
     const payload = {
-      idProceso: idProceso,  // para que el back cree el IndMapaProceso con su idProceso
+      idProceso: idProceso,
       descripcion: newUser.descripcion,
       formula: newUser.formula,
       periodoMed: newUser.periodo,
+      responsable: newUser.responsable,
+      meta: parseInt(newUser.meta) || null
     };
 
     axios.post("http://localhost:8000/api/indmapaproceso", payload)
@@ -272,13 +276,14 @@ function ProcessMapView({ idProceso, soloLectura }) {
 
   const handleSaveEditUser = () => {
     if (!editUser) return;
-
-    axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
-      idProceso: idProceso,
-      descripcion: editUser.descripcion,
-      formula: editUser.formula,
-      periodoMed: editUser.periodo,
-    })
+      axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
+        idProceso: idProceso,
+        descripcion: editUser.descripcion,
+        formula: editUser.formula,
+        periodoMed: editUser.periodo,
+        responsable: editUser.responsable,
+        meta: parseInt(editUser.meta) || null
+      })
       .then((resp) => {
         setUsers((prev) =>
           prev.map((u) => u.idIndicadorMP === editUser.idIndicadorMP ? resp.data : u)
@@ -505,6 +510,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
             <TextField
               label="Descripción"
               fullWidth
+              multiline
+              minRows={3}
               variant="outlined"
               value={newUser.descripcion}
               onChange={(e) => setNewUser({ ...newUser, descripcion: e.target.value })}
@@ -514,6 +521,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
             <TextField
               label="Fórmula"
               fullWidth
+              multiline
+              minRows={3}
               variant="outlined"
               value={newUser.formula}
               onChange={(e) => setNewUser({ ...newUser, formula: e.target.value })}
@@ -534,6 +543,22 @@ function ProcessMapView({ idProceso, soloLectura }) {
               <MenuItem value="Trimestral">Trimestral</MenuItem>
               <MenuItem value="Anual">Anual</MenuItem>
             </TextField>
+            <TextField
+              label="Responsable"
+              fullWidth
+              variant="outlined"
+              value={newUser.responsable}
+              onChange={(e) => setNewUser({ ...newUser, responsable: e.target.value })}
+            />
+            <TextField
+              label="Meta (número)"
+              type="number"
+              fullWidth
+              variant="outlined"
+              value={newUser.meta}
+              onChange={(e) => setNewUser({ ...newUser, meta: e.target.value })}
+              inputProps={{ min: 1, max: 10 }}
+            />
           </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
@@ -595,6 +620,22 @@ function ProcessMapView({ idProceso, soloLectura }) {
               <MenuItem value="Trimestral">Trimestral</MenuItem>
               <MenuItem value="Anual">Anual</MenuItem>
             </TextField>
+            <TextField
+              label="Responsable"
+              fullWidth
+              variant="outlined"
+              value={editUser?.responsable || ""}
+              onChange={(e) => setEditUser({ ...editUser, responsable: e.target.value })}
+            />
+            <TextField
+              label="Meta (número)"
+              type="number"
+              fullWidth
+              inputProps={{ min: 1, max: 10 }}
+              variant="outlined"
+              value={editUser?.meta || ""}
+              onChange={(e) => setEditUser({ ...editUser, meta: e.target.value })}
+            />
           </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
@@ -692,6 +733,8 @@ function UserCard({ user, onSelect, onClose, isActive, onDelete, onEdit, isSmall
                 { title: "Descripción", value: user.descripcion },
                 { title: "Fórmula", value: user.formula },
                 { title: "Periodo", value: user.periodoMed },
+                { title: "Responsable", value: user.responsable },
+                { title: "Meta", value: user.meta },
               ].map((field, index) => (
                 <TableContainer
                   key={index}
