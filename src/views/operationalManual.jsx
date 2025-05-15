@@ -52,7 +52,7 @@ const ProcessView = () => {
   const renderContent = () => {
     const props = { idProceso, soloLectura, puedeEditar };
     switch (sections[selectedTab]) {
-      case "Caratula": return <Caratula {...props} />;
+      case "Carátula": return <Caratula {...props} />;
       case "Control de Cambios": return <ControlCambios {...props} />;
       case "Mapa de Proceso": return <MapaProceso {...props} />;
       case "Diagrama de Flujo": return <DiagramaFlujo {...props} />;
