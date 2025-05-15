@@ -1,3 +1,4 @@
+// Importaciones base de React y dependencias
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
