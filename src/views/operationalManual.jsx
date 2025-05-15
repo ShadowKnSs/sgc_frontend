@@ -16,7 +16,7 @@ import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
 
 const sections = [
-  "Caratula",
+  "Carátula",
   "Control de Cambios",
   "Mapa de Proceso",
   "Diagrama de Flujo",

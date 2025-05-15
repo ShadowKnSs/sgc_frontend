@@ -73,8 +73,6 @@ function InformeAud() {
   }, [idProceso]);
 
   useEffect(() => {
-    const { modoEdicion, datosAuditoria } = location.state || {};
-
     const fetchAuditoria = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/auditorias/${datosAuditoria.idAuditorialInterna}`);
@@ -88,17 +86,14 @@ function InformeAud() {
         setLider(data.auditorLider || '');
 
         setCriterios((data.criterios || []).map(item => item.criterio));
-
         setEquipoAuditor((data.equipo_auditor || []).map(item => ({
           rol: item.rolAsignado || "",
           auditor: item.nombreAuditor || ""
         })));
-
         setPersonalAuditado((data.personal_auditado || []).map(item => ({
           nombre: item.nombre || "",
           cargo: item.cargo || ""
         })));
-
         setVerificaciones((data.verificacion_ruta || []).map(item => ({
           criterio: item.criterio || "",
           reqAsociado: item.reqAsociado || "",
@@ -106,18 +101,15 @@ function InformeAud() {
           evidencia: item.evidencia || "",
           hallazgo: item.tipoHallazgo || ""
         })));
-
         setPuntosMejora((data.puntos_mejora || []).map(item => ({
           reqISO: item.reqISO || "",
           descripcion: item.descripcion || "",
           evidencia: item.evidencia || ""
         })));
-
         setConclusiones((data.conclusiones || []).map(item => ({
           nombre: item.nombre || "",
           observaciones: item.descripcionConclusion || ""
         })));
-
         setPlazos((data.plazos || []).map(item => item.descripcion || ""));
 
       } catch (err) {
@@ -128,7 +120,8 @@ function InformeAud() {
     if (modoEdicion && datosAuditoria?.idAuditorialInterna) {
       fetchAuditoria();
     }
-  }, [location.state]);
+  }, [modoEdicion, datosAuditoria]);
+
 
   // Funciones para los criterios
   const agregarCriterio = () => setCriterios([...criterios, ""]);
@@ -169,13 +162,13 @@ function InformeAud() {
   const agregarPuntoMejora = () => {
     setPuntosMejora([...puntosMejora, { numero: "", reqISO: "", descripcion: "", evidencia: "" }]);
   };
-  
+
   const eliminarPuntoMejora = (index) => {
     if (puntosMejora.length > 1) {
       setPuntosMejora(puntosMejora.filter((_, i) => i !== index));
     }
   };
-  
+
   const agregarConclusion = () => {
     setConclusiones([...conclusiones, { nombre: "", observaciones: "" }]);
   };
@@ -185,7 +178,7 @@ function InformeAud() {
   };
 
   const agregarPlazo = () => {
-    setPlazos([...plazos, ""]); 
+    setPlazos([...plazos, ""]);
   };
 
   const eliminarPlazo = (index) => {
@@ -198,7 +191,7 @@ function InformeAud() {
     const d = new Date(date);
     const pad = (n) => n.toString().padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  };  
+  };
 
   const handleGuardar = async () => {
     try {
@@ -223,18 +216,18 @@ function InformeAud() {
         observaciones: "Sin observaciones",
         plazos: plazos.filter(p => p.trim() !== ""),
         auditorLider: lider,
-        
+
         equipoAuditor: equipoAuditor.map(item => ({
           rolAsignado: item.rol,
           nombreAuditor: item.auditor,
           esAuditorLider: item.rol?.toLowerCase().includes("líder") || false
         })),
-  
+
         personalAuditado: personalAuditado.map(item => ({
           nombre: item.nombre,
           cargo: item.cargo
         })),
-  
+
         verificacionRuta: verificaciones.map(v => ({
           criterio: v.criterio,
           reqAsociado: v.reqAsociado,
@@ -242,20 +235,20 @@ function InformeAud() {
           evidencia: v.evidencia,
           tipoHallazgo: v.hallazgo
         })),
-  
+
         puntosMejora: puntosMejora.map(p => ({
           reqISO: p.reqISO,
           descripcion: p.descripcion,
           evidencia: p.evidencia
         })),
-        
+
         conclusiones: conclusiones.map(c => ({
           nombre: c.nombre,
           observaciones: c.observaciones
         }))
-        
+
       };
-  
+
       let res;
       if (modoEdicion && datosAuditoria?.idAuditorialInterna) {
         res = await axios.put(`http://localhost:8000/api/auditorias/${datosAuditoria.idAuditorialInterna}`, payload);
@@ -277,7 +270,7 @@ function InformeAud() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh" }}>
-      
+
       {/* Mensajes arriba del todo */}
       {mensaje && (
         <MensajeAlert
@@ -326,52 +319,52 @@ function InformeAud() {
             </Grid>
           </Grid>
         </Box>
-        
+
         <Box mt={3} display="flex" alignItems="center">
           <Typography variant="body1" mr={2}><strong>Fecha:</strong></Typography>
-          <TextField type="date" variant="outlined" size="small" sx={{ width: 200 }} value={fecha} onChange={(e) => setFecha(e.target.value)}/>
+          <TextField type="date" variant="outlined" size="small" sx={{ width: 200 }} value={fecha} onChange={(e) => setFecha(e.target.value)} />
         </Box>
-        
+
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Objetivo:</strong></Typography>
           <TextField fullWidth multiline rows={2} variant="outlined" value={objetivo} onChange={(e) => setObjetivo(e.target.value)}
-        />
+          />
         </Box>
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Alcance:</strong></Typography>
-          <TextField fullWidth multiline rows={1} variant="outlined" value={alcance} onChange={(e) => setAlcance(e.target.value)}/>
+          <TextField fullWidth multiline rows={1} variant="outlined" value={alcance} onChange={(e) => setAlcance(e.target.value)} />
         </Box>
-        
+
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Criterios:</strong></Typography>
           {criterios.map((criterio, index) => (
             <Box key={index} display="flex" alignItems="center" mt={1}>
-              <TextField 
-                fullWidth 
-                multiline 
-                rows={1} 
-                variant="outlined" 
-                value={criterio} 
+              <TextField
+                fullWidth
+                multiline
+                rows={1}
+                variant="outlined"
+                value={criterio}
                 onChange={(e) => {
                   const nuevosCriterios = [...criterios];
                   nuevosCriterios[index] = e.target.value;
                   setCriterios(nuevosCriterios);
                 }}
               />
-              <Typography 
-                variant="body2" 
-                color="primary" 
-                sx={{ cursor: "pointer", ml: 2 }} 
+              <Typography
+                variant="body2"
+                color="primary"
+                sx={{ cursor: "pointer", ml: 2 }}
                 onClick={agregarCriterio}
               >
                 Agregar
               </Typography>
               {criterios.length > 1 && (
-                <Typography 
-                  variant="body2" 
-                  color="secondary" 
-                  sx={{ cursor: "pointer", ml: 2 }} 
+                <Typography
+                  variant="body2"
+                  color="secondary"
+                  sx={{ cursor: "pointer", ml: 2 }}
                   onClick={() => eliminarCriterio(index)}
                 >
                   Eliminar
@@ -401,16 +394,16 @@ function InformeAud() {
                       disabled={index === 0}
                     />
                   </Grid>
-                    <Grid item xs={6}>
-                      {index === 0 ? (
-                        <TextField
-                          fullWidth
-                          label="Nombre Auditor"
-                          variant="outlined"
-                          value={item.auditor}
-                          disabled
-                        />
-                      ) : (
+                  <Grid item xs={6}>
+                    {index === 0 ? (
+                      <TextField
+                        fullWidth
+                        label="Nombre Auditor"
+                        variant="outlined"
+                        value={item.auditor}
+                        disabled
+                      />
+                    ) : (
                       <TextField select fullWidth label="Nombre Auditor" variant="outlined" value={item.auditor}
                         onChange={(e) => {
                           const nuevos = [...equipoAuditor];
@@ -424,8 +417,8 @@ function InformeAud() {
                           </MenuItem>
                         ))}
                       </TextField>
-                      )}
-                    </Grid>
+                    )}
+                  </Grid>
                   <Grid item xs={12} display="flex" justifyContent="flex-end">
                     <Typography
                       variant="body2"
@@ -454,10 +447,10 @@ function InformeAud() {
               {personalAuditado.map((item, index) => (
                 <Grid container spacing={2} alignItems="center" mt={1} key={index}>
                   <Grid item xs={6}>
-                  <TextField fullWidth label="Nombre" variant="outlined" value={item.nombre} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].nombre = e.target.value; setPersonalAuditado(nuevos); }}/>
+                    <TextField fullWidth label="Nombre" variant="outlined" value={item.nombre} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].nombre = e.target.value; setPersonalAuditado(nuevos); }} />
                   </Grid>
                   <Grid item xs={6}>
-                  <TextField fullWidth label="Cargo" variant="outlined" value={item.cargo} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].cargo = e.target.value; setPersonalAuditado(nuevos); }}/>
+                    <TextField fullWidth label="Cargo" variant="outlined" value={item.cargo} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].cargo = e.target.value; setPersonalAuditado(nuevos); }} />
                   </Grid>
                   <Grid item xs={12} display="flex" justifyContent="flex-end">
                     <Typography variant="body2" color="primary" sx={{ cursor: "pointer", mr: 2 }} onClick={agregarPersonal}>
@@ -480,7 +473,7 @@ function InformeAud() {
             <strong>Verificación de Ruta de Auditoría</strong>
           </Typography>
           <Box width="100%" mt={2}>
-          {verificaciones.map((verificacion, index) => (
+            {verificaciones.map((verificacion, index) => (
               <Box key={index} width="100%" mt={2}>
                 <Grid container spacing={2}>
                   <Grid item xs={2}>
@@ -556,17 +549,17 @@ function InformeAud() {
                 </Box>
               </Box>
             ))}
-            </Box>
+          </Box>
         </Box>
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Fortalezas:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={fortalezas} onChange={(e) => setFortalezas(e.target.value)}/>
+          <TextField fullWidth multiline rows={2} variant="outlined" value={fortalezas} onChange={(e) => setFortalezas(e.target.value)} />
         </Box>
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Debilidades:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={debilidades} onChange={(e) => setDebilidades(e.target.value)}/>
+          <TextField fullWidth multiline rows={2} variant="outlined" value={debilidades} onChange={(e) => setDebilidades(e.target.value)} />
         </Box>
 
         <Box mt={4} display="flex" flexDirection="column" alignItems="center">
@@ -594,49 +587,49 @@ function InformeAud() {
           </Box>
           {puntosMejora.map((puntoMejora, index) => (
             <Box key={index} width="100%" mt={2}>
-            <Grid container spacing={2}>
-                  <Grid item xs={2}>
-                    <TextField fullWidth variant="outlined" size="small" label="Req. ISO" value={puntoMejora.reqISO}
-                      onChange={(e) => {
-                        const nuevos = [...puntosMejora];
-                        nuevos[index].reqISO = e.target.value;
-                        setPuntosMejora(nuevos);
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={5}>
-                    <TextField fullWidth variant="outlined" size="small" label="Descripción" multiline value={puntoMejora.descripcion}
-                      onChange={(e) => {
-                        const nuevos = [...puntosMejora];
-                        nuevos[index].descripcion = e.target.value;
-                        setPuntosMejora(nuevos);
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={5}>
-                    <TextField fullWidth variant="outlined" size="small" label="Evidencia" multiline value={puntoMejora.evidencia}
-                      onChange={(e) => {
-                        const nuevos = [...puntosMejora];
-                        nuevos[index].evidencia = e.target.value;
-                        setPuntosMejora(nuevos);
-                      }}
-                    />
-                  </Grid>
+              <Grid container spacing={2}>
+                <Grid item xs={2}>
+                  <TextField fullWidth variant="outlined" size="small" label="Req. ISO" value={puntoMejora.reqISO}
+                    onChange={(e) => {
+                      const nuevos = [...puntosMejora];
+                      nuevos[index].reqISO = e.target.value;
+                      setPuntosMejora(nuevos);
+                    }}
+                  />
                 </Grid>
+                <Grid item xs={5}>
+                  <TextField fullWidth variant="outlined" size="small" label="Descripción" multiline value={puntoMejora.descripcion}
+                    onChange={(e) => {
+                      const nuevos = [...puntosMejora];
+                      nuevos[index].descripcion = e.target.value;
+                      setPuntosMejora(nuevos);
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={5}>
+                  <TextField fullWidth variant="outlined" size="small" label="Evidencia" multiline value={puntoMejora.evidencia}
+                    onChange={(e) => {
+                      const nuevos = [...puntosMejora];
+                      nuevos[index].evidencia = e.target.value;
+                      setPuntosMejora(nuevos);
+                    }}
+                  />
+                </Grid>
+              </Grid>
               <Box display="flex" justifyContent="flex-end" mt={1}>
-                <Typography 
-                  variant="body2" 
-                  color="primary" 
-                  sx={{ cursor: "pointer", mr: 2 }} 
+                <Typography
+                  variant="body2"
+                  color="primary"
+                  sx={{ cursor: "pointer", mr: 2 }}
                   onClick={agregarPuntoMejora}
                 >
                   Agregar
                 </Typography>
                 {puntosMejora.length > 1 && (
-                  <Typography 
-                    variant="body2" 
-                    color="secondary" 
-                    sx={{ cursor: "pointer" }} 
+                  <Typography
+                    variant="body2"
+                    color="secondary"
+                    sx={{ cursor: "pointer" }}
                     onClick={() => eliminarPuntoMejora(index)}
                   >
                     Eliminar
@@ -713,32 +706,32 @@ function InformeAud() {
 
           {plazos.map((plazo, index) => (
             <Box key={index} display="flex" alignItems="center" mt={1}>
-              <TextField 
-                fullWidth 
-                multiline 
-                rows={1} 
-                variant="outlined" 
-                value={plazo} 
+              <TextField
+                fullWidth
+                multiline
+                rows={1}
+                variant="outlined"
+                value={plazo}
                 onChange={(e) => {
                   const nuevosPlazos = [...plazos];
                   nuevosPlazos[index] = e.target.value;
                   setPlazos(nuevosPlazos);
                 }}
               />
-              <Typography 
-                variant="body2" 
-                color="primary" 
-                sx={{ cursor: "pointer", ml: 2 }} 
+              <Typography
+                variant="body2"
+                color="primary"
+                sx={{ cursor: "pointer", ml: 2 }}
                 onClick={agregarPlazo}
               >
                 Agregar
               </Typography>
 
               {plazos.length > 1 && (
-                <Typography 
-                  variant="body2" 
-                  color="secondary" 
-                  sx={{ cursor: "pointer", ml: 2 }} 
+                <Typography
+                  variant="body2"
+                  color="secondary"
+                  sx={{ cursor: "pointer", ml: 2 }}
                   onClick={() => eliminarPlazo(index)}
                 >
                   Eliminar
@@ -747,7 +740,7 @@ function InformeAud() {
             </Box>
           ))}
         </Box>
-        
+
         <Box display="flex" justifyContent="center" mt={3}>
           <Button variant="contained" color="primary" sx={{ marginRight: 2 }} onClick={handleGuardar}>
             Guardar

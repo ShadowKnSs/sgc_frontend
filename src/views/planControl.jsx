@@ -28,7 +28,7 @@ import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 // --------------------------------------------------
 function ProcessMapView({ idProceso, soloLectura }) {
   ;
-  const [actividades, setActividades] = useState([]);
+const [actividades, setActividades] = useState(null);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
   const [allExpanded, setAllExpanded] = useState(false);
@@ -46,7 +46,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
     registroSalida: "",
     responsable: "",
     tratamiento: "",
-    año: new Date().getFullYear() 
+    año: new Date().getFullYear()
   });
 
   // --------------------------------------------------
@@ -58,7 +58,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
       return;
     }
     console.log(`[LOG] useEffect -> solicitando actividades con idProceso=${idProceso}`);
-    
+
     // Supongamos que tu backend soporta ?proceso=XX para filtrar
     axios
       .get(`http://localhost:8000/api/actividadcontrol/${idProceso}`)
@@ -145,7 +145,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
         console.log("[LOG] Respuesta POST /actividadcontrol:", response.data);
 
         // Insertamos la actividad creada al estado
-        const actividadCreada = response.data; 
+        const actividadCreada = response.data;
         setActividades((prev) => [...prev, actividadCreada]);
 
         // Cerrar formulario, limpiar
@@ -159,7 +159,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
           identificacionSalida: "",
           registroSalida: "",
           responsable: "",
-          tratamiento: ""
+          tratamiento: "",
+
         });
         setErrors({});
       })
@@ -502,43 +503,29 @@ function UserCard({ actividad, onSelect, onClose, isActive, isSmall }) {
                 { title: "Tratamiento", value: actividad.tratamiento }
               ].map((field, index) => (
                 <TableContainer
-                  key={field.title}
+                  key={`${actividad.idActividad}-${field.title}-${index}`}
                   component={Paper}
-                  sx={{
-                    width: "100%",
-                    minWidth: "180px",
-                    boxShadow: 1
-                  }}
+                  sx={{ width: "100%", minWidth: "180px", boxShadow: 1 }}
                 >
                   <Table>
                     <TableBody>
-                      <TableRow>
-                        <TableCell
-                          sx={{
-                            fontWeight: "bold",
-                            textAlign: "center",
-                            backgroundColor: "#e0e0e0",
-                            borderBottom: "2px solid #004A98"
-                          }}
-                        >
-                          {field.title}
-                        </TableCell>
+                      <TableRow key={`${actividad.idActividad}-${field.title}-header`}>
+                        {/* ... */}
                       </TableRow>
-                      <TableRow>
-                        <TableCell sx={{ textAlign: "center", padding: "8px" }}>
-                          {field.value ?? "N/A"}
-                        </TableCell>
+                      <TableRow key={`${actividad.idActividad}-${field.title}-value`}>
+                        {/* ... */}
                       </TableRow>
                     </TableBody>
                   </Table>
                 </TableContainer>
               ))}
+
             </Box>
           </CardContent>
         </>
       ) : (
         <Typography variant="h6" fontWeight="bold" color="#004A98">
-          {actividad.nombreActividad || `Actividad ${actividad.idActividad}`}
+          {actividad.nombreActividad || `Actividad ${actividad.idActividad || "Sin ID"}`}
         </Typography>
       )}
     </Card>

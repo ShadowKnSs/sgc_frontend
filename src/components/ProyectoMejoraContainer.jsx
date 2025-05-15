@@ -4,6 +4,8 @@ import { Add } from "@mui/icons-material";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import FormularioProyMejora from "../components/Forms/FormProyMejora";
+import DetalleProyectoModal from "../components/Modals/DetalleProyectoModal"; // importa el nuevo componente
+
 
 function ProyectoMejoraContainer({ soloLectura, puedeEditar }) {
   const { idRegistro } = useParams();
@@ -11,6 +13,8 @@ function ProyectoMejoraContainer({ soloLectura, puedeEditar }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
+
 
   const fetchProyectos = async () => {
     setLoading(true);
@@ -60,7 +64,11 @@ function ProyectoMejoraContainer({ soloLectura, puedeEditar }) {
           ) : (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
               {proyectos.map((proj) => (
-                <Card key={proj.idProyectoMejora} sx={{ width: 250 }}>
+                <Card
+                  key={proj.idProyectoMejora}
+                  sx={{ width: 250, cursor: "pointer" }}
+                  onClick={() => setProyectoSeleccionado(proj)}
+                >
                   <CardContent>
                     <Typography variant="h6">{proj.noMejora || "Proyecto"}</Typography>
                     <Typography variant="body2">{proj.descripcionMejora?.slice(0, 80)}...</Typography>
@@ -72,7 +80,15 @@ function ProyectoMejoraContainer({ soloLectura, puedeEditar }) {
           )}
         </>
       )}
+      <DetalleProyectoModal
+        open={!!proyectoSeleccionado}
+        onClose={() => setProyectoSeleccionado(null)}
+        proyecto={proyectoSeleccionado}
+      />
+
     </Box>
+
+
   );
 }
 
