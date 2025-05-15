@@ -89,7 +89,10 @@ const ProcessView = () => {
   return (
     <Container maxWidth="xl">
       {datosProceso.idProceso && (
-        <ContextoProcesoEntidad idProceso={datosProceso.idProceso} />
+        <Box sx={{marginTop: 2}}>
+          <ContextoProcesoEntidad idProceso={datosProceso.idProceso} />
+        </Box>
+        
       )}
       <MenuNavegacionProceso items={menuItems} />
 

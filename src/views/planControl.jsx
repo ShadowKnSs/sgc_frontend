@@ -28,7 +28,7 @@ import { Add, Close, ExpandMore, ExpandLess } from "@mui/icons-material";
 // --------------------------------------------------
 function ProcessMapView({ idProceso, soloLectura }) {
   ;
-const [actividades, setActividades] = useState(null);
+  const [actividades, setActividades] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
   const [allExpanded, setAllExpanded] = useState(false);
@@ -229,7 +229,11 @@ const [actividades, setActividades] = useState(null);
           marginBottom: "310px"
         }}
       >
-        {actividades.length > 0 ? (
+        {(actividades ?? []).length === 0 ? (
+          <Typography variant="h6" sx={{ textAlign: "center", color: "#666" }}>
+            No hay actividades registradas.
+          </Typography>
+        ) : (
           actividades
             .filter((item) => !activeCards.some((act) => act.idActividad === item.idActividad))
             .map((item) => (
@@ -240,11 +244,8 @@ const [actividades, setActividades] = useState(null);
                 isSmall={activeCards.length > 0}
               />
             ))
-        ) : (
-          <Typography variant="h6" sx={{ textAlign: "center", color: "#666" }}>
-            Cargando datos...
-          </Typography>
         )}
+
       </Box>
 
       {/* Botón flotante para desplegar/cerrar */}
@@ -509,15 +510,27 @@ function UserCard({ actividad, onSelect, onClose, isActive, isSmall }) {
                 >
                   <Table>
                     <TableBody>
-                      <TableRow key={`${actividad.idActividad}-${field.title}-header`}>
-                        {/* ... */}
+                      <TableRow>
+                        <TableCell
+                          sx={{
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            backgroundColor: "#e0e0e0",
+                            borderBottom: "2px solid #004A98"
+                          }}
+                        >
+                          {field.title}
+                        </TableCell>
                       </TableRow>
-                      <TableRow key={`${actividad.idActividad}-${field.title}-value`}>
-                        {/* ... */}
+                      <TableRow>
+                        <TableCell sx={{ textAlign: "center", padding: "8px" }}>
+                          {field.value ?? "Sin información"}
+                        </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
                 </TableContainer>
+
               ))}
 
             </Box>
