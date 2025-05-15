@@ -28,31 +28,46 @@ const linksPorRol = {
     {
       label: "Guía en PDF para Coordinador",
       tipo: "pdf",
-      src: "https://www.orimi.com/pdf-test.pdf",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=def1c94c-ef13-4b01-af09-475e8e3d9d7a",
       download: true,
     },
     {
       label: "Video Canva",
       tipo: "video",
-      src: "https://www.canva.com/design/DAGnYfxecUs/71io2_wC9ITWB1SgseBhBQ/watch?utm_content=DAGnYfxecUs&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h3239790ee4",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=f937db67-53cf-4d8e-82a5-9ca6a924b28f&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
     },
   ],
   Líder: [
     {
+      label: "Manual en PDF",
+      tipo: "pdf",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=4aeae0f2-6f9b-4ccb-bd82-60ea066b7238",
+      download: true,
+    },{
       label: "Video para Líder de Proceso",
       tipo: "video",
-      src: "https://uaslpedu-my.sharepoint.com/personal/a338885_alumnos_uaslp_mx/_layouts/15/stream.aspx?id=%2Fpersonal%2Fa338885%5Falumnos%5Fuaslp%5Fmx%2FDocuments%2FVideo%5FSical%2FManual%20del%20Usuario%20%2D%20L%C3%ADder%2Emp4&ga=1",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=e7149bbd-28c8-4a5f-9f92-0a7649a8edf3&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
     },
   ],
   Supervisor: [
     {
+      label: "Manual en PDF",
+      tipo: "pdf",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=602b9a11-a1d2-4190-a32d-debdd2278be2",
+      download: true,
+    },{
       label: "Video para Supervisor",
       tipo: "video",
-      src: "https://www.canva.com/design/DAGnY2nKmFo/NsYEYYXJR8bwlL-IbABz5w/watch?utm_content=DAGnY2nKmFo&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h87d36f03b1",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=5e46bb60-c5c5-48ff-b8b4-21f319464ffb&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
     },
   ],
   Auditor: [
     {
+      label: "Manual en PDF",
+      tipo: "pdf",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=e7149bbd-28c8-4a5f-9f92-0a7649a8edf3&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
+      download: true,
+    },{
       label: "Video para Auditor",
       tipo: "video",
       src: "https://www.youtube.com/embed/ub82Xb1C8os",
