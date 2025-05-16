@@ -1,3 +1,9 @@
+/**
+ * Componente: CustomButton
+ * Descripción:
+ * Botón estilizado reutilizable que adapta su apariencia según el tipo (`guardar`, `cancelar`, etc.).
+ * Encapsula el botón de Material UI con variantes de color, bordes y estilos consistentes.
+ */
 import React from "react";
 import Button from "@mui/material/Button";
 

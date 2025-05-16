@@ -1,3 +1,55 @@
+/**
+ * Componente: BuscaSupervisor
+ * Ubicación: src/views/BuscaSupervisor.jsx
+ * Descripción:
+ * Vista que permite al usuario líder de proceso consultar visualmente quién es el supervisor asignado a su proceso.
+
+ * Funcionalidades principales:
+ * 1.  Consulta el proceso asociado al usuario líder logueado vía POST a `/api/proceso-por-lider`.
+ * 2.  Consulta al supervisor correspondiente a ese proceso vía GET `/api/supervisor/proceso/:idProceso`.
+ * 3.  Muestra datos del supervisor: nombre, correo, teléfono y grado académico.
+ * 4.  Utiliza animaciones con Framer Motion para una entrada visual atractiva.
+ * 5.  Integra `FeedbackSnackbar` para notificaciones en caso de errores o mensajes del servidor.
+ * 6. Usa `Tooltip` de Material UI para mostrar descripciones contextuales en cada ícono.
+ *
+ * Estados controlados:
+ * - `supervisor`: objeto con los datos del supervisor actual (nombre, correo, teléfono, grado).
+ * - `loading`: booleano que controla el spinner de carga mientras se realiza la consulta.
+ * - `feedback`: objeto con los campos:
+ *   - `open`: boolean, controla si el snackbar está visible.
+ *   - `type`: "info" | "warning" | "error" | "success"
+ *   - `title`: título del mensaje mostrado.
+ *   - `message`: contenido del mensaje.
+
+ * Estructura del objeto `supervisor` esperado desde el backend:
+ * {
+ *   nombre: string,
+ *   correo: string,
+ *   telefono: string,
+ *   gradoAcademico: string
+ * }
+
+ * Diseño UI:
+ * - Encabezado con componente reutilizable `Title`.
+ * - Avatar representando al supervisor.
+ * - Colores institucionales (#004A98 para primario).
+ * - Tooltips para accesibilidad.
+ * - Layout centrado y responsivo.
+
+ * Reutiliza:
+ * - `Title`: título superior.
+ * - `FeedbackSnackbar`: notificaciones flotantes.
+
+ * Tecnologías adicionales:
+ * - `framer-motion` para animaciones de entrada suaves.
+ * - `axios` para llamadas HTTP.
+
+ * Recomendaciones futuras:
+ * - Mostrar imagen de perfil si se cuenta con una URL.
+ * - Permitir ver procesos supervisados si el usuario es supervisor.
+ * - Soporte para múltiples procesos y supervisores.
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   Box,

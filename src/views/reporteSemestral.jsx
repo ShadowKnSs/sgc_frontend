@@ -1,3 +1,29 @@
+/**
+ * Vista: ReporteSemestral
+ * Descripción:
+ * Esta vista genera el reporte semestral de un proceso, incluyendo análisis visual y tablas de:
+ * - Gestión de Riesgos
+ * - Indicadores
+ * - Acciones de Mejora
+ * - Auditorías Internas
+ * - Seguimiento
+ * 
+ * Funcionalidades:
+ * - Captura gráficas con `html2canvas` y genera imágenes base64.
+ * - Permite al usuario agregar texto libre: fortalezas, debilidades y conclusión.
+ * - Envía los datos al backend para generar y descargar un PDF.
+ * - También registra el evento de generación del PDF en la base de datos.
+
+ * Componentes utilizados:
+ * - Visuales: `RiesgosChart`, `IndicadoresReport`, `IndicadoresPastel`, etc.
+ * - Tablas: `RiesgosTable`, `IndicadoresTable`
+ * - Entradas: `TextField`
+ * 
+ * API involucradas:
+ * - POST `/api/generar-pdf`: genera el archivo PDF.
+ * - POST `/api/reporte-semestral`: registra el reporte generado.
+ */
+
 import html2canvas from "html2canvas";
 import { useState, useRef } from "react";
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";

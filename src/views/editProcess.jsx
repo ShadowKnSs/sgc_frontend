@@ -1,3 +1,49 @@
+/**
+ * Componente: EditProcess
+ * Ubicación: src/views/EditProcess.jsx
+ *
+ * Descripción:
+ * Vista de edición de un proceso del Sistema de Gestión de Calidad (SGC).
+ * Permite modificar información previamente registrada como nombre, objetivo, líder, macroproceso, estado, etc.
+ *
+ * Funcionalidad principal:
+ * - Recupera la información de un proceso existente a partir del parámetro `idProceso` en la URL.
+ * - Obtiene datos auxiliares necesarios para los campos select:
+ *   - Líderes de proceso (`idUsuario`)
+ *   - Macroprocesos (`idMacroproceso`)
+ *   - Entidades (`idEntidad`)
+ * - Rellena el formulario `ProcessForm` con los valores actuales del proceso.
+ * - Permite actualizar la información del proceso mediante una petición `PUT`.
+ *
+ * Estados:
+ * - `initialValues`: Objeto que contiene los valores iniciales del formulario.
+ * - `leaders`: Lista de usuarios con rol de líder de proceso.
+ * - `macroprocesos`: Lista de macroprocesos registrados.
+ * - `entidades`: Lista de entidades disponibles.
+ *
+ * Hooks:
+ * - `useEffect`: Se ejecuta al montar el componente para cargar los datos iniciales.
+ * - `useParams`: Obtiene `idProceso` desde la URL.
+ * - `useNavigate`: Permite redireccionar al usuario una vez actualizado el proceso.
+ *
+ * Componente usado:
+ * - `ProcessForm`: Formulario modular y reutilizable con campos y lógica de validación.
+ *
+ * Navegación:
+ * - Al enviar el formulario con éxito → redirige a `/procesos`.
+ * - Al cancelar → también redirige a `/procesos`.
+ *
+ * Consideraciones:
+ * - `anioCertificado` se convierte a string para asegurar compatibilidad con componentes `<select>`.
+ * - Si el proceso no se encuentra o hay errores de red, se muestran errores en consola y alertas.
+ * - No se incluyen iconos visuales ni componentes externos innecesarios para mantener simplicidad.
+ *
+ * Posibles mejoras:
+ * - Agregar validación visual para cada campo del formulario.
+ * - Mostrar feedback visual de éxito o error tras la edición (ej. Snackbar).
+ * - Manejar `loading` mientras se cargan los datos del proceso y selects.
+ */
+
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";

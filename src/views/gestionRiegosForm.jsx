@@ -1,3 +1,70 @@
+/**
+ * Componente: FormularioGestionRiesgos
+ * Ubicación: src/views/FormularioGestionRiesgos.jsx
+ *
+ * Descripción:
+ * Este componente gestiona todo el flujo del módulo de "Gestión de Riesgos" asociado a un registro (`idRegistro`).
+ * Permite registrar información general, añadir, editar y eliminar riesgos organizados por secciones.
+ * El formulario se divide en tabs para cada una de las 4 etapas de la gestión del riesgo:
+ *  - Identificación
+ *  - Análisis
+ *  - Tratamiento
+ *  - Evaluación de la Efectividad
+ *
+ * Principales funcionalidades:
+ * - Cargar o crear un registro en la tabla `gestionriesgos`.
+ * - Consultar y manipular riesgos individuales.
+ * - Modal dinámico para crear/editar riesgos paso a paso.
+ * - Tabs para visualizar los riesgos agrupados por etapa.
+ * - Permisos dinámicos basados en el rol activo (`soloLectura`, `puedeEditar`).
+ * - Uso de snackbar y modales para confirmación y retroalimentación al usuario.
+
+ * Hooks usados:
+ * - `useParams`: para obtener `idRegistro` desde la URL.
+ * - `useLocation`: para recuperar `rolActivo` enviado desde otra vista.
+ * - `useEffect`: para cargar información al montar el componente.
+ * - `useState`: para mantener todos los estados relacionados con la vista.
+
+ * Componentes utilizados:
+ * - `MenuNavegacionProceso`: barra de navegación lateral.
+ * - `Title`, `TitleDialog`: componentes de encabezado estilizado.
+ * - `FeedbackSnackbar`: muestra mensajes de éxito/error.
+ * - `ConfirmDelete`, `ConfirmEdit`: modales de confirmación.
+ * - `CustomButton`: botón personalizado reutilizable.
+
+ * Estructura de secciones:
+ * 1. Información general (`gestionriesgos`) con botón para guardar/editar.
+ * 2. Tabla dinámica de riesgos dividida por etapa.
+ * 3. Modal de creación/edición de riesgo paso a paso.
+ * 4. Botón de agregar riesgo.
+ *
+ * Endpoints consumidos:
+ * - `GET /api/gestionriesgos/{idRegistro}/datos-generales`: obtiene entidad, macroproceso y proceso.
+ * - `GET /api/gestionriesgos/{idRegistro}`: consulta si ya existe un registro general.
+ * - `GET /api/gestionriesgos/{idGesRies}/riesgos`: lista todos los riesgos asociados.
+ * - `POST /api/gestionriesgos`: crear información general.
+ * - `PUT /api/gestionriesgos/{idGesRies}`: actualizar información general.
+ * - `POST /api/gestionriesgos/{idGesRies}/riesgos`: agregar nuevo riesgo.
+ * - `PUT /api/gestionriesgos/{idGesRies}/riesgos/{idRiesgo}`: editar riesgo existente.
+ * - `DELETE /api/gestionriesgos/{idGesRies}/riesgos/{idRiesgo}`: eliminar riesgo.
+
+ * Datos calculados:
+ * - NRP: Severidad × Ocurrencia
+ * - Reevaluación NRP: Reevaluación Severidad × Reevaluación Ocurrencia
+ * - Efectividad: compara el nuevo NRP con el anterior → “Mejoró” / “No mejoró”
+
+ * Consideraciones:
+ * - El diseño visual está optimizado para mostrar información estructurada.
+ * - El modal de riesgos utiliza `sections[]` para navegar entre vistas paso a paso.
+ * - La tabla de cada etapa se alimenta de `savedData[selectedTab]`.
+ *
+ * Posibles mejoras futuras:
+ * - Validación con librerías como `Yup` o `Zod`.
+ * - División del componente en subcomponentes (`FormSeccion`, `TablaRiesgos`, `ModalRiesgo`).
+ * - Auto-guardado o borrador automático.
+ * - Integración con análisis de riesgos históricos o comparativos.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {

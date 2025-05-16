@@ -1,4 +1,65 @@
-// Importaciones base de React y dependencias
+/**
+ * Componente: ControlCambios
+ * Ubicación: src/views/ControlCambios.jsx
+ * Props:
+ *  - soloLectura (boolean): si es `true`, desactiva funcionalidades de agregar, editar y eliminar.
+ *
+ * Descripción:
+ * Vista que gestiona el historial de cambios (control de versiones) sobre un proceso específico.
+ * Soporta visualización, creación, edición y eliminación de registros, incluyendo validación de campos
+ * y confirmaciones mediante diálogos.
+
+ * Funcionalidades principales:
+ * 1.  Obtiene la lista de cambios para un proceso desde la API: `/api/controlcambios/proceso/:idProceso`.
+ * 2.  Visualiza los registros en una tabla con columnas: sección, edición, versión, fecha, descripción.
+ * 3.  Permite crear un nuevo cambio mediante `Dialog` con formulario validado.
+ * 4.  Permite editar un cambio existente con confirmación previa (`ConfirmEdit`).
+ * 5.  Permite eliminar un cambio con confirmación (`ConfirmDelete`).
+ * 6.  Valida campos obligatorios y formatos correctos (números positivos, fechas válidas).
+ * 7.  Utiliza props de solo lectura (`soloLectura`) para habilitar/deshabilitar acciones de edición.
+
+ * Estados importantes:
+ * - `data`: lista de registros cargados desde la base de datos.
+ * - `newRow`: fila en edición/creación, editable desde el formulario.
+ * - `errors`: errores de validación por campo.
+ * - `openDialog`: controla visibilidad del formulario.
+ * - `pendingEdit` / `pendingDeleteId`: registros pendientes de edición/eliminación.
+ * - `showConfirmEdit` / `showConfirmDelete`: controlan visibilidad de confirmaciones.
+
+ * Estructura de un cambio:
+ * {
+ *   idCambio: number,
+ *   seccion: string,
+ *   edicion: number,
+ *   version: number,
+ *   fechaRevision: datetime (formato: "YYYY-MM-DDTHH:mm"),
+ *   descripcion: string
+ * }
+
+ * Funciones destacadas:
+ * - `validateFields`: valida todos los campos del formulario antes de enviar.
+ * - `handleAddRow`: POST o PUT según se trate de un nuevo registro o edición.
+ * - `handleEdit`: prepara y muestra confirmación antes de edición.
+ * - `confirmEdit`: aplica edición a través del formulario.
+ * - `handleDelete`: muestra confirmación de eliminación.
+ * - `confirmDelete`: realiza DELETE y actualiza el estado local.
+
+ * Reutiliza:
+ * - `ConfirmDelete`: componente de confirmación para eliminar.
+ * - `ConfirmEdit`: componente de confirmación para editar.
+ *
+ * Diseño UX:
+ * - Color azul primario para encabezados.
+ * - Uso de íconos de Material UI (`Edit`, `Delete`, `Add`) para acciones.
+ * - `Fab` flotante para añadir nuevos registros.
+ * - Validación de inputs con mensajes de ayuda (`helperText`).
+
+ * Recomendaciones futuras:
+ * - Implementar paginación si hay muchos cambios.
+ * - Exportar historial de cambios a PDF o Excel.
+ * - Agregar campos de auditoría (usuario que creó/modificó el cambio).
+ * - Hacer editable el `idArchivo` (actualmente hardcoded como 1).
+ */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -10,6 +71,7 @@ import { Edit, Delete, Add } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
+
 
 
 const ControlCambios = ({ soloLectura }) => {

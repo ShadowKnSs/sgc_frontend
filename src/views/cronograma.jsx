@@ -1,3 +1,70 @@
+/**
+ * Componente: Cronograma
+ * Ubicación: src/views/Cronograma.jsx
+ *
+ * Descripción:
+ * Vista principal del calendario de auditorías. Utiliza `react-big-calendar` para mostrar
+ * eventos correspondientes a auditorías planeadas, con posibilidad de crearlas, editarlas y
+ * visualizarlas dependiendo del tipo de usuario y sus permisos.
+ *
+ * Funcionalidades:
+ * 1. Visualiza un calendario de auditorías con eventos coloreados según su estado (Pendiente, Finalizada, Cancelada).
+ * 2. Modal de creación y edición de auditorías (formulario reactivo).
+ * 3. Modal de detalles de auditoría (visualización).
+ * 4. Soporte para asignar auditores líderes y auditores adicionales.
+ * 5. Validación de permisos con `permiteAcciones()` para restringir acciones según rol.
+ * 6. Obtención de datos del backend para auditorías, entidades, procesos y auditores.
+ *
+ * Librerías usadas:
+ * - `react-big-calendar`: para renderizar el calendario.
+ * - `moment`: para manipulación de fechas.
+ * - `axios`: para llamadas al backend.
+ * - `@mui/material`: para diseño visual y componentes de UI.
+ *
+ * Estado:
+ * - `events`: arreglo de auditorías formateadas como eventos para el calendario.
+ * - `formData`: datos del formulario de auditoría (crear/editar).
+ * - `entidades`, `procesos`, `auditores`: catálogos para el formulario.
+ * - `snackbar`: control de alertas visuales.
+ * - `openForm`, `openDetails`: control de modales.
+ * - `isEditing`: determina si el formulario está en modo edición.
+ * - `view`, `date`: vista activa y fecha activa del calendario.
+ *
+ * Comportamiento:
+ * - Cuando se monta el componente:
+ *    1. Se cargan auditorías mediante `POST /api/cronograma/filtrar`.
+ *    2. Se obtienen auditores adicionales por auditoría desde `/api/auditores-asignados/:id`.
+ *    3. Se cargan catálogos (`entidad-nombres`, `procesos-nombres`, `auditores`).
+ *
+ * - El evento al hacer click en el calendario llama a `handleOpenDetails`.
+ * - El botón "Crear Auditoría" abre el formulario si el rol tiene permisos.
+ * - Al guardar una auditoría nueva o editarla:
+ *    - Se usa `POST /api/cronograma` o `PUT /api/cronograma/:id`.
+ *    - Se guarda la asignación de auditores adicionales mediante `POST /api/auditores-asignados`.
+ *
+ * Custom Components:
+ * - `CustomButton`: botón personalizado para acciones principales.
+ * - `Title`, `DialogTitleCustom`: título general y título de modales.
+ * - `FeedbackSnackbar`: notificaciones de éxito, error o advertencia.
+ * - `CustomCalendarToolbar`: barra superior del calendario con botones personalizados.
+ *
+ * Consideraciones técnicas:
+ * - Eventos se colorean con `eventPropGetter`:
+ *    - Azul: pendiente
+ *    - Verde: finalizada
+ *    - Rojo: cancelada
+ * - Se limita a vista mensual/semanal/diaria.
+ * - Usa `Tooltip` para futuras mejoras (ej. descripción rápida en eventos).
+ * - `auditorLider` e `auditoresAdicionales` son gestionados como IDs y nombres.
+ *
+ * Mejoras recomendadas:
+ * - Soporte para eliminación de auditorías.
+ * - Validaciones más estrictas en el formulario (formato, fechas futuras, etc.).
+ * - Agrupamiento o filtros por entidad/proceso en el calendario.
+ * - Exportación de eventos a PDF o Excel.
+ * - Modo solo lectura para usuarios sin permisos sin mostrar botón "Crear".
+ */
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Box, Dialog, DialogActions, DialogContent,  ListItemText, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Tooltip, Chip, Checkbox } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";

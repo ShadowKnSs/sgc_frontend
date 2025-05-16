@@ -1,4 +1,27 @@
-// 📁 src/views/ProcessStructure.jsx
+/**
+ * Vista: ProcessStructure
+ * Descripción:
+ * Muestra un conjunto de tarjetas de navegación (`MenuCard`) hacia los distintos módulos
+ * estructurales del proceso seleccionado. El acceso a cada módulo depende de los permisos del rol activo.
+ * 
+ * Módulos posibles:
+ * - Manual Operativo
+ * - Gestión de Riesgo
+ * - Análisis de Datos
+ * - Acciones de Mejora
+ * - Auditoría
+ * - Seguimiento
+ * 
+ * Características:
+ * - Utiliza animaciones con `framer-motion`.
+ * - Usa `ContextoProcesoEntidad` para mostrar información contextual del proceso.
+ * - Filtra dinámicamente las tarjetas de acceso con base en los permisos almacenados en `localStorage`.
+ * 
+ * Dependencias clave:
+ * - React Router (`useNavigate`, `useParams`)
+ * - `MenuCard`, `ContextoProcesoEntidad`
+ * - Íconos de Material UI (ej. `BookIcon`, `WarningIcon`, etc.)
+ */
 import React, { useMemo } from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";

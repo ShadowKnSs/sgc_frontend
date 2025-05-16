@@ -1,14 +1,31 @@
+/**
+ * Componente: VistaPreviaAud
+ * Descripción:
+ * Esta vista permite mostrar un resumen detallado de una auditoría interna antes de generar el reporte.
+ * Extrae la información desde el backend mediante el `idAuditorialInterna` y permite al usuario revisar:
+ * - Información general (entidad, proceso, líder)
+ * - Objetivo, alcance, criterios
+ * - Equipo auditor y personal auditado
+ * - Verificaciones realizadas (incluye hallazgos y evidencia)
+ * - Fortalezas, debilidades, conclusiones, plazos y puntos de mejora
+ * Finalmente, permite guardar el reporte mediante una petición POST y redirigir al listado de reportes.
+ */
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { Box, Grid, Typography, Button, TextField, MenuItem } from "@mui/material";
 import React, { useState, useEffect } from "react";
 
 function VistaPreviaAud() {
+  // Datos fijos (en implementación real podrían venir del backend)
+
   const entidad = "Nombre de la Entidad";
   const proceso = "Nombre del Proceso";
   const lider = "Nombre del Líder";
+
+  // Hook para obtener el ID de auditoría desde la URL
   const { idAuditorialInterna } = useParams();
-    // Estado para los criterios
+    
+  // Estados para almacenar los datos obtenidos
     const [criterios, setCriterios] = useState([]);
     const [equipoAuditor, setEquipoAuditor] = useState([]);
     const [personalAuditado, setPersonalAuditado] = useState([]);
@@ -21,7 +38,10 @@ function VistaPreviaAud() {
     const [conclusiones, setConclusiones] = useState([]);
     const [plazos, setPlazos] = useState([]);
     const [puntosMejora, setPuntosMejora] = useState([]);
+    
     const navigate = useNavigate();
+
+// Función para guardar el reporte de auditoría
 
     const handleGuardarReporte = async () => {
         try {
@@ -42,12 +62,16 @@ function VistaPreviaAud() {
         }
     };  
 
+    // Hook para obtener datos de auditoría desde la API al cargar la vista
+
     useEffect(() => {
         const obtenerDatosAuditoria = async () => {
           try {
             const res = await axios.get(`http://localhost:8000/api/auditorias/${idAuditorialInterna}`);
             const data = res.data;
       
+                  // Se actualizan todos los estados con los datos recibidos
+
             setFecha(data.fecha || "");
             setObjetivo(data.objetivoAud || "");
             setAlcance(data.alcanceAud || "");
@@ -184,7 +208,10 @@ function VistaPreviaAud() {
             </Grid>
           </Grid>
         </Box>
-
+{/* 
+// -----------------------------
+// Verificación de ruta
+// ----------------------------- */}
         <Box mt={4} display="flex" flexDirection="column" alignItems="center">
           <Typography variant="h6" gutterBottom>
             <strong>Verificación de Ruta de Auditoría</strong>
@@ -235,7 +262,10 @@ function VistaPreviaAud() {
           <Typography variant="body1" gutterBottom><strong>Debilidades:</strong></Typography>
           <TextField fullWidth multiline rows={2} variant="outlined" value={debilidades} InputProps={{ readOnly: true }}/>
         </Box>
-
+{/* 
+// -----------------------------
+// Puntos de Mejora
+// ----------------------------- */}
         <Box mt={4} display="flex" flexDirection="column" alignItems="center">
           <Typography variant="h6" gutterBottom>
             <strong>Puntos de Mejora Detectados</strong>
@@ -280,7 +310,10 @@ function VistaPreviaAud() {
             </Box>
           ))}
         </Box>
-
+{/* 
+// -----------------------------
+// Conclusiones y Plazos
+// ----------------------------- */}
         <Box mt={3}>
           <Typography variant="body1" gutterBottom>
             <strong>Conclusiones Generales:</strong>

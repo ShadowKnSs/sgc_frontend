@@ -1,3 +1,38 @@
+/**
+ * Componente: EntityP
+ * Ubicación: src/views/EntityP.jsx
+ *
+ * Descripción:
+ * Este componente renderiza un **menú visual en formato grid** que representa distintas entidades o facultades
+ * de una institución (como la UASLP). Cada facultad es mostrada como una tarjeta (`MenuCard`) con un ícono representativo.
+ *
+ * Estructura:
+ * - Utiliza el componente `MenuCard` para mostrar el título e ícono de cada facultad.
+ * - `menuItems`: arreglo de objetos que contienen:
+ *   - `icon`: ícono visual de la facultad (usando `@mui/icons-material`)
+ *   - `title`: nombre de la facultad
+ *   - `path`: (opcional) ruta de navegación si se desea implementar clic
+ *
+ * Estilos:
+ * - Se emplea `Box` de MUI con `gridTemplateColumns: "repeat(4, 1fr)"` para mostrar 4 columnas por fila.
+ * - Espaciado controlado con `gap: 3` y `padding: 2`.
+ * - Ocupa toda la altura de la pantalla (`height: 100vh`) para un diseño centralizado.
+ *
+ * Dependencias:
+ * - MUI (`@mui/material`) y Material Icons (`@mui/icons-material`)
+ * - Componente personalizado `MenuCard`
+ *
+ * Consideraciones:
+ * - Actualmente, solo el primer ítem (`Facultad de Enfermería`) tiene una propiedad `path` para navegación.
+ *   Se puede expandir para incluir navegación completa.
+ * - `MenuCard` debe manejar internamente la lógica de redirección si `path` está presente.
+ *
+ * Mejoras sugeridas:
+ * - Implementar navegación al hacer clic en cada tarjeta.
+ * - Añadir control de permisos según usuario (por ejemplo, restringir acceso a ciertas facultades).
+ * - Cargar el listado de facultades desde un backend para mayor escalabilidad.
+ */
+
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";

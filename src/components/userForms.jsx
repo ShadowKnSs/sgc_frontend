@@ -1,3 +1,11 @@
+/**
+ * Componente: UserForm
+ * Descripción:
+ * Formulario emergente para registrar o editar usuarios normales y temporales.
+ * Permite asignar múltiples roles, seleccionar supervisor (si es Líder), y asociar procesos (si es Supervisor).
+ * También puede generar un token de acceso temporal con fecha de expiración.
+ * Utiliza validaciones, carga dinámica de roles y supervisores, y soporta pestañas para usuario normal o temporal.
+ */
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Button, Tabs, Tab, FormHelperText, CircularProgress, Box, IconButton } from "@mui/material";
 import ConfirmEdit from "./confirmEdit";
@@ -7,6 +15,7 @@ import DialogTitleCustom from "./TitleDialog";
 const API_URL = 'http://localhost:8000/api';
 
 function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
+   // Estados para campos de formulario
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -70,7 +79,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     const [loadingRoles, setLoadingRoles] = useState(false);
     const [loadingSupervisores, setLoadingSupervisores] = useState(false);
     const [errors, setErrors] = useState({});
-    const [tab, setTab] = useState(0);
+    const [tab, setTab] = useState(0); // 0: Usuario, 1: Temporal
     const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
     const [openInfo, setOpenInfo] = useState(false);
 

@@ -1,10 +1,20 @@
+/**
+ * Componente: Welcome
+ * Descripción:
+ * Esta vista es el menú principal del sistema de gestión de calidad.
+ * Muestra accesos (cards) a distintos módulos, filtrados según los permisos del rol activo del usuario.
+ * Si el usuario es "Invitado", se redirige automáticamente a la sección de Noticias.
+ * Si el usuario es "Líder", se consulta su proceso asignado para incluir la opción "Mi Proceso".
+ * Además, si el acceso fue mediante token temporal, se ocultan ciertas tarjetas como el Cronograma.
+ */
+
 import React, { useEffect, useState } from "react";
-import { Box, CircularProgress} from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// Importación de íconos para las tarjetas del menú
+// Iconos del menú
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
@@ -18,40 +28,28 @@ import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import AddHomeWorkOutlinedIcon from '@mui/icons-material/AddHomeWorkOutlined';
 
-
 const Welcome = () => {
   const navigate = useNavigate();
 
   // Rol por defecto si no hay sesión activa
-  // FUTURO: Este rol por defecto aplica si no hay sesión activa. 
-  // Puede ser modificado si se desea mostrar diferentes permisos por defecto al público.
- 
   const defaultRol = {
-    nombreRol: "Invitado", // Asume rol "Invitado" si no hay rol en localStorage
+    nombreRol: "Invitado",
     permisos: ["Manual de Calidad", "Noticias"]
   };
 
-  // Se lee el rol desde localStorage o usa el default
+  // Obtiene el rol activo desde localStorage o usa el rol por defecto
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || JSON.stringify(defaultRol));
-
-  // Bandera para saber si el acceso se hizo mediante token temporal usado para auditores externos
-  const viaToken = localStorage.getItem("viaToken") === "true";
-
-  // Lista de permisos disponibles para el rol activo
+  const viaToken = localStorage.getItem("viaToken") === "true"; // Sesión con token temporal
   const permisos = rolActivo?.permisos?.map(p => p.modulo || p) || [];
-  // Se obtiene el usuario para extraer el idUsuario
+
+  // Información del usuario desde localStorage
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
 
   const [procesoLider, setProcesoLider] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
-  console.log("El rol es:", rolActivo);
-  console.log("Permisos", permisos);
-  console.log("idUsuario", idUsuario);
-  console.log("Sesión vía token:", viaToken);
-
+  // Lista de tarjetas de menú disponibles
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/manual-calidad" },
     { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manualDelSitio" },
@@ -66,13 +64,12 @@ const Welcome = () => {
     { icon: <PersonSearchIcon />, title: "Supervisor", path: "/busca_supervisor" },
     { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
     { icon: <AddHomeWorkOutlinedIcon />, title: "Gestión Entidades", path: "/gestion-entidades" },
-    
-
   ];
 
-  // Filtra los ítems según los permisos del usuario
+  // Filtra las cards según los permisos del rol
   let itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
 
+  // Si el rol es "Líder", añade su proceso
   if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
     itemsFiltrados.push({
       icon: <AddHomeWorkOutlinedIcon />,
@@ -80,22 +77,21 @@ const Welcome = () => {
       path: `/estructura-procesos/${procesoLider.idProceso}`
     });
   }
-  
 
-  // Si la sesión se inició con token, se quita la card de "Cronograma"
+  // Si la sesión se realizó mediante token, se oculta "Cronograma"
   if (viaToken) {
     itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
   }
 
-// Redirección automática si el usuario no tiene sesión (Personal Operativo / Invitado)
-useEffect(() => {
+  // Si es invitado, redirige automáticamente a Noticias
+  useEffect(() => {
     if (rolActivo?.nombreRol === "Invitado") {
-      navigate("/user-eventos"); // ← Lleva directamente a las noticias
+      navigate("/user-eventos");
     }
   }, [rolActivo, navigate]);
 
+  // Si es líder, consulta su proceso asignado
   useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
     if (usuario?.idUsuario && rolActivo?.nombreRol === "Líder") {
       axios
         .get(`http://localhost:8000/api/proceso-usuario/${usuario.idUsuario}`)
@@ -105,16 +101,17 @@ useEffect(() => {
         })
         .catch(err => {
           console.error("Error al obtener proceso:", err);
-          setLoading(false); // Asegúrate de quitar el loading aunque falle
+          setLoading(false);
         });
     } else {
-      setLoading(false); // Si no es líder, también termina el loading
+      setLoading(false);
     }
   }, []);
-  
-  
-  if (rolActivo?.nombreRol === "Invitado") return null; // ← Evita renderizar cards
 
+  // Evita renderizar si es invitado
+  if (rolActivo?.nombreRol === "Invitado") return null;
+
+  // Muestra loader mientras se obtienen los datos
   if (loading) {
     return (
       <Box
@@ -130,7 +127,7 @@ useEffect(() => {
       </Box>
     );
   }
-  
+
   return (
     <Box
       sx={{

@@ -1,4 +1,20 @@
-// ✅ Versión mejorada de Carpetas.jsx
+/**
+ * Vista: Carpetas
+ * Descripción:
+ * Esta vista muestra y gestiona las carpetas de trabajo (por año) asociadas a un proceso específico y un apartado como
+ * "Análisis de Datos", "Gestión de Riesgo", "Seguimiento", etc.
+ * 
+ * Funcionalidades:
+ * - Muestra carpetas en tarjetas (`CardArchivos`), cada una vinculada a una ruta según el apartado (`rutas[title]`).
+ * - Permite crear nuevas carpetas indicando el año.
+ * - Permite editar el año de una carpeta existente con confirmación (`ConfirmEdit`).
+ * - Controla los permisos del usuario (`soloLectura`, `puedeEditar`) para mostrar u ocultar botones de edición/creación.
+ * - Usa Snackbar para mostrar errores de red o validación.
+ * 
+ * Componentes clave:
+ * - `CardArchivos`, `Subtitle`, `ContextoProcesoEntidad`, `ConfirmEdit`, `Snackbar`, `Dialog`
+ */
+
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";

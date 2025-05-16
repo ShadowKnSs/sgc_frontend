@@ -1,3 +1,42 @@
+/**
+ * Vista: PrincipalReportSem
+ * Descripción:
+ * Muestra un listado de todos los reportes semestrales generados, permitiendo crear nuevos
+ * reportes desde un modal. Al generar uno nuevo, se verifica su existencia, se recolectan datos
+ * de varios endpoints y se redirige al usuario a la vista de edición previa del reporte.
+
+ * Funcionalidades clave:
+ * - Renderiza una cuadrícula de `ReporteSemCard` para visualizar reportes existentes.
+ * - Permite filtrar reportes mediante el componente lateral `SearchFilter`.
+ * - Contiene un formulario emergente (modal) para crear un nuevo reporte seleccionando año y periodo.
+ * - Verifica si ya existe un reporte para el año y periodo antes de redirigir.
+ * - Recolecta datos de riesgos, indicadores, acciones, auditorías y seguimiento al crear un nuevo reporte.
+ * - Muestra notificaciones (`Snackbar`) cuando hay errores o advertencias.
+
+ * Navegación:
+ * - Al generar un nuevo reporte exitosamente, se redirige a `/reporteSemestral` con los datos recolectados.
+
+ * Estado local:
+ * - `reportes`: Lista de reportes semestrales existentes.
+ * - `year`, `period`: Año y período seleccionados por el usuario.
+ * - `open`, `openSnackbar`, `searchOpen`: Controlan la visibilidad del modal, snackbar y filtro lateral.
+ * - `messageSnackbar`: Mensaje para mostrar en el `Snackbar`.
+
+ * Endpoints utilizados:
+ * - `GET /api/reportes-semestrales` → lista de todos los reportes semestrales.
+ * - `GET /api/verificar-reporte?anio=&periodo=` → verifica si ya existe un reporte para los valores dados.
+ * - `GET /api/get-riesgos-sem?anio=&periodo=`
+ * - `GET /api/get-indicador-sem?anio=&periodo=`
+ * - `GET /api/get-acciones-sem?anio=&periodo=`
+ * - `GET /api/get-auditorias-sem?anio=&periodo=`
+ * - `GET /api/get-seguimiento-sem?anio=&periodo=`
+
+ * Componentes personalizados:
+ * - `Title`: Encabezado estilizado.
+ * - `ReporteSemCard`: Card para representar un reporte semestral.
+ * - `SearchFilter`: Componente lateral para filtrar resultados por búsqueda.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Box, Fab, Modal, TextField, MenuItem, Button, Grid, Snackbar } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";

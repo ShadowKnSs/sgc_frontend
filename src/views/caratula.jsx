@@ -1,4 +1,58 @@
-// 📁 src/views/caratula.jsx
+/**
+ * Componente: Caratula
+ * Ubicación: src/views/caratula.jsx
+ * Props:
+ *  - `puedeEditar` (boolean): si `true`, permite editar los campos de nombre y cargo de cada persona.
+ *
+ * Descripción:
+ * Vista de portada (carátula) del manual del proceso, donde se registra quién lo elabora, revisa y aprueba.
+ * Carga y guarda estos datos mediante API, con soporte para edición individual por campo.
+
+ * Funcionalidades principales:
+ * 1. ✅ Consulta si existe carátula para el `idProceso` vía GET `/api/caratulas/proceso/:idProceso`.
+ * 2. ✅ Si existe, carga los datos en el estado `personas`.
+ * 3. ✅ Si no existe, permite crearla vía POST `/api/caratula`.
+ * 4. ✅ Si existe, actualiza la carátula vía PUT `/api/caratulas/:idCaratula`.
+ * 5. ✅ Cada persona (Responsable, Revisó, Aprobó) puede editarse individualmente.
+ * 6. ✅ Los campos pueden cancelarse o guardarse de forma individual.
+ * 7. ✅ Muestra mensajes de éxito/error mediante `MensajeAlert`.
+
+ * Estructura de personas:
+ * [
+ *   { nombre: string, cargo: string, fijo: "Responsable", editando: boolean },
+ *   { nombre: string, cargo: string, fijo: "Revisó", editando: boolean },
+ *   { nombre: string, cargo: string, fijo: "Aprobó", editando: boolean }
+ * ]
+
+ * Estados destacados:
+ * - `existe`: booleano que indica si ya hay una carátula en la base de datos.
+ * - `caratulaId`: ID del registro de carátula si existe.
+ * - `alerta`: objeto para mostrar mensajes tipo snackbar (`{ tipo: "success" | "error", texto: string }`).
+ * - `personas`: arreglo con la información editable de cada rol.
+ * - `loading`: controla si los datos están siendo cargados.
+
+ * Funciones destacadas:
+ * - `cargarCaratula`: consulta la carátula actual y actualiza estado.
+ * - `handleEdit(index)`: habilita el modo edición de una persona.
+ * - `handleCancel(index, prevNombre, prevCargo)`: cancela los cambios de un campo.
+ * - `handleChange(index, field, value)`: actualiza campo controlado por input.
+ * - `handleSave(index)`: guarda la carátula, realizando POST o PUT según si ya existe.
+
+ * Diseño UX:
+ * - Muestra el logo de la UASLP.
+ * - Diseño responsivo de tres columnas para los roles.
+ * - Campos de texto solo visibles en modo edición.
+ * - Botones de guardar y cancelar en cada bloque editable.
+ * - Colores accesibles para mensajes y botones.
+ *
+ * Reutiliza:
+ * - `MensajeAlert` para mostrar mensajes temporales de retroalimentación.
+ *
+ * Recomendaciones futuras:
+ * - Añadir validación de campos vacíos o nombres inválidos.
+ * - Mostrar fecha de última modificación.
+ * - Permitir firmar electrónicamente por cada persona.
+ */
 import React, { useState, useEffect } from "react";
 import { Box, TextField, Typography, Button } from "@mui/material";
 import { Edit, Save, Close } from "@mui/icons-material";

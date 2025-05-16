@@ -1,3 +1,16 @@
+/**
+ * Vista: TypesReports
+ * Descripción:
+ * Muestra al usuario un menú visual con acceso a tres tipos de reportes disponibles en el sistema:
+ * - Reporte Semestral
+ * - Reporte de Proceso
+ * - Reporte de Auditoría Interna
+ *
+ * Características:
+ * - Utiliza `MenuCard` para mostrar íconos y títulos en tarjetas.
+ * - Se apoya en el componente `Title` para mostrar el encabezado.
+ * - Redirecciona a la ruta correspondiente al hacer clic en cada tarjeta.
+ */
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";

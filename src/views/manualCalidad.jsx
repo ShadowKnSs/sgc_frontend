@@ -1,3 +1,43 @@
+/**
+ * Vista: ManualCalidad
+ * Descripción:
+ * Componente encargado de mostrar el "Manual de Calidad" mediante un iframe embebido desde SharePoint.
+ * Permite la carga progresiva del documento y funciones interactivas para usuarios con rol "Invitado".
+
+ * Funcionalidades:
+ * -  Muestra el título "Manual de Calidad" con estilo personalizado.
+ * -  Carga el contenido embebido desde una URL externa (SharePoint) en un iframe.
+ * -  Muestra un `CircularProgress` hasta que el documento está completamente cargado.
+ * -  Permite abrir el iframe en pantalla completa.
+ * -  Muestra un `SpeedDial` flotante con accesos rápidos si el usuario es "Invitado":
+ *   - Pantalla completa.
+ *   - Navegar a `/user-eventos`.
+
+ * Lógica del rol:
+ * - El componente obtiene `rolActivo` desde `localStorage`.
+ * - Si el rol es "Invitado", se habilita la barra flotante con accesos.
+
+ * Hooks y utilidades:
+ * - `useState`: para controlar el estado de carga del iframe (`isLoaded`).
+ * - `useRef`: referencia al iframe para manipulación DOM (pantalla completa).
+ * - `useNavigate`: navegación programática con React Router.
+
+ * Accesibilidad y usabilidad:
+ * - Uso de `aria-label`, `title` y `tooltipTitle` para accesibilidad.
+ * - Optimización visual para usuarios móviles y de escritorio.
+ * - Experiencia de carga mejorada con `CircularProgress`.
+
+ * Consideraciones técnicas:
+ * - La función `handleFullscreen` es compatible con diferentes navegadores (`webkit`, `moz`, `ms`).
+ * - El iframe incluye atributos de seguridad y accesibilidad.
+ * - La URL embebida se puede cambiar fácilmente desde un entorno de configuración.
+
+ * Mejora futura recomendada:
+ * - Reemplazar SharePoint con una solución más personalizada o agregar un modo offline.
+ * - Agregar una opción para descargar el manual directamente.
+ * - Localización multilenguaje si se amplía el sistema a otros públicos.
+ */
+
 import React, { useRef, useState } from "react";
 import { Typography, CircularProgress, Box, SpeedDial, SpeedDialAction } from "@mui/material";
 import NewspaperIcon from '@mui/icons-material/Newspaper';
