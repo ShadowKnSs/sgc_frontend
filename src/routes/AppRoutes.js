@@ -6,9 +6,9 @@ import ProcessPage from "../views/processList";
 import GraficasPage from "../views/graficasIndicadores";
 import NewProcess from "../views/newProcess";
 import EditProcess from "../views/editProcess";
-import FilesGestRiesgos from "../views/filesGestRiesgos";
+// import FilesGestRiesgos from "../views/filesGestRiesgos";
 import EstructuraProcesos from "../views/procesStructure";
-import AnalisisDatos from "../views/analisisDatos";
+// import AnalisisDatos from "../views/analisisDatos";
 import ManualOperativo from "../views/operationalManual";
 import Entity from "../views/entity";
 import UserManagement from "../views/usersList";
@@ -17,7 +17,7 @@ import FormularioAnalisis from "../views/analisisDatosForm";
 import GestionRiesgosForm from "../views/gestionRiegosForm";
 import ActividadMejora from "../views/actividadMejora";
 import Carpetas from "../views/seguimiento";
-import Archivos from "../views/archivosSeg";
+// import Archivos from "../views/archivosSeg";
 import AdminEventos from "../views/adminEventNot";
 import InformeAuditoria from "../views/informeAuditoriaInterna";
 import Cronograma from "../views/cronograma";
@@ -116,14 +116,14 @@ const AppRoutes = () => {
           {/* Carpetas */}
           {/* ---------------------- */}
           <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
-          <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} />
+          {/* <Route path="/archivosSeg/:nombreCarpeta" element={<Archivos />} /> */}
           <Route path="seguimientoPrincipal/:idRegistro/:idProceso" element={<SeguimientoPrincipal />} />
 
 
           {/* ---------------------- */}
           {/* Análisis de Datos */}
           {/* ---------------------- */}
-          <Route path="analisis-Datos" element={<AnalisisDatos />} />
+          {/* <Route path="analisis-Datos" element={<AnalisisDatos />} /> */}
           <Route path="analisis-datos" element={<FormularioAnalisis />} />
           <Route path="analisis-datos/:idRegistro" element={<FormularioAnalisis />} />
            {/* ---------------------- */}
@@ -131,7 +131,7 @@ const AppRoutes = () => {
           {/* ---------------------- */}
           <Route path="gestion-riesgos" element={<GestionRiesgosForm />} />
           <Route path="gestion-riesgos/:idRegistro" element={<GestionRiesgosForm />} />
-          <Route path="archivos/:year" element={<FilesGestRiesgos />} />
+          {/* <Route path="archivos/:year" element={<FilesGestRiesgos />} /> */}
 
           {/* ---------------------- */}
           {/* Acciones de Mejora */}
