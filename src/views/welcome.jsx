@@ -1,6 +1,6 @@
 /*
  Me perdonas? ❤️
-Para qué invitarlas... si contigo tengo todo lo que necesito.
+ Contigo tengo todo lo que necesito.
 
 */
 
