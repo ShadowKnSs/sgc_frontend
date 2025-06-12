@@ -1,96 +1,65 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Alert } from '@mui/material';
-import axios from 'axios';
-import { Pie } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Title
-} from 'chart.js';
+import React, { useEffect, useRef, useState } from "react";
+import { Box, Alert } from "@mui/material";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Pie } from "react-chartjs-2";
 
-ChartJS.register(ArcElement, Tooltip, Legend, Title);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-const GraficaEncuesta = ({ id, onImageReady }) => {
+const GraficaEncuesta = ({ data = null, onImageReady }) => {
   const chartRef = useRef(null);
   const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!data || data.noEncuestas <= 0) return;
 
-    axios.get(`http://127.0.0.1:8000/api/encuesta/${id}/resultados`)
-      .then(response => {
-        const data = response.data.encuesta;
-        const total = data.noEncuestas;
-        const sumaEB = data.bueno + data.excelente;
-        const maloPct = total > 0 ? (data.malo * 100 / total).toFixed(2) : 0;
-        const regularPct = total > 0 ? (data.regular * 100 / total).toFixed(2) : 0;
-        const excelenteBuenoPct = total > 0 ? (sumaEB * 100 / total).toFixed(2) : 0;
+    const total = data.noEncuestas || 1;
+    const valores = {
+      malo: ((data.malo ?? 0) * 100 / total).toFixed(2),
+      regular: ((data.regular ?? 0) * 100 / total).toFixed(2),
+      buenoExcelente: (((data.bueno ?? 0) + (data.excelente ?? 0)) * 100 / total).toFixed(2)
+    };
 
-        const formattedData = {
-          labels: ['Malo', 'Regular', 'Excelente/Bueno'],
-          datasets: [
-            {
-              data: [maloPct, regularPct, excelenteBuenoPct],
-              backgroundColor: ['#FF6384', '#FFCE56', '#36A2EB']
-            }
-          ]
-        };
-
-        setChartData(formattedData);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('❌ Error al cargar los datos de la encuesta:', err);
-        setError('Error al cargar los datos de la encuesta.');
-        setLoading(false);
-      });
-  }, [id]);
+    setChartData({
+      labels: ['Malo', 'Regular', 'Excelente/Bueno'],
+      datasets: [{
+        data: [valores.malo, valores.regular, valores.buenoExcelente],
+        backgroundColor: ['#D32F2F', '#F9A825', '#1976D2'],
+        borderWidth: 1
+      }]
+    });
+  }, [data]);
 
   useEffect(() => {
-    if (chartRef.current && chartRef.current.toBase64Image) {
+    if (chartRef.current && chartData && typeof onImageReady === "function") {
       const base64 = chartRef.current.toBase64Image("image/png", 1.0);
-  
-      if (base64) {
-        console.log("🖼️ Imagen generada (encuesta):", base64.substring(0, 100)); // solo muestra un fragmento
-        if (onImageReady) {
-          onImageReady(base64, "encuesta");
-        }
-      } else {
-        console.warn("⚠️ La imagen generada está vacía o no es válida");
-      }
+      onImageReady(base64, "encuesta");
     }
-  }, [chartData]);
-  
+  }, [chartData, onImageReady]);
 
-  if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>;
-  }
-
-  if (error) {
-    return <Alert severity="info">{error}</Alert>;
+  if (!data || !chartData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Alert severity="info">No hay datos de encuesta disponibles.</Alert>
+      </Box>
+    );
   }
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Encuesta de Satisfacción' }
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => `${ctx.label}: ${ctx.raw}%`
+        }
+      }
     }
   };
 
   return (
-    <Box sx={{ maxWidth: '50%', mx: 'auto', mt: 4 }}>
-      <Pie
-        ref={(ref) => {
-          chartRef.current = ref;
-        }}
-        data={chartData}
-        options={options}
-      />
+    <Box sx={{ width: "100%", height: 350, mt: 4}}>
+      <Pie ref={chartRef} data={chartData} options={options} />
     </Box>
   );
 };

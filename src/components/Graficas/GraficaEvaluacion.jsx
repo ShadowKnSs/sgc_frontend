@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Alert } from '@mui/material';
-import axios from 'axios';
-import { Bar } from 'react-chartjs-2';
+import React, { useEffect, useRef, useState } from "react";
+import { Box, CircularProgress, Alert } from "@mui/material";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,23 +9,90 @@ import {
   Title,
   Tooltip,
   Legend
-} from 'chart.js';
+} from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const GraficaEvaluacionProveedoresStacked = ({ id, onImageReady }) => {
+const GraficaEvaluacionProveedoresStacked = ({ data = null, onImageReady }) => {
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
-
   const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!data || Object.keys(data).length === 0) return;
+
+    const formattedData = {
+      labels: ["Ene-Jun", "Jul-Dic"],
+      datasets: [
+        {
+          label: "Confiable",
+          data: [data.resultadoConfiableSem1 ?? 0, data.resultadoConfiableSem2 ?? 0],
+          backgroundColor: "#72cff2"
+        },
+        {
+          label: "Condicionado",
+          data: [data.resultadoCondicionadoSem1 ?? 0, data.resultadoCondicionadoSem2 ?? 0],
+          backgroundColor: "#78e6c8"
+        },
+        {
+          label: "No Confiable",
+          data: [data.resultadoNoConfiableSem1 ?? 0, data.resultadoNoConfiableSem2 ?? 0],
+          backgroundColor: "#f28772"
+        }
+      ]
+    };
+
+    setChartData(formattedData);
+  }, [data]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (chartRef.current && chartData && !yaGenerada.current) {
+        try {
+          const base64 = chartRef.current.toBase64Image("image/png", 1.0);
+          if (base64 && typeof onImageReady === "function") {
+            onImageReady(base64, "evaluacionProveedores");
+            yaGenerada.current = true;
+          }
+        } catch (error) {
+          console.error("⚠️ No se pudo generar imagen de evaluación:", error);
+        }
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [chartData, onImageReady]);
+
+  if (!data || Object.keys(data).length === 0) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <Alert severity="info">No hay datos de Evaluación de Proveedores disponibles.</Alert>
+      </Box>
+    );
+  }
+
+  if (!chartData) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { position: "top" },
-      title: { display: true, text: "Evaluación de Proveedores (Stacked)" }
+      title: {
+        display: true,
+        text: "Evaluación de Proveedores (Stacked)",
+        font: { size: 18 }
+      },
+      tooltip: {
+        callbacks: {
+          label: context => `${context.dataset.label}: ${context.raw}%`
+        }
+      }
     },
     scales: {
       x: {
@@ -36,93 +102,17 @@ const GraficaEvaluacionProveedoresStacked = ({ id, onImageReady }) => {
       y: {
         stacked: true,
         beginAtZero: true,
-        title: { display: true, text: "Valor" }
+        title: { display: true, text: "Porcentaje" },
+        ticks: { callback: value => `${value}%` }
       }
     },
-    animation: false // importante para que se renderice rápido antes de tomar imagen
+    animation: false
   };
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-
-    axios.get(`http://127.0.0.1:8000/api/evalua-proveedores/${id}/resultados`)
-      .then(response => {
-        const result = response.data?.resultado;
-        if (!result) {
-          setError("No se encontraron datos de evaluación de proveedores.");
-          setLoading(false);
-          return;
-        }
-
-        const periodLabels = ["Ene-Jun", "Jul-Dic"];
-
-        const formattedData = {
-          labels: periodLabels,
-          datasets: [
-            {
-              label: "Confiable",
-              data: [result.resultadoConfiableSem1 ?? 0, result.resultadoConfiableSem2 ?? 0],
-              backgroundColor: "#72cff2"
-            },
-            {
-              label: "Condicionado",
-              data: [result.resultadoCondicionadoSem1 ?? 0, result.resultadoCondicionadoSem2 ?? 0],
-              backgroundColor: "#78e6c8"
-            },
-            {
-              label: "No Confiable",
-              data: [result.resultadoNoConfiableSem1 ?? 0, result.resultadoNoConfiableSem2 ?? 0],
-              backgroundColor: "#f28772"
-            }
-          ]
-        };
-
-        setChartData(formattedData);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("❌ Error al cargar la evaluación de proveedores:", err);
-        setError("Error al cargar la evaluación de proveedores.");
-        setLoading(false);
-      });
-  }, [id]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (chartRef.current && chartData && !yaGenerada.current) {
-        try {
-          const base64 = chartRef.current.toBase64Image("image/png", 1.0);
-          console.log("📸 Imagen generada (Evaluación):", base64.substring(0, 60));
-          if (onImageReady) {
-            onImageReady(base64, "evaluacionProveedores");
-          }
-          yaGenerada.current = true;
-        } catch (error) {
-          console.error("⚠️ No se pudo generar imagen de evaluación:", error);
-        }
-      }
-    }, 500); // pequeño delay para asegurar render completo
-
-    return () => clearTimeout(timer);
-  }, [chartData, onImageReady]);
-
-  if (loading) {
-    return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /></Box>;
-  }
-
-  if (error) {
-    return <Alert severity="info">{error}</Alert>;
-  }
-
   return (
-    <Box sx={{ maxWidth: "70%", mx: "auto", mt: 4 }}>
+    <Box sx={{ maxWidth: "70%", mx: "auto", mt: 4, height: 300 }}>
       <Bar
-        ref={(ref) => {
-          chartRef.current = ref;
-        }}
+        ref={(ref) => { chartRef.current = ref; }}
         data={chartData}
         options={options}
       />

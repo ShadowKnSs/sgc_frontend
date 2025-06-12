@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogActions, TextField, Grid, Box } from "@mui/material";
+import {
+  Dialog,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Grid,
+  Box
+} from "@mui/material";
 import DialogActionButtons from "../DialogActionButtons";
 import DialogTitleCustom from "../TitleDialog";
+import { motion } from "framer-motion";
+
+const MotionBox = motion(Box);
 
 const RetroalimentacionContent = ({ formData, setFormData }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -40,7 +50,7 @@ const RetroalimentacionContent = ({ formData, setFormData }) => (
   </Box>
 );
 
-const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedResult = {} }) => {
+const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedResult = {}, anio }) => {
   const [formData, setFormData] = useState({
     felicitaciones: "",
     quejas: "",
@@ -49,13 +59,6 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
 
   useEffect(() => {
     if (open) {
-      console.log("📌 Datos recibidos en modal Retroalimentación:", savedResult);
-
-      if (!savedResult || Object.keys(savedResult).length === 0) {
-        console.warn("⚠️ No se encontraron datos en savedResult.");
-        return;
-      }
-
       const resultado = savedResult || {};
 
       setFormData({
@@ -66,20 +69,14 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
     }
   }, [open, savedResult]);
 
-
-
   const handleSave = () => {
+    if (!indicator?.idIndicador) return;
+
     const resultData = {
       cantidadFelicitacion: Number(formData.felicitaciones),
       cantidadSugerencia: Number(formData.sugerencias),
       cantidadQueja: Number(formData.quejas),
     };
-
-    console.log("📌 Payload que se enviará:", resultData);
-    if (!indicator || !indicator.idIndicador) {
-      console.error("❌ Error: idIndicador está indefinido.");
-      return;
-    }
 
     onSave(indicator.idIndicador, { result: resultData });
     onClose();
@@ -87,17 +84,30 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitleCustom
-        title={`Registrar Resultado`}
-        subtitle={`${indicator?.nombreIndicador || indicator?.name || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
-      />
-      <DialogContent>
-        <RetroalimentacionContent formData={formData} setFormData={setFormData} />
-      </DialogContent>
-      <DialogActions>
-        <DialogActionButtons onCancel={onClose} onSave={handleSave} saveText="Guardar" cancelText="Cancelar" saveColor="terciary.main"
-          cancelColor="primary.main" />
-      </DialogActions>
+      <MotionBox
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ duration: 0.60 }}
+      >
+        <DialogTitleCustom
+          title="Registrar Resultado"
+          subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
+        />
+        <DialogContent>
+          <RetroalimentacionContent formData={formData} setFormData={setFormData} />
+        </DialogContent>
+        <DialogActions>
+          <DialogActionButtons
+            onCancel={onClose}
+            onSave={handleSave}
+            saveText="Guardar"
+            cancelText="Cancelar"
+            saveColor="terciary.main"
+            cancelColor="primary.main"
+          />
+        </DialogActions>
+      </MotionBox>
     </Dialog>
   );
 };
