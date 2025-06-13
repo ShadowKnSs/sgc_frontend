@@ -9,7 +9,7 @@ import Button from "@mui/material/Button";
 
 // Colores personalizados (puedes meterlos también a theme si prefieres)
 const colorPalette = {
-  azulOscuro: "#185FA4",
+  azulOscuro: "#1976D2",
   azulClaro: "#68A2C9",
   verdeAgua: "#BBD8D7",
   verdeClaro: "#DFECDF",

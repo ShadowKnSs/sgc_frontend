@@ -1,18 +1,17 @@
-import React, { useState, forwardRef, useEffect } from "react";
+import React, { useState, forwardRef, useEffect, useRef } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   Grid,
   TextField,
   MenuItem,
   Snackbar,
   Slide,
-  Alert
+  Alert,
 } from "@mui/material";
-import DialogActionButtons from "../DialogActionButtons";
+import DialogTitleCustom from "../TitleDialog";
+import CustomButton from "../Button";
 
-// Componente de transición para el Dialog
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -25,31 +24,95 @@ const ModalForm = ({
   handleAddOrUpdateRecord,
   isAdditionalFormValid,
   editIndex,
-  autoNumero // Se puede pasar desde el padre, por ejemplo, records.length+1
+  autoNumero,
 }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [fechaError, setFechaError] = useState("");
+  const [errores, setErrores] = useState({});
 
-  // Si se está creando un registro nuevo, y no existe numero en additionalFormData,
-  // asignamos el valor de autoNumero.
+  const fieldRefs = useRef({});
+
+  const camposObligatorios = [
+    "nombreFuente",
+    "elementoEntrada",
+    "descripcion",
+    "entregable",
+    "responsable",
+    "fechaInicio",
+    "fechaTermino",
+  ];
+
   useEffect(() => {
     if (editIndex === null && !additionalFormData.numero && autoNumero) {
-      handleAdditionalChange({
-        target: { name: "numero", value: autoNumero }
-      });
+      handleAdditionalChange({ target: { name: "numero", value: autoNumero } });
+      handleAdditionalChange({ target: { name: "estado", value: "En proceso" } });
     }
-    // Si se está editando, se supone que additionalFormData.numero ya viene establecido.
   }, [editIndex, additionalFormData, autoNumero, handleAdditionalChange]);
 
-  // Campos de la tabla fuentept en el orden solicitado:
-  // 1. Nombre de la Fuente  
-  // 2. Elemento de entrada  
-  // 3. Descripción  
-  // 4. Entregable  
-  // 5. Responsable  
-  // 6. Fecha de Inicio  
-  // 7. Fecha de Término  
-  // 8. Estado (select: En proceso, Cerrado)
+  useEffect(() => {
+    const inicio = new Date(additionalFormData.fechaInicio);
+    const termino = new Date(additionalFormData.fechaTermino);
+    if (
+      additionalFormData.fechaInicio &&
+      additionalFormData.fechaTermino &&
+      inicio > termino
+    ) {
+      setFechaError("La fecha de inicio no puede ser mayor a la de término.");
+    } else {
+      setFechaError("");
+    }
+  }, [additionalFormData.fechaInicio, additionalFormData.fechaTermino]);
+
+  const validarCampos = () => {
+    const nuevosErrores = {};
+
+    camposObligatorios.forEach((campo) => {
+      if (!additionalFormData[campo]?.trim?.()) {
+        nuevosErrores[campo] = "Campo obligatorio";
+      }
+    });
+
+    const inicio = new Date(additionalFormData.fechaInicio);
+    const termino = new Date(additionalFormData.fechaTermino);
+    if (
+      additionalFormData.fechaInicio &&
+      additionalFormData.fechaTermino &&
+      inicio > termino
+    ) {
+      nuevosErrores.fechaInicio = "Fecha inválida";
+      nuevosErrores.fechaTermino = "Fecha inválida";
+    }
+
+    setErrores(nuevosErrores);
+
+    const camposConError = Object.keys(nuevosErrores);
+    if (camposConError.length) {
+      setSnackbarMessage("Completa los campos obligatorios.");
+      setSnackbarOpen(true);
+
+      const firstErrorField = camposConError[0];
+      fieldRefs.current[firstErrorField]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSaveClick = () => {
+    if (!validarCampos()) return;
+    setErrores({});
+    handleAddOrUpdateRecord();
+  };
+
+  const handleSnackbarClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbarOpen(false);
+  };
+
   const fields = [
     { key: "nombreFuente", label: "Nombre de la Fuente", type: "text" },
     { key: "elementoEntrada", label: "Elemento de Entrada", type: "textarea", rows: 5 },
@@ -60,20 +123,6 @@ const ModalForm = ({
     { key: "fechaTermino", label: "Fecha de Término", type: "date" },
   ];
 
-  const handleSaveClick = () => {
-    if (!isAdditionalFormValid()) {
-      setSnackbarMessage("Por favor, complete todos los campos.");
-      setSnackbarOpen(true);
-      return;
-    }
-    handleAddOrUpdateRecord();
-  };
-
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbarOpen(false);
-  };
-
   return (
     <>
       <Dialog
@@ -83,77 +132,47 @@ const ModalForm = ({
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>
-          {editIndex !== null ? "Editar Registro" : "Agregar Registro"}
-        </DialogTitle>
+        <DialogTitleCustom
+          title={editIndex !== null ? "Editar Registro" : "Agregar Registro"}
+          subtitle="Completa los datos de la fuente de información"
+        />
         <DialogContent>
           <Grid container spacing={2}>
-            {/* Campo para número de actividad (solo lectura) */}
             <Grid item xs={12}>
               <TextField
                 label="Número de Actividad"
                 name="numero"
                 value={additionalFormData.numero || ""}
-                onChange={handleAdditionalChange}
                 fullWidth
                 margin="dense"
                 disabled
               />
             </Grid>
-            {fields.map((fieldObj, index) => {
-              if (fieldObj.type === "date") {
-                return (
-                  <Grid item xs={12} key={index}>
-                    <TextField
-                      label={fieldObj.label}
-                      name={fieldObj.key}
-                      type="date"
-                      value={additionalFormData[fieldObj.key] || ""}
-                      onChange={handleAdditionalChange}
-                      fullWidth
-                      margin="dense"
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                );
-              }
-              if (fieldObj.type === "select") {
-                return (
-                  <Grid item xs={12} key={index}>
-                    <TextField
-                      select
-                      label={fieldObj.label}
-                      name={fieldObj.key}
-                      value={additionalFormData[fieldObj.key] || (editIndex === null ? "En proceso" : "")}
-                      onChange={handleAdditionalChange}
-                      fullWidth
-                      margin="dense"
-                    >
-                      {fieldObj.options.map((option, idx) => (
-                        <MenuItem key={idx} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
-                );
-              }
+
+            {fields.map((field) => {
+              const value = additionalFormData[field.key] || "";
+              const isFecha = field.type === "date";
+
               return (
-                <Grid item xs={12} key={index}>
+                <Grid item xs={12} key={field.key} ref={(el) => (fieldRefs.current[field.key] = el)}>
                   <TextField
-                    label={fieldObj.label}
-                    name={fieldObj.key}
-                    value={additionalFormData[fieldObj.key] || ""}
+                    label={field.label}
+                    name={field.key}
+                    type={isFecha ? "date" : "text"}
+                    value={value}
                     onChange={handleAdditionalChange}
                     fullWidth
                     margin="dense"
-                    multiline={fieldObj.type === "textarea"}
-                    rows={fieldObj.rows || 1}
+                    InputLabelProps={isFecha ? { shrink: true } : {}}
+                    multiline={field.type === "textarea"}
+                    rows={field.rows || 1}
+                    error={Boolean(errores[field.key])}
+                    helperText={errores[field.key] || ""}
                   />
                 </Grid>
               );
-
             })}
+
             {editIndex !== null && (
               <Grid item xs={12}>
                 <TextField
@@ -170,22 +189,22 @@ const ModalForm = ({
                 </TextField>
               </Grid>
             )}
-            <Grid item xs={12}>
-              <DialogActionButtons
-                onCancel={() => setShowModal(false)}
-                onSave={handleSaveClick}
-                saveText={editIndex !== null ? "Actualizar" : "Guardar"}
-                cancelText="Cancelar"
-                saveColor="terciary.main"
-                cancelColor="primary.main"
-              />
+
+            <Grid item xs={12} display="flex" justifyContent="flex-end" gap={2} mt={2}>
+              <CustomButton type="cancelar" onClick={() => setShowModal(false)}>
+                Cancelar
+              </CustomButton>
+              <CustomButton type="guardar" onClick={handleSaveClick}>
+                {editIndex !== null ? "Actualizar" : "Guardar"}
+              </CustomButton>
             </Grid>
           </Grid>
         </DialogContent>
       </Dialog>
+
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={4000}
+        autoHideDuration={3000}
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
