@@ -37,11 +37,11 @@
  * - Pensado para integrarse como una subvista dentro de una arquitectura de proceso más amplia.
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useLocation } from "react-router-dom";
 import Title from "../components/Title";
-import { Box, Container, Button } from "@mui/material";
+import { Box, Container } from "@mui/material";
 
 // Importar vistas
 import Caratula from "../views/caratula";
@@ -53,6 +53,8 @@ import DiagramaFlujo from "./diagramaFlujo";
 import Permiso from "../hooks/userPermiso";
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
+import SectionTabs from "../components/SectionTabs";
+
 
 const sections = [
   "Carátula",
@@ -69,7 +71,6 @@ const ProcessView = () => {
   const { soloLectura, puedeEditar } = Permiso("Manual Operativo");
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed] = useState(false);
-  const navbarRef = useRef(null);
   const { idProceso } = useParams();
 
   const [nombreEntidad, setNombreEntidad] = useState("");
@@ -121,43 +122,14 @@ const ProcessView = () => {
         </Box>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2, mb: 0 }}>
-        <Box
-          ref={navbarRef}
-          sx={{
-            display: "flex",
-            backgroundColor: "#0056b3",
-            borderRadius: "40px",
-            padding: "5px",
-            width: "86%",
-            overflowX: "auto",
-            scrollBehavior: "smooth",
-            whiteSpace: "nowrap",
-            "&::-webkit-scrollbar": { display: "none" },
-          }}
-        >
-          {sections.map((section, index) => (
-            <Button
-              key={index}
-              onClick={() => setSelectedTab(index)}
-              sx={{
-                minWidth: "auto",
-                padding: "10px 20px",
-                marginX: "5px",
-                textAlign: "center",
-                color: selectedTab === index ? "black" : "white",
-                backgroundColor: selectedTab === index ? "#F9B800" : "transparent",
-                borderRadius: "40px",
-                transition: "all 0.3s ease-in-out",
-                fontSize: "1rem",
-                fontWeight: "normal",
-                boxShadow: selectedTab === index ? "0px 4px 10px rgba(0, 0, 0, 0.3)" : "none",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {section}
-            </Button>
-          ))}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2, mb: 0 }}>
+          <SectionTabs
+            sections={sections}
+            selectedTab={selectedTab}
+            onTabChange={setSelectedTab}
+          />
         </Box>
+
       </Box>
 
       <Box

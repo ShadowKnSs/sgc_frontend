@@ -1,28 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
-import {
-  Box,
-  Button,
-  TextField,
-  Stepper,
-  Step,
-  StepButton,
-  StepContent,
-  FormControl,
-  Snackbar,
-  Alert
-} from "@mui/material";
+import React from "react";
+import { Box, TextField, Stepper, Step, StepButton, StepContent, Snackbar, Alert } from "@mui/material";
 import Title from "../Title";
-import axios from "axios";
+import { useProyectoMejoraForm } from "../../hooks/useProyectoMejoraForm"
+import CustomButton from "../../components/Button";
 
-function ProyectoMejoraVertical({soloLectura, puedeEditar}) {
-  const location = useLocation();
- 
+function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
+  const formContext = useProyectoMejoraForm();
 
-  const [activeStep, setActiveStep] = useState(0);
-  const navigate = useNavigate();
-
-  const { idRegistro } = useParams();
+  if (!formContext || !formContext.formData) {
+    return <Alert severity="error">Error: No se pudo cargar el formulario.</Alert>;
+  }
+  const {
+    formData,
+    activeStep,
+    handleStep,
+    handleNext,
+    handleBack,
+    handleChange,
+    handleDynamicChange,
+    addDynamicField,
+    removeDynamicField,
+    handleSubmit,
+    snackbar,
+    setSnackbar,
+    erroresCampos
+  } = formContext;
 
   const steps = [
     "Datos Generales",
@@ -35,134 +37,25 @@ function ProyectoMejoraVertical({soloLectura, puedeEditar}) {
     "Aprobación"
   ];
 
-  const [formData, setFormData] = useState({
-    idRegistro: "",
-    division: "",
-    departamento: "",
-    fecha: new Date().toISOString().split("T")[0], // ← Fecha actual
-    noMejora: "",
-    responsable: "",
-    descripcionMejora: "",
-    objetivos: [{ descripcion: "" }],
-    areaImpacto: "",
-    personalBeneficiado: "",
-    responsables: [{ nombre: "" }],
-    situacionActual: "",
-    indicadoresExito: [{ nombre: "", meta: "" }],
-    recursos: [{ tiempoEstimado: "", recursosMatHum: "" }],
-    costoProyecto: "",
-    actividadesPM: [{ actividad: "", responsable: "", fecha: "" }],
-    aprobacionNombre: "",
-    aprobacionPuesto: ""
-  });
-
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success"
-  });
-
-
-  useEffect(() => {
-    if (idRegistro) {
-      setFormData(prev => ({ ...prev, idRegistro }));
-      console.log("Asignando idRegistro al formData:", idRegistro);
-    } else {
-      console.warn("idRegistro no encontrado en useParams");
-    }
-  }, [idRegistro]);
-
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleDynamicChange = (section, index, field, value) => {
-    const updated = [...formData[section]];
-    updated[index][field] = value;
-    setFormData(prev => ({ ...prev, [section]: updated }));
-  };
-
-  const addDynamicField = (section, newItem) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: [...prev[section], newItem]
-    }));
-  };
-
-  const removeDynamicField = (section, index) => {
-    const updated = [...formData[section]];
-    updated.splice(index, 1);
-    setFormData(prev => ({ ...prev, [section]: updated }));
-  };
-
-  const handleStep = (step) => () => setActiveStep(step);
-  const handleNext = () => setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const handleBack = () => setActiveStep((prev) => Math.max(prev - 1, 0));
-
-  const handleSubmit = async () => {
-    if (!formData.division || !formData.departamento) {
-      setSnackbar({ open: true, message: "División y Departamento son obligatorios.", severity: "error" });
-      return;
-    }
-
-    if (!formData.idRegistro) {
-      setSnackbar({ open: true, message: "No se recibió el ID del registro.", severity: "error" });
-      return;
-    }
-    try {
-
-      await axios.post("http://127.0.0.1:8000/api/proyecto-mejora", formData);
-      setSnackbar({ open: true, message: "Proyecto guardado correctamente!", severity: "success" });
-      setTimeout(() => {
-        navigate("/proyectos-mejora", {
-          state: { volverACards: true }
-        });
-      }, 1000); // espera opcional para mostrar el snackbar
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      setSnackbar({ open: true, message: "Error al guardar el proyecto.", severity: "error" });
-    }
-  };
-
   const renderStepContent = (step) => {
     const disabled = soloLectura;
+    const getError = (name) => erroresCampos[name] || false;
+    const getHelper = (name) => getError(name) ? "Este campo es obligatorio" : "";
 
     switch (step) {
       case 0:
         return (
           <Box>
-            <FormControl fullWidth margin="normal">
-              <TextField
-                fullWidth
-                label="División"
-                name="division"
-                value={formData.division}
-                onChange={handleChange}
-                margin="normal"
-                disabled={disabled}
-              />
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <TextField
-                fullWidth
-                label="Departamento"
-                name="departamento"
-                value={formData.departamento}
-                onChange={handleChange}
-                margin="normal"
-                disabled={disabled}
-              />
-            </FormControl>
-            <TextField fullWidth label="Fecha" name="fecha" type="date" value={formData.fecha} onChange={handleChange} margin="normal" InputLabelProps={{ shrink: true }} disabled={disabled} />
-            <TextField fullWidth label="Número de Mejora" name="noMejora" type="number" value={formData.noMejora} onChange={handleChange} margin="normal" disabled={disabled} />
-            <TextField fullWidth label="Responsable" name="responsable" value={formData.responsable} onChange={handleChange} margin="normal" disabled={disabled} />
+            <TextField fullWidth label="División" name="division" value={formData.division} onChange={handleChange} margin="normal" disabled={disabled} error={getError("division")} helperText={getHelper("division")} />
+            <TextField fullWidth label="Departamento" name="departamento" value={formData.departamento} onChange={handleChange} margin="normal" disabled={disabled} error={getError("departamento")} helperText={getHelper("departamento")} />
+            <TextField fullWidth label="Fecha" name="fecha" type="date" value={formData.fecha} onChange={handleChange} margin="normal" InputLabelProps={{ shrink: true }} disabled={disabled} error={getError("fecha")} helperText={getHelper("fecha")} />
+            <TextField fullWidth label="Número de Mejora" name="noMejora" type="number" value={formData.noMejora} onChange={handleChange} margin="normal" disabled={disabled} error={getError("noMejora")} helperText={getHelper("noMejora")} />
+            <TextField fullWidth label="Responsable" name="responsable" value={formData.responsable} onChange={handleChange} margin="normal" disabled={disabled} error={getError("responsable")} helperText={getHelper("responsable")} />
           </Box>
         );
       case 1:
         return (
-          <TextField fullWidth label="Descripción de la Mejora" name="descripcionMejora" value={formData.descripcionMejora} onChange={handleChange} margin="normal" multiline rows={10} disabled={disabled} />
+          <TextField fullWidth label="Descripción de la Mejora" name="descripcionMejora" value={formData.descripcionMejora} onChange={handleChange} margin="normal" multiline rows={10} disabled={disabled} error={getError("descripcionMejora")} helperText={getHelper("descripcionMejora")} />
         );
       case 2:
         return (
@@ -170,40 +63,64 @@ function ProyectoMejoraVertical({soloLectura, puedeEditar}) {
             {formData.objetivos.map((obj, index) => (
               <Box key={index} display="flex" alignItems="center">
                 <TextField
+                  key={index}
                   fullWidth
                   label={`Objetivo ${index + 1}`}
                   value={obj.descripcion}
                   onChange={(e) => handleDynamicChange("objetivos", index, "descripcion", e.target.value)}
                   margin="normal"
                   disabled={disabled}
+                  error={getError(`objetivos.${index}.descripcion`)}
+                  helperText={getHelper(`objetivos.${index}.descripcion`)}
                 />
                 {!soloLectura && puedeEditar && (
-                  <Button variant="outlined" color="error" onClick={() => removeDynamicField("objetivos", index)}>Eliminar</Button>
+                  <CustomButton
+                    type="eliminar"
+                    onClick={() => removeDynamicField("objetivos", index)}
+                  >
+                    Eliminar
+                  </CustomButton>
                 )}
               </Box>
             ))}
             {!soloLectura && puedeEditar && (
-              <Button variant="outlined" onClick={() => addDynamicField("objetivos", { descripcion: "" })}>Agregar Objetivo</Button>
+              <CustomButton
+                type="agregar"
+                onClick={() => addDynamicField("objetivos", { descripcion: "" })}
+              >
+                Agregar Objetivo
+              </CustomButton>
             )}
           </Box>
         );
       case 3:
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} />
-            <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} />
+            <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("areaImpacto")} helperText={getHelper("areaImpacto")} />
+            <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("personalBeneficiado")} helperText={getHelper("personalBeneficiado")} />
             {formData.responsables.map((resp, index) => (
               <Box key={index} display="flex" alignItems="center">
-                <TextField fullWidth label={`Responsable ${index + 1}`} value={resp.nombre} onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} margin="normal" disabled={disabled} />
+                <TextField fullWidth label={`Responsable ${index + 1}`} value={resp.nombre} onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} margin="normal" disabled={disabled} error={getError(`responsables.${index}.nombre`)}
+                  helperText={getHelper(`responsables.${index}.nombre`)} />
                 {!soloLectura && puedeEditar && (
-                  <Button variant="outlined" color="error" onClick={() => removeDynamicField("responsables", index)}>Eliminar</Button>
-                )}
+                  <CustomButton
+                    type="eliminar"
+                    onClick={() => removeDynamicField("responsables", index)}
+                  >
+                    Eliminar
+                  </CustomButton>)}
               </Box>
             ))}
             {!soloLectura && puedeEditar && (
-              <Button variant="outlined" onClick={() => addDynamicField("responsables", { nombre: "" })}>Agregar Responsable</Button>
+              <CustomButton
+                type="agregar"
+                onClick={() => addDynamicField("responsables", { nombre: "" })}
+              >
+                Agregar Responsable
+              </CustomButton>
             )}
-            <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} />
+            <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("situacionActual")}
+              helperText={getHelper("situacionActual")} />
           </Box>
         );
       case 4:
@@ -228,6 +145,8 @@ function ProyectoMejoraVertical({soloLectura, puedeEditar}) {
                   fullWidth
                   sx={{ flex: 1 }}
                   disabled={disabled}
+                  error={getError(`indicadoresExito.${index}.nombre`)}
+                  helperText={getHelper(`indicadoresExito.${index}.nombre`)}
                 />
                 <TextField
                   label="Meta"
@@ -240,115 +159,202 @@ function ProyectoMejoraVertical({soloLectura, puedeEditar}) {
                   fullWidth
                   sx={{ flex: 0.5 }}
                   disabled={disabled}
+                  error={getError(`indicadoresExito.${index}.meta`)}
+                  helperText={getHelper(`indicadoresExito.${index}.meta`)}
                 />
                 {!soloLectura && puedeEditar && (
-                  <Button
-                    variant="outlined"
-                    color="error"
+                  <CustomButton
+                    type="eliminar"
                     onClick={() => removeDynamicField("indicadoresExito", index)}
-                    sx={{ height: 56 }}
                   >
                     Eliminar
-                  </Button>
+                  </CustomButton>
                 )}
               </Box>
             ))}
             {!soloLectura && puedeEditar && (
-              <Button
-                variant="outlined"
+              <CustomButton
+                type="agregar"
                 onClick={() => addDynamicField("indicadoresExito", { nombre: "", meta: "" })}
-                sx={{ mt: 2 }}
               >
                 Agregar Indicador
-              </Button>
+              </CustomButton>
             )}
           </Box>
         );
+
       case 5:
         return (
           <Box>
             {formData.recursos.map((rec, index) => (
-              <Box key={index} display="flex" alignItems="center" gap={2}>
-                <TextField fullWidth label="Tiempo estimado de ejecución" value={rec.tiempoEstimado} onChange={(e) => handleDynamicChange("recursos", index, "tiempoEstimado", e.target.value)} margin="normal" sx={{ flex: 1 }} disabled={disabled} />
-                <TextField fullWidth label="Recursos materiales y humanos" value={rec.recursosMatHum} onChange={(e) => handleDynamicChange("recursos", index, "recursosMatHum", e.target.value)} margin="normal" sx={{ flex: 1 }} disabled={disabled} />
-                {!soloLectura && puedeEditar && (
-                  <Button variant="outlined" color="error" onClick={() => removeDynamicField("recursos", index)}>Eliminar</Button>
-                )}
+              <Box
+                key={index}
+                display="flex"
+                alignItems="center"
+                gap={2}
+                marginBottom={2}
+                flexWrap="wrap"
+              >
+                <TextField
+                  fullWidth
+                  label="Tiempo estimado de ejecución"
+                  value={rec.tiempoEstimado}
+                  onChange={(e) =>
+                    handleDynamicChange("recursos", index, "tiempoEstimado", e.target.value)
+                  }
+                  margin="normal"
+                  sx={{ flex: 1 }}
+                  disabled={disabled}
+                  error={getError(`recursos.${index}.tiempoEstimado`)}
+                  helperText={getHelper(`recursos.${index}.tiempoEstimado`)}
+                />
+                <TextField
+                  fullWidth
+                  label="Recursos materiales y humanos"
+                  value={rec.recursosMatHum}
+                  onChange={(e) =>
+                    handleDynamicChange("recursos", index, "recursosMatHum", e.target.value)
+                  }
+                  margin="normal"
+                  sx={{ flex: 1 }}
+                  disabled={disabled}
+                  error={getError(`recursos.${index}.recursosMatHum`)}
+                  helperText={getHelper(`recursos.${index}.recursosMatHum`)}
+                />
               </Box>
             ))}
-            {!soloLectura && puedeEditar && (
-              <Button variant="outlined" onClick={() => addDynamicField("recursos", { tiempoEstimado: "", recursosMatHum: "" })}>Agregar Recurso</Button>
-            )}
-            <TextField fullWidth label="Costo Estimado del Proyecto" name="costoProyecto" type="number" value={formData.costoProyecto} onChange={handleChange} margin="normal" disabled={disabled} />
+            <TextField
+              fullWidth
+              label="Costo Estimado del Proyecto"
+              name="costoProyecto"
+              type="number"
+              value={formData.costoProyecto}
+              onChange={handleChange}
+              margin="normal"
+              disabled={disabled}
+              error={getError("costoProyecto")}
+              helperText={getHelper("costoProyecto")}
+            />
           </Box>
         );
+
       case 6:
         return (
           <Box>
             {formData.actividadesPM.map((act, index) => (
-              <Box key={index} display="flex" alignItems="center">
-                <TextField fullWidth label="Etapa/Actividad" value={act.actividad} onChange={(e) => handleDynamicChange("actividadesPM", index, "actividad", e.target.value)} margin="normal" disabled={disabled} />
-                <TextField fullWidth label="Responsable" value={act.responsable} onChange={(e) => handleDynamicChange("actividadesPM", index, "responsable", e.target.value)} margin="normal" disabled={disabled} />
-                <TextField fullWidth label="Fecha" type="date" value={act.fecha} onChange={(e) => handleDynamicChange("actividadesPM", index, "fecha", e.target.value)} margin="normal" InputLabelProps={{ shrink: true }} disabled={disabled} />
-                {!soloLectura && puedeEditar && (
-                  <Button variant="outlined" color="error" onClick={() => removeDynamicField("actividadesPM", index)}>Eliminar</Button>
-                )}
+              <Box
+                key={index}
+                display="flex"
+                alignItems="center"
+                gap={2}
+                flexWrap="wrap"
+                marginBottom={2}
+              >
+                <TextField
+                  fullWidth
+                  label="Etapa/Actividad"
+                  value={act.actividad}
+                  onChange={(e) =>
+                    handleDynamicChange("actividadesPM", index, "actividad", e.target.value)
+                  }
+                  margin="normal"
+                  sx={{ flex: 1 }}
+                  disabled={disabled}
+                  error={getError(`actividadesPM.${index}.actividad`)}
+                  helperText={getHelper(`actividadesPM.${index}.actividad`)}
+                />
+                <TextField
+                  fullWidth
+                  label="Responsable"
+                  value={act.responsable}
+                  onChange={(e) =>
+                    handleDynamicChange("actividadesPM", index, "responsable", e.target.value)
+                  }
+                  margin="normal"
+                  sx={{ flex: 1 }}
+                  disabled={disabled}
+                  error={getError(`actividadesPM.${index}.responsable`)}
+                  helperText={getHelper(`actividadesPM.${index}.responsable`)}
+                />
+                <TextField
+                  fullWidth
+                  label="Fecha"
+                  type="date"
+                  value={act.fecha}
+                  onChange={(e) =>
+                    handleDynamicChange("actividadesPM", index, "fecha", e.target.value)
+                  }
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ flex: 1 }}
+                  disabled={disabled}
+                  error={getError(`actividadesPM.${index}.fecha`)}
+                  helperText={getHelper(`actividadesPM.${index}.fecha`)}
+                />
               </Box>
             ))}
-            {!soloLectura && puedeEditar && (
-              <Button variant="outlined" onClick={() => addDynamicField("actividadesPM", { actividad: "", responsable: "", fecha: "" })}>Agregar Actividad</Button>
-            )}
           </Box>
         );
+
       case 7:
         return (
           <Box>
-            <TextField fullWidth label="Nombre de Aprobación" name="aprobacionNombre" value={formData.aprobacionNombre} onChange={handleChange} margin="normal" disabled={disabled} />
-            <TextField fullWidth label="Puesto de Aprobación" name="aprobacionPuesto" value={formData.aprobacionPuesto} onChange={handleChange} margin="normal" disabled={disabled} />
+            <TextField
+              fullWidth
+              label="Nombre de Aprobación"
+              name="aprobacionNombre"
+              value={formData.aprobacionNombre}
+              onChange={handleChange}
+              margin="normal"
+              disabled={disabled}
+              error={getError("aprobacionNombre")}
+              helperText={getHelper("aprobacionNombre")}
+            />
+            <TextField
+              fullWidth
+              label="Puesto de Aprobación"
+              name="aprobacionPuesto"
+              value={formData.aprobacionPuesto}
+              onChange={handleChange}
+              margin="normal"
+              disabled={disabled}
+              error={getError("aprobacionPuesto")}
+              helperText={getHelper("aprobacionPuesto")}
+            />
           </Box>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    <Box sx={{
-      p: 4,
-      width: "800px",
-      margin: "auto",
-      minHeight: "600px",
-      borderRadius: 2,
-      border: "1px solid #ccc",
-      boxShadow: 2,
-      backgroundColor: "#fff"
-    }}>
-
-      <Title text="Formulario de Proyecto de Mejora" ></Title>
-
+    <Box sx={{ p: 4, width: "800px", margin: "auto", minHeight: "600px", borderRadius: 2, border: "1px solid #ccc", boxShadow: 2, backgroundColor: "#fff" }}>
+      <Title text="Formulario de Proyecto de Mejora" />
       <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
         {steps.map((label, index) => (
           <Step key={label}>
             <StepButton onClick={handleStep(index)}>{label}</StepButton>
             <StepContent>
               <Box sx={{ minHeight: "300px" }}>{renderStepContent(index)}</Box>
-              <Box sx={{ mb: 2 }}>
+              <Box sx={{ mb: 2, display: "flex", justifyContent: "center", gap: 2 }}>
                 {!soloLectura && puedeEditar && (
-                  <Button
-                    variant="contained"
+                  <CustomButton
+                    type="guardar"
                     onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
-                    sx={{ mt: 1, mr: 1 }}
                   >
                     {activeStep === steps.length - 1 ? "Enviar" : "Siguiente"}
-                  </Button>
+                  </CustomButton>
                 )}
-
                 {activeStep > 0 && (
-                  <Button onClick={handleBack} sx={{ mt: 1, mr: 1 }}>
+                  <CustomButton type="cancelar" onClick={handleBack}>
                     Anterior
-                  </Button>
+                  </CustomButton>
                 )}
               </Box>
+
+
             </StepContent>
           </Step>
         ))}

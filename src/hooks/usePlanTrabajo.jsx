@@ -3,7 +3,6 @@ import axios from "axios";
 
 export const usePlanTrabajo = (idRegistro) => {
   const [formData, setFormData] = useState({
-    responsable: "",
     fechaElaboracion: "",
     objetivo: "",
     revisadoPor: "",
@@ -12,39 +11,32 @@ export const usePlanTrabajo = (idRegistro) => {
   });
 
   const [records, setRecords] = useState([]);
+  const [idPlanTrabajo, setIdPlanTrabajo] = useState(null);
 
   useEffect(() => {
     const fetchPlanTrabajo = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/plantrabajo/registro/${idRegistro}`);
-        const plan = response.data;
+        const res = await axios.get(`http://localhost:8000/api/plantrabajo/registro/${idRegistro}`);
+        const plan = res.data;
+
+        setIdPlanTrabajo(plan.idPlanTrabajo);
 
         if (plan.fuentes?.length) {
-          const fuentesNumeradas = plan.fuentes.map((fuente, i) => ({
-            ...fuente,
-            numero: i + 1,
-          }));
+          const fuentesNumeradas = plan.fuentes.map((f, i) => ({ ...f, numero: i + 1 }));
           setRecords(fuentesNumeradas);
         }
 
-        if (plan) {
-          setFormData({
-            responsable: plan.responsable || "",
-            fechaElaboracion: plan.fechaElaboracion || new Date().toISOString().slice(0, 10),
-            objetivo: plan.objetivo || "",
-            revisadoPor: plan.revisadoPor || "",
-            fechaRevision: plan.fechaRevision || "",
-            elaboradoPor: plan.elaboradoPor || "",
-            idActividadMejora: plan.idActividadMejora || undefined,
-          });
-        } else {
-          setFormData((prev) => ({
-            ...prev,
-            fechaElaboracion: new Date().toISOString().slice(0, 10),
-          }));
-        }
-      } catch (error) {
-        console.error("❌ Error al obtener plan de trabajo:", error);
+        setFormData({
+          responsable: plan.responsable || "",
+          fechaElaboracion: plan.fechaElaboracion || new Date().toISOString().slice(0, 10),
+          objetivo: plan.objetivo || "",
+          revisadoPor: plan.revisadoPor || "",
+          fechaRevision: plan.fechaRevision || "",
+          elaboradoPor: plan.elaboradoPor || "",
+          idActividadMejora: plan.idActividadMejora || undefined,
+        });
+      } catch (err) {
+        console.error("❌ Error al obtener plan de trabajo:", err);
         setFormData((prev) => ({
           ...prev,
           fechaElaboracion: new Date().toISOString().slice(0, 10),
@@ -60,37 +52,36 @@ export const usePlanTrabajo = (idRegistro) => {
     formData.fechaElaboracion.trim() !== "" &&
     formData.objetivo.trim() !== "";
 
-  const guardarPlanTrabajo = async () => {
-    try {
-      const payload = {
-        idRegistro,
-        idActividadMejora: formData.idActividadMejora || undefined,
-        responsable: formData.responsable,
+  const guardarTodo = async () => {
+    const payload = {
+      planTrabajo: {
         fechaElaboracion: formData.fechaElaboracion,
         objetivo: formData.objetivo,
-      };
+        revisadoPor: formData.revisadoPor || null,
+        fechaRevision: formData.fechaRevision || null,
+        elaboradoPor: formData.elaboradoPor || null,
+      },
+      fuentes: records.map(({ numero, ...f }) => f),
+    };
 
-      if (formData.revisadoPor?.trim()) payload.revisadoPor = formData.revisadoPor;
-      if (formData.fechaRevision?.trim()) payload.fechaRevision = formData.fechaRevision;
-      if (formData.elaboradoPor?.trim()) payload.elaboradoPor = formData.elaboradoPor;
-
-      const response = await axios.post("http://localhost:8000/api/plantrabajo", payload);
-      return response.data.planTrabajo.idPlanTrabajo;
-    } catch (error) {
-      console.error("❌ Error al guardar plan:", error);
-      alert("Error al guardar el plan de trabajo.");
-      throw error;
-    }
-  };
-
-  const guardarFuentes = async (idPlanTrabajo) => {
     try {
-      await axios.post(`http://localhost:8000/api/plantrabajo/${idPlanTrabajo}/fuentes`, {
-        fuentes: records.map(({ numero, ...rest }) => rest),
-      });
+      let response;
+      if (idPlanTrabajo) {
+        // PUT para actualizar
+        response = await axios.put(`http://localhost:8000/api/plantrabajo/${idPlanTrabajo}`, payload);
+      } else {
+        // POST para crear
+        payload.idRegistro = idRegistro;
+        response = await axios.post("http://localhost:8000/api/plantrabajo", payload);
+      }
+
+      const savedPlan = response.data.planTrabajo;
+      setIdPlanTrabajo(savedPlan.idPlanTrabajo);
+
+      return savedPlan.idPlanTrabajo;
     } catch (error) {
-      console.error("❌ Error al guardar fuentes:", error);
-      alert("Error al guardar las fuentes.");
+      console.error("❌ Error al guardar plan y fuentes:", error);
+      alert("Error al guardar el plan de trabajo.");
       throw error;
     }
   };
@@ -101,7 +92,6 @@ export const usePlanTrabajo = (idRegistro) => {
     records,
     setRecords,
     isFormValid,
-    guardarPlanTrabajo,
-    guardarFuentes,
+    guardarTodo,
   };
 };

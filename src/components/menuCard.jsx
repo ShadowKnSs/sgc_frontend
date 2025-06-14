@@ -6,8 +6,8 @@ const moduleColors = {
   "Manual Operativo": "#458cd4",
   "Gestión de Riesgo": "#f79734",
   "Análisis de Datos": "#4f9152",
-  "Acciones de Mejora": "#7b1fa2",
-  "Auditoría": "#8439a4",
+  "Acciones de Mejora": "#8033a1",
+  "Auditoría": "#db544f",
   "Seguimiento": "#0097a7"
 };
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Typography,
@@ -13,6 +12,7 @@ import PlanCorrectivoDetalleModal from './Modals/PlanCorrectivoModal';
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import FeedbackSnackbar from "../components/Feedback";
+import CustomButton from "../components/Button";
 
 function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
   const { idRegistro } = useParams();
@@ -101,17 +101,16 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
   return (
     <Box sx={{ p: 4 }}>
       {!soloLectura && (
-        <Button
-          variant="contained"
+        <CustomButton
+          type="guardar"
+          startIcon={<Add />}
           onClick={() => {
             setEditingRecord(null);
             setShowForm(true);
           }}
-          startIcon={<Add />}
-          sx={{ backgroundColor: "secondary.main" }}
         >
           Nuevo Plan de Acción
-        </Button>
+        </CustomButton>
       )}
 
       {showForm && (

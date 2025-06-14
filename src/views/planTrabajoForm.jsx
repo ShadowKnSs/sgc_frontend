@@ -9,14 +9,14 @@ import CustomButton from "../components/Button";
 
 const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
   const { idRegistro } = useParams();
+
   const {
     formData,
     setFormData,
     records,
     setRecords,
     isFormValid,
-    guardarPlanTrabajo,
-    guardarFuentes,
+    guardarTodo, // nuevo método único
   } = usePlanTrabajo(idRegistro);
 
   const [feedback, setFeedback] = useState({
@@ -38,24 +38,13 @@ const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
     }
 
     try {
-      const idPlanTrabajo = await guardarPlanTrabajo();
-
-      if (records.length > 0) {
-        await guardarFuentes(idPlanTrabajo);
-        setFeedback({
-          open: true,
-          type: "success",
-          title: "Guardado completo",
-          message: "Plan de trabajo y fuentes guardados correctamente.",
-        });
-      } else {
-        setFeedback({
-          open: true,
-          type: "info",
-          title: "Guardado parcial",
-          message: "Solo se guardó la información general del plan.",
-        });
-      }
+      const msg = await guardarTodo();
+      setFeedback({
+        open: true,
+        type: "success",
+        title: "Guardado exitoso",
+        message: msg,
+      });
     } catch (error) {
       console.error("Error en el proceso de guardado:", error);
       setFeedback({
