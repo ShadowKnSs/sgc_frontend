@@ -47,141 +47,162 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Button, Typography, Card, CardContent, IconButton } from "@mui/material";
-import { CloudUpload, Delete } from "@mui/icons-material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CircularProgress
+} from "@mui/material";
+import { CloudUpload } from "@mui/icons-material";
 import axios from "axios";
+import CustomButton from "../components/Button";
+import FeedbackSnackbar from "../components/Feedback";
 
 function DiagramaFlujo({ idProceso, soloLectura }) {
-    
-    const [image, setImage] = useState(null);
-    const [preview, setPreview] = useState(null);
-    const [imageURL, setImageURL] = useState(null);
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [imageURL, setImageURL] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-    // ✅ Obtener imagen al montar
-    useEffect(() => {
-        const fetchDiagrama = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`);
-                if (response.data?.diagramaFlujo) {
-                    setImageURL(response.data.diagramaFlujo);
-                    console.log("✅ Diagrama cargado:", response.data.diagramaFlujo);
-                } else {
-                    console.log("ℹ️ No hay diagramaFlujo en la respuesta.");
-                }
-            } catch (error) {
-                console.error("❌ Error al obtener el diagrama desde la BD:", error);
-            }
-        };
+  const [alerta, setAlerta] = useState({ tipo: "", texto: "" });
 
-        if (idProceso) fetchDiagrama();
-    }, [idProceso]);
-
-    const handleImageChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setImage(file);
-            setPreview(URL.createObjectURL(file));
+  useEffect(() => {
+    const fetchDiagrama = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`);
+        if (response.data?.diagramaFlujo) {
+          setImageURL(response.data.diagramaFlujo);
         }
+      } catch (error) {
+        console.error("❌ Error al obtener el diagrama:", error);
+      }
     };
 
-    const handleRemoveImage = () => {
+    if (idProceso) fetchDiagrama();
+  }, [idProceso]);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImage(null);
+    setPreview(null);
+  };
+
+  const handleSaveImage = async () => {
+    if (!image) return;
+    setIsSaving(true);
+
+    const formData = new FormData();
+    formData.append("imagen", image);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/mapa-proceso/${idProceso}/subir-diagrama`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (response.data?.url) {
+        setImageURL(response.data.url);
         setImage(null);
         setPreview(null);
-    };
+        setAlerta({ tipo: "success", texto: "Imagen subida correctamente." });
+      } else {
+        setAlerta({ tipo: "warning", texto: "No se recibió la URL de la imagen" });
+      }
+    } catch (error) {
+      console.error("❌ Error al subir imagen:", error);
+      setAlerta({ tipo: "error", texto: "Error al subir la imagen" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    const handleSaveImage = async () => {
-        if (!image) return;
+  useEffect(() => {
+    if (alerta.texto) {
+      const timeout = setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
+      return () => clearTimeout(timeout);
+    }
+  }, [alerta]);
 
-        const formData = new FormData();
-        formData.append("imagen", image);
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, mt: 4 }}>
+      <FeedbackSnackbar
+        open={!!alerta.texto}
+        type={alerta.tipo}
+        message={alerta.texto}
+        onClose={() => setAlerta({ tipo: "", texto: "" })}
+      />
 
-        try {
-            const response = await axios.post(
-                `http://localhost:8000/api/mapa-proceso/${idProceso}/subir-diagrama`,
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                }
-            );
+      <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
+        Diagrama de Flujo
+      </Typography>
 
-            if (response.data?.url) {
-                alert("✅ Imagen subida con éxito");
-                setImageURL(response.data.url);
-                setImage(null);
-                setPreview(null);
-            } else {
-                alert("⚠️ No se recibió la URL de la imagen");
-            }
-        } catch (error) {
-            console.error("❌ Error al subir la imagen:", error);
-            alert("Error al subir la imagen");
-        }
-    };
+      {preview ? (
+        <Card sx={{ width: "50%", textAlign: "center", p: 2 }}>
+          <CardContent>
+            <img src={preview} alt="Vista previa" style={{ width: "100%", borderRadius: "10px" }} />
+          </CardContent>
+        </Card>
+      ) : imageURL ? (
+        <Card sx={{ width: "50%", boxShadow: 3 }}>
+          <CardContent>
+            <img src={imageURL} alt="Diagrama de Flujo" style={{ width: "100%", borderRadius: "10px" }} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Typography variant="body1" color="text.secondary">
+          No hay Diagrama de Flujo registrado aún.
+        </Typography>
+      )}
 
-    return (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, mt: 4 }}>
-            <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                Diagrama de Flujo
-            </Typography>
+      {/* Selector de archivo SIEMPRE visible */}
+      {!soloLectura && (
+        <label htmlFor="upload-input">
+          <input
+            id="upload-input"
+            type="file"
+            hidden
+            accept="image/png, image/jpeg"
+            onChange={handleImageChange}
+          />
+          <CustomButton component="span" type="subir" startIcon={<CloudUpload />}>
+            Seleccionar Imagen
+          </CustomButton>
+        </label>
+      )}
 
-            {/* Mostrar imagen (local o desde backend) */}
-            {preview ? (
-                <Card sx={{ position: "relative", width: "50%", textAlign: "center", p: 2 }}>
-                    <CardContent>
-                        <img src={preview} alt="Vista previa" style={{ width: "100%", borderRadius: "10px" }} />
-                    </CardContent>
-                    <IconButton
-                        onClick={handleRemoveImage}
-                        sx={{ position: "absolute", top: 5, right: 5, color: "secondary.main" }}
-                    >
-                        <Delete />
-                    </IconButton>
-                </Card>
-            ) : imageURL ? (
-                <Card sx={{ width: "50%", boxShadow: 3 }}>
-                    <CardContent>
-                        <img src={imageURL} alt="Diagrama de Flujo" style={{ width: "100%", borderRadius: "10px" }} />
-                    </CardContent>
-                </Card>
-            ) : (
-                <Typography variant="body1" color="text.secondary">
-                    No hay Diagrama de Flujo registrado aún.
-                </Typography>
-            )}
+      {/* Botones: Guardar y Cancelar si hay nueva imagen */}
+      {!soloLectura && image && (
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <CustomButton
+            type="guardar"
+            onClick={handleSaveImage}
+            disabled={isSaving}
+          >
+            {isSaving ? <CircularProgress size={22} color="inherit" /> : "Guardar Imagen"}
+          </CustomButton>
 
-            {/* Selector de archivo */}
-            {!soloLectura && (
-                <Button
-                    component="label"
-                    variant="contained"
-                    sx={{
-                        backgroundColor: "secondary.main",
-                        color: "#fff",
-                        "&:hover": { backgroundColor: "primary.main" },
-                    }}
-                    startIcon={<CloudUpload />}
-                >
-                    Seleccionar Imagen
-                    <input type="file" hidden accept="image/png, image/jpeg, image/jpg" onChange={handleImageChange} />
-                </Button>
-            )}
-
-            {/* Botón para subir */}
-            {image && (
-                <Button
-                    variant="contained"
-                    sx={{
-                        backgroundColor: "secondary.main",
-                        color: "#fff",
-                        "&:hover": { backgroundColor: "primary.main" },
-                    }}
-                    onClick={handleSaveImage}
-                >
-                    Guardar Imagen
-                </Button>
-            )}
+          <CustomButton
+            type="cancelar"
+            onClick={handleRemoveImage}
+            disabled={isSaving}
+          >
+            Cancelar
+          </CustomButton>
         </Box>
-    );
+      )}
+    </Box>
+  );
 }
 
 export default DiagramaFlujo;

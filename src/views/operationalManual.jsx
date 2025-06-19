@@ -1,60 +1,20 @@
-/**
- * Vista: ProcessView (Manual Operativo)
- * Descripción:
- * Esta vista centraliza la navegación y visualización de las secciones que conforman
- * el Manual Operativo de un proceso específico (`idProceso`). Es una interfaz modular
- * que permite acceder a componentes como Carátula, Mapa de Proceso, Plan de Control, etc.
-
- * Funcionalidades:
- * - Renderiza dinámicamente componentes según la sección seleccionada.
- * - Muestra el título de la entidad y el proceso correspondiente.
- * - Implementa un menú horizontal estilizado para cambiar entre secciones.
- * - Carga los permisos del usuario (lectura o edición) mediante `Permiso("Manual Operativo")`.
- * - Integra el menú contextual del proceso (`MenuNavegacionProceso`).
- * - Usa diseño responsivo con Material UI (`Box`, `Button`, `Container`).
-
- * Secciones integradas:
- * - "Carátula" → Componente `Caratula`
- * - "Control de Cambios" → Componente `ControlCambios`
- * - "Mapa de Proceso" → Componente `MapaProceso`
- * - "Diagrama de Flujo" → Componente `DiagramaFlujo`
- * - "Plan de Control" → Componente `PlanControl`
- * - "Control de documentos" → Componente `ControlDocuments`
-
- * Props y Hooks:
- * - `idProceso`: obtenido desde la URL vía `useParams`.
- * - `soloLectura`, `puedeEditar`: permisos calculados según el módulo "Manual Operativo".
- * - `selectedTab`: controla la sección activa en el menú de navegación.
- * - `useMenuProceso`: hook que devuelve las rutas disponibles para el proceso actual.
-
- * Backend utilizado:
- * - `GET /api/proceso-entidad/:idProceso` → Devuelve nombre de entidad y proceso.
-
- * Consideraciones:
- * - Las secciones se renderizan perezosamente (`renderContent`) según el tab activo.
- * - Es posible añadir nuevas secciones en el arreglo `sections` y extender `renderContent`.
- * - El diseño del menú horizontal es estilizado con botones tipo "pill" y destaca el activo.
- * - Pensado para integrarse como una subvista dentro de una arquitectura de proceso más amplia.
- */
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, useMemo } from "react";
 import axios from "axios";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Title from "../components/Title";
-import { Box, Container } from "@mui/material";
+import { Box, Container, CircularProgress, Typography } from "@mui/material";
 
-// Importar vistas
-import Caratula from "../views/caratula";
-import PlanControl from "../views/planControl";
-import ControlDocuments from "../views/controlDocuments";
-import MapaProceso from "./processMap";
-import ControlCambios from "./controlCambios";
-import DiagramaFlujo from "./diagramaFlujo";
 import Permiso from "../hooks/userPermiso";
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
 import SectionTabs from "../components/SectionTabs";
 
+const Caratula = React.lazy(() => import("../views/caratula"));
+const PlanControl = React.lazy(() => import("../views/planControl"));
+const ControlDocuments = React.lazy(() => import("../views/controlDocuments"));
+const MapaProceso = React.lazy(() => import("./processMap"));
+const ControlCambios = React.lazy(() => import("./controlCambios"));
+const DiagramaFlujo = React.lazy(() => import("./diagramaFlujo"));
 
 const sections = [
   "Carátula",
@@ -65,111 +25,141 @@ const sections = [
   "Control de documentos",
 ];
 
+const useEntidadProceso = (idProceso) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const cacheKey = `entidadProceso:${idProceso}`;
+    const cache = sessionStorage.getItem(cacheKey);
+
+    if (cache) {
+      setData(JSON.parse(cache));
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8000/api/proceso-entidad/${idProceso}`);
+        sessionStorage.setItem(cacheKey, JSON.stringify(res.data));
+        setData(res.data);
+      } catch (err) {
+        console.error("Error cargando entidad y proceso", err);
+        setError("No se pudo cargar la información del proceso");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [idProceso]);
+
+  return { data, loading, error };
+};
+
 const ProcessView = () => {
-  const location = useLocation();
-  const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  
   const { soloLectura, puedeEditar } = Permiso("Manual Operativo");
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed] = useState(false);
   const { idProceso } = useParams();
-
-  const [nombreEntidad, setNombreEntidad] = useState("");
-  const [nombreProceso, setNombreProceso] = useState("");
-
+  const { data, loading, error } = useEntidadProceso(idProceso);
   const menuItems = useMenuProceso();
 
-  useEffect(() => {
-    axios.get(`http://localhost:8000/api/proceso-entidad/${idProceso}`)
-      .then((res) => {
-        setNombreEntidad(res.data.entidad);
-        setNombreProceso(res.data.proceso);
-      })
-      .catch((err) => {
-        console.error("Error al obtener datos del proceso:", err);
-      });
-  }, [idProceso]);
+  const nombreEntidad = data?.entidad || "";
+  const nombreProceso = data?.proceso || "";
 
-  const renderContent = () => {
-    const props = { idProceso, soloLectura, puedeEditar };
-    switch (sections[selectedTab]) {
-      case "Carátula": return <Caratula {...props} />;
-      case "Control de Cambios": return <ControlCambios {...props} />;
-      case "Mapa de Proceso": return <MapaProceso {...props} />;
-      case "Diagrama de Flujo": return <DiagramaFlujo {...props} />;
-      case "Plan de Control": return <PlanControl {...props} />;
-      case "Control de documentos": return <ControlDocuments {...props} />;
-      default: return <h2>Seleccione una opción</h2>;
-    }
+  const sectionMap = {
+    "Carátula": Caratula,
+    "Control de Cambios": ControlCambios,
+    "Mapa de Proceso": MapaProceso,
+    "Diagrama de Flujo": DiagramaFlujo,
+    "Plan de Control": PlanControl,
+    "Control de documentos": ControlDocuments,
   };
+
+  useEffect(() => {
+    if (selectedTab === 0) import("../views/controlCambios");
+    if (selectedTab === 1) import("../views/processMap");
+  }, [selectedTab]);
+
+  const MemoizedSection = useMemo(() => {
+    const Component = sectionMap[sections[selectedTab]];
+    return Component ? <Component idProceso={idProceso} soloLectura={soloLectura} puedeEditar={puedeEditar} /> : null;
+  }, [selectedTab, idProceso, soloLectura, puedeEditar]);
+
+  if (loading) {
+    return (
+      <Container maxWidth="xl">
+        <Box sx={{ textAlign: "center", py: 5 }}><CircularProgress size={40} /></Box>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="xl">
+        <Box sx={{ textAlign: "center", py: 5 }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="xl">
       <MenuNavegacionProceso items={menuItems} />
+
       <Box
         sx={{
           mt: 1.3,
-          width: "100vw",
-          position: "sticky",
-          top: 0,
+          width: "100%",
+          maxWidth: "100vw",
           zIndex: 30,
           backgroundColor: "#fff",
-          paddingTop: 2,
+          paddingTop: 1.5,
           paddingBottom: 0,
         }}
       >
-        <Box sx={{ mt: 2, mb: 0, display: "flex", justifyContent: "center" }}>
+        <Box sx={{ mt: 2, mb: 1.5, display: "flex", justifyContent: "center" }}>
           <Title text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} />
         </Box>
       </Box>
+
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2, mb: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", my: 2, mb: 0 }}>
-          <SectionTabs
-            sections={sections}
-            selectedTab={selectedTab}
-            onTabChange={setSelectedTab}
-          />
+        <SectionTabs
+          sections={sections}
+          selectedTab={selectedTab}
+          onTabChange={setSelectedTab}
+        />
+
+      </Box>
+
+      <Suspense fallback={<Box sx={{ textAlign: "center", py: 5 }}><CircularProgress size={40} /></Box>}>
+        <Box
+          sx={{
+            padding: { xs: "16px", md: "20px" },
+            minHeight: "500px",
+            width: "100%",
+            maxWidth: "1400px",
+            mx: "auto",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            backgroundColor: "#fff",
+            textAlign: "center",
+            borderRadius: "20px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            transition: "opacity 0.3s ease-in-out",
+            opacity: 1,
+            mt: isFixed ? "70px" : "20px"
+          }}
+        >
+          {MemoizedSection}
         </Box>
-
-      </Box>
-
-      <Box
-        sx={{
-          position: isFixed ? "fixed" : "sticky",
-          top: isFixed ? 0 : "48px",
-          zIndex: 20,
-          width: "100%",
-          backgroundColor: "#ffffff",
-          padding: "10px",
-          textAlign: "center",
-          fontWeight: "bold",
-          fontSize: "1.4rem",
-          color: "#004A98",
-          left: "0px",
-          borderBottom: "2px solid #ddd",
-          boxShadow: isFixed ? "0px 4px 10px rgba(0, 0, 0, 0.1)" : "none",
-          transition: "all 0.1s ease-in-out",
-        }}
-      ></Box>
-
-      <Box
-        sx={{
-          padding: "20px",
-          minHeight: "500px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          margin: "auto",
-          backgroundColor: "white",
-          textAlign: "center",
-          borderRadius: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-          transition: "all 0.3s ease-in-out",
-          marginTop: isFixed ? "70px" : "20px",
-        }}
-      >
-        {renderContent()}
-      </Box>
+      </Suspense>
     </Container>
   );
 };
