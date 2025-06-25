@@ -61,7 +61,10 @@ export const usePlanTrabajo = (idRegistro) => {
         fechaRevision: formData.fechaRevision || null,
         elaboradoPor: formData.elaboradoPor || null,
       },
-      fuentes: records.map(({ numero, ...f }) => f),
+      fuentes: records.map((f) => ({
+        ...f,
+        noActividad: f.numero,
+      })),
     };
 
     try {

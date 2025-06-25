@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaUser, FaBell, FaSignOutAlt } from "react-icons/fa"; // Import icons
 import { Link } from "react-router-dom"; // Import Link
 import axios from 'axios';
-import { Drawer, List, ListItem, ListItemText, IconButton, Badge, Divider, Box, Typography, ListItemButton } from '@mui/material';
+import { Drawer, List, ListItemText, IconButton, Badge, Divider, Box, Typography, ListItemButton } from '@mui/material';
 import { FaBars } from 'react-icons/fa';
 import "../css/Header.css"; // Estilos
 import image from "../assests/UASLP_Logo.png"; // Ruta de tu logo
@@ -130,6 +130,13 @@ function Header() {
   };
 
   if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
+
+    itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
+
+    itemsFiltrados.push({
+      title: "Cronograma",
+      path: `/cronograma/${procesoLider.idProceso}`
+    });
     itemsFiltrados.push({
       title: "Mi Proceso",
       path: `/estructura-procesos/${procesoLider.idProceso}`
@@ -139,7 +146,7 @@ function Header() {
   useEffect(() => {
     if (!idUsuario) return;
     axios.get(`http://localhost:8000/api/notificaciones/count/${idUsuario}`)
-    .then(response => {
+      .then(response => {
         setNotificationCount(response.data.notificacionesNoLeidas);
       })
       .catch(error => {
@@ -147,49 +154,49 @@ function Header() {
       });
   }, [idUsuario]);
   const menuList = (
-  <Box sx={{ width: 280, height: '100%' }}>
-    <Box sx={{ p: 2, textAlign: 'center', backgroundColor: colorPalette.azulOscuro }}>
-      <Typography variant="h6" sx={{ fontWeight: 600, color: "white" }}>
-        {nombreCompleto || "Usuario"}
-      </Typography>
-    </Box>
-     <Box sx={{ height: '8px', backgroundColor: colorPalette.azulCielo}} />
+    <Box sx={{ width: 280, height: '100%' }}>
+      <Box sx={{ p: 2, textAlign: 'center', backgroundColor: colorPalette.azulOscuro }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "white" }}>
+          {nombreCompleto || "Usuario"}
+        </Typography>
+      </Box>
+      <Box sx={{ height: '8px', backgroundColor: colorPalette.azulCielo }} />
 
-    <Divider />
+      <Divider />
 
-    <List>
-      {itemsFiltrados.map((item, index) => (
-        <ListItemButton
-          key={index}
-          onClick={() => {
-            navigate(item.path);
-            setMenuOpen(false);
-          }}
-          sx={{
-            px: 3,
-            py: 1.5,
-            borderRadius: 1,
-            my: 0.5,
-            mx: 1,
-            '&:hover': {
-              backgroundColor: colorPalette.azulClaro,
-              color: 'white',
-            },
-            transition: 'all 0.2s ease-in-out',
-          }}
-        >
-          <ListItemText
-            primary={item.title}
-            primaryTypographyProps={{
-              fontSize: 16,
-              fontWeight: 500,
+      <List>
+        {itemsFiltrados.map((item, index) => (
+          <ListItemButton
+            key={index}
+            onClick={() => {
+              navigate(item.path);
+              setMenuOpen(false);
             }}
-          />
-        </ListItemButton>
-      ))}
-    </List>
-  </Box>
-);
+            sx={{
+              px: 3,
+              py: 1.5,
+              borderRadius: 1,
+              my: 0.5,
+              mx: 1,
+              '&:hover': {
+                backgroundColor: colorPalette.azulClaro,
+                color: 'white',
+              },
+              transition: 'all 0.2s ease-in-out',
+            }}
+          >
+            <ListItemText
+              primary={item.title}
+              primaryTypographyProps={{
+                fontSize: 16,
+                fontWeight: 500,
+              }}
+            />
+          </ListItemButton>
+        ))}
+      </List>
+    </Box>
+  );
 
   return (
     <header className="header">
@@ -226,7 +233,7 @@ function Header() {
         )}
         {rolActivo && rolActivo.nombreRol !== "Invitado" && rolActivo.nombreRol !== "Administrador" && (
           <IconButton onClick={toggleDrawer(true)} className="header-link">
-            <FaBars  className='menu-icon'/>
+            <FaBars className='menu-icon' />
           </IconButton>
         )}
 

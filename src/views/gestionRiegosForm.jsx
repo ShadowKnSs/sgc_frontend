@@ -65,45 +65,26 @@
  * - Integración con análisis de riesgos históricos o comparativos.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {
-  AppBar,
-  Tabs,
-  Tab,
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Modal,
+
+  Box
 } from "@mui/material";
-import axios from "axios";
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import FeedbackSnackbar from "../components/Feedback";
 import Title from "../components/Title";
 import CustomButton from "../components/Button";
-import TitleDialog from "../components/TitleDialog";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
 import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
-import BusinessIcon from '@mui/icons-material/Business';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import SettingsIcon from '@mui/icons-material/Settings';
-import EditNoteIcon from '@mui/icons-material/EditNote';
-import EventNoteIcon from '@mui/icons-material/EventNote';
-import { Fade } from '@mui/material';
-
+import SectionTabs from "../components/SectionTabs";
+import useGestionRiesgos from "../hooks/useGestionRiesgos";
+import GestionRiesgosGeneral from "../components/GestionRiesgosGeneral";
+import RiesgosTabs from "../components/RiesgosTabs";
+import RiesgoModal from "../components/Modals/RiesgoModal";
 
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
@@ -112,7 +93,12 @@ function FormularioGestionRiesgos() {
   // 1) Tomamos el idRegistro desde la URL
   const { idRegistro } = useParams();
   const location = useLocation();
+  const yaGuardadoRef = useRef(false);
+
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const userName = `${usuario?.nombre || ""} ${usuario?.apellidoPat || ""} ${usuario?.apellidoMat || ""}`.trim();
+  const fechaHoy = new Date().toISOString().split("T")[0];
   const { soloLectura, puedeEditar } = Permiso("Gestión de Riesgo");
   const [modoEdicion, setModoEdicion] = useState(false);
   const menuItems = useMenuProceso();
@@ -123,27 +109,9 @@ function FormularioGestionRiesgos() {
     message: "",
   });
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
+  const [confirmadoEditar, setConfirmadoEditar] = useState(false);
 
-
-
-  // 2) Estado para la información general que se mostrará/guardará en la tabla gestionriesgos
-  const [gestionRiesgo, setGestionRiesgo] = useState({
-    idGesRies: null,        // se llena cuando ya exista en la BD
-    idRegistro: idRegistro, // por si lo necesitas almacenar
-    entidad: "",
-    macroproceso: "",
-    proceso: "",
-    elaboro: "",
-    fechaelaboracion: new Date().toISOString().split("T")[0],
-  });
-
-  // 3) Saber si ya existe un registro en la tabla gestionriesgos (idGesRies)
-  const [tieneGesRies, setTieneGesRies] = useState(false);
-
-  // 4) Lista de riesgos
-  const [riesgos, setRiesgos] = useState([]);
   // Estructura local para mostrar en la tabla “por secciones”
-  const [savedData, setSavedData] = useState({});
 
   // 5) Control de tabs (para la tabla de riesgos)
   const [selectedTab, setSelectedTab] = useState(0);
@@ -153,6 +121,7 @@ function FormularioGestionRiesgos() {
   const [currentSection, setCurrentSection] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editingRiesgo, setEditingRiesgo] = useState(null);
+
 
 
   // 7) Nuevo riesgo
@@ -165,15 +134,12 @@ function FormularioGestionRiesgos() {
     consecuencias: "",
     valorSeveridad: "",
     valorOcurrencia: "",
-    valorNRP: "",
     actividades: "",
     accionMejora: "",
     fechaImp: "",
     fechaEva: "",
     reevaluacionSeveridad: "",
     reevaluacionOcurrencia: "",
-    reevaluacionNRP: "",
-    reevaluacionEfectividad: "",
     analisisEfectividad: "",
   });
 
@@ -191,254 +157,61 @@ function FormularioGestionRiesgos() {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-
-  const fetchIdRegistro = async () => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/getIdRegistroGR`, {
-        params: {
-          idRegistro
-        }
-      });
-
-      if (response.data.idRegistro) {
-
-        // Actualiza formData con los datos del proceso si vienen en la respuesta
-        if (response.data.proceso) {
-          setGestionRiesgo(prev => ({
-            ...prev,
-            entidad: response.data.entidad || prev.entidad,
-            macroproceso: response.data.macro || prev.macroproceso,
-            proceso: response.data.proceso.nombreProceso || prev.proceso
-          }));
-        }
-        console.log(response.data);
-        return response.data.idRegistro;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      console.error("Error al obtener el idRegistro:", error);
-      return null;
-    }
-  };
-
-  // --------------------------------------------------------------------------
-  // useEffect #1: Al montar, cargamos la info general y/o chequeamos si existe un row en gestionriesgos
-  // --------------------------------------------------------------------------
-
-
-  const fetchFormData = async (idRegistro) => {
-    console.log("[LOG] useEffect -> idRegistro =", idRegistro); // [LOG] Muestra el idRegistro recibido
-
-    if (!idRegistro) {
-      console.log("[LOG] No se recibió idRegistro. No se puede cargar datos de gestión de riesgos.");
-      return;
-    }
-
-    // 1) Cargar datos de la “entidad, macroproceso, proceso”
-    const urlDatosGenerales = `http://127.0.0.1:8000/api/gestionriesgos/${idRegistro}/datos-generales`;
-    console.log("[LOG] Solicitando datos generales a:", urlDatosGenerales);
-
-    fetch(urlDatosGenerales)
-      .then((res) => res.json())
-      .then((info) => {
-        console.log("[LOG] Datos Generales recibidos:", info);
-        // Ajusta la forma según devuelva tu backend
-      })
-      .catch((err) => console.error("[ERROR] al cargar datos generales:", err));
-
-    // 2) Checar si ya existe un row en la tabla gestionriesgos
-    const urlShowByRegistro = `http://127.0.0.1:8000/api/gestionriesgos/${idRegistro}`;
-    console.log("[LOG] Verificando si existe gestionriesgos con:", urlShowByRegistro);
-
-    fetch(urlShowByRegistro)
-      .then((res) => {
-        if (!res.ok) {
-          console.log("[LOG] No existe un registro en gestionriesgos para idRegistro =", idRegistro);
-          return null;
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data) {
-          console.log("[LOG] Ya existe un registro en gestionriesgos:", data);
-          setGestionRiesgo((prev) => ({
-            ...prev,
-            idGesRies: data.idGesRies,
-            elaboro: data.elaboro,
-            fechaelaboracion: data.fechaelaboracion?.split("T")[0] || prev.fechaelaboracion,
-          }));
-          setTieneGesRies(true);
-
-          // Cargar riesgos
-          cargarRiesgos(data.idGesRies);
-        }
-      })
-      .catch((err) => {
-        console.log("[LOG] Posiblemente no exista gestionriesgos. Error:", err);
-      });
-  };
+  const {
+    gestionRiesgo,
+    setGestionRiesgo,
+    tieneGesRies,
+    riesgos,
+    savedData,
+    handleGuardarGestionRiesgos,
+    setRiesgos,
+    setSavedData,
+    cargarRiesgos,
+  } = useGestionRiesgos(idRegistro, mostrarSnackbar);
 
 
   useEffect(() => {
-    const loadData = async () => {
-      const registroId = await fetchIdRegistro();
-      if (registroId) {
-        await fetchFormData(registroId);
-      } else {
+    if (rolActivo?.nombreRol === "Líder") return;
+    if (yaGuardadoRef.current) return;
 
-      }
-    };
+    const needsUpdate =
+      !gestionRiesgo.elaboro ||
+      !gestionRiesgo.fechaelaboracion ||
+      gestionRiesgo.elaboro !== userName;
 
-    loadData();
-  }, [idRegistro]);
-
-  // --------------------------------------------------------------------------
-  // Función para cargar la lista de riesgos cuando tengamos idGesRies
-  // --------------------------------------------------------------------------
-  const cargarRiesgos = (idGesRies) => {
-    if (!idGesRies) return;
-
-    const urlRiesgos = `http://127.0.0.1:8000/api/gestionriesgos/${idGesRies}/riesgos`;
-    console.log("[LOG] Cargando riesgos desde:", urlRiesgos);
-
-    fetch(urlRiesgos)
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener riesgos");
-        return res.json();
-      })
-      .then((apiData) => {
-        // apiData debe contener { gestionRiesgos: {...}, riesgos: [...] }
-        console.log("[LOG] Respuesta al cargarRiesgos:", apiData);
-        const lista = apiData.riesgos || [];
-        setRiesgos(lista);
-        setSavedData(organizarRiesgos(lista));
-      })
-      .catch((err) => console.error("[ERROR] al cargar riesgos:", err));
-  };
-
-  // --------------------------------------------------------------------------
-  // Función para organizar la data de riesgos por secciones
-  // --------------------------------------------------------------------------
-  const organizarRiesgos = (lista) => {
-    console.log("[LOG] organizando riesgos en secciones. Cantidad:", lista.length);
-
-    return {
-      0: lista.map((item, index) => ({
-        Riesgo: index + 1, // Usamos index + 1 para que empiece en 1
-        fuente: item.fuente,
-        tipoRiesgo: item.tipoRiesgo,
-        descripcion: item.descripcion,
-      })),
-      1: lista.map((item, index) => ({
-        idRiesgo: index + 1,
-        consecuencias: item.consecuencias,
-        valorSeveridad: item.valorSeveridad,
-        valorOcurrencia: item.valorOcurrencia,
-        valorNRP: item.valorNRP,
-      })),
-      2: lista.map((item, index) => ({
-        idRiesgo: index + 1,
-        actividades: item.actividades,
-        accionMejora: item.accionMejora,
-        fechaImp: item.fechaImp,
-        fechaEva: item.fechaEva,
-        responsable: item.responsable,
-      })),
-      3: lista.map((item, index) => ({
-        idRiesgo: index + 1,
-        reevaluacionSeveridad: item.reevaluacionSeveridad,
-        reevaluacionOcurrencia: item.reevaluacionOcurrencia,
-        reevaluacionNRP: item.reevaluacionNRP,
-        reevaluacionEfectividad: item.reevaluacionEfectividad,
-        analisisEfectividad: item.analisisEfectividad,
-      })),
-    };
-  };
-
-  // --------------------------------------------------------------------------
-  // Handler para GUARDAR la info general en la tabla gestionriesgos
-  // --------------------------------------------------------------------------
-  const handleGuardarGestionRiesgos = async () => {
-    console.log("[LOG] handleGuardarGestionRiesgos -> gestionRiesgo actual:", gestionRiesgo);
-
-    if (!idRegistro) {
-      mostrarSnackbar("error", "Registro faltante", "No hay idRegistro, no se puede guardar.");
-
-      return;
-    }
-
-    try {
-      let url = `http://127.0.0.1:8000/api/gestionriesgos`;
-      let method = "POST";
-
-      if (tieneGesRies && gestionRiesgo.idGesRies) {
-        url = `http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}`;
-        method = "PUT";
-      }
-
-      const payload = {
-        idRegistro: idRegistro,
-        elaboro: gestionRiesgo.elaboro,
-        fechaelaboracion: new Date().toISOString().split("T")[0],
+    if (needsUpdate) {
+      const actualizado = {
+        ...gestionRiesgo,
+        elaboro: userName,
+        fechaelaboracion: fechaHoy,
       };
-
-
-      console.log(`[LOG] Enviando ${method} a ${url} con payload:`, payload);
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        console.error("[ERROR] Respuesta no OK al guardar gestionriesgos:", response);
-        throw new Error("Error al guardar/actualizar gestionriesgos.");
-      }
-
-      const result = await response.json();
-      setGestionRiesgo(prev => ({
-        ...prev,
-        idGesRies: result.idGesRies,
-        fechaelaboracion: result.fechaelaboracion,
-      }));
-      setModoEdicion(false);
-      setTieneGesRies(true);
-
-
-      if (!tieneGesRies) {
-        // Significa que era la primera vez
-        console.log("[LOG] Primera vez que se crea gestionriesgos. Cargando riesgos (vacío).");
-        cargarRiesgos(result.idGesRies);
-      }
-
-      mostrarSnackbar("success", "Guardado", "Datos generales guardados correctamente.");
-
-    } catch (err) {
-      console.error("[ERROR] al guardar la información general:", err);
-      mostrarSnackbar("error", "Error", "Error al guardar la información general.");
-
+      setGestionRiesgo(actualizado);
+      handleGuardarGestionRiesgos(actualizado);
+      yaGuardadoRef.current = true;
     }
-  };
+  }, [rolActivo, userName, fechaHoy, gestionRiesgo]);
+
+
 
   // --------------------------------------------------------------------------
   // Handler de tabs (para la tabla de riesgos)
   // --------------------------------------------------------------------------
-  const handleTabChange = (_, newValue) => {
-    console.log("[LOG] Cambio de tab a:", newValue);
-    setSelectedTab(newValue);
+  const handleTabChange = (newIndex) => {
+    console.log("[LOG] Cambio de tab a:", newIndex);
+    setSelectedTab(newIndex);
   };
+
 
   // --------------------------------------------------------------------------
   // Handler para abirir modal
   // --------------------------------------------------------------------------
   const handleRequestEditRiesgo = () => {
-    if (isEditing) {
-      setConfirmEditOpen(true); // Mostrar modal de confirmación
+    if (isEditing && !confirmadoEditar) {
+      setConfirmEditOpen(true);
     } else {
-      handleGuardarRiesgo(); // Si es nuevo, guarda directo
+      handleGuardarRiesgo();
     }
+
   };
 
 
@@ -446,71 +219,72 @@ function FormularioGestionRiesgos() {
   // Handler para CREAR/EDITAR un riesgo
   // --------------------------------------------------------------------------
   const handleGuardarRiesgo = async () => {
-    console.log("[LOG] handleGuardarRiesgo -> idGesRies:", gestionRiesgo.idGesRies);
-    console.log("[LOG] handleGuardarRiesgo -> nuevoRiesgo actual:", nuevoRiesgo);
-
     if (!gestionRiesgo.idGesRies) {
       mostrarSnackbar("warning", "Falta información general", "Primero guarda los datos generales.");
       return;
     }
 
-    // Validar campos mínimos
     if (!nuevoRiesgo.tipoRiesgo || !nuevoRiesgo.descripcion) {
       mostrarSnackbar("warning", "Campos requeridos", "Tipo de Riesgo y Descripción son obligatorios.");
       return;
     }
 
+    const valorSeveridad = parseInt(nuevoRiesgo.valorSeveridad, 10) || 0;
+    const valorOcurrencia = parseInt(nuevoRiesgo.valorOcurrencia, 10) || 0;
+    const valorNRP = valorSeveridad * valorOcurrencia;
+
+    const reevaluacionSeveridad = parseInt(nuevoRiesgo.reevaluacionSeveridad, 10) || 0;
+    const reevaluacionOcurrencia = parseInt(nuevoRiesgo.reevaluacionOcurrencia, 10) || 0;
+    const reevaluacionNRP = reevaluacionSeveridad * reevaluacionOcurrencia;
+
+    const reevaluacionEfectividad = reevaluacionNRP < valorNRP ? "Mejoró" : "No mejoró";
+
+    const payload = {
+      ...nuevoRiesgo,
+      valorNRP,
+      reevaluacionNRP,
+      reevaluacionEfectividad,
+    };
+
+    const url = isEditing
+      ? `http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos/${editingRiesgo.idRiesgo}`
+      : `http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos`;
+
+    const method = isEditing ? "PUT" : "POST";
+
     try {
-      let url = `http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos`;
-      let method = "POST";
-
-      if (isEditing && editingRiesgo) {
-        url = `http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos/${editingRiesgo.idRiesgo}`;
-        method = "PUT";
-      }
-
-      console.log(`[LOG] Enviando ${method} a ${url} con nuevoRiesgo:`, nuevoRiesgo);
-
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevoRiesgo),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        console.error("[ERROR] Respuesta no OK al crear/editar riesgo:", response);
-        throw new Error("Error al crear/editar riesgo.");
+        try {
+          const errorJson = await response.json();
+          console.error("[ERROR]", errorJson);
+          throw new Error(errorJson.message || "Error al guardar el riesgo.");
+        } catch {
+          const text = await response.text();
+          throw new Error(text || "Error desconocido al guardar el riesgo.");
+        }
       }
 
-      const result = await response.json();
-      console.log("[LOG] Respuesta al crear/editar riesgo:", result);
-
-      // Si es edición, actualizamos la lista
-      if (isEditing) {
-        const updated = riesgos.map((r) => (r.idRiesgo === editingRiesgo.idRiesgo ? result : r));
-        setRiesgos(updated);
-        setSavedData(organizarRiesgos(updated));
-      } else {
-        // Agregar nuevo
-        const newList = [...riesgos, result];
-        setRiesgos(newList);
-        setSavedData(organizarRiesgos(newList));
-      }
+      await cargarRiesgos(gestionRiesgo.idGesRies);
 
       mostrarSnackbar("success", "Riesgo guardado", isEditing ? "Riesgo actualizado correctamente." : "Riesgo agregado correctamente.");
 
-      // Reset modal
       setOpenModal(false);
       setCurrentSection(0);
       setIsEditing(false);
       setEditingRiesgo(null);
       setNuevoRiesgo(nuevoRiesgo);
-      cargarRiesgos(gestionRiesgo.idGesRies);
     } catch (err) {
       console.error("[ERROR] al crear/editar el riesgo:", err);
       mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar el riesgo.");
     }
   };
+
 
   // --------------------------------------------------------------------------
   // Handler para editar
@@ -543,9 +317,8 @@ function FormularioGestionRiesgos() {
       if (!response.ok) throw new Error("Error al eliminar el riesgo.");
 
       // Filtrar del state
-      const updated = riesgos.filter((r) => r.idRiesgo !== rowToDelete.idRiesgo);
-      setRiesgos(updated);
-      setSavedData(organizarRiesgos(updated));
+      await cargarRiesgos(gestionRiesgo.idGesRies);
+      mostrarSnackbar("success", "Eliminado", "Riesgo eliminado correctamente.");
     } catch (err) {
       console.error("[ERROR] al eliminar riesgo:", err);
       mostrarSnackbar("error", "Error", "Ocurrió un problema al eliminar el riesgo.");
@@ -570,202 +343,6 @@ function FormularioGestionRiesgos() {
     setNuevoRiesgo({ ...nuevoRiesgo, [name]: value });
   };
 
-  const renderModalSection = () => {
-
-    switch (currentSection) {
-      case 0:
-        return (
-          <>
-
-            <TextField
-              label="Fuente"
-              name="fuente"
-              value={nuevoRiesgo.fuente}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2, marginTop: 2 }}
-            />
-            <TextField
-              label="Tipo de Riesgo"
-              name="tipoRiesgo"
-              value={nuevoRiesgo.tipoRiesgo}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Descripción"
-              name="descripcion"
-              value={nuevoRiesgo.descripcion}
-              onChange={handleRiesgoChange}
-              fullWidth
-              multiline
-              minRows={3}
-              sx={{ mb: 2 }}
-            />
-          </>
-        );
-      case 1:
-        return (
-          <>
-
-            <TextField
-              label="Consecuencias"
-              name="consecuencias"
-              value={nuevoRiesgo.consecuencias}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2, marginTop: 2 }}
-            />
-            <TextField
-              label="Severidad"
-              name="valorSeveridad"
-              value={nuevoRiesgo.valorSeveridad}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Ocurrencia"
-              name="valorOcurrencia"
-              value={nuevoRiesgo.valorOcurrencia}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="NRP"
-              name="valorNRP"
-              value={nuevoRiesgo.valorNRP = (nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad)}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-              disabled
-            />
-          </>
-        );
-      case 2:
-        return (
-          <>
-
-            <TextField
-              label="Actividades"
-              name="actividades"
-              value={nuevoRiesgo.actividades}
-              onChange={handleRiesgoChange}
-              fullWidth
-              multiline
-              minRows={3}
-              sx={{ mb: 2, marginTop: 2 }}
-            />
-            <TextField
-              label="Acción de Mejora"
-              name="accionMejora"
-              value={nuevoRiesgo.accionMejora}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Fecha de Implementación"
-              name="fechaImp"
-              value={nuevoRiesgo.fechaImp}
-              onChange={handleRiesgoChange}
-              type="date"
-              fullWidth
-              sx={{ mb: 2 }}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Fecha de Evaluación"
-              name="fechaEva"
-              value={nuevoRiesgo.fechaEva}
-              onChange={handleRiesgoChange}
-              type="date"
-              fullWidth
-              sx={{ mb: 2 }}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Responsable"
-              name="responsable"
-              value={nuevoRiesgo.responsable}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-          </>
-        );
-      case 3:
-        return (
-          <>
-
-            <TextField
-              label="Reevaluación Severidad"
-              name="reevaluacionSeveridad"
-              value={nuevoRiesgo.reevaluacionSeveridad}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2, marginTop: 2 }}
-            />
-
-            <TextField
-              label="Reevaluación Ocurrencia"
-              name="reevaluacionOcurrencia"
-              value={nuevoRiesgo.reevaluacionOcurrencia}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-
-            <TextField
-              label="Reevaluación NRP"
-              name="reevaluacionNRP"
-              value={nuevoRiesgo.reevaluacionNRP = (nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad)}
-              onChange={handleRiesgoChange}
-              type="number"
-              fullWidth
-              sx={{ mb: 2 }}
-              disabled
-            />
-
-            <TextField
-              label="Reevaluación Efectividad"
-              name="reevaluacionEfectividad"
-              value={nuevoRiesgo.reevaluacionEfectividad =
-                (nuevoRiesgo.reevaluacionNRP < nuevoRiesgo.valorNRP
-                  ? "Mejoró"
-                  : "No mejoró")
-              }
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-
-            <TextField
-              label="Análisis de Efectividad"
-              name="analisisEfectividad"
-              value={nuevoRiesgo.analisisEfectividad}
-              onChange={handleRiesgoChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-          </>
-
-        );
-      default:
-        return null;
-    }
-  };
-
-  const valorNRP = nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad || "";
-  const reevaluacionNRP = nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad || "";
-  const reevaluacionEfectividad = reevaluacionNRP < valorNRP ? "Mejoró" : "No mejoró";
-
   return (
 
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
@@ -774,220 +351,36 @@ function FormularioGestionRiesgos() {
       <MenuNavegacionProceso items={menuItems} />
 
       {/* === Sección de Info General (gestionriesgos) === */}
-      <Fade in timeout={600}>
-        <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
-            Información General
-          </Typography>
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-            {/* ENTIDAD */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <BusinessIcon color="primary" />
-                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
-                  Entidad
-                </Typography>
-              </Box>
-              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.entidad || "Sin asignar"}</Typography>
-            </Box>
-
-            {/* MACROPROCESO */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <AccountTreeIcon color="primary" />
-                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
-                  Macroproceso
-                </Typography>
-              </Box>
-              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.macroproceso || "Sin asignar"}</Typography>
-            </Box>
-
-            {/* PROCESO */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <SettingsIcon color="primary" />
-                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
-                  Proceso
-                </Typography>
-              </Box>
-              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.proceso || "Sin asignar"}</Typography>
-            </Box>
-
-            {/* FECHA AUTOMÁTICA */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <EventNoteIcon color="primary" />
-                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
-                  Fecha de elaboración
-                </Typography>
-              </Box>
-              <Typography variant="body1" sx={{ ml: 4 }}>{gestionRiesgo.fechaelaboracion}</Typography>
-            </Box>
-
-            {/* ELABORÓ (único editable) */}
-            <Box sx={{ display: "flex", flexDirection: "column", gridColumn: "1 / -1" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <EditNoteIcon color="primary" />
-                <Typography variant="subtitle2" sx={{ color: "#68A2C9" }}>
-                  Elaboró
-                </Typography>
-              </Box>
-              <TextField
-                value={gestionRiesgo.elaboro}
-                onChange={(e) => setGestionRiesgo({ ...gestionRiesgo, elaboro: e.target.value })}
-                fullWidth
-                disabled={!modoEdicion}
-                sx={{ mt: 1 }}
-              />
-            </Box>
-          </Box>
-
-          {/* Botones de acción */}
-          {puedeEditar && (
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-              {!tieneGesRies ? (
-                <CustomButton onClick={handleGuardarGestionRiesgos}>
-                  Guardar Datos Generales
-                </CustomButton>
-
-              ) : (
-                !modoEdicion ? (
-                  <CustomButton type="cancelar" onClick={() => setModoEdicion(true)}>
-                    Editar
-                  </CustomButton>) : (
-                  <CustomButton type="guardar" onClick={handleGuardarGestionRiesgos}>
-                    Guardar
-                  </CustomButton>
-
-                )
-              )}
-            </Box>
-          )}
-        </Paper>
-      </Fade>
+      <GestionRiesgosGeneral
+        data={gestionRiesgo}
+        onChange={(key, value) => setGestionRiesgo(prev => ({ ...prev, [key]: value }))}
+        onSave={handleGuardarGestionRiesgos}
+        puedeEditar={puedeEditar}
+        modoEdicion={modoEdicion}
+        setModoEdicion={setModoEdicion}
+        tieneGesRies={tieneGesRies}
+      />
 
 
       {/* === Tabs para los riesgos (solo si ya existe idGesRies) === */}
       {tieneGesRies && gestionRiesgo.idGesRies && (
         <>
-          <AppBar position="static" sx={{ bgcolor: "#0056b3", borderRadius: 3 }}>
-            <Tabs
-              value={selectedTab}
-              onChange={handleTabChange}
-              centered
-              TabIndicatorProps={{ style: { display: "none" } }}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              {sections.map((section, index) => (
-                <Tab
-                  key={index}
-                  label={section}
-                  sx={{
-                    color: "white",
-                    flex: 1,
-                    textAlign: "center",
-                    width: "25%",
-                    backgroundColor: selectedTab === index ? "#F9B800" : "inherit",
-                    "&.Mui-selected": { color: "black" },
-                    borderRadius: 3,
-                    m: 0.5,
-                    textTransform: "none",
-                    fontSize: "1rem",
-                  }}
-                />
-              ))}
-            </Tabs>
-          </AppBar>
+          <SectionTabs
+            sections={sections}
+            selectedTab={selectedTab}
+            onTabChange={handleTabChange}
+          />
 
-          <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", color: "#0056b3" }}>
-              {sections[selectedTab]}
-            </Typography>
-          </Box>
-
-          {/* Tabla con la data en savedData[selectedTab] */}
-          <TableContainer component={Paper} sx={{ mt: 2, borderRadius: 3, boxShadow: 3 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {Object.keys(savedData[selectedTab]?.[0] || {}).map((header, i) => (
-                    <TableCell
-                      key={i}
-                      sx={{
-                        fontWeight: "bold",
-                        textAlign: "center",
-                        bgcolor: "#0056b3",
-                        color: "white",
-                      }}
-                    >
-                      {header.toUpperCase()}
-                    </TableCell>
-                  ))}
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      textAlign: "center",
-                      bgcolor: "#0056b3",
-                      color: "white",
-                    }}
-                  >
-                    ACCIONES
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {savedData[selectedTab]?.map((row, index) => (
-                  <TableRow key={index}>
-                    {Object.entries(row).map(([key, value], i) => {
-                      const isEfectividad = key.toLowerCase().includes("efectividad");
-
-                      let bgColor = "transparent";
-                      if (isEfectividad && typeof value === "string") {
-                        const lowerValue = value?.toLowerCase().trim();
-                        if (lowerValue === "mejoró") bgColor = "#C8E6C9"; // verde
-                        else if (lowerValue === "no mejoró") bgColor = "#FFCDD2"; // rojo
-                      }
-
-                      return (
-                        <TableCell
-                          key={i}
-                          align="center"
-                          sx={{
-                            borderBottom: "1px solid #e0e0e0",
-                            bgcolor: bgColor,
-                            fontWeight: isEfectividad ? 600 : "normal",
-                          }}
-                        >
-                          {value}
-                        </TableCell>
-                      );
-                    })}
-
-                    {!soloLectura && (
-                      <TableCell align="center">
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleEditRiesgo(riesgos[index])}
-                          sx={{ mr: 1 }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteRiesgo(riesgos[index])}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-
-            </Table>
-          </TableContainer>
+          <RiesgosTabs
+            selectedTab={selectedTab}
+            savedData={savedData}
+            riesgos={riesgos}
+            soloLectura={soloLectura}
+            onEdit={handleEditRiesgo}
+            onDelete={handleDeleteRiesgo}
+            sections={sections}
+          />
 
           {/* Botón para abrir el modal y agregar un riesgo nuevo */}
           {!soloLectura && (
@@ -1006,32 +399,18 @@ function FormularioGestionRiesgos() {
                     consecuencias: "",
                     valorSeveridad: "",
                     valorOcurrencia: "",
-                    valorNRP: "",
                     actividades: "",
                     accionMejora: "",
                     fechaImp: "",
                     fechaEva: "",
                     reevaluacionSeveridad: "",
                     reevaluacionOcurrencia: "",
-                    reevaluacionNRP: "",
-                    reevaluacionEfectividad: "",
                     analisisEfectividad: "",
                   });
                 }}
-                sx={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: "50%",
-                  fontSize: 30,
-                  minWidth: "auto",
-                  position: "relative",
-                  backgroundColor: "#00B2E3",
-                  "&:hover": {
-                    backgroundColor: "#0099C3",
-                  },
-                }}
+
               >
-                +
+                Añadir Riesgo
               </CustomButton>
             </Box>
           )}
@@ -1039,7 +418,7 @@ function FormularioGestionRiesgos() {
       )}
 
       {/* Modal para crear/editar riesgo */}
-      <Modal
+      <RiesgoModal
         open={openModal}
         onClose={() => {
           setOpenModal(false);
@@ -1047,72 +426,19 @@ function FormularioGestionRiesgos() {
           setIsEditing(false);
           setEditingRiesgo(null);
         }}
-      >
+        isEditing={isEditing}
+        currentSection={currentSection}
+        onAnterior={handlePreviousSection}
+        onSiguiente={handleNextSection}
+        onGuardar={handleRequestEditRiesgo}
+        nuevoRiesgo={nuevoRiesgo}
+        onChange={handleRiesgoChange}
+        sections={sections}
+      />
 
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "white",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 3,
-          }}
-        >
-
-          <IconButton
-            onClick={() => {
-              setOpenModal(false);
-              setCurrentSection(0);
-              setIsEditing(false);
-              setEditingRiesgo(null);
-            }}
-            sx={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              color: "#999",
-              "&:hover": {
-                color: "#333",
-              },
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-
-
-          <TitleDialog
-            title={isEditing ? "Editar Riesgo" : "Nuevo Riesgo"}
-            subtitle={sections[currentSection]}
-          />
-          {renderModalSection()}
-
-          <Box mt={2} display="flex" justifyContent={currentSection === 0 ? "flex-end" : "space-between"}>
-            {currentSection > 0 && (
-              <CustomButton type="cancelar" onClick={handlePreviousSection}>
-                Anterior
-              </CustomButton>
-            )}
-
-            {currentSection < 3 ? (
-              <CustomButton type="aceptar" onClick={handleNextSection}>
-                Siguiente
-              </CustomButton>
-            ) : (
-              <CustomButton type="guardar" onClick={handleRequestEditRiesgo}>
-                {isEditing ? "Actualizar" : "Guardar"}
-              </CustomButton>
-            )}
-          </Box>
-        </Box>
-
-      </Modal>
 
       {/* SnackBars */}
-      <FeedbackSnackbar
+      < FeedbackSnackbar
         open={snackbar.open}
         onClose={cerrarSnackbar}
         type={snackbar.type}
@@ -1121,9 +447,10 @@ function FormularioGestionRiesgos() {
       />
 
       {/* Diálogo de confirmación para eliminar */}
-      <ConfirmDelete
+      < ConfirmDelete
         open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => setDeleteDialogOpen(false)
+        }
         entityType="riesgo"
         entityName={`el riesgo ${rowToDelete?.fuente}`}
         onConfirm={confirmDeleteRiesgo}
@@ -1135,17 +462,21 @@ function FormularioGestionRiesgos() {
         entityType="riesgo"
         entityName={` el riesgo ${editingRiesgo?.fuente}`}
         onConfirm={() => {
-          setNuevoRiesgo(editingRiesgo);
+          setNuevoRiesgo({
+            ...editingRiesgo,
+            fechaImp: editingRiesgo.fechaImp ? editingRiesgo.fechaImp.slice(0, 10) : "",
+            fechaEva: editingRiesgo.fechaEva ? editingRiesgo.fechaEva.slice(0, 10) : "",
+          });
           setIsEditing(true);
           setCurrentSection(0);
           setOpenModal(true);
           setConfirmEditOpen(false); // opcional pero recomendable para limpiar estado
+          setConfirmadoEditar(true);
+
         }}
       />
 
-
-    </Box>
-
+    </Box >
 
   );
 }

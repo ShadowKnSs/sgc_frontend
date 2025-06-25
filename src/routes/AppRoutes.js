@@ -165,6 +165,8 @@ const AppRoutes = () => {
           {/* ---------------------- */}
           <Route path="formatos" element={<Formatos />} />
           <Route path="cronograma" element={<Cronograma />}/>
+          <Route path="cronograma/:idProceso" element={<Cronograma />} />
+
           
         </Route>
       </Routes>

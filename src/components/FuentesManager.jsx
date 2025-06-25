@@ -41,8 +41,9 @@ const FuentesManager = ({ records, setRecords, soloLectura }) => {
 
   const handleOpenModal = (index = null) => {
     if (index !== null) {
+      const record = records[index];
       setEditIndex(index);
-      setForm(records[index]);
+      setForm({ ...record, numero: record.numero || index + 1 }); // ← asegurar que numero esté
     } else {
       setEditIndex(null);
       setForm(initForm(records.length + 1));

@@ -1,15 +1,20 @@
-// CustomCalendarToolbar.jsx
-import React from 'react'
-import { Box, Button, Typography, ButtonGroup } from '@mui/material'
-import { ArrowBack, ArrowForward, Today } from '@mui/icons-material'
-import { Navigate } from 'react-big-calendar'  
+import React from 'react';
+import moment from 'moment';
+import 'moment/locale/es';
+import { Box, Button, Typography, ButtonGroup } from '@mui/material';
+import { ArrowBack, ArrowForward, Today } from '@mui/icons-material';
+import { Navigate } from 'react-big-calendar';
+
+moment.locale('es');
 
 export default function CustomCalendarToolbar({
-  label,
+  date,
   onNavigate,
   onView,
   view
 }) {
+  const formattedLabel = moment(date).format('MMMM YYYY');
+
   return (
     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
       {/* Navegación */}
@@ -41,8 +46,8 @@ export default function CustomCalendarToolbar({
       </Box>
 
       {/* Etiqueta del mes/año */}
-      <Typography variant="h6" fontWeight="bold" color="#004A98">
-        {label}
+      <Typography variant="h6" fontWeight="bold" color="#004A98" textTransform="capitalize">
+        {formattedLabel}
       </Typography>
 
       {/* Cambio de vista */}
@@ -67,5 +72,5 @@ export default function CustomCalendarToolbar({
         </Button>
       </ButtonGroup>
     </Box>
-  )
+  );
 }
