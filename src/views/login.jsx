@@ -57,7 +57,7 @@ import LoginForm from "../components/Login/LoginForm";
 import TokenForm from "../components/Login/TokenForm";
 import LoginModal from "../components/Login/LoginModal";
 
-import { Button} from "@mui/material";
+import { Button, Box } from "@mui/material";
 
 export default function Login() {
   const [rpe, setRpe] = useState("");
@@ -99,7 +99,7 @@ export default function Login() {
         const msg = data.message.includes("expirado")
           ? "El token ha expirado"
           : "El token no es válido";
-        showModal("error", "Token inválido", msg);
+        showModal("error", "¡Error!", msg);
       }
     } catch {
       showModal("error", "Error de conexión", "No se pudo conectar con el servidor");
@@ -138,9 +138,22 @@ export default function Login() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      if (!useToken && rpe.trim() && password.trim()) {
+        handleLogin();
+      } else if (useToken && token.trim()) {
+        handleLoginToken();
+      }
+    }
+  };
+
+
   return (
     <>
       <LoginLayout>
+          <Box onKeyDown={handleKeyDown} tabIndex={0}>
+
         {useToken ? (
           <TokenForm
             token={token}
@@ -173,6 +186,7 @@ export default function Login() {
         >
           {useToken ? "Iniciar sesión con RPE" : "Usar token"}
         </Button>
+          </Box>
       </LoginLayout>
 
       <LoginModal
