@@ -42,6 +42,9 @@ function Header() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
   const isLoggedIn = usuario !== null;
+  const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+  const tieneMultiplesRoles = roles.length > 1;
+
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -165,6 +168,35 @@ function Header() {
       <Divider />
 
       <List>
+        {tieneMultiplesRoles && (
+          <ListItemButton
+            onClick={() => {
+              navigate("/seleccionarRol");
+              setMenuOpen(false);
+            }}
+            sx={{
+              px: 3,
+              py: 1.5,
+              borderRadius: 1,
+              my: 0.5,
+              mx: 1,
+              '&:hover': {
+                backgroundColor: colorPalette.azulClaro,
+                color: 'white',
+              },
+              transition: 'all 0.2s ease-in-out',
+            }}
+          >
+            <ListItemText
+              primary="Cambiar Rol"
+              primaryTypographyProps={{
+                fontSize: 16,
+                fontWeight: 500,
+              }}
+            />
+          </ListItemButton>
+        )}
+
         {itemsFiltrados.map((item, index) => (
           <ListItemButton
             key={index}
