@@ -152,41 +152,58 @@ export default function Login() {
   return (
     <>
       <LoginLayout>
-          <Box onKeyDown={handleKeyDown} tabIndex={0}>
+        <Box onKeyDown={handleKeyDown} tabIndex={0}>
 
-        {useToken ? (
-          <TokenForm
-            token={token}
-            setToken={setToken}
-            onSubmit={handleLoginToken}
-            loading={loading}
-          />
-        ) : (
-          <LoginForm
-            rpe={rpe}
-            password={password}
-            setRpe={setRpe}
-            setPassword={setPassword}
-            onSubmit={handleLogin}
-            loading={loading}
-          />
-        )}
+          {useToken ? (
+            <TokenForm
+              token={token}
+              setToken={setToken}
+              onSubmit={handleLoginToken}
+              loading={loading}
+            />
+          ) : (
+            <LoginForm
+              rpe={rpe}
+              password={password}
+              setRpe={setRpe}
+              setPassword={setPassword}
+              onSubmit={handleLogin}
+              loading={loading}
+            />
+          )}
 
-        <Button
-          fullWidth
-          onClick={() => setUseToken(prev => !prev)}
-          sx={{
-            mt: 2,
-            color: "#fff",
-            textTransform: "none",
-            fontSize: "0.85rem",
-            transition: "color 0.3s ease",
-            "&:hover": { color: "#F9B800" },
-          }}
-        >
-          {useToken ? "Iniciar sesión con RPE" : "Usar token"}
-        </Button>
-          </Box>
+          <Button
+            fullWidth
+            onClick={() => setUseToken(prev => !prev)}
+            sx={{
+              mt: 2,
+              color: "#fff",
+              textTransform: "none",
+              fontSize: "0.85rem",
+              transition: "color 0.3s ease",
+              "&:hover": { color: "#F9B800" },
+            }}
+          >
+            {useToken ? "Iniciar sesión con RPE" : "Usar token"}
+          </Button>
+
+          {/* <Button
+            fullWidth
+            onClick={() => {
+              window.location.href = "https://login.uaslp.mx/LoginGateway/Default.aspx?ReturnUrl=http://127.0.0.1:8000/login-institucional/callback";
+            }}
+            sx={{
+              mt: 1,
+              color: "#fff",
+              textTransform: "none",
+              fontSize: "0.85rem",
+              transition: "color 0.3s ease",
+              "&:hover": { color: "#F9B800" },
+            }}
+          >
+            Iniciar sesión institucional
+          </Button> */}
+        </Box>
       </LoginLayout>
 
       <LoginModal
