@@ -263,7 +263,7 @@ function Header() {
             <FaUser className="user-icon-hover" />
           </IconButton>
         )}
-        {rolActivo && rolActivo.nombreRol !== "Invitado" && rolActivo.nombreRol !== "Administrador" && (
+        {rolActivo && rolActivo.nombreRol !== "Invitado" &&(
           <IconButton onClick={toggleDrawer(true)} className="header-link">
             <FaBars className='menu-icon' />
           </IconButton>

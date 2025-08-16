@@ -83,7 +83,7 @@ const linksPorRol = {
       tipo: "pdf",
       src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=4aeae0f2-6f9b-4ccb-bd82-60ea066b7238",
       download: true,
-    },{
+    }, {
       label: "Video para Líder de Proceso",
       tipo: "video",
       src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=e7149bbd-28c8-4a5f-9f92-0a7649a8edf3&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
@@ -95,7 +95,7 @@ const linksPorRol = {
       tipo: "pdf",
       src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=602b9a11-a1d2-4190-a32d-debdd2278be2",
       download: true,
-    },{
+    }, {
       label: "Video para Supervisor",
       tipo: "video",
       src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=5e46bb60-c5c5-48ff-b8b4-21f319464ffb&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
@@ -107,10 +107,10 @@ const linksPorRol = {
       tipo: "pdf",
       src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=e7149bbd-28c8-4a5f-9f92-0a7649a8edf3&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
       download: true,
-    },{
+    }, {
       label: "Video para Auditor",
       tipo: "video",
-      src: "https://www.youtube.com/embed/ub82Xb1C8os",
+      src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=5e46bb60-c5c5-48ff-b8b4-21f319464ffb&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
     },
   ],
 };
@@ -152,7 +152,18 @@ const ManualDelSitio = () => {
         <Grid container spacing={4}>
           {recursos.map((item, index) => (
             <Grid item xs={12} key={index}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 2,
+                  fontWeight: 600,
+                  color: "#185FA4",
+                  borderBottom: "2px solid #2dc1df",
+                  display: "inline-block", 
+                  pb: 0.5,
+                  
+                }}
+              >
                 {item.label}
               </Typography>
 
