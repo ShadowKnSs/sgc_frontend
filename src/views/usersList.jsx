@@ -9,7 +9,7 @@
  * Incluye tarjetas para usuarios (`UserCard`), tarjetas para usuarios temporales (`UserTempCard`),
  * formulario emergente (`UserForm`) y confirmación de eliminación (`ConfirmDelete`).
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, CircularProgress, Alert, Typography, Grid } from "@mui/material";
 import UserCard from "../components/userCard";
 import UserTempCard from "../components/userTempCard";
@@ -37,7 +37,7 @@ function UserManagement() {
     const [userToDelete, setUserToDelete] = useState(null);
 
     // Cargar usuarios normales
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get(`${API_URL}/usuarios`);
@@ -50,17 +50,17 @@ function UserManagement() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     // Cargar usuarios temporales
-    const fetchUsuariosTemporales = async () => {
+    const fetchUsuariosTemporales = useCallback(async () => {
         try {
             const res = await axios.get(`${API_URL}/usuarios-temporales`);
             setUsuariosTemporales(res.data);
         } catch (err) {
             console.error('Error al cargar usuarios temporales');
         }
-    };
+    }, []);
     // Eliminar tokens expirados
 
     const handleEliminarYActualizar = async () => {
@@ -106,7 +106,7 @@ function UserManagement() {
     useEffect(() => {
         fetchUsers();
         fetchUsuariosTemporales();
-    }, []);
+    }, [fetchUsers, fetchUsuariosTemporales]);
 
     // Guardar usuario creado o editado
 
@@ -166,7 +166,9 @@ function UserManagement() {
             ) : (
                 <>
                     {/* Tarjetas de usuarios normales */}
-
+                    <Box mb={4}>
+                        <Title text="Gestión de Usuarios" />
+                    </Box>
                     <Box
                         display="grid"
                         gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
@@ -216,7 +218,7 @@ function UserManagement() {
                     {/* Si no hay usuarios temporales */}
 
                     {usuariosTemporales.length === 0 && (
-                        <Typography variant="body2" color="text.secondary" mt={2}>
+                        <Typography variant="body2" color="text.secondary" mt={2} sx={{ marginTop: 9 }}>
                             No hay usuarios temporales activos.
                         </Typography>
                     )}
