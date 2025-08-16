@@ -6,7 +6,7 @@ import {
 } from "@mui/material";
 import FeedbackSnackbar from "../Feedback";
 import axios from "axios";
-import CustomButton from "../Button"; // importa tu botón personalizado
+import CustomButton from "../Button";
 
 const API_URL = 'http://localhost:8000/api';
 
