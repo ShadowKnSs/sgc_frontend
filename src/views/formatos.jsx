@@ -43,7 +43,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Modal, Typography, TextField, Card, CardContent, CardActions, CircularProgress } from '@mui/material';
 import Title from '../components/Title';
-import FabSubirFormato from '../components/FabSubirFormato';
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 import CustomButton from '../components/Button';
 import DialogTitleCustom from '../components/TitleDialog';
 import FeedbackSnackbar from '../components/Feedback';
@@ -140,8 +141,12 @@ const Formatos = () => {
         <Title text="Formatos" />
       </Box>
 
-      <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
-        <FabSubirFormato onClick={handleOpenModal} />
+      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+        <FabCustom
+          onClick={handleOpenModal}
+          title="Agregar Formato"
+          icon={<Add />}
+        />
       </Box>
 
       <Modal open={openModal} onClose={handleCloseModal}>

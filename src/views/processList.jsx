@@ -40,6 +40,8 @@
 import React, { useEffect, useState } from "react";
 import { Box, Grid, Fab } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 import ProcessCard from "../components/processCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -149,20 +151,15 @@ function ProcessList() {
           </Grid>
         ))}
       </Grid>
-      <Fab
-        color="primary"
-        aria-label="add"
-        onClick={() => navigate("/nuevo-proceso")}
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          backgroundColor: "secondary.main",
-          "&:hover": { backgroundColor: "primary.main" },
-        }}
-      >
-        <AddIcon />
-      </Fab>
+
+      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+        <FabCustom
+          onClick={() => navigate("/nuevo-proceso")}
+          title="Agregar Proceso"
+          icon={<Add />}
+        />
+      </Box>
+      
       <ConfirmDelete
         open={openDelete}
         onClose={() => setOpenDelete(false)}

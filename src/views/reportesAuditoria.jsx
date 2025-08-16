@@ -27,8 +27,9 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Fab, Button, Modal, TextField, MenuItem, Typography } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Box, Button, Modal, TextField, MenuItem, Typography } from "@mui/material";
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 import FiltroAuditoria from "../components/buscadorAuditoria"
 import Title from "../components/Title";
 import { CircularProgress } from "@mui/material";
@@ -180,21 +181,21 @@ const ReportesAuditoria = () => {
 
     return (
         <Box sx={{ p: 1, textAlign: "center", display: "flex", flexDirection: "row", position: "relative" }}>
-    {loading && (
-        <Box sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999
-        }}>
-            <CircularProgress size={60} color="primary" />
-        </Box>
-        )}
+            {loading && (
+                <Box sx={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 9999
+                }}>
+                    <CircularProgress size={60} color="primary" />
+                </Box>
+            )}
             {/* 🔍 Línea lateral clickeable */}
             <Box
                 onClick={() => setSearchOpen(!searchOpen)}
@@ -240,13 +241,13 @@ const ReportesAuditoria = () => {
                     ))}
                 </Box>
 
-                <Fab
-                    color="primary"
-                    sx={{ position: "fixed", bottom: "50px", right: "50px", backgroundColor: "primary", width: 70, height: 70 }}
-                    onClick={() => setOpenModal(true)}
-                >
-                    <Add />
-                </Fab>
+                <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+                    <FabCustom
+                        onClick={() => setOpenModal(true)} title="Agregar Reporte"
+                        icon={<Add />}
+                    />
+                </Box>
+                
                 <Modal open={openModal} onClose={() => setOpenModal(false)}>
                     <Box sx={{
                         position: "absolute",
@@ -298,76 +299,76 @@ const ReportesAuditoria = () => {
 };
 
 const ReportCard = ({ report, onDelete }) => {
-  return (
-    <Box
-      sx={{
-        backgroundColor: "#fff",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        borderRadius: "8px",
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        width: 320,
-        minHeight: 160,
-        borderLeft: "6px solid #004A98",
-        transition: "transform 0.2s",
-        "&:hover": {
-          transform: "translateY(-4px)"
-        }
-      }}
-    >
-      <Box sx={{ mb: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
-          {report.titulo || "Auditoría Interna"}
-        </Typography>
-        <Typography variant="body2">
-          <b>Entidad:</b> {report.entidad || "Sin entidad"}
-        </Typography>
-        <Typography variant="body2">
-          <b>Líder:</b> {report.lider || "Sin líder"}
-        </Typography>
-        <Typography variant="body2">
-          <b>Fecha:</b> {report.date}
-        </Typography>
-      </Box>
-
-      <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#004A98",
-            borderRadius: "8px",
-            textTransform: "none",
-            fontWeight: "bold",
-            "&:hover": {
-              backgroundColor: "#00336b"
-            }
-          }}
-          onClick={() => window.open(`http://localhost:8000/api/reporte-pdf/${report.idAuditorialInterna}`, '_blank')}
+    return (
+        <Box
+            sx={{
+                backgroundColor: "#fff",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                borderRadius: "8px",
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                width: 320,
+                minHeight: 160,
+                borderLeft: "6px solid #004A98",
+                transition: "transform 0.2s",
+                "&:hover": {
+                    transform: "translateY(-4px)"
+                }
+            }}
         >
-          Descargar
-        </Button>
+            <Box sx={{ mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
+                    {report.titulo || "Auditoría Interna"}
+                </Typography>
+                <Typography variant="body2">
+                    <b>Entidad:</b> {report.entidad || "Sin entidad"}
+                </Typography>
+                <Typography variant="body2">
+                    <b>Líder:</b> {report.lider || "Sin líder"}
+                </Typography>
+                <Typography variant="body2">
+                    <b>Fecha:</b> {report.date}
+                </Typography>
+            </Box>
 
-        <Button
-          variant="outlined"
-          sx={{
-            color: "#B00020",
-            borderColor: "#B00020",
-            borderRadius: "8px",
-            textTransform: "none",
-            fontWeight: "bold",
-            "&:hover": {
-              backgroundColor: "#fbe9e7"
-            }
-          }}
-          onClick={() => onDelete(report.id)}
-        >
-          Eliminar
-        </Button>
-      </Box>
-    </Box>
-  );
+            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                <Button
+                    variant="contained"
+                    sx={{
+                        backgroundColor: "#004A98",
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        "&:hover": {
+                            backgroundColor: "#00336b"
+                        }
+                    }}
+                    onClick={() => window.open(`http://localhost:8000/api/reporte-pdf/${report.idAuditorialInterna}`, '_blank')}
+                >
+                    Descargar
+                </Button>
+
+                <Button
+                    variant="outlined"
+                    sx={{
+                        color: "#B00020",
+                        borderColor: "#B00020",
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        "&:hover": {
+                            backgroundColor: "#fbe9e7"
+                        }
+                    }}
+                    onClick={() => onDelete(report.id)}
+                >
+                    Eliminar
+                </Button>
+            </Box>
+        </Box>
+    );
 };
 
 export default ReportesAuditoria;

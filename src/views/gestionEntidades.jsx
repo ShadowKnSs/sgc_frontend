@@ -47,6 +47,8 @@
 import React, { useState, useEffect } from 'react';
 import {Box,Dialog,DialogContent,Fab,Grid} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 import axios from 'axios';
 
 import AddEntidad from '../components/Modals/AddEntidad';
@@ -202,13 +204,13 @@ const GestionEntidades = () => {
         ))}
       </Grid>
 
-      <Fab
-        color="primary"
-        onClick={handleOpenDialog}
-        sx={{ position: 'fixed', bottom: 32, right: 32 }}
-      >
-        <AddIcon />
-      </Fab>
+      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+                    <FabCustom
+                        onClick={handleOpenDialog} 
+                        title="Agregar Entidad"
+                        icon={<Add />}
+                    />
+                </Box>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitleCustom title = {modoEdicion ? 'Editar Entidad' : 'Nueva Entidad'} />

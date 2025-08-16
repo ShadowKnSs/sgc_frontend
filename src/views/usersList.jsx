@@ -10,12 +10,13 @@
  * formulario emergente (`UserForm`) y confirmación de eliminación (`ConfirmDelete`).
  */
 import React, { useState, useEffect } from "react";
-import { Box, Fab, CircularProgress, Alert, Typography, Grid } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Box, CircularProgress, Alert, Typography, Grid } from "@mui/material";
 import UserCard from "../components/userCard";
 import UserTempCard from "../components/userTempCard";
 import UserForm from "../components/userForms";
 import ConfirmDelete from "../components/confirmDelete";
+import FabCustom from "../components/FabCustom";
+import PersonaAddIcon from "@mui/icons-material/PersonAdd";
 import axios from "axios";
 import Title from "../components/Title";
 import Button from "../components/Button";
@@ -222,13 +223,13 @@ function UserManagement() {
 
                     {/* Botón flotante para agregar */}
 
-                    <Fab
-                        color="primary"
-                        sx={{ position: "fixed", bottom: 16, right: 16 }}
-                        onClick={handleAddNewUser}
-                    >
-                        <Add />
-                    </Fab>
+                    <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+                        <FabCustom
+                            onClick={handleAddNewUser}
+                            title="Agregar Usuario"
+                            icon={<PersonaAddIcon />}
+                        />
+                    </Box>
                 </>
 
             )}

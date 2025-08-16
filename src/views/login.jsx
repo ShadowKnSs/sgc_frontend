@@ -94,7 +94,7 @@ export default function Login() {
         localStorage.setItem("viaToken", "true");
 
         showModal("success", "¡Token válido!", "Accediendo al sistema...");
-        setTimeout(() => navigate("/"), 1500);
+        setTimeout(() => navigate("/user-eventos"), 1500);
       } else {
         const msg = data.message.includes("expirado")
           ? "El token ha expirado"
