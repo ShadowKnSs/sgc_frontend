@@ -20,6 +20,7 @@ import PersonaAddIcon from "@mui/icons-material/PersonAdd";
 import axios from "axios";
 import Title from "../components/Title";
 import Button from "../components/Button";
+import SupervisorProcessDialog from "../components/Modals/SupervisorProcessDialog";
 
 // Ruta base de la API
 const API_URL = 'http://127.0.0.1:8000/api';
@@ -35,6 +36,8 @@ function UserManagement() {
     const [editingUser, setEditingUser] = useState(null);
     const [openDelete, setOpenDelete] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
+    const [assignOpen, setAssignOpen] = useState(false);         // ← NUEVO
+    const [supervisorToAssign, setSupervisorToAssign] = useState(null); // ← NUEVO
 
     // Cargar usuarios normales
     const fetchUsers = useCallback(async () => {
@@ -74,7 +77,15 @@ function UserManagement() {
         }
     };
 
+    const handleOpenAssign = (user) => { // ← NUEVO
+        setSupervisorToAssign(user);
+        setAssignOpen(true);
+    };
 
+    const handleAssignSaved = () => { // ← NUEVO
+        // refresca si quieres volver a calcular supervisor visible en líderes
+        fetchUsers();
+    };
     // Transformar datos de API para uso en el frontend
 
     const transformUserData = (user) => {
@@ -184,6 +195,8 @@ function UserManagement() {
                                     setUserToDelete(user);
                                     setOpenDelete(true);
                                 }}
+                                onAssign={handleOpenAssign} // ← NUEVO
+
                             />
                         ))}
                     </Box>
@@ -244,6 +257,13 @@ function UserManagement() {
                 onSubmit={handleAddUser}
                 onTokenCreated={fetchUsuariosTemporales}
                 editingUser={editingUser}
+            />
+
+            <SupervisorProcessDialog
+                open={assignOpen}
+                onClose={() => setAssignOpen(false)}
+                supervisorUser={supervisorToAssign}
+                onSaved={handleAssignSaved}
             />
             {/* Diálogo de confirmación de eliminación */}
 

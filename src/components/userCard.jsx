@@ -9,6 +9,7 @@ import React from "react";
 import { Card, CardContent, Typography, Divider, Box, IconButton, Tooltip, Chip } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import SupervisorAccount from "@mui/icons-material/SupervisorAccount";
+import PlaylistAdd from "@mui/icons-material/PlaylistAdd";
 
 const colorPalette = {
   azulOscuro: "#185FA4",
@@ -20,7 +21,10 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
-function UserCard({ user, onEdit, onDelete }) {
+function UserCard({ user, onEdit, onDelete, onAssign }) {
+  const isLeader = user.roles.includes("Líder");
+  const isSupervisor = user.roles.includes("Supervisor");
+
   return (
     <Card
       sx={{
@@ -37,7 +41,6 @@ function UserCard({ user, onEdit, onDelete }) {
       }}
     >
       {/* Cabecera con nombre y correo */}
-
       <Box
         sx={{
           backgroundColor: colorPalette.verdePastel,
@@ -59,7 +62,7 @@ function UserCard({ user, onEdit, onDelete }) {
           {user.email}
         </Typography>
       </Box>
-      {/* Roles */}
+
       <CardContent sx={{ backgroundColor: colorPalette.verdeClaro }}>
         {/* Roles */}
         <Box display="flex" justifyContent="center" gap={1} flexWrap="wrap" mb={2}>
@@ -79,20 +82,26 @@ function UserCard({ user, onEdit, onDelete }) {
         </Box>
 
         {/* Información de supervisor */}
-        {user.roles.includes("Líder") && user.supervisor && (
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            gap={1}
-            px={1}
-            mb={2}
-          >
+        {isLeader && (
+          <Box display="flex" alignItems="center" justifyContent="center" gap={1} px={1} mb={2}>
             <SupervisorAccount fontSize="small" sx={{ color: colorPalette.grisOscuro }} />
-            <Typography variant="body2" sx={{ color: "#4a4a4a", textAlign: "center" }}>
-              Supervisor:{" "}
-              {user.supervisor.lastName} {user.supervisor.secondLastName} {user.supervisor.firstName}
-            </Typography>
+
+            {user.supervisor ? (
+              <Typography variant="body2" sx={{ color: "#4a4a4a", textAlign: "center" }}>
+                Supervisor: {user.supervisor.lastName} {user.supervisor.secondLastName} {user.supervisor.firstName}
+              </Typography>
+            ) : (
+              <Chip
+                label="Sin supervisor asignado"
+                color="warning"
+                variant="outlined"
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  borderRadius: 2,
+                }}
+              />
+            )}
           </Box>
         )}
 
@@ -100,6 +109,19 @@ function UserCard({ user, onEdit, onDelete }) {
 
         {/* Botones de acción */}
         <Box display="flex" justifyContent="center" gap={2}>
+          {isSupervisor && (
+            <Tooltip title="Asignar procesos">
+              <IconButton
+                onClick={() => onAssign && onAssign(user)}
+                sx={{
+                  backgroundColor: colorPalette.verdeAgua, color: colorPalette.azulOscuro,
+                  "&:hover": { backgroundColor: colorPalette.azulClaro, color: "#fff" },
+                }}
+              >
+                <PlaylistAdd />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Editar">
             <IconButton
               onClick={() => onEdit(user)}
@@ -120,7 +142,7 @@ function UserCard({ user, onEdit, onDelete }) {
             <IconButton
               onClick={() => onDelete(user)}
               sx={{
-                backgroundColor: "#E57373", // más suave que rojo puro
+                backgroundColor: "#E57373",
                 color: "#fff",
                 "&:hover": {
                   backgroundColor: "#C62828",
@@ -135,6 +157,5 @@ function UserCard({ user, onEdit, onDelete }) {
     </Card>
   );
 }
-
 
 export default UserCard;
