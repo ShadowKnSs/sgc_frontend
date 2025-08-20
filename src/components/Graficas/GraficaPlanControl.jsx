@@ -9,11 +9,6 @@ ChartJS.register(...registerables);
 // --- default de orden estable (no crea objetos nuevos por render) ---
 const DEFAULT_ORDENAR = { por: "index", dir: "asc" };
 
-/**
- * Plugin: dibuja etiquetas de valor como "pastillas" por encima de cada barra
- * - Fondo oscuro con texto blanco para máximo contraste
- * - Margen y límite para no salirse del área del chart
- */
 const ValueLabelsPlugin = {
   id: "valueLabels",
   afterDatasetsDraw(chart) {

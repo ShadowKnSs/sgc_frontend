@@ -21,10 +21,12 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
   useEffect(() => {
     if (!Array.isArray(data) || data.length === 0) return;
 
+    console.log("Datos de la grafica de Retro:", data);
+    // Ajusta los nombres de las propiedades según lo que reciba en `data`
     const labels = data.map(item => item.nombreIndicador);
-    const datasetFelicitaciones = data.map(item => item.cantidadFelicitacion ?? 0);
-    const datasetSugerencias = data.map(item => item.cantidadSugerencia ?? 0);
-    const datasetQuejas = data.map(item => item.cantidadQueja ?? 0);
+    const datasetFelicitaciones = data.map(item => item.cantidadFelicitacion ?? item.felicitaciones ?? 0);
+    const datasetSugerencias = data.map(item => item.cantidadSugerencia ?? item.sugerencias ?? 0);
+    const datasetQuejas = data.map(item => item.cantidadQueja ?? item.quejas ?? 0);
 
     setChartData({
       labels,
@@ -49,12 +51,19 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
   }, [data]);
 
   useEffect(() => {
-    if (chartRef.current && chartRef.current.toBase64Image && chartData && !yaGenerada.current) {
-      const base64 = chartRef.current.toBase64Image("image/png", 1.0);
-      if (base64 && typeof onImageReady === "function") {
-        onImageReady(base64, "retroalimentacion");
-        yaGenerada.current = true;
-      }
+    if (chartRef.current && chartData && !yaGenerada.current) {
+      // Usar un timeout para asegurar que el gráfico se haya renderizado
+      const timer = setTimeout(() => {
+        if (chartRef.current) {
+          const base64 = chartRef.current.toBase64Image("image/png", 1.0);
+          if (base64 && typeof onImageReady === "function") {
+            onImageReady(base64);
+            yaGenerada.current = true;
+          }
+        }
+      }, 500); // Esperar 500ms después de que chartData se establezca
+
+      return () => clearTimeout(timer);
     }
   }, [chartData, onImageReady]);
 
@@ -70,7 +79,7 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
 
   const options = {
     responsive: true,
-    indexAxis: "y", // 🔁 mejora visual para textos largos
+    indexAxis: "y",
     plugins: {
       legend: { position: "bottom" },
       title: { display: true, text: "Retroalimentación" },

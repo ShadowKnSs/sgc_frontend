@@ -21,7 +21,7 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
   useEffect(() => {
     if (idRegistro) {
       axios
-        .get("http://localhost:8000/api/indicadoresconsolidados", {
+        .get("http://localhost:8000/api/indicadoresconsolidados/detalles", {
           params: { idRegistro },
         })
         .then((res) => {
@@ -107,14 +107,14 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       {/* Gráfica Encuesta de Satisfacción */}
       {getIndicador("Encuesta") && (
         <GraficaEncuesta
-          id={getIndicador("Encuesta").idIndicador}
-          onImageReady={(imgBase64) => onImagenGenerada("encuesta", imgBase64)}
+          data={getIndicador("Encuesta")}
+          onImageReady={(tipo, imgBase64) => onImagenGenerada(tipo, imgBase64)}
         />
       )}
 
       {getRetroList().length > 0 && (
         <GraficaRetroalimentacion
-          retroList={getRetroList()}
+          data={getRetroList()}
           onImageReady={(img) => onImagenGenerada("retroalimentacion", img)}
         />
       )}
