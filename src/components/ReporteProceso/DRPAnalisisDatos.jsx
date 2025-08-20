@@ -135,7 +135,8 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       <TablaEvaluacionProveedores idProceso={idProceso} anio={anio} />
       {getIndicador("EvaluaProveedores") && (
         <GraficaEvaluacion
-          id={getIndicador("EvaluaProveedores").idIndicador}
+          idProceso={idProceso}
+          anio={anio} 
           onImageReady={(imgBase64) => onImagenGenerada("evaluacionProveedores", imgBase64)}
         />
       )}
