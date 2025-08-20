@@ -148,6 +148,7 @@ function FormularioGestionRiesgos() {
   const [rowToDelete, setRowToDelete] = useState(null);
 
 
+
   // Funcion para mostrar snackbar (FeedBack)
   const mostrarSnackbar = (type, title, message) => {
     setSnackbar({ open: true, type, title, message });
@@ -169,27 +170,22 @@ function FormularioGestionRiesgos() {
     cargarRiesgos,
   } = useGestionRiesgos(idRegistro, mostrarSnackbar);
 
-
   useEffect(() => {
-    if (rolActivo?.nombreRol === "Líder") return;
-    if (yaGuardadoRef.current) return;
+    // Solo ejecutar si es Líder y aún no se ha guardado
+    if (rolActivo?.nombreRol !== "Líder" || yaGuardadoRef.current) return;
 
-    const needsUpdate =
-      !gestionRiesgo.elaboro ||
-      !gestionRiesgo.fechaelaboracion ||
-      gestionRiesgo.elaboro !== userName;
-
-    if (needsUpdate) {
+    // Solo ejecutar si ya tenemos la información de si existe o no el registro
+    if (tieneGesRies !== null) {
       const actualizado = {
         ...gestionRiesgo,
         elaboro: userName,
         fechaelaboracion: fechaHoy,
       };
-      setGestionRiesgo(actualizado);
+
       handleGuardarGestionRiesgos(actualizado);
-      yaGuardadoRef.current = true;
+      yaGuardadoRef.current = true; // Marcar como guardado
     }
-  }, [rolActivo, userName, fechaHoy, gestionRiesgo]);
+  }, [rolActivo, tieneGesRies, gestionRiesgo, userName, fechaHoy, handleGuardarGestionRiesgos]);
 
 
 

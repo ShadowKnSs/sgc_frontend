@@ -154,17 +154,31 @@ const UnifiedIndicatorPage = () => {
   const getIndicatorStatus = (ind, results) => {
     const origen = ind.origenIndicador?.toLowerCase().trim();
     const res = results[ind.idIndicador] || {};
+  const isNullOrZero = v => v == null || Number(v) === 0;
 
     switch (origen) {
-      case "encuesta":
-        const values1 = [res.malo, res.regular, res.bueno, res.excelente, res.noEncuestas];
-        return values1.every(v => v == null) ? "noRecord" : values1.some(v => v == null) ? "incomplete" : "complete";
-      case "evaluaproveedores":
-        const values2 = [res.resultadoConfiableSem1, res.resultadoConfiableSem2, res.resultadoCondicionadoSem1, res.resultadoCondicionadoSem2, res.resultadoNoConfiableSem1, res.resultadoNoConfiableSem2];
-        return values2.every(v => v == null) ? "noRecord" : values2.some(v => v == null) ? "incomplete" : "complete";
-      case "retroalimentacion":
-        const values3 = [res.cantidadFelicitacion, res.cantidadSugerencia, res.cantidadQueja];
-        return values3.every(v => v == null) ? "noRecord" : values3.some(v => v == null) ? "incomplete" : "complete";
+       case "encuesta": {
+      const vals = [res.malo, res.regular, res.bueno, res.excelente, res.noEncuestas];
+      if (vals.every(isNullOrZero)) return "noRecord";
+      if (vals.some(v => v == null)) return "incomplete";
+      return "complete";
+    }
+    case "retroalimentacion": {
+      const vals = [res.cantidadFelicitacion, res.cantidadSugerencia, res.cantidadQueja];
+      if (vals.every(isNullOrZero)) return "noRecord";
+      if (vals.some(v => v == null)) return "incomplete";
+      return "complete";
+    }
+    case "evaluaproveedores": {
+      const vals = [
+        res.resultadoConfiableSem1, res.resultadoConfiableSem2,
+        res.resultadoCondicionadoSem1, res.resultadoCondicionadoSem2,
+        res.resultadoNoConfiableSem1, res.resultadoNoConfiableSem2
+      ];
+      if (vals.every(isNullOrZero)) return "noRecord";
+      if (vals.some(v => v == null)) return "incomplete";
+      return "complete";
+    }
       case "mapaproceso":
       case "actividadcontrol":
         return !res.resultadoSemestral1 && !res.resultadoSemestral2 ? "noRecord" : res.resultadoSemestral1 && res.resultadoSemestral2 ? "complete" : "incomplete";

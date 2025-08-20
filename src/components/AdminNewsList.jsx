@@ -31,6 +31,10 @@ function formatDate(dateString) {
 }
 
 const AdminNewsList = () => {
+
+   // Usuario desde localStorage 
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+  const idUsuario = usuario?.idUsuario ?? null;
   // Lista de noticias
   const [news, setNews] = useState([]);
 
@@ -140,7 +144,7 @@ const AdminNewsList = () => {
   const createNews = async (formData) => {
     try {
       const data = new FormData();
-      data.append('idUsuario', 1); // o el ID real del usuario
+      data.append('idUsuario', idUsuario); // o el ID real del usuario
       data.append('titulo', formData.titulo);
       data.append('descripcion', formData.descripcion);
       if (formData.file) {

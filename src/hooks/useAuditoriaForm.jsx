@@ -2,7 +2,15 @@ import { useState } from "react";
 import moment from "moment";
 import axios from "axios";
 
-const useAuditoriaForm = ({ isEditing, selectedEvent, auditores, setEvents, handleCloseForm, setSnackbar, setLoading }) => {
+const useAuditoriaForm = ({
+  isEditing,
+  selectedEvent,
+  auditores,
+  setEvents,
+  handleCloseForm,
+  setSnackbar,
+  setLoading
+}) => {
   const initialFormData = {
     entidad: "",
     proceso: "",
@@ -19,24 +27,31 @@ const useAuditoriaForm = ({ isEditing, selectedEvent, auditores, setEvents, hand
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Forzar array en auditoresAdicionales
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "auditoresAdicionales" ? (Array.isArray(value) ? value : [value]) : value,
+      [name]:
+        name === "auditoresAdicionales"
+          ? Array.isArray(value)
+            ? value
+            : [value]
+          : value,
     }));
   };
 
   const handleEditOpen = () => {
     if (!selectedEvent) return;
     setFormData({
-      entidad: selectedEvent.entidad,
-      proceso: selectedEvent.proceso,
+      entidad: selectedEvent.entidad || "",
+      proceso: selectedEvent.proceso || "",
       fecha: moment(selectedEvent.start).format("YYYY-MM-DD"),
       hora: moment(selectedEvent.start).format("HH:mm"),
-      tipo: selectedEvent.tipo,
-      estado: selectedEvent.estado,
-      descripcion: selectedEvent.descripcion,
+      tipo: selectedEvent.tipo || "",
+      estado: selectedEvent.estado || "Pendiente",
+      descripcion: selectedEvent.descripcion || "",
       auditorLider: selectedEvent.auditorLiderId || "",
-      auditoresAdicionales: selectedEvent.auditoresAdicionales?.map(a => a.id) || []
+      auditoresAdicionales:
+        selectedEvent.auditoresAdicionales?.map((a) => a.id) || [],
     });
   };
 
@@ -44,12 +59,36 @@ const useAuditoriaForm = ({ isEditing, selectedEvent, auditores, setEvents, hand
 
   const handleSubmit = async () => {
     const {
-      entidad, proceso, fecha, hora, tipo, estado,
-      descripcion, auditorLider, auditoresAdicionales
+      entidad,
+      proceso,
+      fecha,
+      hora,
+      tipo,
+      estado,
+      descripcion,
+      auditorLider,
+      auditoresAdicionales,
     } = formData;
 
-    if (!entidad || !proceso || !fecha || !hora || !tipo || !estado || !descripcion) {
-      setSnackbar({ open: true, message: "Todos los campos son obligatorios.", severity: "warning" });
+    // Asegurar array
+    const audAdic = Array.isArray(auditoresAdicionales)
+      ? auditoresAdicionales
+      : [];
+
+    if (
+      !entidad ||
+      !proceso ||
+      !fecha ||
+      !hora ||
+      !tipo ||
+      !estado ||
+      !descripcion
+    ) {
+      setSnackbar({
+        open: true,
+        message: "Todos los campos son obligatorios.",
+        severity: "warning",
+      });
       return;
     }
 
@@ -57,106 +96,161 @@ const useAuditoriaForm = ({ isEditing, selectedEvent, auditores, setEvents, hand
 
     try {
       if (isEditing && selectedEvent) {
-        await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
-          fechaProgramada: fecha,
-          horaProgramada: hora,
-          tipoAuditoria: tipo,
-          estado,
-          descripcion,
-          nombreProceso: proceso,
-          nombreEntidad: entidad,
-          auditorLider: auditorLider || null,
+        // UPDATE
+        await axios.put(
+          `http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`,
+          {
+            fechaProgramada: fecha,
+            horaProgramada: hora,
+            // Si tu backend necesita minúsculas, deja toLowerCase:
+            tipoAuditoria: (tipo || "").toLowerCase(),
+            estado: (estado || "").toLowerCase(),
+            descripcion,
+            nombreProceso: proceso,
+            nombreEntidad: entidad,
+            auditorLider: auditorLider || null,
+          }
+        );
 
-        });
-
+        // Guardar auditores adicionales
         await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
           idAuditoria: selectedEvent.id,
-          auditores: auditoresAdicionales
+          auditores: audAdic,
         });
 
-        const nuevosAuditores = auditoresAdicionales.map(id => {
-          const auditor = auditores.find(a => a.idUsuario === id);
+        const nuevosAuditores = audAdic.map((id) => {
+          const auditor = auditores.find((a) => a.idUsuario === id);
           return {
             id,
-            nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
+            nombre: auditor
+              ? `${auditor.nombre} ${auditor.apellidoPat}${auditor.apellidoMat ? ` ${auditor.apellidoMat}` : ""}`
+              : "Desconocido",
           };
         });
 
-        setEvents(prev => prev.map(event =>
-          event.id === selectedEvent.id
-            ? {
-              ...event, start: new Date(`${fecha}T${hora}`), end: new Date(`${fecha}T${hora}`),
-              descripcion, estado, tipo, proceso, entidad, hora, auditorLider, auditoresAdicionales: nuevosAuditores
-            }
-            : event
-        ));
+        // Nombre del líder (para mostrar en el tooltip)
+        const liderObj = auditores.find(a => a.idUsuario === Number(auditorLider));
+        const nombreLider = liderObj
+          ? `${liderObj.nombre} ${liderObj.apellidoPat}${liderObj.apellidoMat ? ` ${liderObj.apellidoMat}` : ""}`.trim()
+          : "No asignado";
 
-        setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
+        setEvents((prev) =>
+          prev.map((event) =>
+            event.id === selectedEvent.id
+              ? {
+                  ...event,
+                  start: new Date(`${fecha}T${hora}`),
+                  end: new Date(`${fecha}T${hora}`),
+                  descripcion,
+                  estado: (estado || "").toLowerCase(),
+                  tipo: (tipo || "").toLowerCase(),
+                  proceso,
+                  entidad,
+                  hora,
+                  auditorLider: nombreLider,     // << nombre para tooltip
+                  auditorLiderId: auditorLider,  // << id para lógica
+                  auditoresAdicionales: nuevosAuditores,
+                }
+              : event
+          )
+        );
+
+        setSnackbar({
+          open: true,
+          message: "Auditoría actualizada correctamente.",
+          severity: "success",
+        });
       } else {
+        // CREATE
         const res = await axios.post("http://127.0.0.1:8000/api/cronograma", {
           fechaProgramada: fecha,
           horaProgramada: hora,
-          tipoAuditoria: tipo,
-          estado,
+          // Si tu backend espera mayúsculas, deja tal cual;
+          // si espera minúsculas, cambia a (tipo || "").toLowerCase()
+          tipoAuditoria: (tipo || ""),
+          estado: (estado || ""),
           descripcion,
           nombreProceso: proceso,
           nombreEntidad: entidad,
           auditorLider: auditorLider || null,
         });
 
-        const idNueva = res.data.auditoria.idAuditoria;
+        // Respuesta robusta: intentar encontrar idAuditoria
+        const auditoriaResp = res?.data?.auditoria ?? res?.data ?? {};
+        const idNueva =
+          auditoriaResp.idAuditoria ??
+          auditoriaResp.id ??
+          auditoriaResp?.data?.idAuditoria;
 
-        if (auditoresAdicionales?.length > 0) {
+        // Si hay auditores adicionales, insertarlos
+        if (audAdic.length > 0) {
           await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
             idAuditoria: idNueva,
-            auditores: auditoresAdicionales
+            auditores: audAdic,
           });
         }
 
+        // Nombre del líder (para mostrar en el tooltip)
+        const liderObj = auditores.find(a => a.idUsuario === Number(auditorLider));
+        const nombreLider = liderObj
+          ? `${liderObj.nombre} ${liderObj.apellidoPat}${liderObj.apellidoMat ? ` ${liderObj.apellidoMat}` : ""}`.trim()
+          : "No asignado";
+
         const nuevaAuditoria = {
           id: idNueva,
-          title: `${res.data.auditoria.nombreProceso} - ${res.data.auditoria.tipoAuditoria}`,
-          start: new Date(`${res.data.auditoria.fechaProgramada}T${res.data.auditoria.horaProgramada}`),
-          end: new Date(`${res.data.auditoria.fechaProgramada}T${res.data.auditoria.horaProgramada}`),
+          title: `${auditoriaResp.nombreProceso} - ${auditoriaResp.tipoAuditoria}`,
+          start: new Date(
+            `${auditoriaResp.fechaProgramada}T${auditoriaResp.horaProgramada}`
+          ),
+          end: new Date(
+            `${auditoriaResp.fechaProgramada}T${auditoriaResp.horaProgramada}`
+          ),
           descripcion,
-          estado,
-          tipo,
+          estado: (estado || "").toLowerCase(),
+          tipo: (tipo || "").toLowerCase(),
           proceso,
           entidad,
           hora,
-          auditorLider,
-          auditorLiderId: auditorLider,
-          auditoresAdicionales: auditoresAdicionales.map(id => {
-            const auditor = auditores.find(a => a.idUsuario === id);
+          auditorLider: nombreLider,     // << nombre para tooltip
+          auditorLiderId: auditorLider,  // << id para lógica
+          auditoresAdicionales: audAdic.map((id) => {
+            const auditor = auditores.find((a) => a.idUsuario === id);
             return {
               id,
-              nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
+              nombre: auditor
+                ? `${auditor.nombre} ${auditor.apellidoPat}${auditor.apellidoMat ? ` ${auditor.apellidoMat}` : ""}`
+                : "Desconocido",
             };
-          })
+          }),
         };
 
-        setEvents(prev => [...prev, nuevaAuditoria]);
+        setEvents((prev) => [...prev, nuevaAuditoria]);
 
         setSnackbar({
           open: true,
-          message: auditoresAdicionales.length > 0
-            ? "Auditoría creada con auditores asignados correctamente"
-            : "Auditoría creada correctamente",
-          severity: "success"
+          message:
+            audAdic.length > 0
+              ? "Auditoría creada con auditores asignados correctamente"
+              : "Auditoría creada correctamente",
+          severity: "success",
         });
-
-
       }
 
       resetForm();
       handleCloseForm();
     } catch (error) {
-      console.error("Error al guardar la auditoría:", error.response ? error.response.data : error.message);
-      setSnackbar({ open: true, message: "Hubo un error al guardar la auditoría.", severity: "error" });
+      console.error(
+        "Error al guardar la auditoría:",
+        error?.response ? error.response.data : error?.message
+      );
+      setSnackbar({
+        open: true,
+        message: "Hubo un error al guardar la auditoría.",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
-   
   };
 
   return {

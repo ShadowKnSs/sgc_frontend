@@ -15,6 +15,7 @@ import axios from "axios";
 
 const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => {
   const [indicadores, setIndicadores] = useState([]);
+  const [planControlData, setPlanControlData] = useState([]); // Obtención de los datos de indicadores de  planControl
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -33,6 +34,20 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
         });
     }
   }, [idRegistro]);
+
+  useEffect(() => {
+    if (!idProceso) return;
+    axios
+      .get(`http://localhost:8000/api/plan-control/${idProceso}`)
+      .then((res) => {
+        setPlanControlData(res.data || []);
+        console.log("PlanControlData:", res.data);
+      })
+      .catch((err) => {
+        console.error("❌ Error al cargar resultados de Plan de Control:", err);
+        // No rompas toda la vista por esto; la gráfica ya muestra alerta si viene vacío
+      });
+  }, [idProceso]);
 
   const getIndicador = (origen) =>
     indicadores.find((i) => i.origenIndicador === origen);
@@ -84,8 +99,8 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       <TablaPlanControl idProceso={idProceso} anio={anio} />
       {/* Gráfica Plan de Control */}
       <PlanControlBarChart
+        data={planControlData}
         onImageReady={(imgBase64) => onImagenGenerada("planControl", imgBase64)}
-        idProceso={idProceso}
       />
 
       <TablaSatisfaccion idProceso={idProceso} anio={anio} />

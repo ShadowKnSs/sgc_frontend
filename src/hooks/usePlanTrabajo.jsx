@@ -3,6 +3,7 @@ import axios from "axios";
 
 export const usePlanTrabajo = (idRegistro) => {
   const [formData, setFormData] = useState({
+    responsable: "",
     fechaElaboracion: "",
     objetivo: "",
     revisadoPor: "",

@@ -108,6 +108,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
 
     // Sección 4 - Validación dinámica de planAccion
     (formData.planAccion || []).forEach((item, index) => {
+      const anyFilled = item.actividad || item.responsable || item.fechaProgramada;
+      if (!anyFilled) return; // todo vacío es válido
       if (!item.actividad) formErrors[`planAccion.${index}.actividad`] = "Actividad requerida";
       if (!item.responsable) formErrors[`planAccion.${index}.responsable`] = "Responsable requerido";
       if (!item.fechaProgramada) formErrors[`planAccion.${index}.fechaProgramada`] = "Fecha requerida";
@@ -150,11 +152,10 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     ) completed.push(3);
 
     // Paso 4: Plan de Acción
-    const validAccion = (formData.planAccion || []).every(
-      item => item.actividad && item.responsable && item.fechaProgramada
-    );
-    if (formData.planAccion?.length > 0 && validAccion) completed.push(4);
-
+    const acciones = formData.planAccion || [];
+    const vacio = acciones.length === 0;
+    const completo = acciones.length > 0 && acciones.every(item => item.actividad && item.responsable && item.fechaProgramada);
+    if (vacio || completo) completed.push(4);
     return completed;
   };
 
@@ -192,10 +193,6 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       errors.estadoSimilares
     ) {
       stepsError.push(3);
-    }
-
-    if (sectionHasErrors("planAccion.")) {
-      stepsError.push(4);
     }
 
     return stepsError;
@@ -389,7 +386,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 2:
         return (
           <Box>
-            
+
             {(formData.reaccion || []).map((item, index) => (
               <Box
                 key={index}
@@ -471,7 +468,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 4:
         return (
           <Box>
-            
+
             {(formData.planAccion || []).map((item, index) => (
               <Box
                 key={index}
@@ -479,19 +476,17 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               >
                 <TextField
                   label="Actividad"
-                  value={item.descripcionAct}
+                  value={item.actividad || ""}
                   onChange={(e) => handleDynamicChange("planAccion", index, "actividad", e.target.value)}
                   fullWidth
-                  error={!!errors[`planAccion.${index}.actividad`]}
-                  helperText={errors[`planAccion.${index}.actividad`]}
+                  
                 />
                 <TextField
                   label="Responsable"
                   value={item.responsable}
                   onChange={(e) => handleDynamicChange("planAccion", index, "responsable", e.target.value)}
                   fullWidth
-                  error={!!errors[`planAccion.${index}.responsable`]}
-                  helperText={errors[`planAccion.${index}.responsable`]}
+                  
                 />
                 <TextField
                   label="Fecha Programada"
@@ -500,8 +495,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   onChange={(e) => handleDynamicChange("planAccion", index, "fechaProgramada", e.target.value)}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors[`planAccion.${index}.fechaProgramada`]}
-                  helperText={errors[`planAccion.${index}.fechaProgramada`]}
+                  
                 />
                 <IconButton onClick={() => removeDynamicEntry("planAccion", index)}>
                   <Remove />

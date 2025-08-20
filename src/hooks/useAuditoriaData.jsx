@@ -21,13 +21,13 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       let response;
 
       if (["Administrador", "Coordinador"].includes(rolActivo.nombreRol)) {
-        response = await axios.get("http://127.0.0.1:8000/api/auditorias/todas", {
+        response = await axios.get("http://localhost:8000/api/auditorias/todas", {
           params: { rol: rolActivo.nombreRol }
         });
       } else if (rolActivo.nombreRol === 'Supervisor') {
-        response = await axios.get(`http://127.0.0.1:8000/api/auditorias/supervisor/${usuario.idUsuario}`);
+        response = await axios.get(`http://localhost:8000/api/auditorias/supervisor/${usuario.idUsuario}`);
       } else if (idProceso) {
-        response = await axios.post("http://127.0.0.1:8000/api/cronograma/filtrar", {
+        response = await axios.post("http://localhost:8000/api/cronograma/filtrar", {
           idProceso
         });
       } else {
@@ -50,7 +50,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
 
           let auditoresAdicionales = [];
           try {
-            const res = await axios.get(`http://127.0.0.1:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
+            const res = await axios.get(`http://localhost:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
             auditoresAdicionales = res.data;
           } catch (err) {
             console.warn(`No se pudieron cargar auditores adicionales para auditoría ${auditoria.idAuditoria}`);
@@ -91,11 +91,14 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
     const cargarDatosBase = async () => {
       try {
         const [resEntidades, resAuditores] = await Promise.all([
-          axios.get("http://127.0.0.1:8000/api/entidad-nombres"),
-          axios.get("http://127.0.0.1:8000/api/auditores"),
+          axios.get("http://localhost:8000/api/entidad-nombres"),
+          axios.get("http://localhost:8000/api/auditores"),
+
         ]);
         setEntidades(resEntidades.data.nombres);
         setAuditores(resAuditores.data.data);
+        console.log("📥 Respuesta ENTIDADES cruda:", resEntidades.data);
+        console.log("📥 Respuesta AUDITORES cruda:", resAuditores.data);
       } catch (err) {
         console.error("❌ Error al cargar datos base:", err);
       }
@@ -105,7 +108,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
 
   const obtenerProcesosPorEntidad = async (entidadNombre) => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/procesos-por-nombre-entidad", {
+      const res = await axios.get("http://localhost:8000/api/procesos-por-nombre-entidad", {
         params: { nombre: entidadNombre }
       });
       const nombres = res.data.procesos.map(p => p.nombreProceso);

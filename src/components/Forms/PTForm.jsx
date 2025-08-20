@@ -13,15 +13,27 @@ import { Edit, Person, CalendarMonth } from "@mui/icons-material";
 
 const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo }) => {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const userName = usuario?.nombre || "";
+
+  // Nombre completo (si hay apellidos en el storage)
+  const fullName = [
+    usuario?.nombre,
+    usuario?.apellidoPat,
+    usuario?.apellidoMat
+  ].filter(Boolean).join(" ") || "";
+
   const fechaHoy = new Date().toISOString().split("T")[0];
+
+  // Soporte para rolActivo como string u objeto { nombreRol: "Líder" }
+  const rolNombre = (typeof rolActivo === "string" ? rolActivo : rolActivo?.nombreRol) || "";
+
+  // Normaliza acentos para comparar “Líder” == “Lider”
+  const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const [editable, setEditable] = useState({
     responsable: false,
     objetivo: false,
   });
 
-  // Función para formatear fecha del backend a DD/MM/YYYY
   const formatearFecha = (fechaStr) => {
     if (!fechaStr) return "";
     const date = new Date(fechaStr);
@@ -29,27 +41,35 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
     const mes = String(date.getMonth() + 1).padStart(2, "0");
     const anio = date.getFullYear();
     return `${dia}/${mes}/${anio}`;
+    // Si tu backend ya manda YYYY-MM-DD, esto funciona bien.
   };
 
+  // Helper para llamar a tu handleChange con la misma forma que esperas
+  const setField = (name, value) =>
+    handleChange?.({ target: { name, value } });
+
   useEffect(() => {
-    if (rolActivo === "Lider") {
-      if (!formData.fechaElaboracion) {
-        handleChange({ target: { name: "fechaElaboracion", value: fechaHoy } });
+    // Si es Líder -> setear elaboradoPor y fechaElaboracion por defecto
+    if (norm(rolNombre) === "lider") {
+      if (!formData?.fechaElaboracion) {
+        setField("fechaElaboracion", fechaHoy);
       }
-      if (!formData.elaboradoPor) {
-        handleChange({ target: { name: "elaboradoPor", value: userName } });
+      if (!formData?.elaboradoPor) {
+        setField("elaboradoPor", fullName);
       }
     }
 
-    if (rolActivo === "Coordinador" || rolActivo === "Supervisor") {
-      if (!formData.revisadoPor) {
-        handleChange({ target: { name: "revisadoPor", value: userName } });
+    // Si es Coordinador o Supervisor -> setear revisadoPor y fechaRevision por defecto
+    if (["coordinador", "supervisor"].includes(norm(rolNombre))) {
+      if (!formData?.revisadoPor) {
+        setField("revisadoPor", fullName);
       }
-      if (!formData.fechaRevision) {
-        handleChange({ target: { name: "fechaRevision", value: fechaHoy } });
+      if (!formData?.fechaRevision) {
+        setField("fechaRevision", fechaHoy);
       }
     }
-  }, [rolActivo, handleChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rolNombre]); // no hace falta depender de formData/handleChange para evitar loops
 
   const enableEdit = (campo) => {
     if (!soloLectura && puedeEditar) {
@@ -81,12 +101,12 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
       <Grid container spacing={3}>
         {/* === Columna izquierda === */}
         <Grid item xs={12} md={6}>
+          {/* 👇 Muestra explícitamente “Elaboró” */}
           <InfoDisplay
             icon={<Person sx={{ color: "#185FA4" }} />}
-            label="Responsable"
-            value={formData.responsable}
+            label="Elaboró"
+            value={formData.elaboradoPor}
           />
-
           <InfoDisplay
             icon={<CalendarMonth sx={{ color: "#185FA4" }} />}
             label="Fecha de Elaboración"
@@ -101,7 +121,6 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
             label="Revisado por"
             value={formData.revisadoPor}
           />
-
           <InfoDisplay
             icon={<CalendarMonth sx={{ color: "#185FA4" }} />}
             label="Fecha de Revisión"
@@ -115,7 +134,7 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
             fullWidth
             label="Objetivo"
             name="objetivo"
-            value={formData.objetivo}
+            value={formData.objetivo || ""}
             onChange={handleChange}
             margin="normal"
             multiline

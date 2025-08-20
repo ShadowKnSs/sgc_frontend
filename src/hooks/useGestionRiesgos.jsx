@@ -25,6 +25,9 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     loadData();
   }, [idRegistro]);
 
+  
+  
+
   const fetchIdRegistro = async () => {
     try {
       const { data } = await axios.get("http://127.0.0.1:8000/api/getIdRegistroGR", {
@@ -45,21 +48,26 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     }
   };
 
+  // En la función fetchFormData
   const fetchFormData = async (idRegistro) => {
     try {
       const res = await axios.get(`http://127.0.0.1:8000/api/gestionriesgos/${idRegistro}`);
+
       if (res?.data) {
-        setGestionRiesgo((prev) => ({
+        setGestionRiesgo(prev => ({
           ...prev,
           idGesRies: res.data.idGesRies,
           elaboro: res.data.elaboro,
-          fechaelaboracion: res.data.fechaelaboracion?.split("T")[0] || prev.fechaelaboracion,
+          fechaelaboracion: res.data.fechaelaboracion || prev.fechaelaboracion,
         }));
         setTieneGesRies(true);
         cargarRiesgos(res.data.idGesRies);
       }
     } catch (error) {
-      console.log("[useGestionRiesgos] No existe gestionriesgos para idRegistro:", idRegistro);
+      // Manejar solo errores que no sean 404
+      if (error.response?.status !== 404) {
+        console.error("[useGestionRiesgos] Error al obtener gestionriesgos:", error);
+      }
     }
   };
 
@@ -128,6 +136,7 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     setRiesgos,
     setSavedData,
     cargarRiesgos
+    
   };
 };
 

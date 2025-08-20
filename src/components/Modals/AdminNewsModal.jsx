@@ -173,7 +173,7 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
       </Dialog >
 
       {/* Snackbar de Error */}
-      <Snackbar Snackbar
+      <Snackbar 
         open={errorOpen}
         autoHideDuration={3000}
         onClose={handleCloseError}
