@@ -121,8 +121,9 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
 
       <TablaMapaProceso idProceso={idProceso} anio={anio} />
       <GraficaMapaProceso
-        onImageReady={(img) => onImagenGenerada("mapaProceso", img)}
+        onImageReady={(tipo, img) => onImagenGenerada(tipo, img)}
         idProceso={idProceso}
+        anio={anio}
       />
 
       <TablaEficaciaRiesgos idProceso={idProceso} anio={anio} />
