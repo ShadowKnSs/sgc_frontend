@@ -1,53 +1,4 @@
-/**
- * Vista: Login.jsx
- * Descripción:
- * Componente de inicio de sesión del sistema de Gestión de Calidad. Ofrece dos métodos de autenticación:
- * 1. Mediante RPE y contraseña.
- * 2. Mediante token temporal validado por backend.
-
- * Funcionalidades clave:
- * - Manejo visual y lógico de dos métodos de autenticación (toggle con botón).
- * - Envío de credenciales al backend para validación (`/api/login`).
- * - Envío y validación de token temporal (`/api/validar-token`).
- * - Guardado de datos del usuario (`usuario`), roles (`roles`) y `rolActivo` en `localStorage`.
- * - Redirección automática en caso de inicio exitoso.
- * - Modal visual para mostrar mensajes de éxito o error.
- * - Diseño responsive con distinción visual entre columna izquierda (branding) y columna derecha (formulario).
-
- * Estados locales:
- * - `rpe`, `password`: datos de usuario.
- * - `token`, `useToken`: token temporal y selector de modo.
- * - `loading`: control de estado de carga al hacer login.
- * - `modal`: configuración del mensaje emergente (tipo, título, contenido).
-
- * Navegación:
- * - Redirección hacia:
- *    - `/`: para administradores.
- *    - `/user-eventos`: para usuarios comunes.
- *    - `/seleccionarRol`: si el usuario tiene múltiples roles.
-
- * Lógica adicional:
- * - Si un usuario ingresa por token:
- *    - Se simula un usuario con `idUsuario !== 0` y se almacena en localStorage.
- *    - Se marca con `localStorage.viaToken = true` para su posterior rastreo.
-
- * Componentes y estilos:
- * - Utiliza `Material UI` (`TextField`, `Dialog`, `CircularProgress`, `InputAdornment`, etc.)
- * - Colores organizados en `colorPalette` para consistencia visual.
- * - Uso de `Paper` para estructura y separación de columnas.
- * - Íconos como `EmailIcon`, `LockIcon`, `CheckCircleIcon`, `CancelIcon` para experiencia de usuario visual.
-
- * Mejoras sugeridas:
- * - Integrar validación de formularios con `Yup` o `react-hook-form`.
- * - Añadir botón de mostrar/ocultar contraseña.
- * - Validación de longitud o formato de token.
- * - Recordar última opción de login (token o usuario).
- * - Centralizar lógica de almacenamiento (`setLocalStorageUsuario()`).
-
- * Seguridad:
- * - Asegurar en backend el cifrado de contraseñas y la expiración controlada de tokens.
- * - Verificar uso de HTTPS en producción.
- */
+// Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -138,6 +89,71 @@ export default function Login() {
     }
   };
 
+  const handleInstitucionalLogin = async () => {
+    setLoading(true);
+    try {
+      // Primero redirigimos al backend de Laravel
+      window.location.href = "http://localhost:8000/api/login-institucional";
+    } catch (error) {
+      showModal("error", "Error", "No se pudo iniciar el proceso de autenticación institucional");
+      setLoading(false);
+    }
+  };
+
+  // Función para verificar si estamos en la callback del login institucional
+  const checkInstitucionalCallback = async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const success = urlParams.get('success');
+  const error = urlParams.get('error');
+  const token = urlParams.get('token');
+  const usuarioParam = urlParams.get('usuario');
+  const rolesParam = urlParams.get('roles');
+  
+  if (success === 'true' && token && usuarioParam && rolesParam) {
+    setLoading(true);
+    try {
+      // Parsear datos
+      const usuario = JSON.parse(usuarioParam);
+      const roles = JSON.parse(rolesParam);
+      
+      // Guardar datos en localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("usuario", JSON.stringify(usuario));
+      localStorage.setItem("roles", JSON.stringify(roles));
+      localStorage.setItem("institucional", "true");
+      
+      if (roles.length === 1) {
+        const rol = roles[0];
+        localStorage.setItem("rolActivo", JSON.stringify(rol));
+        showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema");
+        setTimeout(() => {
+          rol.nombreRol === "Administrador" ? navigate("/") : navigate("/user-eventos");
+        }, 1500);
+      } else if (roles.length > 1) {
+        navigate("/seleccionarRol");
+      } else {
+        showModal("error", "Sin roles", "No se encontraron roles asignados");
+      }
+      
+      // Limpiar URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+      showModal("error", "Error", "Error al procesar la autenticación institucional");
+    } finally {
+      setLoading(false);
+    }
+  } else if (error) {
+    showModal("error", "Error", error);
+    // Limpiar URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+};
+
+  // Ejecutar la verificación al cargar el componente
+  React.useEffect(() => {
+    checkInstitucionalCallback();
+  }, []);
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       if (!useToken && rpe.trim() && password.trim()) {
@@ -148,12 +164,10 @@ export default function Login() {
     }
   };
 
-
   return (
     <>
       <LoginLayout>
         <Box onKeyDown={handleKeyDown} tabIndex={0}>
-
           {useToken ? (
             <TokenForm
               token={token}
@@ -187,11 +201,10 @@ export default function Login() {
             {useToken ? "Iniciar sesión con RPE" : "Usar token"}
           </Button>
 
-          {/* <Button
+          <Button
             fullWidth
-            onClick={() => {
-              window.location.href = "https://login.uaslp.mx/LoginGateway/Default.aspx?ReturnUrl=http://127.0.0.1:8000/login-institucional/callback";
-            }}
+            onClick={handleInstitucionalLogin}
+            disabled={loading}
             sx={{
               mt: 1,
               color: "#fff",
@@ -202,7 +215,7 @@ export default function Login() {
             }}
           >
             Iniciar sesión institucional
-          </Button> */}
+          </Button>
         </Box>
       </LoginLayout>
 
