@@ -1,3 +1,4 @@
+// src/components/Graficas/GraficaRetroalimentacion.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Alert } from "@mui/material";
 import {
@@ -13,7 +14,7 @@ import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
+const GraficaRetroalimentacion = ({ data = [], onImageReady }) => {
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
   const [chartData, setChartData] = useState(null);
@@ -21,8 +22,6 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
   useEffect(() => {
     if (!Array.isArray(data) || data.length === 0) return;
 
-    console.log("Datos de la grafica de Retro:", data);
-    // Ajusta los nombres de las propiedades según lo que reciba en `data`
     const labels = data.map(item => item.nombreIndicador);
     const datasetFelicitaciones = data.map(item => item.cantidadFelicitacion ?? item.felicitaciones ?? 0);
     const datasetSugerencias = data.map(item => item.cantidadSugerencia ?? item.sugerencias ?? 0);
@@ -52,7 +51,6 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
 
   useEffect(() => {
     if (chartRef.current && chartData && !yaGenerada.current) {
-      // Usar un timeout para asegurar que el gráfico se haya renderizado
       const timer = setTimeout(() => {
         if (chartRef.current) {
           const base64 = chartRef.current.toBase64Image("image/png", 1.0);
@@ -61,7 +59,7 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
             yaGenerada.current = true;
           }
         }
-      }, 500); // Esperar 500ms después de que chartData se establezca
+      }, 500);
 
       return () => clearTimeout(timer);
     }
@@ -107,4 +105,4 @@ const GraficaRetroalimentacionConjunta = ({ data = [], onImageReady }) => {
   );
 };
 
-export default GraficaRetroalimentacionConjunta;
+export default GraficaRetroalimentacion;

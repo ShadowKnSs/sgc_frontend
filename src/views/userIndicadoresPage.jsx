@@ -86,7 +86,7 @@ const UnifiedIndicatorPage = () => {
 
         const indicadores = [...resAnalisis.data.indicadores, ...resGestion.data.indicadores, ...resEstructura.data.indicadores];
         setIndicators(indicadores);
-
+        console.log("Indicadores", indicadores);
         const resultadosMap = {};
         const planControl = [], mapaProceso = [], riesgos = [], retroalimentacion = [];
         let encuesta = null, evaluacion = null;
@@ -95,16 +95,43 @@ const UnifiedIndicatorPage = () => {
           let resultado = {};
           switch (ind.origenIndicador) {
             case "Encuesta":
-              resultado = ind.encuesta;
-              encuesta = ind.encuesta;
+              // CORRECCIÓN: Los datos de encuesta están en las propiedades directas del objeto
+              resultado = {
+                malo: ind.malo,
+                regular: ind.regular,
+                bueno: ind.bueno,
+                excelente: ind.excelente,
+                noEncuestas: ind.noEncuestas
+              };
+              encuesta = resultado; // Asignamos el objeto resultado a encuesta
               break;
             case "Retroalimentacion":
-              resultado = ind.retroalimentacion;
-              if (resultado) retroalimentacion.push({ nombreIndicador: ind.nombreIndicador, ...resultado });
+              // CORRECCIÓN: Los datos de retroalimentación están en las propiedades directas del objeto
+              resultado = {
+                cantidadFelicitacion: ind.cantidadFelicitacion,
+                cantidadSugerencia: ind.cantidadSugerencia,
+                cantidadQueja: ind.cantidadQueja
+              };
+              if (resultado.cantidadFelicitacion != null ||
+                resultado.cantidadSugerencia != null ||
+                resultado.cantidadQueja != null) {
+                retroalimentacion.push({
+                  nombreIndicador: ind.nombreIndicador,
+                  ...resultado
+                });
+              }
               break;
             case "EvaluaProveedores":
-              resultado = ind.evalua_proveedores;
-              evaluacion = ind.evalua_proveedores;
+              // CORRECCIÓN: Los datos de evaluación de proveedores están en las propiedades directas del objeto
+              resultado = {
+                resultadoConfiableSem1: ind.resultadoConfiableSem1,
+                resultadoConfiableSem2: ind.resultadoConfiableSem2,
+                resultadoCondicionadoSem1: ind.resultadoCondicionadoSem1,
+                resultadoCondicionadoSem2: ind.resultadoCondicionadoSem2,
+                resultadoNoConfiableSem1: ind.resultadoNoConfiableSem1,
+                resultadoNoConfiableSem2: ind.resultadoNoConfiableSem2
+              };
+              evaluacion = resultado; // Asignamos el objeto resultado a evaluacion
               break;
             case "ActividadControl":
               resultado = {
@@ -154,31 +181,31 @@ const UnifiedIndicatorPage = () => {
   const getIndicatorStatus = (ind, results) => {
     const origen = ind.origenIndicador?.toLowerCase().trim();
     const res = results[ind.idIndicador] || {};
-  const isNullOrZero = v => v == null || Number(v) === 0;
+    const isNullOrZero = v => v == null || Number(v) === 0;
 
     switch (origen) {
-       case "encuesta": {
-      const vals = [res.malo, res.regular, res.bueno, res.excelente, res.noEncuestas];
-      if (vals.every(isNullOrZero)) return "noRecord";
-      if (vals.some(v => v == null)) return "incomplete";
-      return "complete";
-    }
-    case "retroalimentacion": {
-      const vals = [res.cantidadFelicitacion, res.cantidadSugerencia, res.cantidadQueja];
-      if (vals.every(isNullOrZero)) return "noRecord";
-      if (vals.some(v => v == null)) return "incomplete";
-      return "complete";
-    }
-    case "evaluaproveedores": {
-      const vals = [
-        res.resultadoConfiableSem1, res.resultadoConfiableSem2,
-        res.resultadoCondicionadoSem1, res.resultadoCondicionadoSem2,
-        res.resultadoNoConfiableSem1, res.resultadoNoConfiableSem2
-      ];
-      if (vals.every(isNullOrZero)) return "noRecord";
-      if (vals.some(v => v == null)) return "incomplete";
-      return "complete";
-    }
+      case "encuesta": {
+        const vals = [res.malo, res.regular, res.bueno, res.excelente, res.noEncuestas];
+        if (vals.every(isNullOrZero)) return "noRecord";
+        if (vals.some(v => v == null)) return "incomplete";
+        return "complete";
+      }
+      case "retroalimentacion": {
+        const vals = [res.cantidadFelicitacion, res.cantidadSugerencia, res.cantidadQueja];
+        if (vals.every(isNullOrZero)) return "noRecord";
+        if (vals.some(v => v == null)) return "incomplete";
+        return "complete";
+      }
+      case "evaluaproveedores": {
+        const vals = [
+          res.resultadoConfiableSem1, res.resultadoConfiableSem2,
+          res.resultadoCondicionadoSem1, res.resultadoCondicionadoSem2,
+          res.resultadoNoConfiableSem1, res.resultadoNoConfiableSem2
+        ];
+        if (vals.every(isNullOrZero)) return "noRecord";
+        if (vals.some(v => v == null)) return "incomplete";
+        return "complete";
+      }
       case "mapaproceso":
       case "actividadcontrol":
         return !res.resultadoSemestral1 && !res.resultadoSemestral2 ? "noRecord" : res.resultadoSemestral1 && res.resultadoSemestral2 ? "complete" : "incomplete";
@@ -254,7 +281,12 @@ const UnifiedIndicatorPage = () => {
           <ProcesoEntidad idProceso={paramProceso} />
         </Box>
         <Box sx={{ position: "absolute", top: 10, right: -150 }}>
-          <IrGraficasBoton idRegistro={registrosPorApartado["Análisis de Datos"] ?? null} datosGraficas={datosGraficas} />
+          <IrGraficasBoton
+            idRegistro={registrosPorApartado["Análisis de Datos"] ?? null}
+            datosGraficas={datosGraficas}
+            idProceso={paramProceso}
+            anio={anio}
+          />
         </Box>
       </Box>
       <Box sx={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 2, mb: 6 }}>

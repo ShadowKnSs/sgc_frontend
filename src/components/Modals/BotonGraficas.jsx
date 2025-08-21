@@ -3,12 +3,12 @@ import { Fab, Tooltip, Box } from '@mui/material';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useNavigate } from 'react-router-dom';
 
-const IrGraficasBoton = ({ idRegistro, datosGraficas }) => {
+const IrGraficasBoton = ({ idRegistro, datosGraficas, idProceso, anio}) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
     navigate(`/graficas/${idRegistro}`, {
-      state: { datosGraficas }
+      state: {  datosGraficas, idProceso, anio: Number(anio)}
     });
   };
 

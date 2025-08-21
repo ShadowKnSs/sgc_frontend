@@ -17,7 +17,8 @@ const GraficasPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const datosGraficasFromState = location.state?.datosGraficas;
-
+  const idProceso = location.state?.idProceso;
+  const anio = location.state?.anio;
   useEffect(() => {
     if (!datosGraficasFromState) {
       setError("Datos no disponibles para mostrar gráficas.");
@@ -27,6 +28,11 @@ const GraficasPage = () => {
     setDatosGraficas(datosGraficasFromState);
     setLoading(false);
   }, [datosGraficasFromState]);
+
+  const handleImageReady = (tipo, base64) => {
+    console.log(`Imagen de ${tipo} lista:`, base64);
+    // Aquí puedes hacer algo con la imagen, como guardarla en un estado
+  };
 
   if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error">{error}</Alert>;
@@ -44,33 +50,34 @@ const GraficasPage = () => {
 
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
-          <Typography variant="h5" gutterBottom sx={{color: "#185FA4"}}>Plan de Control</Typography>
+          <Typography variant="h5" gutterBottom sx={{ color: "#185FA4" }}>Plan de Control</Typography>
           <PlanControlBarChart data={datosGraficas.planControl} />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography variant="h5" sx={{color: "#185FA4"}} gutterBottom>Encuesta de Satisfacción</Typography>
-          {datosGraficas.encuesta ? <GraficaEncuesta data={datosGraficas.encuesta} /> : <Alert severity="info">No se encontró indicador de encuesta.</Alert>}
+          <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Encuesta de Satisfacción</Typography>
+          {datosGraficas.encuesta ? <GraficaEncuesta data={datosGraficas.encuesta} onImageReady={handleImageReady}
+          /> : <Alert severity="info">No se encontró indicador de encuesta.</Alert>}
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography variant="h5" sx={{color: "#185FA4"}} gutterBottom>Retroalimentación</Typography>
+          <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Retroalimentación</Typography>
           {datosGraficas.retroalimentacion?.length > 0 ? <GraficaRetroalimentacion data={datosGraficas.retroalimentacion} /> : <Alert severity="info">No se encontraron indicadores de retroalimentación.</Alert>}
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography variant="h5" sx={{color: "#185FA4"}} gutterBottom>Mapa de Proceso</Typography>
-          <GraficaMapaProceso data={datosGraficas.mapaProceso} />
+          <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Mapa de Proceso</Typography>
+          <GraficaMapaProceso idProceso={idProceso} anio={anio} />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography variant="h5" sx={{color: "#185FA4"}} gutterBottom>Gestión de Riesgos</Typography>
+          <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Gestión de Riesgos</Typography>
           <GraficaRiesgos data={datosGraficas.riesgos} />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography variant="h5" sx={{color: "#185FA4"}} gutterBottom>Evaluación de Proveedores</Typography>
-          {datosGraficas.evaluacion ? <GraficaEvaluacionProveedores data={datosGraficas.evaluacion} /> : <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>}
+          <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Evaluación de Proveedores</Typography>
+          {datosGraficas.evaluacion ? <GraficaEvaluacionProveedores idProceso={idProceso} anio={anio} /> : <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>}
         </Grid>
       </Grid>
     </Container>

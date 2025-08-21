@@ -1,7 +1,5 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { Box, CircularProgress, Alert, Typography } from "@mui/material";
-import { Bar } from "react-chartjs-2";
-import axios from "axios";
+import React, { useRef, useEffect, useMemo, useState } from "react";
+import { Box, Alert, Typography } from "@mui/material";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,150 +9,92 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
+import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const GraficaEvaluacionProveedoresStacked = ({ idProceso, anio, onImageReady }) => {
+const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
-  const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [renderAttempts, setRenderAttempts] = useState(0);
+  const [chartInstance, setChartInstance] = useState(null);
 
-  // Obtener datos desde la API
-  useEffect(() => {
-    if (!idProceso || !anio) {
-      setError("Faltan parámetros necesarios (idProceso o anio)");
-      setLoading(false);
-      return;
-    }
+  const chartData = useMemo(() => {
+    if (!data) return null;
 
-    axios.get(`http://localhost:8000/api/indicadores/evaluacion-proveedores/${idProceso}/${anio}`)
-      .then(response => {
-        const data = response.data || [];
-
-        if (data.length === 0) {
-          setError("No hay datos de evaluación de proveedores disponibles");
-          setLoading(false);
-          return;
+    return {
+      labels: ["Ene-Jun", "Jul-Dic"],
+      datasets: [
+        {
+          label: "Confiable",
+          data: [
+            Number(data.resultadoConfiableSem1) || 0,
+            Number(data.resultadoConfiableSem2) || 0
+          ],
+          backgroundColor: "#4CAF50",
+          borderColor: "#388E3C",
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: "Condicionado",
+          data: [
+            Number(data.resultadoCondicionadoSem1) || 0,
+            Number(data.resultadoCondicionadoSem2) || 0
+          ],
+          backgroundColor: "#FFC107",
+          borderColor: "#FFA000",
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: "No Confiable",
+          data: [
+            Number(data.resultadoNoConfiableSem1) || 0,
+            Number(data.resultadoNoConfiableSem2) || 0
+          ],
+          backgroundColor: "#F44336",
+          borderColor: "#D32F2F",
+          borderWidth: 1,
+          borderRadius: 4,
         }
+      ]
+    };
+  }, [data]);
 
-        // Tomar el primer indicador (asumimos que solo hay uno)
-        const indicador = data[0];
+  const onChartReady = (chart) => {
+    setChartInstance(chart);
+  };
 
-        const formattedData = {
-          labels: ["Ene-Jun", "Jul-Dic"],
-          datasets: [
-            {
-              label: "Confiable",
-              data: [
-                Number(indicador.resultadoConfiableSem1) || 0,
-                Number(indicador.resultadoConfiableSem2) || 0
-              ],
-              backgroundColor: "#4CAF50",
-              borderColor: "#388E3C",
-              borderWidth: 1,
-              borderRadius: 4,
-            },
-            {
-              label: "Condicionado",
-              data: [
-                Number(indicador.resultadoCondicionadoSem1) || 0,
-                Number(indicador.resultadoCondicionadoSem2) || 0
-              ],
-              backgroundColor: "#FFC107",
-              borderColor: "#FFA000",
-              borderWidth: 1,
-              borderRadius: 4,
-            },
-            {
-              label: "No Confiable",
-              data: [
-                Number(indicador.resultadoNoConfiableSem1) || 0,
-                Number(indicador.resultadoNoConfiableSem2) || 0
-              ],
-              backgroundColor: "#F44336",
-              borderColor: "#D32F2F",
-              borderWidth: 1,
-              borderRadius: 4,
-            }
-          ]
-        };
-
-        setChartData(formattedData);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("❌ Error al cargar evaluación de proveedores:", err);
-        setError("Error al cargar datos de evaluación de proveedores.");
-        setLoading(false);
-      });
-  }, [idProceso, anio]);
-
-  // Función para generar la imagen
-  const generateImage = useCallback(() => {
-    if (yaGenerada.current) return;
-
-    const chart = chartRef.current;
-    if (!chart) {
-      console.warn("Chart instance not available");
-      if (renderAttempts < 5) {
-        setTimeout(generateImage, 300);
-        setRenderAttempts(prev => prev + 1);
-      }
-      return;
-    }
-
-    try {
-      // Forzar una actualización del gráfico
-      chart.update();
-
-      // Pequeña pausa para permitir que el gráfico se renderice
-      setTimeout(() => {
+  useEffect(() => {
+    if (chartInstance && chartData && !yaGenerada.current) {
+      const timer = setTimeout(() => {
         try {
-          const base64 = chart.toBase64Image("image/png", 1.0);
-
-          if (base64 && base64.startsWith("data:image/png;base64,")) {
-            onImageReady(base64); yaGenerada.current = true;
-            console.log("✅ Imagen de evaluación de proveedores generada correctamente");
-          } else {
-            console.error("❌ Base64 inválido generado");
-            // Reintentar después de un breve tiempo si no hemos excedido los intentos
-            if (renderAttempts < 5) {
-              setTimeout(generateImage, 300);
-              setRenderAttempts(prev => prev + 1);
-            }
+          const base64 = chartInstance.toBase64Image("image/png", 1.0);
+          
+          if (base64 && base64.startsWith("data:image/png;base64,") && typeof onImageReady === "function") {
+            onImageReady("evaluacionProveedores", base64);
+            yaGenerada.current = true;
           }
         } catch (error) {
-          console.error("❌ Error al generar imagen:", error);
-          // Reintentar después de un breve tiempo si no hemos excedido los intentos
-          if (renderAttempts < 5) {
-            setTimeout(generateImage, 300);
-            setRenderAttempts(prev => prev + 1);
-          }
+          console.error("Error al generar imagen:", error);
         }
-      }, 100);
-    } catch (error) {
-      console.error("❌ Error al actualizar el gráfico:", error);
-      // Reintentar después de un breve tiempo si no hemos excedido los intentos
-      if (renderAttempts < 5) {
-        setTimeout(generateImage, 300);
-        setRenderAttempts(prev => prev + 1);
-      }
-    }
-  }, [onImageReady, renderAttempts]);
-
-  // Generar imagen cuando los datos estén disponibles
-  useEffect(() => {
-    if (chartData && !yaGenerada.current) {
-      // Esperar un poco más para asegurar que el gráfico esté completamente renderizado
-      const timer = setTimeout(generateImage, 1000);
+      }, 500);
+      
       return () => clearTimeout(timer);
     }
-  }, [chartData, generateImage]);
+  }, [chartInstance, chartData, onImageReady]);
 
-  const options = useMemo(() => ({
+  if (!data) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Alert severity="info">No hay datos de Evaluación de Proveedores disponibles.</Alert>
+      </Box>
+    );
+  }
+
+  if (!chartData) return null;
+
+  const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -238,27 +178,9 @@ const GraficaEvaluacionProveedoresStacked = ({ idProceso, anio, onImageReady }) 
       }
     },
     animation: {
-      duration: 0 // Desactivar animaciones para renderizado más rápido
+      duration: 0
     }
-  }), []);
-
-  if (loading) return <CircularProgress />;
-
-  if (error) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Alert severity="info">{error}</Alert>
-      </Box>
-    );
-  }
-
-  if (!chartData) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Alert severity="info">No hay datos disponibles para mostrar la gráfica.</Alert>
-      </Box>
-    );
-  }
+  };
 
   return (
     <Box sx={{ width: "100%", mt: 4 }}>
@@ -277,7 +199,10 @@ const GraficaEvaluacionProveedoresStacked = ({ idProceso, anio, onImageReady }) 
         }}
       >
         <Bar
-          ref={chartRef}
+          ref={(chart) => {
+            chartRef.current = chart;
+            if (chart) onChartReady(chart);
+          }}
           data={chartData}
           options={options}
         />
@@ -286,4 +211,4 @@ const GraficaEvaluacionProveedoresStacked = ({ idProceso, anio, onImageReady }) 
   );
 };
 
-export default GraficaEvaluacionProveedoresStacked;
+export default GraficaEvaluacionProveedores;

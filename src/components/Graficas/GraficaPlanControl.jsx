@@ -73,7 +73,7 @@ export default function PlanControlBarChart({
           type: "bar",
           label: "Ene–Jun",
           data: s1,
-          backgroundColor: "rgba(0, 102, 204, 0.85)", // azul
+          backgroundColor: "#00B2E3", // azul
           borderColor: "rgba(0, 102, 204, 1)",
           borderWidth: 1,
           borderRadius: 5,
