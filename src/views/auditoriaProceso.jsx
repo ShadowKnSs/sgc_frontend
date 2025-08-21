@@ -19,7 +19,6 @@ import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import axios from "axios";
 import { CircularProgress } from '@mui/material';
 
-
 const AuditoriaProceso = () => {
   const { idRegistro } = useParams(); // ID de la carpeta (representa el año)
   const location = useLocation();
@@ -127,7 +126,6 @@ const AuditoriaProceso = () => {
     fetchAnioRegistro();
 
   }, [idProceso, idRegistro]);
-
 
   if (!idProceso) {
     if (errorCarga) {
