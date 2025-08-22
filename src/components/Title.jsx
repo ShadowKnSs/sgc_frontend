@@ -24,7 +24,7 @@ const Title = ({ text, children }) => (
       justifyContent: "center",
       alignItems: "baseline",
       gap: 2,
-      mb: 4,
+      mb: 3,
       px: 2,
     }}
   >
