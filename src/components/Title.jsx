@@ -1,3 +1,9 @@
+/**
+ * Componente: Title
+ * Descripción:
+ * Muestra un título principal centrado con una línea decorativa inferior.
+ * Admite contenido adicional (children) como íconos, botones u otros elementos.
+ */
 import React from "react";
 import { Typography, Box } from "@mui/material";
 

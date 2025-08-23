@@ -1,3 +1,45 @@
+/**
+ * Componente: ProcessView
+ * Descripción:
+ * Vista principal del módulo "Acciones de Mejora". 
+ * Muestra tres secciones clave: Plan de Acción Correctivo, Plan de Trabajo y Proyecto de Mejora.
+ * Incluye navegación por pestañas, contexto del proceso y validación de permisos.
+
+ * Props: 
+ * - No recibe props directamente. Usa `useParams` y `location.state`.
+
+ * Hooks:
+ * - useParams: para obtener el `idRegistro` desde la URL.
+ * - useLocation: para extraer `idProceso`, `rolActivo`, y permisos desde el `state` o localStorage.
+ * - useState: para manejar pestañas activas, datos del proceso, etc.
+ * - useEffect: para cargar el `idProceso` si no está definido, consultando a la API con el `idRegistro`.
+
+ * Subcomponentes Renderizados:
+ * - `PlanCorrectivoContainer`: para acciones correctivas.
+ * - `PlanTrabajo`: para planes operativos del proceso.
+ * - `ProyectoMejoraContainer`: para proyectos de mejora continua.
+ * - `ContextoProcesoEntidad`: muestra nombre de la entidad y proceso.
+ * - `MenuNavegacionProceso`: navegación lateral relacionada al proceso.
+
+ * Funcionalidades:
+ * 1.  Validación de permisos (`soloLectura`, `puedeEditar`) desde el hook `Permiso`.
+ * 2.  Navegación entre secciones con animación y estilos personalizados.
+ * 3.  Carga dinámica del `idProceso` si no está disponible (a partir de `idRegistro`).
+ * 4.  Uso de localStorage como fallback si `location.state` no incluye los datos necesarios.
+ * 5.  Diseño responsive y adaptable con scroll horizontal en la barra de navegación.
+
+ * Buenas prácticas:
+ * - Separación de lógica de renderizado (`renderContent`) de la estructura visual.
+ * - Uso de un arreglo `sections` para evitar duplicación en el manejo de pestañas.
+ * - Consulta condicional de datos (`fetchProceso`) para optimizar llamadas a la API.
+
+ * Recomendaciones futuras:
+ * - Implementar la función `scrollNav()` para desplazar la barra de navegación horizontal en pantallas pequeñas.
+ * -  Agregar feedback visual al cambiar de pestaña (como un pequeño indicador animado).
+ * -  Extraer las secciones a componentes separados si el número de vistas crece.
+
+ */
+
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Box, Container, Button, IconButton } from "@mui/material";

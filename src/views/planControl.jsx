@@ -1,3 +1,48 @@
+/**
+ * Vista: ProcessMapView (Plan de Control)
+ * Descripción:
+ * Este componente permite visualizar, registrar y expandir actividades del Plan de Control
+ * asociadas a un proceso específico (`idProceso`).
+
+ * Funcionalidades principales:
+ * -  Obtener actividades registradas desde el backend (GET /actividadcontrol/:idProceso).
+ * -  Registrar una nueva actividad mediante un formulario validado (POST /actividadcontrol).
+ * -  Expandir cada actividad en una "card" con detalle completo (grid de campos).
+ * -  Vista tipo "tarjetas" expandibles y colapsables con botón de desplegado/cierre total.
+ * -  Control de scroll para mostrar botón flotante fijo.
+ * -  No permite edición o eliminación por el momento (solo creación).
+
+ * Validación:
+ * - El formulario incluye validación para todos los campos antes de enviar al backend.
+ * - Se controla el estado de errores localmente y se muestra feedback en los inputs.
+
+ * Props esperados:
+ * - `idProceso`: ID del proceso asociado (usado para filtrar y registrar actividades).
+ * - `soloLectura`: booleano que deshabilita las funcionalidades de edición o registro si es `true`.
+
+ * Componentes utilizados:
+ * - Material UI: `Card`, `TextField`, `Dialog`, `Button`, `Fab`, `Typography`, `Table`, `IconButton`, etc.
+ * - Iconos: `ExpandMore`, `ExpandLess`, `Close`, `Add`.
+ * - Función auxiliar: `UserCard` interna que renderiza una tarjeta expandida o colapsada.
+
+ * Estado del componente:
+ * - `actividades`: Lista de actividades obtenidas del backend.
+ * - `newActividad`: Actividad a crear (campos del formulario).
+ * - `errors`: Errores de validación por campo.
+ * - `activeCards`: Actividades desplegadas actualmente.
+ * - `allExpanded`: Indica si todas las actividades están desplegadas.
+ * - `openForm`: Controla si el formulario de registro está visible.
+ * - `isFixed`: Controla la posición del botón flotante basado en el scroll.
+
+ * Backend requerido:
+ * - GET `/api/actividadcontrol/:idProceso` → Obtener actividades del proceso.
+ * - POST `/api/actividadcontrol` → Crear una nueva actividad de control.
+
+ * Consideraciones futuras:
+ * -  Se puede extender fácilmente para incluir edición y eliminación de actividades.
+ * -  Puede integrarse a vistas más grandes como `ProcesoView` u otros módulos.
+ */
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {

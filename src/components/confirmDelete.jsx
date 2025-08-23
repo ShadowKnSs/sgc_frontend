@@ -1,6 +1,14 @@
+/**
+ * Componente: ConfirmDelete
+ * Descripción:
+ * Diálogo reutilizable para confirmar la eliminación de diferentes tipos de entidades (usuario, proceso, entidad, etc.).
+ * Usa `DialogTitleCustom` y `CustomButton` para mantener el estilo consistente.
+ */
 import { Dialog, DialogContent, DialogActions } from "@mui/material";
 import DialogTitleCustom from './TitleDialog';
 import CustomButton from './Button';
+
+// Genera el mensaje según el tipo de entidad
 
 const getDeleteMessage = (type, name) => {
   switch (type) {

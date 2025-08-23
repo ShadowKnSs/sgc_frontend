@@ -1,3 +1,59 @@
+/**
+ * Componente: FormularioAnalisis
+ * Descripción:
+ * Vista encargada de mostrar y editar la sección de "Análisis de Datos" para un proceso específico.
+ * Incluye información general, indicadores por secciones (conformidad, desempeño, eficacia, satisfacción, evaluación),
+ * y permite registrar o actualizar la necesidad e interpretación del comportamiento del proceso.
+
+ * Funcionalidades principales:
+ * 1. ✅ Carga datos del proceso (entidad, macroproceso, nombre, año) a partir de un `idRegistro`.
+ * 2. ✅ Carga indicadores clasificados por origen: ActividadControl, MapaProceso, Encuesta, Retroalimentación, EvaluaProveedores.
+ * 3. ✅ Carga e inicializa la sección de "Necesidad e Interpretación" por cada pestaña.
+ * 4. ✅ Permite modificar el periodo de evaluación y guardar los cambios si el usuario tiene permisos de edición.
+ * 5. ✅ Permite actualizar de forma parcial los campos de necesidad e interpretación por sección.
+ * 6. ✅ Utiliza pestañas (`Tabs`) para dividir las secciones del análisis.
+ * 7. ✅ Incluye validación de carga, animaciones (`Fade`) y retroalimentación visual (`Snackbar`, `Alert`).
+ * 8. ✅ Navega a la vista de indicadores del proceso mediante botón de acceso.
+
+ * Estados:
+ * - `formData`: datos generales del proceso.
+ * - `indicadores`: indicadores agrupados por origen.
+ * - `necesidadInterpretacion`: estado editable para cada sección.
+ * - `selectedTab`: pestaña activa.
+ * - `modoEdicion`: controla si se está editando el periodo.
+ * - `loading`, `snackbar`, `datosProceso`: estados de carga y visualización.
+
+ * Hooks utilizados:
+ * - `useParams`, `useLocation`, `useNavigate` para routing.
+ * - `useState`, `useEffect` para control de datos.
+ * - `useMenuProceso`, `Permiso` para configuración dinámica según usuario.
+
+ * Componentes reutilizables:
+ * - `Title`: título estilizado general.
+ * - `MenuNavegacionProceso`: navegación lateral del proceso.
+ * - `ButtonInd`: botón customizado con tipos (`guardar`, `aceptar`, `cancelar`).
+ * - `Snackbar`, `Alert`: retroalimentación de acciones del usuario.
+
+ * Backend:
+ * - Endpoints involucrados:
+ *    - `/api/getIdRegistro`
+ *    - `/api/analisisDatos/:idRegistro`
+ *    - `/api/analisisDatos/:idRegistro/guardar-completo`
+ *    - `/api/analisisDatos/:idRegistro/necesidad-interpretacion`
+ *
+ * Consideraciones:
+ * - Modulariza cada sección para facilitar mantenimiento.
+ * -  Puede escalarse para permitir edición individual por cada fila de indicadores si se requiere.
+ * -  Asegurarse de que los valores `idProceso` y `anio` estén siempre disponibles para evitar navegación incorrecta.
+ * -  Validar datos de entrada antes de envío masivo (periodo o necesidad vacíos).
+
+ * Posibles mejoras futuras:
+ * - Mostrar gráficas por cada sección con Chart.js.
+ * - Exportar sección a PDF.
+ * - Permitir comentarios o anotaciones por parte del usuario revisor.
+ * - Agregar versión o historial de análisis.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress } from "@mui/material";

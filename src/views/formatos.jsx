@@ -1,3 +1,44 @@
+/**
+ * Componente: Formatos
+ * Ubicación: src/views/Formatos.jsx
+ *
+ * Descripción:
+ * Vista encargada de mostrar y gestionar la subida y descarga de **formatos institucionales** (archivos PDF).
+ * Permite al usuario subir un nuevo formato con un nombre y archivo adjunto. Los formatos existentes se listan
+ * en forma de tarjetas con opción para descarga.
+ *
+ * Estado:
+ * - `openModal`: control de visibilidad del modal para subir nuevo formato.
+ * - `nombreFormato`: campo de texto para nombre del formato.
+ * - `archivo`: archivo PDF seleccionado por el usuario.
+ * - `formatos`: lista de formatos obtenidos desde el backend.
+ * - `isLoading`: control de carga durante el proceso de subida.
+ * - `snackbar`: control para mostrar mensajes de retroalimentación (éxito, error, advertencia).
+ *
+ * Funcionalidades:
+ * - `GET /api/formatos`: Carga los formatos existentes al montar el componente.
+ * - `POST /api/formatos`: Envía nombre y archivo como `FormData` para registrar un nuevo formato.
+ * - Valida que ambos campos (`nombreFormato` y `archivo`) estén presentes antes de enviar.
+ * - Muestra mensajes de éxito o error mediante `FeedbackSnackbar`.
+ * - Visualiza cada formato en una `Card` con botón para descargar (usando ruta de `storage`).
+ *
+ * Componentes externos utilizados:
+ * - `FabSubirFormato`: botón flotante personalizado (FAB).
+ * - `CustomButton`: botón reutilizable estilizado.
+ * - `DialogTitleCustom`: título de modal personalizado.
+ * - `FeedbackSnackbar`: componente para mostrar alertas amigables.
+ *
+ * Consideraciones:
+ * - Acepta solo archivos con formato PDF.
+ * - El botón de subida está deshabilitado mientras `isLoading` está activo.
+ * - El backend espera que el archivo se suba mediante `multipart/form-data`.
+ *
+ * Mejoras sugeridas:
+ * - Incluir eliminación o edición de formatos.
+ * - Mostrar fecha de subida y tamaño del archivo.
+ * - Validación de nombre duplicado.
+ */
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Modal, Typography, TextField, Card, CardContent, CardActions, CircularProgress } from '@mui/material';

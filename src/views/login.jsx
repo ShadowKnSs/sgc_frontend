@@ -1,3 +1,54 @@
+/**
+ * Vista: Login.jsx
+ * Descripción:
+ * Componente de inicio de sesión del sistema de Gestión de Calidad. Ofrece dos métodos de autenticación:
+ * 1. Mediante RPE y contraseña.
+ * 2. Mediante token temporal validado por backend.
+
+ * Funcionalidades clave:
+ * - Manejo visual y lógico de dos métodos de autenticación (toggle con botón).
+ * - Envío de credenciales al backend para validación (`/api/login`).
+ * - Envío y validación de token temporal (`/api/validar-token`).
+ * - Guardado de datos del usuario (`usuario`), roles (`roles`) y `rolActivo` en `localStorage`.
+ * - Redirección automática en caso de inicio exitoso.
+ * - Modal visual para mostrar mensajes de éxito o error.
+ * - Diseño responsive con distinción visual entre columna izquierda (branding) y columna derecha (formulario).
+
+ * Estados locales:
+ * - `rpe`, `password`: datos de usuario.
+ * - `token`, `useToken`: token temporal y selector de modo.
+ * - `loading`: control de estado de carga al hacer login.
+ * - `modal`: configuración del mensaje emergente (tipo, título, contenido).
+
+ * Navegación:
+ * - Redirección hacia:
+ *    - `/`: para administradores.
+ *    - `/user-eventos`: para usuarios comunes.
+ *    - `/seleccionarRol`: si el usuario tiene múltiples roles.
+
+ * Lógica adicional:
+ * - Si un usuario ingresa por token:
+ *    - Se simula un usuario con `idUsuario !== 0` y se almacena en localStorage.
+ *    - Se marca con `localStorage.viaToken = true` para su posterior rastreo.
+
+ * Componentes y estilos:
+ * - Utiliza `Material UI` (`TextField`, `Dialog`, `CircularProgress`, `InputAdornment`, etc.)
+ * - Colores organizados en `colorPalette` para consistencia visual.
+ * - Uso de `Paper` para estructura y separación de columnas.
+ * - Íconos como `EmailIcon`, `LockIcon`, `CheckCircleIcon`, `CancelIcon` para experiencia de usuario visual.
+
+ * Mejoras sugeridas:
+ * - Integrar validación de formularios con `Yup` o `react-hook-form`.
+ * - Añadir botón de mostrar/ocultar contraseña.
+ * - Validación de longitud o formato de token.
+ * - Recordar última opción de login (token o usuario).
+ * - Centralizar lógica de almacenamiento (`setLocalStorageUsuario()`).
+
+ * Seguridad:
+ * - Asegurar en backend el cifrado de contraseñas y la expiración controlada de tokens.
+ * - Verificar uso de HTTPS en producción.
+ */
+
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";

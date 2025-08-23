@@ -1,3 +1,21 @@
+/**
+ * Vista: UnifiedIndicatorPage
+ * Descripción:
+ * Esta vista centraliza la gestión de todos los indicadores consolidados de un proceso específico.
+ * Permite:
+ * - Filtrar indicadores por origen y estado (sin registrar, incompleto, completo)
+ * - Consultar resultados asociados según el origen (Encuesta, Retroalimentación, Evaluación, etc.)
+ * - Registrar o editar resultados usando distintos modales
+ * - Visualizar cards animadas agrupadas por estado
+ * - Mostrar gráficas asociadas a los indicadores del proceso
+ * 
+ * Características técnicas:
+ * - Usa `useMemo` para agrupar indicadores por estado
+ * - Usa `useCallback` para manejar edición y registro
+ * - Muestra animaciones al renderizar indicadores (`framer-motion`)
+ * - Usa múltiples modales reutilizables según el tipo de indicador
+ * - Aplica permisos de solo lectura si el usuario no tiene privilegios
+ */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {

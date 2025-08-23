@@ -1,3 +1,59 @@
+/**
+ * Vista: ReportesDeProceso.jsx
+ * Descripción:
+ * Pantalla principal para gestionar y visualizar los reportes de proceso generados por año. 
+ * Permite crear, visualizar y eliminar reportes asociados a procesos específicos, agrupados por entidad.
+
+ * Funcionalidades clave:
+ * - Visualización de todos los reportes generados (`GET /api/reportes-proceso`)
+ * - Creación de nuevo reporte:
+ *    - Selección de entidad, proceso y año
+ *    - Verificación de existencia previa
+ *    - Confirmación si los datos están incompletos
+ *    - Registro en base de datos (`POST /api/reportes-proceso`)
+ * - Eliminación de reporte con confirmación (`DELETE /api/reportes-proceso/{id}`)
+ * - Filtro lateral de búsqueda para encontrar reportes por término (`FiltroReportes`)
+ * - Redirección a vista detallada del reporte (`/reporte-proceso/:idProceso/:anio`)
+
+ * Estado local:
+ * - `entities`, `processes`, `years`: Datos dependientes de la selección del usuario
+ * - `selectedEntity`, `selectedProcess`, `selectedYear`: Parámetros seleccionados para crear reporte
+ * - `reports`: Lista de reportes ya registrados
+ * - `openModal`, `confirmIncompleteOpen`, `warningReportExistsOpen`: Estado de los modales
+ * - `reportCard`: Objeto para vista previa del nuevo reporte
+ * - `reportToDelete`: Objeto del reporte en proceso de eliminación
+ * - `searchTerm`, `searchOpen`: Control del filtro lateral de búsqueda
+ * - `snackbarOpen`, `snackbarMessage`: Notificaciones
+
+ * Componentes personalizados usados:
+ * - `Title`: Encabezado estilizado
+ * - `ReportCard`: Card visual de cada reporte
+ * - `GenerateReportModal`: Modal para crear nuevo reporte
+ * - `ConfirmModal`: Modal para confirmar creación con datos incompletos
+ * - `WarningModal`: Modal de advertencia por duplicidad
+ * - `DeleteConfirmModal`: Modal para confirmar eliminación
+ * - `FloatingActionButton`: Botón flotante para nuevo reporte
+ * - `FiltroReportes`: Panel lateral para búsqueda
+
+ * Flujo de generación de reporte:
+ * 1. Usuario da clic en botón nuevo.
+ * 2. Llena entidad, proceso y año.
+ * 3. Se verifica si ya existe (`reports.find()`).
+ * 4. Si falta información básica, se lanza confirmación.
+ * 5. Si todo está válido, se guarda en base de datos.
+
+ * Recomendaciones:
+ * - Mover `entities`, `processes`, `years` a un contexto compartido si se reutilizan.
+ * - Mejorar validaciones con librerías como `Yup`.
+ * - Hacer paginación o lazy loading de reportes si la lista crece.
+ * - Incluir filtro por año o entidad.
+
+ * Seguridad:
+ * - Asegurar protección de endpoints en backend (según rol).
+ * - Validar que el usuario tenga permiso sobre el proceso seleccionado antes de permitir crear/eliminar.
+
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   Box,

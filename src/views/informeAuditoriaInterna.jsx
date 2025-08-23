@@ -1,3 +1,58 @@
+/**
+ * Componente: InformeAud.jsx
+ * Descripción:
+ * Formulario completo para la creación o edición del informe de una auditoría interna. 
+ * Permite capturar todos los elementos relevantes del proceso de auditoría en cumplimiento con ISO 9001:2015.
+
+ * Props recibidos vía `location.state`:
+ * - `idProceso`: ID del proceso auditado
+ * - `idRegistro`: ID del registro donde se guardará la auditoría
+ * - `modoEdicion`: Booleano que indica si el formulario es de edición
+ * - `datosAuditoria`: Información previa si `modoEdicion` está activo
+
+ * Estado local (`useState`):
+ * - Información principal: `fecha`, `objetivo`, `alcance`, `fortalezas`, `debilidades`
+ * - Equipos: `criterios`, `equipoAuditor`, `personalAuditado`, `verificaciones`, `puntosMejora`, `conclusiones`, `plazos`
+ * - Autocompletado: `auditoresDisponibles`, `entidad`, `proceso`, `lider`
+ * - UI/UX: `mensaje`, `error`
+
+ * Lógica de inicialización (`useEffect`):
+ * - Carga de auditores disponibles (`/api/auditores/basico`)
+ * - Carga de nombre de proceso y entidad si `idProceso` está definido
+ * - Carga de datos de auditoría si `modoEdicion` es `true`
+
+ * Funcionalidades clave:
+ * - Agregar/eliminar dinámicamente secciones repetibles: criterios, verificaciones, personal, equipo, etc.
+ * - Guardado del formulario (`handleGuardar`) ya sea `POST` o `PUT` dependiendo del modo
+ * - Validación básica (campos requeridos y estructura de los arreglos)
+ * - Confirmación visual mediante `MensajeAlert` y `ErrorAlert`
+
+ * Estructura esperada del payload (`POST /api/auditorias` o `PUT /api/auditorias/:id`):
+ * {
+ *   idRegistro,
+ *   fecha, objetivoAud, alcanceAud,
+ *   criterios: [...],
+ *   fortalezas, debilidades,
+ *   gradoConformidad, gradoCumplimiento,
+ *   mantenimientos, opinion, fechas, estados,
+ *   observaciones, plazos,
+ *   auditorLider,
+ *   equipoAuditor: [{ rolAsignado, nombreAuditor, esAuditorLider }],
+ *   personalAuditado: [{ nombre, cargo }],
+ *   verificacionRuta: [{ criterio, reqAsociado, observaciones, evidencia, tipoHallazgo }],
+ *   puntosMejora: [{ reqISO, descripcion, evidencia }],
+ *   conclusiones: [{ nombre, observaciones }]
+ * }
+
+ * Recomendaciones futuras:
+ * - Separar componentes en secciones reutilizables para mejor mantenimiento (por ejemplo, `<EquipoAuditorForm />`, `<VerificacionesList />`)
+ * - Validaciones más robustas usando `Yup` o `react-hook-form`
+ * - Mejorar experiencia visual con secciones colapsables o pasos (`Stepper`)
+ * - Internacionalizar campos si el sistema se escala
+ * - Considerar almacenar temporalmente el estado del formulario en `localStorage` en caso de cierres inesperados
+
+ */
+
 import axios from "axios";
 import { Box, Grid, Typography, Button, TextField, MenuItem } from "@mui/material";
 import React, { useState, useEffect } from "react";

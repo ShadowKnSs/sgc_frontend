@@ -1,3 +1,50 @@
+/**
+ * Componente: InformeAud.jsx
+ * Descripción:
+ * Formulario de interfaz gráfica para capturar un informe de auditoría interna.
+ * Este componente es una versión simplificada sin conexión a backend.
+ * Permite al usuario ingresar información clave en secciones dinámicas y repetibles.
+ * 
+ * Estructura general del formulario:
+ * - Entidad / Proceso / Líder (simulados con valores de ejemplo)
+ * - Fecha, Objetivo, Alcance
+ * - Criterios de auditoría
+ * - Equipo auditor (rol + nombre)
+ * - Personal auditado (nombre + cargo)
+ * - Verificación de ruta (criterio, req asociado, observaciones, evidencia, tipo hallazgo)
+ * - Fortalezas y Debilidades
+ * - Puntos de mejora (req ISO, descripción, evidencia)
+ * - Conclusiones
+ * - Plazos y Consideraciones
+
+ * Funcionalidades implementadas:
+ * - Agregar y eliminar dinámicamente ítems en listas como criterios, equipo, verificaciones, etc.
+ * - Captura multisección con campos controlados (useState)
+ * - Interfaz responsiva con Material UI (`Box`, `Grid`, `TextField`, `Typography`, `Button`)
+ * - Diseño limpio, con encabezados, separación visual y botones de acción al final
+
+ * Estados React utilizados (useState):
+ * - `criterios`: array de strings
+ * - `equipoAuditor`: array de objetos con rol y auditor
+ * - `personalAuditado`: array de objetos con nombre y cargo
+ * - `verificaciones`: array de objetos con campos relacionados a la ruta de auditoría
+ * - `puntosMejora`: array de objetos con número, req ISO, descripción, evidencia
+ * - `conclusiones`: array de objetos con nombre y observaciones
+ * - `plazos`: array de strings
+
+ * Componentes MUI utilizados:
+ * - `Box`, `Grid`, `Typography`, `Button`, `TextField`, `MenuItem`
+
+ * Recomendaciones futuras:
+ * - Dividir en subcomponentes reutilizables (por ejemplo: `<CriteriosList />`, `<EquipoAuditor />`)
+ * - Agregar validaciones de formulario (campos requeridos, longitud, etc.)
+ * - Agregar estado global o `context` para guardar avance parcial
+ * - Integrar funciones de guardado con backend mediante `axios` o `fetch`
+ * - Internacionalización con `i18n` si se espera uso en múltiples idiomas
+ * - Mejora de UX: usar `Stepper`, autocompletado, ayuda contextual o tooltips
+
+ */
+
 import { Box, Grid, Typography, Button, TextField, MenuItem } from "@mui/material";
 import React, { useState } from "react";
 

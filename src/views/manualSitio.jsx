@@ -1,3 +1,43 @@
+/**
+ * Vista: ManualDelSitio
+ * Descripción:
+ * Componente que muestra recursos visuales (PDFs y videos) personalizados para cada tipo de rol dentro del sistema.
+ * Permite a los usuarios acceder a manuales y tutoriales según su función (rol) en el sistema.
+
+ * Funcionalidades clave:
+ * -  Detecta el rol activo del usuario desde `localStorage.rolActivo`.
+ * -  Muestra recursos embebidos desde SharePoint o YouTube, según el tipo (PDF o video).
+ * -  Permite descargar manuales PDF si la opción `download` está habilitada.
+ * -  Soporte para múltiples roles: Administrador, Coordinador, Líder, Supervisor, Auditor.
+ * -  Los usuarios sin rol o con rol no contemplado verán el mensaje "Invitado".
+
+ * Comportamiento:
+ * - Usa el hook `useEffect` para ejecutar lógica de detección del rol y carga de recursos al montar el componente.
+ * - Utiliza `mapeoRoles` para traducir el nombre de rol recibido del backend (e.g. "líder" → "Líder").
+ * - Los recursos están definidos en la constante `linksPorRol`, categorizados por tipo (`pdf` o `video`) y rol.
+
+ * Componentes usados:
+ * - `Title`: componente reutilizable para encabezados estilizados.
+ * - `Typography`, `Box`, `Grid`, `Stack`, `Button`: componentes de Material UI para diseño y estructura.
+
+ * Consideraciones técnicas:
+ * -  Los documentos PDF se visualizan dentro de un `iframe` con un contenedor estilizado.
+ * -  Los videos se incrustan con soporte de pantalla completa.
+ * -  Se evita el uso de bibliotecas externas adicionales para visualización o video.
+ * -  Si no hay recursos disponibles para el rol detectado, se muestra un mensaje neutral.
+
+ * Escenarios contemplados:
+ * -  Un administrador podrá ver un PDF y video instructivo para su función.
+ * -  Un coordinador o líder verá recursos adaptados a su contexto.
+ * -  Si un rol no está mapeado, el componente mostrará el rol como "Invitado" y sin recursos.
+
+ * Posibles mejoras:
+ * - Integrar backend para servir enlaces y contenido desde base de datos.
+ * - Soporte multilenguaje (internacionalización).
+ * - Agregar loader mientras se cargan los recursos.
+
+ */
+
 import { useEffect, useState } from "react";
 import {
   Container,

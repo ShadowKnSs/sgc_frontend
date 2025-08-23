@@ -1,3 +1,50 @@
+/**
+ * Componente: FormularioSeguimiento
+ * Ubicación: src/views/FormularioSeguimiento.jsx
+ *
+ * Descripción:
+ * Formulario multisección en 4 pasos (Stepper) para **crear o editar una Minuta** de seguimiento asociada a un `idRegistro`.
+ * Cada sección del formulario corresponde a un conjunto de datos: 
+ * 1. Datos Generales
+ * 2. Asistentes
+ * 3. Actividades
+ * 4. Compromisos
+ *
+ * Props:
+ * - `idRegistro`: ID del registro asociado al cual se relaciona esta minuta.
+ * - `initialData`: Si se proporciona, el formulario entra en modo edición y rellena los campos.
+ * - `onClose`: Función de cierre del formulario, se ejecuta tras guardar o cancelar.
+ *
+ * Funcionalidades:
+ * - Soporte para creación (`POST /minutasAdd`) y edición (`PUT /minutas/{id}`).
+ * - Validación por sección antes de permitir avanzar al siguiente paso.
+ * - Registro de asistentes, actividades y compromisos con campos dinámicos (agregar/remover).
+ * - Snackbar de retroalimentación para informar el éxito o fallo de la operación.
+ *
+ * Estructura del `payload` al guardar:
+ * - `lugar`, `fecha`, `duracion`: Datos generales.
+ * - `asistentes`: Arreglo de strings o `{ idAsistente, nombre }` si es edición.
+ * - `actividades`: Arreglo de strings o `{ idActividadMin, descripcion }`.
+ * - `compromisos`: `{ descripcion, responsables, fecha }` o con IDs si es edición.
+ *
+ * Componentes utilizados:
+ * - `Stepper`: Navegación de pasos.
+ * - `FeedbackSnackbar`: Retroalimentación de éxito o error.
+ * - `CustomButton`: Botón personalizado para acción final.
+ * - `@mui/material` y `@mui/icons-material` para inputs y layout.
+ *
+ * Consideraciones:
+ * - Se controla la edición mediante `initialData` y se rellena el estado con `useEffect`.
+ * - El campo duración solo permite números enteros positivos.
+ * - La validación es estricta antes de permitir pasar de paso o guardar.
+ * - El formulario se cierra automáticamente 1.2 segundos después de un guardado exitoso.
+ *
+ * Mejoras sugeridas:
+ * - Mostrar nombre del registro o proceso como encabezado adicional.
+ * - Uso de `react-hook-form` para simplificar validaciones y control de formularios.
+ * - Validar fechas futuras en compromisos.
+ */
+
 import React, { useState, useEffect } from "react";
 import { TextField, Button, Box, IconButton, Typography, Stepper, Step, StepLabel, Snackbar, Alert } from "@mui/material";
 import { Remove } from "@mui/icons-material";

@@ -1,3 +1,34 @@
+/**
+ * Componente: Subtitle
+ * Descripción:
+ * Componente estilizado para mostrar subtítulos dentro del sistema.
+ * Permite alinear el texto y opcionalmente incluir un fondo de color pastel.
+
+ * Props:
+ * - text (string, requerido): Texto del subtítulo a mostrar.
+ * - align (string, opcional): Alineación del texto (por defecto "left").
+ * - withBackground (boolean, opcional): Si es `true`, muestra un fondo con color `verdePastel`.
+
+ * Estilos:
+ * - Usa `Typography` con variante `h6` para mantener consistencia con el diseño del sistema.
+ * - Color de texto: gris oscuro (`#A4A7A0`).
+ * - Si `withBackground` está activado:
+ *    - Fondo: verde pastel (`#E3EBDA`)
+ *    - Padding vertical y borde redondeado
+
+ * Uso común:
+ * - Como encabezado de secciones en formularios o tarjetas informativas.
+ * - Para mejorar la jerarquía visual en vistas con múltiples bloques de contenido.
+
+ * Ventajas:
+ * - 🎨 Consistencia visual
+ * - 🧩 Reutilizable y configurable
+
+ * Mejoras futuras:
+ * - 💡 Soporte para íconos decorativos
+ * - 💡 Variantes adicionales de color
+ */
+
 import React from "react";
 import { Typography, Box } from "@mui/material";
 

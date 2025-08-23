@@ -1,3 +1,42 @@
+/**
+ * Componente: Entity
+ * Ubicación: src/views/Entity.jsx
+ *
+ * Descripción:
+ * Vista principal que muestra las entidades o facultades disponibles para el usuario autenticado,
+ * según su rol y permisos. Cada entidad se representa como una tarjeta (`MenuCard`) con ícono y nombre.
+ * Permite filtrar entidades dinámicamente mediante un buscador.
+ *
+ * Funcionalidad:
+ * - Verifica el rol y los permisos del usuario desde `localStorage`.
+ * - Si el usuario tiene permisos de acceso al módulo de "Entidades", realiza una petición al backend para obtener las entidades relacionadas al usuario.
+ * - Se renderiza un `MenuCard` por cada entidad, con ícono asociado.
+ * - Incluye un buscador (`Buscador`) que permite filtrar dinámicamente las entidades por nombre.
+ * - Redirige al hacer clic en una entidad (`/procesos/:idEntidadDependencia`).
+ *
+ * Iconos:
+ * - Mapeo estático de iconos a través del objeto `iconMap`.
+ * - Se selecciona el icono según el valor `entidad.icono` recibido del backend, con un ícono por defecto (`BusinessIcon`) en caso de no coincidencia.
+ *
+ * Estados:
+ * - `entidades`: entidades obtenidas del backend, enriquecidas con íconos.
+ * - `entidadesFiltradas`: entidades visibles según búsqueda.
+ * - `loading`: bandera para mostrar spinner mientras se cargan los datos.
+ *
+ * Componentes utilizados:
+ * - `MenuCard`: tarjeta visual por cada entidad.
+ * - `Buscador`: input con lógica de filtrado por nombre.
+ *
+ * Lógica de permisos:
+ * - Acceso restringido según el campo `modulo === "Entidades"` y `tipoAcceso ∈ ["Lectura", "Edición", "Administración"]`.
+ * - Si el rol no tiene acceso, no se muestran tarjetas y el `loading` se desactiva.
+ *
+ * Mejoras sugeridas:
+ * - Manejo más amigable si el usuario no tiene acceso (mostrar mensaje claro en lugar de solo ocultar).
+ * - Posibilidad de mostrar una entidad por default al ingresar.
+ * - Soporte para paginación si la cantidad de entidades crece.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import MenuCard from "../components/menuCard";
