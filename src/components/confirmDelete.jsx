@@ -1,14 +1,6 @@
-/**
- * Componente: ConfirmDelete
- * Descripción:
- * Diálogo reutilizable para confirmar la eliminación de diferentes tipos de entidades (usuario, proceso, entidad, etc.).
- * Usa `DialogTitleCustom` y `CustomButton` para mantener el estilo consistente.
- */
-import { Dialog, DialogContent, DialogActions } from "@mui/material";
+import { Dialog, DialogContent, DialogActions, Typography } from "@mui/material";
 import DialogTitleCustom from './TitleDialog';
 import CustomButton from './Button';
-
-// Genera el mensaje según el tipo de entidad
 
 const getDeleteMessage = (type, name) => {
   switch (type) {
@@ -16,41 +8,35 @@ const getDeleteMessage = (type, name) => {
       return `¿Estás seguro de que deseas eliminar al usuario "${name}"? Esta acción no se puede deshacer.`;
     case "proceso":
       return `¿Estás seguro de que deseas eliminar el proceso "${name}"?`;
-    case "entidad":
-      return `¿Estás seguro de que deseas eliminar la entidad "${name}"?`;
-    case "minuta":
-      return `¿Deseas eliminar la minuta "${name}" de forma permanente?`;
-    case "reporte":
-      return `¿Seguro que deseas eliminar el reporte "${name}"?`;
+    case "tokens":
+      return `¿Estás seguro de que deseas eliminar todos los tokens expirados?`;
     default:
       return `¿Estás seguro de que deseas eliminar "${name}"?`;
   }
 };
 
-const ConfirmDelete = ({ open, onClose, entityType, entityName, onConfirm }) => {
+const ConfirmDelete = ({ open, onClose, entityType, entityName, onConfirm, description }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitleCustom title="Confirmar Eliminación" />
-
-      <DialogContent
-        sx={{
-          backgroundColor: "#DFECDF",
-          color: "#0D1321",
-          fontSize: "16px",
-          paddingY: 2,
-        }}
-      >
-        {getDeleteMessage(entityType, entityName)}
+      
+      <DialogContent sx={{ py: 3 }}>
+        <Typography variant="body1" gutterBottom>
+          {getDeleteMessage(entityType, entityName)}
+        </Typography>
+        {description && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {description}
+          </Typography>
+        )}
       </DialogContent>
 
-      <DialogActions
-        sx={{ backgroundColor: "#E3EBDA", padding: "16px", gap: 1 }}
-      >
+      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
         <CustomButton type="cancelar" onClick={onClose}>
           Cancelar
         </CustomButton>
         <CustomButton
-          type="Eliminar"
+          type="eliminar"
           onClick={() => {
             onConfirm();
             onClose();

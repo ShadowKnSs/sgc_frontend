@@ -8,7 +8,7 @@ const customColors = {
     text: "#14532D",
   },
   info: {
-    background: "#0D1321", // azul 
+    background: "#8ba7e8ff", // azul 
     text: "#DFECDF",
   },
   warning: {
