@@ -32,6 +32,7 @@ function Cronograma() {
   const [auditores, setAuditores] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
+  const [procesosFiltrados, setProcesosFiltrados] = useState([]);
 
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -105,13 +106,14 @@ function Cronograma() {
 
   // Obtener Procesos
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:8000/api/procesos-nombres")
+    axios.get("http://127.0.0.1:8000/api/procesos-con-entidades") 
       .then((response) => {
-        setProcesos(response.data.procesos);
+        console.log("Estructura real de los procesos:", response.data.procesos[0]);
+        setProcesos(response.data.procesos); 
+        setProcesosFiltrados(response.data.procesos); 
       })
       .catch((error) => {
-        console.error("Error al obtener los nombres de los procesos:", error);
+        console.error("Error al obtener los procesos:", error);
       });
   }, []);
 
@@ -141,7 +143,7 @@ function Cronograma() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState({
     entidad: "",
-    proceso: "",
+    procesoId: "",
     fecha: "",
     hora: "",
     tipo: "",
@@ -230,8 +232,21 @@ function Cronograma() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name === 'auditoresAdicionales') {
+  
+    if (name === 'entidad') {
+      const procesosFiltrados = value 
+        ? procesos.filter(proceso => proceso.entidad === value)
+        : procesos;
+      
+      console.log("Procesos filtrados por entidad:", procesosFiltrados);
+      
+      setProcesosFiltrados(procesosFiltrados);
+      setFormData({
+        ...formData,
+        [name]: value,
+        proceso: "" 
+      });
+    } else if (name === 'auditoresAdicionales') {
       setFormData({
         ...formData,
         [name]: Array.isArray(value) ? value : [value]
@@ -246,148 +261,198 @@ function Cronograma() {
 
   // Guarda nueva auditoría o actualiza la existente
   const handleSubmit = async () => {
-    if (
-      formData.entidad &&
-      formData.proceso &&
-      formData.fecha &&
-      formData.hora &&
-      formData.tipo &&
-      formData.estado &&
-      formData.descripcion &&
-      formData.auditorLider
-    ) {
-      setLoading(true);
-  
-      try {
-        if (isEditing) {
-          // Edición de un evento existente
-          try {
-            await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
-              fechaProgramada: formData.fecha,
-              horaProgramada: formData.hora,
-              tipoAuditoria: formData.tipo,
-              estado: formData.estado,
-              descripcion: formData.descripcion,
-              nombreProceso: formData.proceso,
-              nombreEntidad: formData.entidad,
-              auditorLider: formData.auditorLider,
-            });
-        
-            await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
-              idAuditoria: selectedEvent.id,
-              auditores: formData.auditoresAdicionales
-            });
-        
-            setEvents(prevEvents =>
-              prevEvents.map(event =>
-                event.id === selectedEvent.id
-                  ? {
-                      ...event,
-                      start: new Date(`${formData.fecha}T${formData.hora}`),
-                      end: new Date(`${formData.fecha}T${formData.hora}`),
-                      descripcion: formData.descripcion,
-                      estado: formData.estado,
-                      tipo: formData.tipo,
-                      proceso: formData.proceso,
-                      entidad: formData.entidad,
-                      hora: formData.hora,
-                      auditorLider: formData.auditorLider,
-                      auditoresAdicionales: formData.auditoresAdicionales.map(id => {
-                        const auditor = auditores.find(a => a.idUsuario === id);
-                        return {
-                          id,
-                          nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
-                        };
-                      })
-                    }
-                  : event
-              )
-            );
-        
-            setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
-          } catch (error) {
-            console.error("Error al actualizar auditoría:", error);
-            setSnackbar({ open: true, message: "Error al actualizar auditoría", severity: "error" });
-          }
-        } else {
-          // Creación de una nueva auditoría
-          const response = await axios.post("http://127.0.0.1:8000/api/cronograma", {
-            fechaProgramada: formData.fecha,
-            horaProgramada: formData.hora,
-            tipoAuditoria: formData.tipo,
-            estado: formData.estado,
-            descripcion: formData.descripcion,
-            nombreProceso: formData.proceso,
-            nombreEntidad: formData.entidad,
-            auditorLider: formData.auditorLider, 
-          });
-
-          const auditoresAdicionales = formData.auditoresAdicionales?.length > 0 
-            ? formData.auditoresAdicionales.map(id => {
-                const auditor = auditores.find(a => a.idUsuario === id);
-                return {
-                  id,
-                  nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
-                };
-              })
-            : [];
-
-          if (formData.auditoresAdicionales?.length > 0) {
-            await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
-              idAuditoria: response.data.auditoria.idAuditoria,
-              auditores: formData.auditoresAdicionales
-            });
-          }
-
-          const nuevaAuditoria = {
-            id: response.data.auditoria.idAuditoria,
-            title: `${response.data.auditoria.nombreProceso} - ${response.data.auditoria.tipoAuditoria}`,
-            start: new Date(`${response.data.auditoria.fechaProgramada}T${response.data.auditoria.horaProgramada}`),
-            end: new Date(`${response.data.auditoria.fechaProgramada}T${response.data.auditoria.horaProgramada}`),
-            descripcion: response.data.auditoria.descripcion,
-            estado: response.data.auditoria.estado,
-            tipo: response.data.auditoria.tipoAuditoria,
-            proceso: response.data.auditoria.nombreProceso,
-            entidad: response.data.auditoria.nombreEntidad,
-            hora: response.data.auditoria.horaProgramada,
-            auditorLider: response.data.auditoria.auditorLider,
-            auditorLiderId: response.data.auditoria.auditorLider,
-            auditoresAdicionales: auditoresAdicionales
-          };
-
-          setEvents(prev => [...prev, nuevaAuditoria]);
-          setSnackbar({ 
-            open: true, 
-            message: formData.auditoresAdicionales?.length > 0 
-              ? "Auditoría creada con auditores asignados correctamente" 
-              : "Auditoría creada correctamente", 
-            severity: "success" 
-          });
-        }
-  
-        // Reiniciar el formulario
-        setFormData({
-          entidad: "",
-          proceso: "",
-          fecha: "",
-          hora: "",
-          tipo: "",
-          estado: "Pendiente",
-          descripcion: "",
-          auditorLider: "",
-          auditoresAdicionales: []
-        });
-  
-        handleCloseForm();
-      } catch (error) {
-        console.error("Error al guardar la auditoría:", error.response ? error.response.data : error.message);
-        setSnackbar({ open: true, message: "Hubo un error al guardar la auditoría.", severity: "error" });
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setSnackbar({ open: true, message: "Todos los campos son obligatorios.", severity: "warning" });
+    const procesoCompleto = procesos.find(p => 
+      p.id.toString() === formData.procesoId.toString()
+    );
+      
+    if (!procesoCompleto) {
+      console.error("Proceso no encontrado. Datos:", {
+          idBuscado: formData.procesoId,
+          tipoIdBuscado: typeof formData.procesoId,
+          procesosDisponibles: procesos.map(p => ({id: p.id, tipo: typeof p.id, nombre: p.nombre}))
+      });
+      setSnackbar({ 
+          open: true, 
+          message: `Proceso con ID ${formData.procesoId} no encontrado`, 
+          severity: "error" 
+      });
+      return;
     }
+
+    if (
+        formData.entidad &&
+        formData.procesoId &&
+        formData.fecha &&
+        formData.hora &&
+        formData.tipo &&
+        formData.estado &&
+        formData.descripcion &&
+        formData.auditorLider
+      ) {
+          setLoading(true);
+
+          try {
+              if (isEditing) 
+                {
+                  // Edición de un evento existente
+                  try 
+                  {
+                      await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
+                          fechaProgramada: formData.fecha,
+                          horaProgramada: formData.hora,
+                          tipoAuditoria: formData.tipo,
+                          estado: formData.estado,
+                          descripcion: formData.descripcion,
+                          idProceso: procesoCompleto.id,
+                          nombreProceso: procesoCompleto.nombre,
+                          nombreEntidad: formData.entidad,
+                          auditorLider: formData.auditorLider,
+                      });
+
+                      await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
+                          idAuditoria: selectedEvent.id,
+                          auditores: formData.auditoresAdicionales
+                      });
+
+                      setEvents
+                      (prevEvents =>
+                          prevEvents.map
+                          (event =>
+                              event.id === selectedEvent.id
+                                  ? {
+                                      ...event,
+                                      start: new Date(`${formData.fecha}T${formData.hora}`),
+                                      end: new Date(`${formData.fecha}T${formData.hora}`),
+                                      descripcion: formData.descripcion,
+                                      estado: formData.estado,
+                                      tipo: formData.tipo,
+                                      proceso: procesoCompleto.nombre,
+                                      idProceso: formData.procesoId, 
+                                      entidad: formData.entidad,
+                                      hora: formData.hora,
+                                      auditorLider: formData.auditorLider,
+                                      auditoresAdicionales: formData.auditoresAdicionales.map(id => 
+                                        {
+                                          const auditor = auditores.find(a => a.idUsuario === id);
+                                          return {
+                                              id,
+                                              nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
+                                          };
+                                        }
+                                      )
+                                    }
+                                  : event
+                          )
+                      );
+
+                      setSnackbar({ open: true, message: "Auditoría actualizada correctamente.", severity: "success" });
+                  } catch (error) {
+                      console.error("Error al actualizar auditoría:", error);
+                      setSnackbar({ open: true, message: "Error al actualizar auditoría", severity: "error" });
+                  }
+                } else {
+                  // Creación de una nueva auditoría
+                  try {
+                    const procesoPayload = {
+                        id: Number(procesoCompleto.id),
+                        nombre: procesoCompleto.nombre
+                    };
+
+                    const payload = {
+                        fechaProgramada: formData.fecha,
+                        horaProgramada: formData.hora,
+                        tipoAuditoria: formData.tipo,
+                        estado: formData.estado,
+                        descripcion: formData.descripcion,
+                        proceso: procesoPayload,
+                        idProceso: Number(procesoCompleto.id),
+                        nombreProceso: procesoCompleto.nombre,
+                        nombreEntidad: formData.entidad,
+                        auditorLider: Number(formData.auditorLider), 
+                    };
+
+                    const response = await axios.post("http://127.0.0.1:8000/api/cronograma", payload);
+
+                    const auditoresAdicionales = formData.auditoresAdicionales?.length > 0
+                        ? formData.auditoresAdicionales.map(id => {
+                            const auditor = auditores.find(a => a.idUsuario === Number(id));
+                            return {
+                                id: Number(id),
+                                nombre: auditor ? `${auditor.nombre} ${auditor.apellidoPat}` : 'Desconocido'
+                            };
+                        })
+                        : [];
+
+                    if (formData.auditoresAdicionales?.length > 0) {
+                        await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
+                            idAuditoria: Number(response.data.auditoria.id),
+                            auditores: formData.auditoresAdicionales.map(id => Number(id)) 
+                        });
+                    }
+
+                    const nuevaAuditoria = {
+                        id: response.data.auditoria.idAuditoria,
+                        title: `${procesoCompleto.nombre} - ${response.data.auditoria.tipoAuditoria}`,
+                        start: new Date(`${response.data.auditoria.fechaProgramada}T${response.data.auditoria.horaProgramada}`),
+                        end: new Date(`${response.data.auditoria.fechaProgramada}T${response.data.auditoria.horaProgramada}`),
+                        descripcion: response.data.auditoria.descripcion,
+                        estado: response.data.auditoria.estado,
+                        tipo: response.data.auditoria.tipoAuditoria,
+                        proceso: procesoCompleto.nombre,
+                        idProceso: Number(procesoCompleto.id), 
+                        entidad: response.data.auditoria.nombreEntidad,
+                        hora: response.data.auditoria.horaProgramada,
+                        auditorLider: response.data.auditoria.auditorLider,
+                        auditorLiderId: Number(response.data.auditoria.auditorLider), 
+                        auditoresAdicionales: auditoresAdicionales
+                    };
+
+                    setEvents(prev => [...prev, nuevaAuditoria]);
+                    setSnackbar({
+                        open: true,
+                        message: formData.auditoresAdicionales?.length > 0
+                            ? "Auditoría creada con auditores asignados correctamente"
+                            : "Auditoría creada correctamente",
+                        severity: "success"
+                    });
+
+                  } catch (error) {
+                    console.error("Error detallado al crear auditoría:", {
+                        error: error.response?.data || error.message,
+                        requestData: error.config?.data
+                    });
+                    setSnackbar({ 
+                        open: true, 
+                        message: error.response?.data?.message || "Error al crear auditoría", 
+                        severity: "error" 
+                    });
+                  }
+              }
+
+              // Reiniciar el formulario
+              setFormData({
+                  entidad: "",
+                  procesoId: "", 
+                  procesoNombre: "", 
+                  fecha: "",
+                  hora: "",
+                  tipo: "",
+                  estado: "Pendiente",
+                  descripcion: "",
+                  auditorLider: "",
+                  auditoresAdicionales: []
+              });
+
+              handleCloseForm();
+          } catch (error) {
+              console.error("Error al guardar la auditoría:", error.response ? error.response.data : error.message);
+              setSnackbar({ open: true, message: "Hubo un error al guardar la auditoría.", severity: "error" });
+          } finally {
+              setLoading(false);
+          }
+      } else {
+          setSnackbar({ open: true, message: "Todos los campos son obligatorios.", severity: "warning" });
+      }
   };
 
   // 1) Estados controlados de vista y fecha
@@ -490,19 +555,34 @@ function Cronograma() {
             </Select>
           </FormControl>
           <FormControl fullWidth margin="dense">
-            <InputLabel>Proceso</InputLabel>
-            <Select name="proceso" value={formData.proceso} onChange={handleChange}>
-              {procesos.length > 0 ? (
-                procesos.map((proceso, index) => (
-                  <MenuItem key={index} value={proceso}>
-                    {proceso}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem value="">Cargando...</MenuItem>
-              )}
-            </Select>
-          </FormControl>
+          <InputLabel>Proceso</InputLabel>
+          <Select 
+            name="procesoId"
+            value={formData.procesoId ?? ''} 
+            onChange={(e) => {
+              const selectedId = e.target.value;
+              const selectedProcess = procesosFiltrados.find(p => p.id.toString() === selectedId.toString());
+              
+              setFormData({
+                ...formData,
+                procesoId: selectedId,
+                procesoNombre: selectedProcess?.nombre
+              });
+            }}
+            disabled={!formData.entidad || procesosFiltrados.length === 0}
+            displayEmpty 
+          >
+            
+            {procesosFiltrados.map((proceso) => (
+              <MenuItem 
+                key={`proceso-${proceso.id}`} 
+                value={proceso.id.toString()} 
+              >
+                {proceso.nombre}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         </Box>
         <Box display="flex" justifyContent="space-between" gap={3} sx={{ width: "100%", mt: 2 }}>
           <TextField
