@@ -7,9 +7,10 @@
  */
 import React from "react";
 import { Card, CardContent, Typography, Divider, Box, IconButton, Tooltip, Chip, Avatar } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Refresh } from "@mui/icons-material";
 import SupervisorAccount from "@mui/icons-material/SupervisorAccount";
 import PlaylistAdd from "@mui/icons-material/PlaylistAdd";
+import CustomButton from "./Button";
 
 const colorPalette = {
   azulOscuro: "#185FA4",
@@ -24,7 +25,7 @@ const colorPalette = {
   inactivoBorde: "#E0E0E0",
 };
 
-function UserCard({ user, onEdit, onDelete, onAssign }) {
+function UserCard({ user, onEdit, onDelete, onAssign, onReactivate, reactivating = false }) {
   const isLeader = user.roles.includes("Líder");
   const isSupervisor = user.roles.includes("Supervisor");
   const isInactive = !user.activo;
@@ -99,7 +100,7 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
         >
           {user.firstName.charAt(0)}{user.lastName.charAt(0)}
         </Avatar>
-        
+
         <Box sx={{ width: '100%' }}>
           <Typography
             variant="h6"
@@ -157,10 +158,10 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
       >
         {/* Roles con estilo para inactivos */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" fontWeight="bold" sx={{ 
-            color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro, 
-            mb: 1, 
-            display: 'block' 
+          <Typography variant="caption" fontWeight="bold" sx={{
+            color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
+            mb: 1,
+            display: 'block'
           }}>
             ROLES:
           </Typography>
@@ -171,7 +172,7 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
                 label={role}
                 size="small"
                 sx={{
-                  backgroundColor: isInactive ? colorPalette.grisClaro : 
+                  backgroundColor: isInactive ? colorPalette.grisClaro :
                     (index % 2 === 0 ? colorPalette.azulClaro : colorPalette.azulOscuro),
                   color: isInactive ? colorPalette.inactivoTexto : "#fff",
                   fontWeight: 600,
@@ -189,16 +190,16 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
         {/* Información de supervisor */}
         {isLeader && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" fontWeight="bold" sx={{ 
-              color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro, 
-              mb: 1, 
-              display: 'block' 
+            <Typography variant="caption" fontWeight="bold" sx={{
+              color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
+              mb: 1,
+              display: 'block'
             }}>
               SUPERVISOR:
             </Typography>
             <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-              <SupervisorAccount fontSize="small" sx={{ 
-                color: isInactive ? colorPalette.inactivoTexto : colorPalette.grisOscuro 
+              <SupervisorAccount fontSize="small" sx={{
+                color: isInactive ? colorPalette.inactivoTexto : colorPalette.grisOscuro
               }} />
               {user.supervisor ? (
                 <Typography
@@ -232,9 +233,9 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
           </Box>
         )}
 
-        <Divider sx={{ 
-          my: 2, 
-          backgroundColor: isInactive ? colorPalette.inactivoBorde : colorPalette.grisClaro 
+        <Divider sx={{
+          my: 2,
+          backgroundColor: isInactive ? colorPalette.inactivoBorde : colorPalette.grisClaro
         }} />
 
         {/* Botones de acción - Deshabilitados para inactivos */}
@@ -248,9 +249,9 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
                   sx={{
                     backgroundColor: isInactive ? colorPalette.grisClaro : colorPalette.verdeAgua,
                     color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
-                    "&:hover": isInactive ? {} : { 
-                      backgroundColor: colorPalette.azulClaro, 
-                      color: "#fff" 
+                    "&:hover": isInactive ? {} : {
+                      backgroundColor: colorPalette.azulClaro,
+                      color: "#fff"
                     },
                     opacity: isInactive ? 0.6 : 1,
                   }}
@@ -260,7 +261,7 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
               </span>
             </Tooltip>
           )}
-          
+
           <Tooltip title={isInactive ? "Usuario inactivo - No editable" : "Editar información del usuario"} arrow placement="top">
             <span>
               <IconButton
@@ -281,39 +282,58 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
             </span>
           </Tooltip>
 
-          {typeof onDelete === 'function' ? (
-            <Tooltip title={isInactive ? "Usuario ya está inactivo" : "Eliminar usuario del sistema"} arrow placement="top">
-              <span>
-                <IconButton
-                  onClick={() => !isInactive && onDelete(user)}
-                  disabled={isInactive}
-                  sx={{
-                    backgroundColor: isInactive ? colorPalette.grisClaro : "#E57373",
-                    color: isInactive ? colorPalette.inactivoTexto : "#fff",
-                    "&:hover": isInactive ? {} : {
-                      backgroundColor: "#C62828",
-                    },
-                    opacity: isInactive ? 0.6 : 1,
-                  }}
-                >
-                  <Delete />
-                </IconButton>
-              </span>
+          {isInactive ? (
+            <Tooltip title="Reactivar usuario" arrow placement="top">
+              <CustomButton
+                type="aceptar"
+                size="small"
+                onClick={() => onReactivate && onReactivate(user)}
+                loading={reactivating} // Mostrar loading state
+                disabled={reactivating} // Deshabilitar durante reactivación
+                sx={{
+                  minWidth: '100px',
+                  height: '32px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                }}
+              >
+                {reactivating ? 'Reactivando...' : 'Reactivar'}
+              </CustomButton>
             </Tooltip>
           ) : (
-            <Tooltip title="No puedes eliminarte a ti mismo" arrow placement="top">
-              <span>
-                <IconButton
-                  disabled
-                  sx={{
-                    backgroundColor: "#f5f5f5",
-                    color: "#999999",
-                  }}
-                >
-                  <Delete />
-                </IconButton>
-              </span>
-            </Tooltip>
+            // Botón de eliminación para usuarios activos
+            typeof onDelete === 'function' ? (
+              <Tooltip title="Eliminar usuario del sistema" arrow placement="top">
+                <span>
+                  <IconButton
+                    onClick={() => onDelete(user)}
+                    sx={{
+                      backgroundColor: "#E57373",
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "#C62828",
+                      },
+                    }}
+                  >
+                    <Delete />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : (
+              <Tooltip title="No puedes eliminarte a ti mismo" arrow placement="top">
+                <span>
+                  <IconButton
+                    disabled
+                    sx={{
+                      backgroundColor: "#f5f5f5",
+                      color: "#999999",
+                    }}
+                  >
+                    <Delete />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )
           )}
         </Box>
       </CardContent>

@@ -70,6 +70,7 @@ function UserManagement() {
     const [supervisorToAssign, setSupervisorToAssign] = useState(null);
     const [allUsers, setAllUsers] = useState([]); // ← NUEVO: almacenar todos los usuarios
     const [selectedTab, setSelectedTab] = useState(0);
+    const [reactivatingUser, setReactivatingUser] = useState(null);
 
 
 
@@ -102,7 +103,6 @@ function UserManagement() {
         }
     }, []);
 
-    // Transformar datos de API para uso en el frontend
     // Transformar datos de API para uso en el frontend
     const transformUserData = (user) => {
         if (!user || typeof user !== "object") return null;
@@ -268,6 +268,8 @@ function UserManagement() {
                     u.id === id ? { ...u, activo: false } : u
                 ));
 
+                setSelectedTab(0);
+               
                 setOpenDelete(false);
                 showFeedback("info", "Usuario desactivado", "El usuario fue desactivado correctamente");
             } catch (err) {
@@ -318,6 +320,58 @@ function UserManagement() {
         }
     }, [fetchUsers, showFeedback]);
 
+    const handleReactivate = useCallback(async (user) => {
+        setReactivatingUser(user.id);
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await axios.post(
+                `${API_URL}/usuarios/${user.id}/reactivar`,
+                {},
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (response.data.success) {
+                // Si la API devuelve el usuario actualizado, usarlo
+                const usuarioActualizado = response.data.usuario
+                    ? transformUserData(response.data.usuario)
+                    : { ...user, activo: true };
+
+                // Actualizar el estado del usuario en las listas
+                setUsers(prev => prev.map(u =>
+                    u.id === user.id ? usuarioActualizado : u
+                ));
+                setAllUsers(prev => prev.map(u =>
+                    u.id === user.id ? usuarioActualizado : u
+                ));
+
+                // Cambiar automáticamente a la pestaña de usuarios activos
+                setSelectedTab(0); // 0 = Activos, 1 = Inactivos
+
+
+                showFeedback("success", "Usuario reactivado", response.data.message || "El usuario fue reactivado correctamente");
+            }
+        } catch (err) {
+            console.error('Error al reactivar:', err.response?.data);
+            const errorMessage = err.response?.data?.message || "No se pudo reactivar el usuario";
+            showFeedback("error", "Error", errorMessage);
+
+            // Si el error es por tiempo de inactividad, recargar para actualizar la lista
+            if (errorMessage.includes('más de 1 año')) {
+                setTimeout(() => {
+                    fetchUsers();
+                }, 1000);
+            }
+        } finally {
+            setReactivatingUser(null);
+        }
+    }, [showFeedback, fetchUsers]);
+
     // Item renderer para react-window (memoizado)
     const Row = useCallback(
         ({ index, style, data }) => {
@@ -332,13 +386,14 @@ function UserManagement() {
                             onEdit={() => handleEdit(user)}
                             onDelete={canDelete ? () => { setUserToDelete(user); setOpenDelete(true); } : undefined}
                             onAssign={handleOpenAssign}
+                            onReactivate={handleReactivate} // Agregar esta prop
                             canDelete={canDelete}
                         />
                     </Suspense>
                 </div>
             );
         },
-        [currentUserId, handleEdit, handleOpenAssign]
+        [currentUserId, handleEdit, handleOpenAssign, handleReactivate] // Agregar handleReactivate
     );
 
     // Lista a renderizar (ya viene transformada)
@@ -498,6 +553,8 @@ function UserManagement() {
                                                     onEdit={() => handleEdit(user)}
                                                     onDelete={canDelete ? () => { setUserToDelete(user); setOpenDelete(true); } : undefined}
                                                     onAssign={handleOpenAssign}
+                                                    onReactivate={handleReactivate}
+                                                    reactivating={reactivatingUser === user.id} // Nueva prop
                                                     canDelete={canDelete}
                                                 />
                                             </Suspense>
