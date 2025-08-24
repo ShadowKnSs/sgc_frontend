@@ -1,3 +1,19 @@
+/**
+ * Vista: UserHome
+ * Descripción:
+ * Página principal del usuario donde se muestran:
+ * - Noticias recientes (con título, descripción e imagen)
+ * - Carruseles de eventos y avisos (visuales)
+ * - Accesos rápidos si el rol es "Invitado" (por ejemplo, al Manual de Calidad)
+ * 
+ * Funcionalidades:
+ * - Consulta noticias, eventos y avisos desde la API de Laravel.
+ * - Permite ver detalles de una noticia o imagen en modales.
+ * - Adapta el contenido visual según el rol del usuario.
+ * 
+ * Componentes personalizados utilizados:
+ * - `NewsCarousel`, `DualCarousel`, `ImageModal`, `NewsModal`, `Title`, `SpeedDial`
+ */
 import React, { useState, useEffect } from 'react';
 import { Box} from '@mui/material';
 import axios from 'axios';

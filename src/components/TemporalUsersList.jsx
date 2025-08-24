@@ -1,3 +1,46 @@
+/**
+ * Componente: TemporalUsersList
+ * Descripción:
+ * Muestra una lista de usuarios temporales generados con token de acceso, junto con su fecha de expiración.
+ * Permite eliminar usuarios de forma individual mediante un botón con ícono.
+
+ * Lógica Principal:
+ * - Se hace una petición GET a `/api/usuarios-temporales` para obtener todos los tokens temporales.
+ * - Cada tarjeta muestra:
+ *    - El `token`
+ *    - La fecha y hora de expiración (`expiracion`)
+ *    - Un botón para eliminar el token.
+ * - Al eliminar un usuario, se actualiza el estado local filtrando el token eliminado.
+
+ * Estado:
+ * - `users`: lista de usuarios temporales obtenidos del backend
+ * - `loading`: estado de carga inicial mientras se consulta la API
+
+ * Efectos:
+ * - `useEffect`: ejecuta la función `fetchUsers()` al montar el componente
+
+ * Funciones:
+ * - `fetchUsers`: obtiene todos los usuarios temporales desde la API
+ * - `deleteUser(id)`: elimina un usuario temporal y actualiza la lista local
+
+ * Diseño y UX:
+ * - Cada tarjeta:
+ *    - Tiene un `hover` animado con efecto de escala
+ *    - Colores institucionales (#004A98 para texto, #F9B800 para ícono de eliminación)
+ *    - Incluye un `Tooltip` en el botón de eliminar para mayor claridad
+ * - Si está `loading`, se muestra un `CircularProgress` centrado
+
+ * Uso:
+ * Ideal para un panel de administración donde se gestionan accesos temporales.
+
+ * Mejoras Futuras:
+ * -  Incluir paginación o scroll infinito si hay muchos tokens
+ * -  Confirmación antes de eliminar
+ * -  Visualizar usuario asociado (si existe)
+ * -  Ordenar por fecha de expiración próxima
+
+ */
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -8,7 +51,6 @@ import {
   Box,
   IconButton,
   Tooltip,
-  Chip,
   Grid,
   CircularProgress,
 } from "@mui/material";

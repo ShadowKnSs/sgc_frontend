@@ -1,3 +1,28 @@
+/**
+ * Vista: ReportView
+ * Descripción:
+ * Muestra el contenido completo del Reporte de Proceso para un año y proceso específico.
+ * Combina información general, módulos clave del proceso y gráficas convertidas en imágenes para exportar como PDF.
+ *
+ * Funcionalidades:
+ * - Carga los datos del proceso, incluyendo su nombre, entidad y secciones clave como:
+ *   - Información general, Manual Operativo, Gestión de Riesgos, Análisis de Datos,
+ *     Proyecto de Mejora, Seguimiento, Plan de Acción, Auditoría Interna.
+ * - Captura y almacena imágenes base64 de gráficas generadas en la vista (vía `onImagenGenerada`).
+ * - Guarda las imágenes en el servidor y genera el PDF al hacer clic en "Descargar PDF".
+ * - Muestra un botón para volver a la vista anterior.
+ *
+ * Componentes clave:
+ * `GeneralInfo`, `ManualOperativo`, `GestionRiesgos`, `AnalisisDatos`, `ProyectoMejora`,
+ * `Seguimiento`, `PlanAccion`, `Auditoria`, `Title`, `FiltroReportes`.
+ *
+ * Endpoints:
+ * - GET `/api/datos-reporte/{idProceso}/{year}`: datos generales del reporte.
+ * - GET `/api/registros/idRegistro`: obtener ID del registro para Análisis de Datos.
+ * - POST `/api/graficas/guardar`: guardar cada imagen base64 generada.
+ * - GET `/api/generar-reporte/{idProceso}/{year}`: descargar el PDF completo.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Typography, Button, CircularProgress } from "@mui/material";

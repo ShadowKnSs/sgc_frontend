@@ -1,3 +1,14 @@
+/**
+ * Vista: UserManagement
+ * Descripción:
+ * Esta vista permite gestionar usuarios del sistema, incluyendo:
+ * - Visualización y edición de usuarios normales y temporales.
+ * - Creación de nuevos usuarios.
+ * - Eliminación de usuarios existentes.
+ * - Generación y limpieza de tokens temporales.
+ * Incluye tarjetas para usuarios (`UserCard`), tarjetas para usuarios temporales (`UserTempCard`),
+ * formulario emergente (`UserForm`) y confirmación de eliminación (`ConfirmDelete`).
+ */
 import React, { useState, useEffect } from "react";
 import { Box, Fab, CircularProgress, Alert, Typography, Grid } from "@mui/material";
 import { Add } from "@mui/icons-material";
@@ -9,24 +20,28 @@ import axios from "axios";
 import Title from "../components/Title";
 import Button from "../components/Button";
 
+// Ruta base de la API
 const API_URL = 'http://127.0.0.1:8000/api';
 
 function UserManagement() {
+    // Estado de usuarios
     const [users, setUsers] = useState([]);
+    const [usuariosTemporales, setUsuariosTemporales] = useState([]);
+    // Estados de control
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [openForm, setOpenForm] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [openDelete, setOpenDelete] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
-    const [usuariosTemporales, setUsuariosTemporales] = useState([]);
 
-
+    // Cargar usuarios normales
     const fetchUsers = async () => {
         try {
             setLoading(true);
             const response = await axios.get(`${API_URL}/usuarios`);
-            setUsers(response.data.data.map(transformUserData));
+            setUsers(response.data.data.map(transformUserData).filter(Boolean));
+
             setError(null);
         } catch (err) {
             setError("Error al cargar los usuarios");
@@ -36,7 +51,7 @@ function UserManagement() {
         }
     };
 
-
+    // Cargar usuarios temporales
     const fetchUsuariosTemporales = async () => {
         try {
             const res = await axios.get(`${API_URL}/usuarios-temporales`);
@@ -45,21 +60,27 @@ function UserManagement() {
             console.error('Error al cargar usuarios temporales');
         }
     };
+    // Eliminar tokens expirados
 
     const handleEliminarYActualizar = async () => {
-    try {
-        const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
-        alert(res.data.message);
-        await fetchUsuariosTemporales(); // Refresca sin recargar
-    } catch (err) {
-        console.error("Error al eliminar tokens:", err);
-        alert("Error al eliminar tokens expirados");
-    }
-};
+        try {
+            const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
+            alert(res.data.message);
+            await fetchUsuariosTemporales(); // Refresca sin recargar
+        } catch (err) {
+            console.error("Error al eliminar tokens:", err);
+            alert("Error al eliminar tokens expirados");
+        }
+    };
 
 
+    // Transformar datos de API para uso en el frontend
 
     const transformUserData = (user) => {
+        if (!user || typeof user !== 'object') return null;
+
+        const hasSupervisor = user.supervisor && typeof user.supervisor === 'object';
+
         return {
             id: user.idUsuario,
             firstName: user.nombre,
@@ -68,8 +89,8 @@ function UserManagement() {
             email: user.correo,
             phone: user.telefono,
             academicDegree: user.gradoAcademico,
-            roles: Array.isArray(user.roles) ? user.roles.map(r => r.nombreRol) : [], // ✅ CAMBIO AQUÍ
-            supervisor: user.supervisor ? {
+            roles: Array.isArray(user.roles) ? user.roles.map(r => r.nombreRol) : [],
+            supervisor: hasSupervisor ? {
                 id: user.supervisor.idUsuario,
                 firstName: user.supervisor.nombre,
                 lastName: user.supervisor.apellidoPat,
@@ -79,10 +100,14 @@ function UserManagement() {
     };
 
 
+    // Efecto inicial
+
     useEffect(() => {
         fetchUsers();
         fetchUsuariosTemporales();
     }, []);
+
+    // Guardar usuario creado o editado
 
     const handleAddUser = (usuarioGuardado) => {
         if (editingUser) {
@@ -99,6 +124,7 @@ function UserManagement() {
         setEditingUser(null);
     };
 
+    // Eliminar usuario
 
     const handleDelete = async (id) => {
         try {
@@ -109,11 +135,13 @@ function UserManagement() {
             setError("Error al eliminar el usuario");
         }
     };
+    // Crear nuevo usuario
 
     const handleAddNewUser = () => {
         setEditingUser(null);
         setOpenForm(true);
     };
+    // Editar usuario existente
 
     const handleEdit = (user) => {
         setEditingUser(user);
@@ -128,12 +156,16 @@ function UserManagement() {
 
     return (
         <Box sx={{ p: 4, textAlign: "center" }}>
+            {/* Loader o error */}
+
             {loading ? (
                 <CircularProgress />
             ) : error ? (
                 <Alert severity="error">{error}</Alert>
             ) : (
                 <>
+                    {/* Tarjetas de usuarios normales */}
+
                     <Box
                         display="grid"
                         gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
@@ -152,9 +184,14 @@ function UserManagement() {
                             />
                         ))}
                     </Box>
+                    {/* Sección de usuarios temporales */}
+
                     {usuariosTemporales.length > 0 && (
                         <>
-                            <Title text="Usuarios Temporales" />
+                            <Box sx={{ marginTop: 3 }}>
+                                <Title text="Usuarios Temporales" />
+                            </Box>
+
 
                             <Grid container spacing={3}>
                                 {usuariosTemporales.map((temp) => (
@@ -175,12 +212,15 @@ function UserManagement() {
                         </>
                     )}
 
+                    {/* Si no hay usuarios temporales */}
 
                     {usuariosTemporales.length === 0 && (
                         <Typography variant="body2" color="text.secondary" mt={2}>
                             No hay usuarios temporales activos.
                         </Typography>
                     )}
+
+                    {/* Botón flotante para agregar */}
 
                     <Fab
                         color="primary"
@@ -193,14 +233,16 @@ function UserManagement() {
 
             )}
 
-
+            {/* Formulario emergente para crear o editar usuario */}
 
             <UserForm
                 open={openForm}
                 onClose={handleFormClose}
                 onSubmit={handleAddUser}
+                onTokenCreated={fetchUsuariosTemporales}
                 editingUser={editingUser}
             />
+            {/* Diálogo de confirmación de eliminación */}
 
             <ConfirmDelete
                 open={openDelete}

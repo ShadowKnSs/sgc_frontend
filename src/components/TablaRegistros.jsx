@@ -1,3 +1,48 @@
+/**
+ * Componente: TablaRegistros
+ * Descripción:
+ * Muestra una tabla paginada de registros de actividades, cada una con información clave como
+ * número de actividad, fuente, entradas, entregables, fechas y estado.
+ * Permite editar y eliminar registros desde acciones en cada fila.
+
+ * Props:
+ * - records: Array de objetos con los datos de cada registro.
+ * - handleOpenModal: Función que se invoca al hacer clic en el botón de editar (recibe el índice del registro).
+ * - handleDeleteRecord: Función que se invoca al hacer clic en el botón de eliminar (recibe el índice del registro).
+
+ * Estado Local:
+ * - `page`: Página actual de la paginación.
+ * - `rowsPerPage`: Número de registros mostrados por página (fijo en 5).
+
+ * Renderiza:
+ * - Un título "Registros Agregados"
+ * - Una tabla `MUI` con encabezado fijo (`stickyHeader`).
+ * - Cada fila muestra:
+ *    - `record.numero`
+ *    - `record.nombreFuente`
+ *    - `record.elementoEntrada`, `descripcion`, `entregable` con `Tooltip` para texto largo
+ *    - `responsable`, `fechaInicio`, `fechaTermino`, `estado`
+ *    - Acciones de editar y eliminar con íconos
+ * - Paginación al final de la tabla (`TablePagination`), controlada por `page`.
+
+ * UX/UI:
+ * - Diseño responsivo con `overflowX` y sombreado en filas alternas
+ * - `Tooltip` para campos truncados (descripción, entregable, etc.)
+ * - Colores institucionales:
+ *    - Azul en encabezados (`#1976d2`)
+ *    - Amarillo (`warning.main`) para editar
+ *    - Rojo (`error.main`) para eliminar
+ * - Botones con `IconButton` y `Tooltip` para accesibilidad
+
+ * Mejoras Futuras:
+ * - 💡 Permitir cambiar `rowsPerPage`
+ * - 💡 Agregar ordenamiento por columnas
+ * - 💡 Mostrar estado con color codificado o chip
+
+ * Uso Común:
+ * - Dentro de formularios que gestionan actividades, como análisis de proceso o planes de mejora
+ */
+
 import React, { useState } from "react";
 import {
   Table, TableHead, TableRow, TableCell, TableBody,

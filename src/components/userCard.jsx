@@ -1,7 +1,14 @@
+/**
+ * Componente: UserCard
+ * Descripción:
+ * Representa visualmente un usuario normal del sistema.
+ * Muestra nombre completo, correo, roles, y el supervisor si es un "Líder".
+ * Incluye botones de acción para editar o eliminar el usuario.
+ */
 import React from "react";
 import { Card, CardContent, Typography, Divider, Box, IconButton, Tooltip, Chip } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
-import SupervisorAccount from "@mui/icons-material/SupervisorAccount"; 
+import SupervisorAccount from "@mui/icons-material/SupervisorAccount";
 
 const colorPalette = {
   azulOscuro: "#185FA4",
@@ -29,7 +36,8 @@ function UserCard({ user, onEdit, onDelete }) {
         },
       }}
     >
-      {/* Encabezado */}
+      {/* Cabecera con nombre y correo */}
+
       <Box
         sx={{
           backgroundColor: colorPalette.verdePastel,
@@ -51,7 +59,7 @@ function UserCard({ user, onEdit, onDelete }) {
           {user.email}
         </Typography>
       </Box>
-
+      {/* Roles */}
       <CardContent sx={{ backgroundColor: colorPalette.verdeClaro }}>
         {/* Roles */}
         <Box display="flex" justifyContent="center" gap={1} flexWrap="wrap" mb={2}>
@@ -70,7 +78,7 @@ function UserCard({ user, onEdit, onDelete }) {
           ))}
         </Box>
 
-        {/* Supervisor */}
+        {/* Información de supervisor */}
         {user.roles.includes("Líder") && user.supervisor && (
           <Box
             display="flex"
@@ -90,7 +98,7 @@ function UserCard({ user, onEdit, onDelete }) {
 
         <Divider sx={{ my: 2, backgroundColor: colorPalette.grisClaro }} />
 
-        {/* Acciones */}
+        {/* Botones de acción */}
         <Box display="flex" justifyContent="center" gap={2}>
           <Tooltip title="Editar">
             <IconButton

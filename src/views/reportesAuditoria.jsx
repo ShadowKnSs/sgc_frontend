@@ -1,3 +1,29 @@
+/**
+ * Vista: ReportesAuditoria
+ * Descripción:
+ * Esta vista permite al usuario visualizar, generar y eliminar reportes relacionados con auditorías internas.
+ *
+ * Funcionalidades:
+ * - Visualiza una lista de reportes previamente generados.
+ * - Muestra los detalles del reporte: entidad, líder, fecha.
+ * - Permite generar un nuevo reporte seleccionando una auditoría existente.
+ * - Integra un filtro lateral (`FiltroAuditoria`) para buscar entre reportes.
+ * - Descarga el PDF de un reporte desde el backend.
+ * - Elimina reportes con confirmación (`ConfirmDeleteDialog`).
+ * 
+ * Componentes clave:
+ * - `ReportCard`: tarjeta visual con acciones para cada reporte.
+ * - `FiltroAuditoria`: buscador lateral colapsable.
+ * - `MensajeAlert`, `Title`, `ConfirmDeleteDialog`: soporte visual y funcional.
+ * 
+ * Endpoints utilizados:
+ * - GET `/api/reportesauditoria` - Obtener todos los reportes de auditoría.
+ * - GET `/api/auditorias` - Obtener todas las auditorías disponibles.
+ * - POST `/api/reportesauditoria` - Generar nuevo reporte.
+ * - DELETE `/api/reportesauditoria/{id}` - Eliminar un reporte existente.
+ * - GET `/api/reporte-pdf/{idAuditorialInterna}` - Descargar PDF del reporte.
+ */
+
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";

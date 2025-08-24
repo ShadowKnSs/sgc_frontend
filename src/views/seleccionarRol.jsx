@@ -1,3 +1,14 @@
+/**
+ * Vista: SeleccionarRol
+ * Descripción:
+ * Permite al usuario elegir entre los diferentes roles disponibles que tiene asignados.
+ * Una vez seleccionado, guarda el rol activo en `localStorage` y redirige a la vista principal.
+ * 
+ * Características:
+ * - Muestra un mensaje si no hay roles disponibles y redirige al login.
+ * - Añade un ícono representativo a cada rol mostrado.
+ * - Usa los componentes `RolCard`, `MensajeAlert`, `Loader` y `Title`.
+ */
 import React, { useEffect, useState } from 'react';
 import { Container, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';

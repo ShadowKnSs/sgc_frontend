@@ -1,5 +1,44 @@
+/**
+ * Vista: ProcessList
+ * Descripción:
+ * Esta vista muestra un listado de procesos registrados en el sistema, cada uno representado como una tarjeta (`ProcessCard`).
+ * Permite a los usuarios con permisos adecuados:
+ * - Visualizar procesos y sus entidades correspondientes.
+ * - Agregar un nuevo proceso mediante botón flotante.
+ * - Editar o eliminar procesos existentes con confirmación previa.
+ *
+ * Funcionalidades clave:
+ * - Carga asincrónica de procesos desde el endpoint `/api/procesos`.
+ * - Obtención de entidades desde `/api/entidades` para vincular el nombre de la entidad al proceso.
+ * - Enriquecimiento de los datos de proceso para mostrar `nombreProceso`, `nombreEntidad`, y `id` unificado.
+ * - Botón de creación (`FAB`) fijo en esquina inferior derecha.
+ * - Confirmación de edición y eliminación mediante componentes modales reutilizables (`ConfirmDelete`, `ConfirmEdit`).
+ *
+ * Endpoints utilizados:
+ * - `GET /api/procesos` → Lista de procesos.
+ * - `GET /api/entidades` → Lista de entidades.
+ * - `DELETE /api/procesos/{id}` → Elimina un proceso específico.
+ *
+ * Componentes externos:
+ * - `ProcessCard`: Tarjeta visual de cada proceso.
+ * - `Title`: Encabezado principal.
+ * - `ConfirmDelete`, `ConfirmEdit`: Diálogos de confirmación reutilizables.
+ *
+ * Estado local:
+ * - `processes`, `entidades`: Datos cargados desde el backend.
+ * - `selectedProcess`: Proceso seleccionado para edición o eliminación.
+ * - `openDelete`, `openConfirmEdit`: Estados de visibilidad para los diálogos modales.
+ *
+ * Navegación:
+ * - Al editar, redirige a `/editar-proceso/{id}`.
+ * - Al crear, redirige a `/nuevo-proceso`.
+ *
+ * Observación:
+ * El componente contempla compatibilidad flexible con estructuras de datos del backend usando `idProceso || idProcesoPK`.
+ */
+
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Grid, Fab } from "@mui/material";
+import { Box, Grid, Fab } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import ProcessCard from "../components/processCard";
 import { useNavigate } from "react-router-dom";

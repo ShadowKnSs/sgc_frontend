@@ -1,3 +1,43 @@
+/**
+ * Vista: PlanTrabajoFormV
+ * Descripción:
+ * Permite crear, visualizar y editar un Plan de Trabajo relacionado con un `idRegistro` de un proceso.
+ * El formulario principal recoge datos del plan y se complementa con múltiples registros llamados "fuentes",
+ * que se pueden añadir, editar y eliminar mediante un modal.
+
+ * Funcionalidades clave:
+ * - Carga el plan de trabajo existente desde el backend, si ya fue registrado.
+ * - Permite llenar datos del plan de trabajo: responsable, objetivo, fechas, revisado por, etc.
+ * - Permite agregar múltiples fuentes relacionadas con el plan, cada una con campos detallados.
+ * - Las fuentes pueden visualizarse en vista tipo tabla o tipo tarjeta (toggle con `Switch`).
+ * - Modal reutilizable para agregar/editar fuentes (`ModalForm`) y ver detalles (`DetailsModal`).
+ * - Guarda el plan de trabajo (`POST /api/plantrabajo`) y luego las fuentes (`POST /api/plantrabajo/:id/fuentes`).
+ * - Verificación y validación de formularios antes del envío.
+ * - Componente adaptable a modos de solo lectura (`soloLectura`) y permisos de edición (`puedeEditar`).
+
+ * Navegación:
+ * - El `idRegistro` se obtiene desde la URL utilizando `useParams`.
+
+ * Estado local:
+ * - `formData`: Datos del formulario principal.
+ * - `records`: Lista de fuentes añadidas al plan de trabajo.
+ * - `viewMode`: Vista activa ("table" o "cards").
+ * - `selectedRecord`: Fuente seleccionada para ver en detalle.
+ * - `showModal`, `editIndex`: Control del formulario modal de fuentes.
+
+ * Componentes personalizados:
+ * - `PTForm`: Formulario principal del plan de trabajo.
+ * - `TablaRegistros` y `CardRegistros`: Vista de las fuentes en tabla o tarjeta.
+ * - `ModalForm`: Modal para crear o editar una fuente.
+ * - `DetailsModal`: Modal para ver el detalle de una fuente.
+ * - `Title`, `Switch`, `Snackbar`, `Button`, etc. (Material UI)
+ *
+ * Endpoints utilizados:
+ * - `GET /api/plantrabajo/registro/:idRegistro` → obtener plan de trabajo existente.
+ * - `POST /api/plantrabajo` → guardar el plan principal.
+ * - `POST /api/plantrabajo/:idPlanTrabajo/fuentes` → guardar fuentes relacionadas.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom"; // Para extraer idRegistro desde la URL
 import { Box, Button, Switch, FormControlLabel, Typography } from "@mui/material";

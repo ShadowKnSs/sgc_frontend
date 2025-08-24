@@ -1,3 +1,19 @@
+/**
+ * Vista: Seguimiento
+ * Descripción:
+ * Muestra y gestiona las minutas de seguimiento asociadas a un `idRegistro` y `idProceso`.
+ * 
+ * Funcionalidades:
+ * - Visualizar una lista de minutas como tarjetas (`MinutaCard`).
+ * - Consultar detalles de cada minuta en un modal (`MinutaDialog`).
+ * - Crear nuevas minutas o editar existentes mediante un formulario (`MinutaForm`).
+ * - Eliminar minutas con confirmación y notificaciones (`ConfirmDelete`, `FeedbackSnackbar`).
+ * - Restringe acciones según permisos (`soloLectura`, `puedeEditar`).
+ * 
+ * Componentes clave utilizados:
+ * - `MinutaCard`, `MinutaForm`, `MinutaDialog`, `ConfirmEdit`, `ConfirmDelete`, `FeedbackSnackbar`
+ * - Navegación del proceso (`MenuNavegacionProceso`), contexto (`ContextoProcesoEntidad`)
+ */
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, Box } from "@mui/material";

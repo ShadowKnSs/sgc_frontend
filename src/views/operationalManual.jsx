@@ -1,4 +1,43 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+/**
+ * Vista: ProcessView (Manual Operativo)
+ * Descripción:
+ * Esta vista centraliza la navegación y visualización de las secciones que conforman
+ * el Manual Operativo de un proceso específico (`idProceso`). Es una interfaz modular
+ * que permite acceder a componentes como Carátula, Mapa de Proceso, Plan de Control, etc.
+
+ * Funcionalidades:
+ * - Renderiza dinámicamente componentes según la sección seleccionada.
+ * - Muestra el título de la entidad y el proceso correspondiente.
+ * - Implementa un menú horizontal estilizado para cambiar entre secciones.
+ * - Carga los permisos del usuario (lectura o edición) mediante `Permiso("Manual Operativo")`.
+ * - Integra el menú contextual del proceso (`MenuNavegacionProceso`).
+ * - Usa diseño responsivo con Material UI (`Box`, `Button`, `Container`).
+
+ * Secciones integradas:
+ * - "Carátula" → Componente `Caratula`
+ * - "Control de Cambios" → Componente `ControlCambios`
+ * - "Mapa de Proceso" → Componente `MapaProceso`
+ * - "Diagrama de Flujo" → Componente `DiagramaFlujo`
+ * - "Plan de Control" → Componente `PlanControl`
+ * - "Control de documentos" → Componente `ControlDocuments`
+
+ * Props y Hooks:
+ * - `idProceso`: obtenido desde la URL vía `useParams`.
+ * - `soloLectura`, `puedeEditar`: permisos calculados según el módulo "Manual Operativo".
+ * - `selectedTab`: controla la sección activa en el menú de navegación.
+ * - `useMenuProceso`: hook que devuelve las rutas disponibles para el proceso actual.
+
+ * Backend utilizado:
+ * - `GET /api/proceso-entidad/:idProceso` → Devuelve nombre de entidad y proceso.
+
+ * Consideraciones:
+ * - Las secciones se renderizan perezosamente (`renderContent`) según el tab activo.
+ * - Es posible añadir nuevas secciones en el arreglo `sections` y extender `renderContent`.
+ * - El diseño del menú horizontal es estilizado con botones tipo "pill" y destaca el activo.
+ * - Pensado para integrarse como una subvista dentro de una arquitectura de proceso más amplia.
+ */
+
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useParams, useLocation } from "react-router-dom";
 import Title from "../components/Title";
@@ -16,7 +55,7 @@ import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import useMenuProceso from "../hooks/useMenuProceso";
 
 const sections = [
-  "Caratula",
+  "Carátula",
   "Control de Cambios",
   "Mapa de Proceso",
   "Diagrama de Flujo",
@@ -52,7 +91,7 @@ const ProcessView = () => {
   const renderContent = () => {
     const props = { idProceso, soloLectura, puedeEditar };
     switch (sections[selectedTab]) {
-      case "Caratula": return <Caratula {...props} />;
+      case "Carátula": return <Caratula {...props} />;
       case "Control de Cambios": return <ControlCambios {...props} />;
       case "Mapa de Proceso": return <MapaProceso {...props} />;
       case "Diagrama de Flujo": return <DiagramaFlujo {...props} />;

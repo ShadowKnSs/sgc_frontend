@@ -1,3 +1,74 @@
+/**
+ * Componente: ProcessMapView
+ * Ubicación: src/views/ProcessMapView.jsx
+ * Props:
+ *  - idProceso (number): ID del proceso al que pertenecen los documentos.
+ *  - soloLectura (boolean): Si es true, desactiva las funciones de agregar, editar y eliminar documentos.
+ *
+ * Descripción:
+ * Vista para administrar los documentos relacionados a un proceso. Permite ver, agregar, editar y eliminar documentos,
+ * con soporte para tarjetas desplegables con detalles completos y validación de campos.
+ *
+ * Funcionalidades principales:
+ * 1.  Obtener documentos del proceso desde el backend (`/api/documentos?proceso=idProceso`).
+ * 2.  Visualizar documentos como tarjetas (vista compacta o expandida).
+ * 3.  Permite "desplegar todo" o "cerrar todo".
+ * 4.  Agregar nuevos documentos mediante un formulario dentro de un `Dialog`.
+ * 5.  Editar documentos con formulario reutilizable (condicional por tipo de documento).
+ * 6.  Eliminar documentos con confirmación.
+ * 7.  Validación de campos obligatorios en el formulario.
+ * 8.  Gestión visual de errores, alertas (`MensajeAlert`) y diálogos de confirmación (`ConfirmDeleteDialog`).
+
+ * Estado:
+ * - `users`: Lista de documentos del proceso.
+ * - `activeCards`: Tarjetas desplegadas (detalle completo).
+ * - `openForm`, `editDialogOpen`: Controlan apertura de formularios.
+ * - `editDoc`, `newUser`: Estados para edición y nuevo documento.
+ * - `errors`: Validaciones del formulario.
+ * - `alerta`: Mensajes de alerta visual.
+ * - `docAEliminar`, `confirmDialogOpen`: Control de diálogo de confirmación para eliminación.
+
+ * Estructura de un documento:
+ * {
+ *   nombreDocumento: string,
+ *   codigoDocumento: string,
+ *   tipoDocumento: "interno" | "externo",
+ *   fechaRevision: date,
+ *   fechaVersion: date (solo si externo),
+ *   noRevision: number,
+ *   noCopias: number,
+ *   tiempoRetencion: number,
+ *   lugarAlmacenamiento: string,
+ *   medioAlmacenamiento: "Físico" | "Digital" | "Ambos",
+ *   disposicion: string,
+ *   usuarios: string[], (convertido a string plano para backend: responsable)
+ * }
+
+ * Lógica destacada:
+ * - `validateFields()`: Verifica campos requeridos dependiendo del tipo de documento.
+ * - `handleAddUser()`: Envía POST a `/api/documentos`, actualiza la lista local.
+ * - `handleSaveEditDocument()`: Envía PUT a `/api/documentos/:id`, reemplaza el documento en el estado.
+ * - `confirmarEliminacion()`: Ejecuta DELETE y actualiza lista.
+
+ * Custom Components:
+ * - `UserCard`: Representación visual de cada documento. Modo compacto y expandido. Soporta edición y eliminación.
+ * - `MensajeAlert`: Muestra mensajes de error o éxito.
+ * - `ConfirmDeleteDialog`: Confirma eliminación antes de ejecutar.
+
+ * Mejores prácticas implementadas:
+ * - Validación reactiva antes de guardar o editar.
+ * - Control de errores con `axios.catch` y feedback visual.
+ * - Separación de estado entre nuevo documento y edición.
+ * - Conversión de array `usuarios` a string plano para backend (`responsable`).
+
+ * Mejoras recomendadas:
+ * - Agregar paginación si hay muchos documentos.
+ * - Soporte para archivos adjuntos o subida de archivos PDF.
+ * - Autocompletado para usuarios/responsables con conexión a tabla de usuarios.
+ * - Visualización más avanzada con filtros por tipo de documento o responsable.
+ * - Modularización del formulario (extraer a componente reutilizable).
+ */
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {

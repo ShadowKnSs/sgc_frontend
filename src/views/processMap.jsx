@@ -1,3 +1,43 @@
+/**
+ * Vista: ProcessMapView
+ * Descripción:
+ * Esta vista presenta la estructura detallada de un proceso específico, incluyendo:
+ * 1. Información general del proceso (objetivo, alcance, norma, etc.).
+ * 2. Información general del Mapa de Procesos editable.
+ * 3. Indicadores registrados para el mapa del proceso, con capacidad para visualizar, crear, editar o eliminar.
+ *
+ * Funcionalidades:
+ * - Listar indicadores (`indmapaproceso`) por `idProceso`.
+ * - Cargar información detallada del proceso y su mapa (`mapaproceso`).
+ * - Agregar nuevo indicador con validación.
+ * - Editar y guardar información general del mapa de procesos.
+ * - Editar o eliminar indicadores individuales mediante diálogo y confirmación.
+ * - Expandir/cerrar indicadores individualmente o en lote.
+ * - Vista adaptativa con tarjetas (`UserCard`) que cambian entre colapsadas y expandibles.
+ *
+ * Componentes clave:
+ * - `UserCard`: tarjeta para cada indicador (versión expandida y compacta).
+ * - `MensajeAlert`, `ConfirmDeleteDialog`: alertas y confirmaciones.
+ * - `Title`, `Fab`, `Dialog`, `TextField`: elementos visuales para interacción.
+ *
+ * Endpoints API usados:
+ * - `GET /api/indmapaproceso?proceso={id}` → indicadores del mapa.
+ * - `GET /api/procesos/{id}` → datos del proceso.
+ * - `GET /api/mapaproceso/{id}` → datos del mapa de proceso.
+ * - `POST /api/indmapaproceso` → crear nuevo indicador.
+ * - `PUT /api/indmapaproceso/{id}` → actualizar indicador.
+ * - `DELETE /api/indmapaproceso/{id}` → eliminar indicador.
+ * - `POST /api/mapaproceso` o `PUT /api/mapaproceso/{id}` → guardar mapa de proceso.
+ *
+ * Props:
+ * - `idProceso`: ID del proceso actual.
+ * - `soloLectura`: determina si el usuario puede editar o solo visualizar.
+ *
+ * Nota:
+ * Este componente está diseñado para roles con permisos de edición. Si `soloLectura` está activado,
+ * los botones de edición/creación quedan ocultos o inactivos.
+ */
+
 import React, { useState, useEffect } from "react";
 import Title from "../components/Title";
 import axios from "axios";

@@ -1,3 +1,10 @@
+
+/**
+ * Componente: UserTempCard
+ * Descripción:
+ * Tarjeta que representa un usuario temporal con su token y fecha de expiración.
+ * Permite copiar el token al portapapeles y muestra un Snackbar de confirmación.
+ */
 import React, { useState } from "react";
 import {
     Card,

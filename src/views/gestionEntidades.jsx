@@ -1,5 +1,51 @@
+/**
+ * Componente: GestionEntidades
+ * Ubicación: src/views/GestionEntidades.jsx
+ *
+ * Descripción:
+ * Componente que permite **gestionar las entidades o dependencias** del sistema.
+ * Soporta operaciones CRUD completas: crear, listar, editar y eliminar entidades.
+ * Se apoya en componentes modales, tarjetas y diálogos de confirmación para brindar una experiencia fluida.
+ *
+ * Funcionalidades principales:
+ * - Visualiza una lista de entidades en forma de cards (componente `CardEntidad`).
+ * - Permite crear nuevas entidades mediante un FAB y un formulario (`AddEntidad`).
+ * - Soporta edición con confirmación (`ConfirmEdit`).
+ * - Permite eliminar con confirmación (`ConfirmDelete`).
+ *
+ * Estructura del estado:
+ * - `entidades`: lista completa de entidades traída desde el backend.
+ * - `openDialog`: controla si el modal de creación/edición está abierto.
+ * - `modoEdicion`: define si el formulario se usa para crear o editar.
+ * - `entidadAEditar`: datos de la entidad que se está editando.
+ * - `entidadSeleccionada`: índice de la entidad que se quiere eliminar.
+ * - `showConfirmDelete`, `showConfirmEdit`: controlan la visibilidad de los diálogos de confirmación.
+ *
+ * Componentes utilizados:
+ * - `CardEntidad`: representa visualmente cada entidad.
+ * - `AddEntidad`: formulario de entrada para crear o editar.
+ * - `ConfirmDelete`, `ConfirmEdit`: diálogos de confirmación reutilizables.
+ * - `DialogTitleCustom`: encabezado del modal de formulario.
+ *
+ * Endpoints usados:
+ * - `GET /api/entidades`: obtener todas las entidades.
+ * - `POST /api/entidades`: crear nueva entidad.
+ * - `PUT /api/entidades/{id}`: actualizar entidad existente.
+ * - `DELETE /api/entidades/{id}`: eliminar entidad existente.
+ *
+ * Consideraciones:
+ * - El campo `icono` tiene un valor por defecto `"BusinessIcon"` si no se define.
+ * - En modo edición, se muestra una confirmación antes de enviar cambios al backend.
+ * - En eliminación, se valida primero el índice seleccionado para evitar errores de rango.
+ *
+ * Mejoras futuras recomendadas:
+ * - Usar `useReducer` en lugar de múltiples `useState` para una mejor organización.
+ * - Validación del formulario en `AddEntidad`.
+ * - Soporte para íconos visuales dinámicos según el valor `icono`.
+ */
+
 import React, { useState, useEffect } from 'react';
-import {Box,Dialog,DialogTitle,DialogContent,Fab,Grid} from '@mui/material';
+import {Box,Dialog,DialogContent,Fab,Grid} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
 
@@ -10,6 +56,7 @@ import ConfirmEdit from '../components/confirmEdit';
 import DialogTitleCustom from '../components/TitleDialog';
 
 const API_URL = 'http://localhost:8000/api/entidades';
+
 
 const GestionEntidades = () => {
   const [entidades, setEntidades] = useState([]);

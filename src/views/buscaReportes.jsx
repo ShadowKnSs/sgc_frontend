@@ -1,3 +1,44 @@
+/**
+ * Componente: BuscaReportes
+ * Ubicación: src/views/BuscaReportes.jsx
+ * Descripción:
+ * Vista que permite al usuario buscar reportes ya generados del sistema, 
+ * filtrando por tipo: auditorías o procesos.
+
+ * Funcionalidades principales:
+ * 1.  Muestra dos botones para seleccionar el tipo de búsqueda: "Buscar Auditorías" o "Buscar Procesos".
+ * 2.  Al hacer clic en cada botón, se abre un modal correspondiente:
+ *    - <BuscadorAuditoria /> para auditorías.
+ *    - <BuscadorProcesos /> para procesos.
+ * 3.  Controla la visibilidad de los buscadores con los estados `openAuditoriaSearch` y `openProcesoSearch`.
+ * 4.  Usa el estado `searchTerm` y `setSearchTerm` para manejar el término de búsqueda compartido entre ambos buscadores.
+
+ * Estados:
+ * - `openAuditoriaSearch`: booleano que indica si está abierto el modal para buscar auditorías.
+ * - `openProcesoSearch`: booleano que indica si está abierto el modal para buscar procesos.
+ * - `searchTerm`: string que guarda el texto ingresado por el usuario para buscar.
+
+ * Reutiliza:
+ * - `Title`: para el encabezado estilizado.
+ * - `BuscadorAuditoria`: componente modal personalizado para búsqueda de reportes de auditoría.
+ * - `BuscadorProcesos`: componente modal personalizado para búsqueda de reportes de procesos.
+
+ * UI y Diseño:
+ * - Estructura centrada usando `Grid` de Material UI.
+ * - Botones grandes y accesibles con buen padding.
+ * - Compatibilidad responsive en dispositivos pequeños (xs, sm, md).
+ * - Integración visual con los colores primarios y secundarios institucionales.
+
+ * Recomendaciones futuras:
+ * - Mostrar directamente los resultados debajo del buscador sin modal si se desea mejor UX.
+ * - Agregar animaciones de entrada para los modales.
+ * - Sincronizar `searchTerm` con resultados previos o historial reciente de búsqueda.
+
+ * Dependencias externas:
+ * - @mui/material
+ * - React hooks (`useState`)
+ */
+
 import React, { useState } from 'react';
 import { Box, Typography, Button, Grid } from '@mui/material';
 import Title from '../components/Title';

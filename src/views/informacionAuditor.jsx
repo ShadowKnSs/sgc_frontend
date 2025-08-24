@@ -1,3 +1,43 @@
+/**
+ * Componente: DetalleAuditor.jsx
+ * Descripción:
+ * Vista de detalle de un auditor. Muestra su información personal (correo, teléfono, grado académico)
+ * y un listado de auditorías en las que ha participado. Está diseñado con un enfoque visual moderno y
+ * responsivo usando Material UI y animaciones con Framer Motion.
+ * 
+ * Props:
+ * - auditor: Objeto con los datos del auditor seleccionado.
+ * - onBack: Función callback para regresar a la vista anterior.
+ * 
+ * Funcionalidades:
+ * - Realiza una petición GET al montar el componente para obtener las auditorías del auditor.
+ * - Presenta la información en dos secciones:
+ *    - Card de contacto (foto, correo, teléfono, grado)
+ *    - Card de auditorías (lista de auditorías realizadas)
+ * - Manejo básico de errores de red con `console.error`.
+ * - Diseño responsivo (`Box`, `Grid`, `Paper`) y visual con `Avatar`, `Icons` y `Typography`.
+
+ * Estados (useState):
+ * - auditorias: Lista de auditorías obtenidas desde el backend para el auditor dado.
+
+ * Efectos (useEffect):
+ * - Al montar el componente, realiza una petición con el id del auditor:
+ *   GET http://localhost:8000/api/auditores/{id}/auditorias
+
+ * Dependencias externas:
+ * - Axios (para solicitudes HTTP)
+ * - Framer Motion (para animación inicial)
+ * - Material UI (para diseño visual)
+
+ * Recomendaciones futuras:
+ * - Mostrar los nombres reales de entidades en lugar del `idEntidad`.
+ * - Permitir navegación a la auditoría seleccionada (`onClick` en la card).
+ * - Agregar paginación si la cantidad de auditorías crece.
+ * - Usar `Skeleton` o `CircularProgress` durante la carga inicial.
+ * - Manejo de errores con Snackbar o mensaje visual.
+
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   Box,

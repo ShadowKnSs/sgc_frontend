@@ -1,3 +1,52 @@
+/**
+ * Componente: GraficasPage
+ * Ubicación: src/views/GraficasPage.jsx
+ * 
+ * Descripción:
+ * Esta vista renderiza diferentes gráficas que representan los resultados de indicadores de desempeño
+ * de un proceso para un `idRegistro` determinado. Incluye métricas de Plan de Control, Encuesta,
+ * Retroalimentación, Mapa de Proceso, Riesgos y Evaluación de Proveedores.
+ * 
+ * Funcionalidades principales:
+ * - Obtiene desde el backend los indicadores consolidados del registro actual.
+ * - Extrae el `idProceso` relacionado al `idRegistro` para usarlo en las gráficas correspondientes.
+ * - Filtra y organiza indicadores por su tipo (`origenIndicador`) para renderizar la gráfica adecuada.
+ * - Muestra alertas informativas si no hay indicadores disponibles para cierta sección.
+
+ * Estado:
+ * - `loading`: controla el spinner de carga mientras se obtienen datos.
+ * - `error`: muestra un mensaje de error si falla la carga de datos.
+ * - `encuestaId`: guarda el ID del indicador de tipo "Encuesta".
+ * - `evaluacionId`: guarda el ID del indicador de tipo "EvaluaProveedores".
+ * - `retroList`: lista de indicadores de tipo "Retroalimentacion".
+ * - `idProceso`: ID del proceso al que pertenece el registro (obtenido desde la API).
+
+ * Hooks utilizados:
+ * - `useLocation`: para acceder al estado enviado desde la navegación (`idRegistro`).
+ * - `useEffect`: para cargar indicadores e información del proceso.
+
+ * Componentes importados:
+ * - `GraficaPlanControl`: Gráfica de barras del Plan de Control (`idProceso`).
+ * - `GraficaEncuesta`: Gráfica específica para encuesta de satisfacción (`id`).
+ * - `GraficaRetroalimentacion`: Gráfica de múltiples indicadores de retroalimentación (`retroList`).
+ * - `GraficaMapaProceso`: Gráfica para indicadores de desempeño del proceso (`idProceso`).
+ * - `GraficaRiesgos`: Gráfica para análisis de riesgos (`idRegistro`).
+ * - `GraficaEvaluacionProveedores`: Gráfica específica para proveedores (`id`).
+ * - `Title`: Título decorativo reutilizable.
+
+ * Endpoints consumidos:
+ * - GET `/api/indicadoresconsolidados?idRegistro=X` → obtiene indicadores filtrados por registro.
+ * - GET `/api/registros/buscar-proceso/{idRegistro}` → obtiene `idProceso` correspondiente.
+
+ * Posibles mejoras:
+ * - Reintento automático si una petición falla.
+ * - Separación de lógica de carga en hooks personalizados.
+ * - Uso de `Promise.all` para paralelizar la carga de indicadores y `idProceso`.
+ * - Agregar fallback visual si el gráfico falla.
+
+ * Requiere que se le pase `idRegistro` por `location.state` desde la vista anterior.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Box, Alert, CircularProgress } from '@mui/material';
 import axios from 'axios';

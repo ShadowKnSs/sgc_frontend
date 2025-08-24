@@ -1,3 +1,54 @@
+/**
+ * Componente: AuditoriaProceso
+ * Ubicación: src/views/AuditoriaProceso.jsx
+ * Descripción:
+ * Vista principal para mostrar todas las auditorías internas registradas en un proceso específico y su registro por año (`idRegistro`).
+
+ * Funcionalidades:
+ * 1. ✅ Muestra todas las auditorías internas asociadas al `idRegistro` (año) y `idProceso`.
+ * 2. ✅ Permite navegar a la vista de creación o edición del informe de auditoría.
+ * 3. ✅ Ofrece la eliminación de auditorías con confirmación.
+ * 4. ✅ Usa el valor de `soloLectura` y `puedeEditar` para controlar permisos del usuario.
+ * 5. ✅ Utiliza un botón flotante con un menú para elegir acciones (crear informe).
+ * 6. ✅ Obtiene y muestra los nombres de la entidad y del proceso actual.
+ * 7. ✅ Muestra mensajes y errores con componentes personalizados (`MensajeAlert`, `ErrorAlert`).
+
+ * Props externas:
+ * - `idProceso` y `soloLectura` se reciben desde `location.state` o desde `localStorage`.
+
+ * Hooks:
+ * - `useParams`: para obtener `idRegistro` desde la URL.
+ * - `useNavigate`, `useLocation`: navegación y recepción de props vía `state`.
+ * - `useEffect`: para cargar auditorías, nombres del proceso y entidad, y el año del registro.
+
+ * Estados principales:
+ * - `auditorias`: lista de auditorías para el proceso y registro.
+ * - `nombreProceso`, `nombreEntidad`: nombres de proceso y entidad mostrados como título.
+ * - `anioRegistro`: año del registro actual, usado como contexto.
+ * - `mensaje`, `error`, `errorCarga`: usados para mostrar alertas.
+ * - `confirmDialogOpen`, `auditoriaAEliminar`: controlan el modal de confirmación de eliminación.
+ * - `anchorEl`: maneja el anclaje del `Menu` para acciones de creación.
+
+ * Reutiliza:
+ * - `Title`: encabezado estilizado.
+ * - `MensajeAlert`, `ErrorAlert`: alertas visuales.
+ * - `ConfirmDeleteDialog`: modal de confirmación para eliminar auditorías.
+
+ * UX/UI:
+ * - Muestra tarjetas (`Paper`) individuales para cada auditoría.
+ * - Fab (`+`) flotante para crear o acceder a opciones de creación de informes.
+ * - Loading central con `CircularProgress` si no se han cargado los datos.
+
+ * Recomendaciones futuras:
+ * - Unificar el uso del botón flotante: solo uno debería estar presente según permisos.
+ * - Considerar paginación o búsqueda para auditorías si la lista crece.
+ * - Mostrar también si la auditoría tiene informe generado.
+
+ * Seguridad:
+ * - La acción de eliminación requiere confirmación explícita del usuario.
+ * - Se usa `soloLectura` y `puedeEditar` para condicionar acciones sensibles.
+ */
+
 import React, { useEffect, useState } from "react";
 import Permiso from "../hooks/userPermiso";
 import { Button } from "@mui/material";

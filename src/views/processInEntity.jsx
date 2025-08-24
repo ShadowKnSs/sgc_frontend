@@ -1,3 +1,37 @@
+/**
+ * Vista: ProcessInEntity
+ * Descripción:
+ * Muestra todos los procesos asociados a una entidad específica (`idEntidad`).
+ * Utiliza el parámetro de ruta (`useParams`) para identificar la entidad y 
+ * obtiene tanto su nombre como la lista de procesos desde la API.
+
+ * Funcionalidades clave:
+ * - Visualiza los procesos relacionados a una entidad en tarjetas (`MenuCard`) con íconos personalizados.
+ * - Redirige al hacer clic en un proceso hacia la vista de estructura: `/estructura-procesos/:idProceso`.
+ * - Muestra un mensaje amigable si la entidad no tiene procesos registrados.
+ * - Soporte visual para íconos usando `@mui/icons-material` y `iconOptions` mapeados por nombre.
+
+ * Endpoints utilizados:
+ * - `GET /api/procesos/entidad/{idEntidad}` → obtiene procesos vinculados a la entidad.
+ * - `GET /api/entidades/{idEntidad}` → obtiene el nombre de la entidad.
+
+ * Componentes externos:
+ * - `Title`: Encabezado estilizado para el título principal.
+ * - `MenuCard`: Componente visual para mostrar cada proceso.
+ * - `CircularProgress`, `Alert`: Indicadores de carga y mensajes.
+
+ * Estado local:
+ * - `procesos`: lista de procesos cargados desde la API.
+ * - `nombreEntidad`: nombre de la entidad obtenida por su ID.
+ * - `isLoading`: indicador de estado de carga de los datos.
+
+ * Navegación:
+ * - Al hacer clic en una tarjeta de proceso, redirige a `/estructura-procesos/:idProceso`.
+
+ * Observación:
+ * Cada proceso tiene un campo `icono` que debe coincidir con los nombres definidos en `iconOptions`.
+ */
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom"; 
 import axios from "axios";

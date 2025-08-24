@@ -1,3 +1,48 @@
+/**
+ * Vista: ProcessMapView (Plan de Control)
+ * Descripción:
+ * Este componente permite visualizar, registrar y expandir actividades del Plan de Control
+ * asociadas a un proceso específico (`idProceso`).
+
+ * Funcionalidades principales:
+ * -  Obtener actividades registradas desde el backend (GET /actividadcontrol/:idProceso).
+ * -  Registrar una nueva actividad mediante un formulario validado (POST /actividadcontrol).
+ * -  Expandir cada actividad en una "card" con detalle completo (grid de campos).
+ * -  Vista tipo "tarjetas" expandibles y colapsables con botón de desplegado/cierre total.
+ * -  Control de scroll para mostrar botón flotante fijo.
+ * -  No permite edición o eliminación por el momento (solo creación).
+
+ * Validación:
+ * - El formulario incluye validación para todos los campos antes de enviar al backend.
+ * - Se controla el estado de errores localmente y se muestra feedback en los inputs.
+
+ * Props esperados:
+ * - `idProceso`: ID del proceso asociado (usado para filtrar y registrar actividades).
+ * - `soloLectura`: booleano que deshabilita las funcionalidades de edición o registro si es `true`.
+
+ * Componentes utilizados:
+ * - Material UI: `Card`, `TextField`, `Dialog`, `Button`, `Fab`, `Typography`, `Table`, `IconButton`, etc.
+ * - Iconos: `ExpandMore`, `ExpandLess`, `Close`, `Add`.
+ * - Función auxiliar: `UserCard` interna que renderiza una tarjeta expandida o colapsada.
+
+ * Estado del componente:
+ * - `actividades`: Lista de actividades obtenidas del backend.
+ * - `newActividad`: Actividad a crear (campos del formulario).
+ * - `errors`: Errores de validación por campo.
+ * - `activeCards`: Actividades desplegadas actualmente.
+ * - `allExpanded`: Indica si todas las actividades están desplegadas.
+ * - `openForm`: Controla si el formulario de registro está visible.
+ * - `isFixed`: Controla la posición del botón flotante basado en el scroll.
+
+ * Backend requerido:
+ * - GET `/api/actividadcontrol/:idProceso` → Obtener actividades del proceso.
+ * - POST `/api/actividadcontrol` → Crear una nueva actividad de control.
+
+ * Consideraciones futuras:
+ * -  Se puede extender fácilmente para incluir edición y eliminación de actividades.
+ * -  Puede integrarse a vistas más grandes como `ProcesoView` u otros módulos.
+ */
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -46,7 +91,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
     registroSalida: "",
     responsable: "",
     tratamiento: "",
-    año: new Date().getFullYear() 
+    año: new Date().getFullYear()
   });
 
   // --------------------------------------------------
@@ -58,7 +103,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
       return;
     }
     console.log(`[LOG] useEffect -> solicitando actividades con idProceso=${idProceso}`);
-    
+
     // Supongamos que tu backend soporta ?proceso=XX para filtrar
     axios
       .get(`http://localhost:8000/api/actividadcontrol/${idProceso}`)
@@ -145,7 +190,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
         console.log("[LOG] Respuesta POST /actividadcontrol:", response.data);
 
         // Insertamos la actividad creada al estado
-        const actividadCreada = response.data; 
+        const actividadCreada = response.data;
         setActividades((prev) => [...prev, actividadCreada]);
 
         // Cerrar formulario, limpiar
@@ -159,7 +204,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
           identificacionSalida: "",
           registroSalida: "",
           responsable: "",
-          tratamiento: ""
+          tratamiento: "",
+
         });
         setErrors({});
       })
@@ -228,7 +274,11 @@ function ProcessMapView({ idProceso, soloLectura }) {
           marginBottom: "310px"
         }}
       >
-        {actividades.length > 0 ? (
+        {(actividades ?? []).length === 0 ? (
+          <Typography variant="h6" sx={{ textAlign: "center", color: "#666" }}>
+            No hay actividades registradas.
+          </Typography>
+        ) : (
           actividades
             .filter((item) => !activeCards.some((act) => act.idActividad === item.idActividad))
             .map((item) => (
@@ -239,11 +289,8 @@ function ProcessMapView({ idProceso, soloLectura }) {
                 isSmall={activeCards.length > 0}
               />
             ))
-        ) : (
-          <Typography variant="h6" sx={{ textAlign: "center", color: "#666" }}>
-            Cargando datos...
-          </Typography>
         )}
+
       </Box>
 
       {/* Botón flotante para desplegar/cerrar */}
@@ -502,13 +549,9 @@ function UserCard({ actividad, onSelect, onClose, isActive, isSmall }) {
                 { title: "Tratamiento", value: actividad.tratamiento }
               ].map((field, index) => (
                 <TableContainer
-                  key={field.title}
+                  key={`${actividad.idActividad}-${field.title}-${index}`}
                   component={Paper}
-                  sx={{
-                    width: "100%",
-                    minWidth: "180px",
-                    boxShadow: 1
-                  }}
+                  sx={{ width: "100%", minWidth: "180px", boxShadow: 1 }}
                 >
                   <Table>
                     <TableBody>
@@ -526,19 +569,21 @@ function UserCard({ actividad, onSelect, onClose, isActive, isSmall }) {
                       </TableRow>
                       <TableRow>
                         <TableCell sx={{ textAlign: "center", padding: "8px" }}>
-                          {field.value ?? "N/A"}
+                          {field.value ?? "Sin información"}
                         </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
                 </TableContainer>
+
               ))}
+
             </Box>
           </CardContent>
         </>
       ) : (
         <Typography variant="h6" fontWeight="bold" color="#004A98">
-          {actividad.nombreActividad || `Actividad ${actividad.idActividad}`}
+          {actividad.nombreActividad || `Actividad ${actividad.idActividad || "Sin ID"}`}
         </Typography>
       )}
     </Card>

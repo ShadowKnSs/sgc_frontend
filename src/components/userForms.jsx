@@ -1,3 +1,11 @@
+/**
+ * Componente: UserForm
+ * Descripción:
+ * Formulario emergente para registrar o editar usuarios normales y temporales.
+ * Permite asignar múltiples roles, seleccionar supervisor (si es Líder), y asociar procesos (si es Supervisor).
+ * También puede generar un token de acceso temporal con fecha de expiración.
+ * Utiliza validaciones, carga dinámica de roles y supervisores, y soporta pestañas para usuario normal o temporal.
+ */
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Button, Tabs, Tab, FormHelperText, CircularProgress, Box, IconButton } from "@mui/material";
 import ConfirmEdit from "./confirmEdit";
@@ -6,7 +14,8 @@ import CustomButton from "./Button";
 import DialogTitleCustom from "./TitleDialog";
 const API_URL = 'http://localhost:8000/api';
 
-function UserForm({ open, onClose, editingUser, onSubmit }) {
+function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
+   // Estados para campos de formulario
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -17,8 +26,29 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
         roles: [],
         supervisor: "",
         expirationDateTime: "",
+        procesosSupervisor: [],
     });
     const isLider = formData.roles.includes("Líder");
+    const [listaProcesos, setListaProcesos] = useState([]);
+    const [procesosAsignados, setProcesosAsignados] = useState([]); // array de idProceso
+
+    useEffect(() => {
+        const fetchProcesos = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/procesos-con-entidad`);
+
+                setListaProcesos(response.data.procesos);
+            } catch (error) {
+                console.error("Error al obtener procesos:", error);
+            }
+        };
+
+        if (formData.roles.includes("Supervisor")) {
+            fetchProcesos();
+        }
+    }, [formData.roles]);
+
+
     const transformUserDataForAPI = (data) => {
         // Extrae RPE del correo (todo lo que está antes de "@")
         const RPE = extractRPE(data.email);
@@ -49,7 +79,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
     const [loadingRoles, setLoadingRoles] = useState(false);
     const [loadingSupervisores, setLoadingSupervisores] = useState(false);
     const [errors, setErrors] = useState({});
-    const [tab, setTab] = useState(0);
+    const [tab, setTab] = useState(0); // 0: Usuario, 1: Temporal
     const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
     const [openInfo, setOpenInfo] = useState(false);
 
@@ -73,7 +103,10 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
         }
 
         if (editingUser) {
-            setFormData(editingUser);
+            setFormData({
+                ...editingUser,
+                procesosSupervisor: editingUser.procesosSupervisor || [], // ← asegura array
+            });
         } else {
             setFormData({
                 firstName: "",
@@ -85,6 +118,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                 roles: [],
                 supervisor: "",
                 expirationDateTime: "",
+                procesosSupervisor: [],
             });
         }
     }, [open, editingUser]);
@@ -108,6 +142,22 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
         fetchSupervisores();
     }, [isLider, supervisores.length]);
 
+    useEffect(() => {
+        const fetchProcesos = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/procesos`);
+                setProcesosAsignados(response.data.data || []);
+            } catch (err) {
+                console.error("Error al cargar procesos:", err);
+            }
+        };
+
+        if (formData.roles.includes("Supervisor")) {
+            fetchProcesos();
+        }
+    }, [formData.roles]);
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -129,7 +179,7 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
         return `${primerNombre.toLowerCase()}12345678`;
     };
 
-    const getDigitsOnly = (value) => value.replace(/\D/g, "").slice(0, 10);
+    const getDigitsOnly = (value) => (value || "").replace(/\D/g, "").slice(0, 10);
 
     const formatPhoneNumber = (value) => {
         const digits = getDigitsOnly(value);
@@ -183,38 +233,47 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
 
     const saveUser = async (data) => {
         try {
-            console.log('Payload a enviar:', data); // <- asegúrate de que tenga los campos correctos
+            console.log('Payload a enviar:', data);
 
-            const url = editingUser ? `${API_URL}/usuarios/${editingUser.id}` : `${API_URL}/usuarios`;
+            const url = editingUser
+                ? `${API_URL}/usuarios/${editingUser.id}`
+                : `${API_URL}/usuarios`;
+
             const method = editingUser ? "put" : "post";
+
+            // Si el usuario tiene rol Supervisor, se espera también procesosSupervisor en data
+            const payload = {
+                ...data,
+                procesosSupervisor: procesosAsignados,
+            };
 
             const response = await axios({
                 method,
                 url,
-                data,
+                data: payload,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
             });
 
             return response.data.usuario;
 
-
         } catch (error) {
-            console.error('Error detallado:', {
+            console.error("Error detallado:", {
                 status: error.response?.status,
                 data: error.response?.data,
                 config: error.config
             });
+
             throw new Error(
                 error.response?.data?.errors
                     ? Object.values(error.response.data.errors).flat().join(" - ")
                     : error.response?.data?.message || 'Error al guardar usuario'
             );
-
         }
     };
+
 
 
     const convertRolesToId = (roles) => {
@@ -254,6 +313,9 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
             const data = await response.json();
             if (response.ok) {
                 alert(`Token generado: ${data.token}\nExpira: ${data.expiracion}`);
+                if (typeof onTokenCreated === "function") {
+                    onTokenCreated(); // <- esto actualiza la lista
+                }
             } else {
                 alert("Error al generar el token: " + data.message);
             }
@@ -376,6 +438,32 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                             {errors.rolesLoad && <FormHelperText error>{errors.rolesLoad}</FormHelperText>}
                         </FormControl>
 
+                        {formData.roles.includes("Supervisor") && (
+                            <FormControl fullWidth margin="dense">
+                                <InputLabel id="procesos-label">Procesos que supervisa</InputLabel>
+                                <Select
+                                    labelId="procesos-label"
+                                    multiple
+                                    value={procesosAsignados}
+                                    onChange={(e) => setProcesosAsignados(e.target.value)}
+                                    renderValue={(selected) => selected
+                                        .map(id => {
+                                            const item = listaProcesos.find(p => p.idProceso === id);
+                                            return item ? item.nombreCompleto : id;
+                                        })
+                                        .join(", ")
+                                    }
+                                >
+                                    {listaProcesos.map((proceso) => (
+                                        <MenuItem key={proceso.idProceso} value={proceso.idProceso}>
+                                            {proceso.nombreCompleto}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
+
+
 
                         {formData.roles.includes("Líder") && (
                             <FormControl fullWidth margin="dense" error={Boolean(errors.supervisor || errors.supervisoresLoad)} variant="outlined">
@@ -423,30 +511,38 @@ function UserForm({ open, onClose, editingUser, onSubmit }) {
                             margin="dense"
                             InputLabelProps={{ shrink: true }}
                         />
-                        <Button variant="contained" color="primary" onClick={generarToken}>
-                            Generar Token
-                        </Button>
+
                     </>
                 )}
             </DialogContent>
             <DialogActions>
-                <CustomButton type="cancelar" onClick={onClose}> {"Cancelar"} </CustomButton>
-                <CustomButton
-                    type="Guardar"
-                    onClick={handleSubmit}
-                    disabled={
-                        !formData.firstName ||
-                        !formData.lastName ||
-                        !formData.email ||
-                        !formData.phone ||
-                        formData.roles.length === 0 ||
-                        Boolean(errors.firstName || errors.lastName || errors.email || errors.phone || errors.roles)
-                    }
-                >
-                    {editingUser ? "Actualizar Usuario" : "Guardar"}
-                </CustomButton>
+                <CustomButton type="cancelar" onClick={onClose}>Cancelar</CustomButton>
 
+                {tab === 0 ? (
+                    <CustomButton
+                        type="Guardar"
+                        onClick={handleSubmit}
+                        disabled={
+                            !formData.firstName ||
+                            !formData.lastName ||
+                            !formData.email ||
+                            !formData.phone ||
+                            formData.roles.length === 0 ||
+                            Boolean(errors.firstName || errors.lastName || errors.email || errors.phone || errors.roles)
+                        }
+                    >
+                        {editingUser ? "Actualizar Usuario" : "Guardar"}
+                    </CustomButton>
+                ) : (
+                    <CustomButton type="guardar" onClick={async () => {
+                        await generarToken();
+                        onClose();
+                    }}>
+                        Generar Token
+                    </CustomButton>
+                )}
             </DialogActions>
+
             <ConfirmEdit
                 open={openConfirmEdit}
                 onClose={() => setOpenConfirmEdit(false)}
