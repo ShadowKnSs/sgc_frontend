@@ -19,63 +19,93 @@ const colorPalette = {
   verdePastel: "#E3EBDA",
   grisClaro: "#DEDFD1",
   grisOscuro: "#A4A7A0",
+  inactivoFondo: "#F5F5F5",
+  inactivoTexto: "#757575",
+  inactivoBorde: "#E0E0E0",
 };
 
 function UserCard({ user, onEdit, onDelete, onAssign }) {
   const isLeader = user.roles.includes("Líder");
   const isSupervisor = user.roles.includes("Supervisor");
+  const isInactive = !user.activo;
 
   return (
     <Card
       sx={{
         width: '100%',
         maxWidth: 320,
-        minHeight: 380, // Altura mínima consistente
+        minHeight: 380,
         borderRadius: 4,
-        boxShadow: 4,
+        boxShadow: isInactive ? 1 : 4,
         overflow: "hidden",
-        transition: "transform 0.3s ease",
-        backgroundColor: "#fff",
+        transition: "all 0.3s ease",
+        backgroundColor: isInactive ? colorPalette.inactivoFondo : "#fff",
+        border: isInactive ? `2px solid ${colorPalette.inactivoBorde}` : "none",
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative',
         "&:hover": {
-          transform: "scale(1.02)",
-          boxShadow: 8,
+          transform: isInactive ? "none" : "scale(1.02)",
+          boxShadow: isInactive ? 2 : 8,
         },
+        opacity: isInactive ? 0.9 : 1,
       }}
     >
+      {/* Banner de usuario inactivo */}
+      {isInactive && (
+        <Box sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bgcolor: 'error.main',
+          color: 'white',
+          textAlign: 'center',
+          py: 0.5,
+          fontSize: '0.75rem',
+          fontWeight: 'bold',
+          zIndex: 2
+        }}>
+          USUARIO INACTIVO
+        </Box>
+      )}
+
       {/* Cabecera con avatar y nombre */}
       <Box
         sx={{
-          backgroundColor: colorPalette.verdePastel,
-          color: colorPalette.azulOscuro,
+          backgroundColor: isInactive ? colorPalette.inactivoBorde : colorPalette.verdePastel,
+          color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
           textAlign: "center",
-          py: 2,
+          py: isInactive ? 3 : 2,
           px: 1.5,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 1,
-          flexShrink: 0 // Evita que se encoja
+          flexShrink: 0,
+          position: 'relative',
+          mt: isInactive ? 2 : 0,
         }}
       >
         <Avatar
           sx={{
             width: 60,
             height: 60,
-            backgroundColor: colorPalette.azulOscuro,
+            backgroundColor: isInactive ? colorPalette.grisOscuro : colorPalette.azulOscuro,
             fontSize: '1.5rem',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            opacity: isInactive ? 0.7 : 1,
           }}
         >
           {user.firstName.charAt(0)}{user.lastName.charAt(0)}
         </Avatar>
+        
         <Box sx={{ width: '100%' }}>
           <Typography
             variant="h6"
             fontWeight="bold"
-            sx={{ 
-              color: colorPalette.azulOscuro,
+            sx={{
+              color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
               lineHeight: 1.2,
               mb: 0.5,
               overflow: 'hidden',
@@ -87,11 +117,11 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
           >
             {user.lastName} {user.secondLastName}
           </Typography>
-          <Typography 
-            variant="subtitle1" 
-            fontWeight="medium" 
-            sx={{ 
-              color: colorPalette.azulOscuro,
+          <Typography
+            variant="subtitle1"
+            fontWeight="medium"
+            sx={{
+              color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -99,10 +129,10 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
           >
             {user.firstName}
           </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: colorPalette.grisOscuro,
+          <Typography
+            variant="body2"
+            sx={{
+              color: isInactive ? colorPalette.grisOscuro : colorPalette.grisOscuro,
               mt: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -116,18 +146,22 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
         </Box>
       </Box>
 
-      <CardContent 
-        sx={{ 
-          backgroundColor: colorPalette.verdeClaro,
+      <CardContent
+        sx={{
+          backgroundColor: isInactive ? colorPalette.inactivoFondo : colorPalette.verdeClaro,
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
           py: 2,
         }}
       >
-        {/* Roles con mejor jerarquía */}
+        {/* Roles con estilo para inactivos */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" fontWeight="bold" sx={{ color: colorPalette.azulOscuro, mb: 1, display: 'block' }}>
+          <Typography variant="caption" fontWeight="bold" sx={{ 
+            color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro, 
+            mb: 1, 
+            display: 'block' 
+          }}>
             ROLES:
           </Typography>
           <Box display="flex" justifyContent="center" gap={1} flexWrap="wrap">
@@ -137,32 +171,40 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
                 label={role}
                 size="small"
                 sx={{
-                  backgroundColor: index % 2 === 0 ? colorPalette.azulClaro : colorPalette.azulOscuro,
-                  color: "#fff",
+                  backgroundColor: isInactive ? colorPalette.grisClaro : 
+                    (index % 2 === 0 ? colorPalette.azulClaro : colorPalette.azulOscuro),
+                  color: isInactive ? colorPalette.inactivoTexto : "#fff",
                   fontWeight: 600,
                   fontSize: "0.7rem",
                   borderRadius: 2,
                   height: 24,
                   maxWidth: '100%',
+                  opacity: isInactive ? 0.8 : 1,
                 }}
               />
             ))}
           </Box>
         </Box>
 
-        {/* Información de supervisor con mejor jerarquía */}
+        {/* Información de supervisor */}
         {isLeader && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" fontWeight="bold" sx={{ color: colorPalette.azulOscuro, mb: 1, display: 'block' }}>
+            <Typography variant="caption" fontWeight="bold" sx={{ 
+              color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro, 
+              mb: 1, 
+              display: 'block' 
+            }}>
               SUPERVISOR:
             </Typography>
             <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-              <SupervisorAccount fontSize="small" sx={{ color: colorPalette.grisOscuro }} />
+              <SupervisorAccount fontSize="small" sx={{ 
+                color: isInactive ? colorPalette.inactivoTexto : colorPalette.grisOscuro 
+              }} />
               {user.supervisor ? (
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    color: "#4a4a4a", 
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: isInactive ? colorPalette.inactivoTexto : "#4a4a4a",
                     textAlign: "center",
                     fontSize: '0.85rem',
                     overflow: 'hidden',
@@ -175,7 +217,7 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
               ) : (
                 <Chip
                   label="Sin asignar"
-                  color="warning"
+                  color={isInactive ? "default" : "warning"}
                   variant="outlined"
                   size="small"
                   sx={{
@@ -190,54 +232,89 @@ function UserCard({ user, onEdit, onDelete, onAssign }) {
           </Box>
         )}
 
-        <Divider sx={{ my: 2, backgroundColor: colorPalette.grisClaro }} />
+        <Divider sx={{ 
+          my: 2, 
+          backgroundColor: isInactive ? colorPalette.inactivoBorde : colorPalette.grisClaro 
+        }} />
 
-        {/* Botones de acción con tooltips mejorados */}
+        {/* Botones de acción - Deshabilitados para inactivos */}
         <Box display="flex" justifyContent="center" gap={1} mt="auto">
           {isSupervisor && (
-            <Tooltip title="Asignar procesos a este supervisor" arrow placement="top">
-              <IconButton
-                onClick={() => onAssign && onAssign(user)}
-                sx={{
-                  backgroundColor: colorPalette.verdeAgua, 
-                  color: colorPalette.azulOscuro,
-                  "&:hover": { backgroundColor: colorPalette.azulClaro, color: "#fff" },
-                }}
-              >
-                <PlaylistAdd />
-              </IconButton>
+            <Tooltip title={isInactive ? "Usuario inactivo - No editable" : "Asignar procesos a este supervisor"} arrow placement="top">
+              <span>
+                <IconButton
+                  onClick={() => !isInactive && onAssign && onAssign(user)}
+                  disabled={isInactive}
+                  sx={{
+                    backgroundColor: isInactive ? colorPalette.grisClaro : colorPalette.verdeAgua,
+                    color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
+                    "&:hover": isInactive ? {} : { 
+                      backgroundColor: colorPalette.azulClaro, 
+                      color: "#fff" 
+                    },
+                    opacity: isInactive ? 0.6 : 1,
+                  }}
+                >
+                  <PlaylistAdd />
+                </IconButton>
+              </span>
             </Tooltip>
           )}
-          <Tooltip title="Editar información del usuario" arrow placement="top">
-            <IconButton
-              onClick={() => onEdit(user)}
-              sx={{
-                backgroundColor: colorPalette.verdePastel,
-                color: colorPalette.azulOscuro,
-                "&:hover": {
-                  backgroundColor: colorPalette.azulClaro,
-                  color: "#fff",
-                },
-              }}
-            >
-              <Edit />
-            </IconButton>
+          
+          <Tooltip title={isInactive ? "Usuario inactivo - No editable" : "Editar información del usuario"} arrow placement="top">
+            <span>
+              <IconButton
+                onClick={() => !isInactive && onEdit(user)}
+                disabled={isInactive}
+                sx={{
+                  backgroundColor: isInactive ? colorPalette.grisClaro : colorPalette.verdePastel,
+                  color: isInactive ? colorPalette.inactivoTexto : colorPalette.azulOscuro,
+                  "&:hover": isInactive ? {} : {
+                    backgroundColor: colorPalette.azulClaro,
+                    color: "#fff",
+                  },
+                  opacity: isInactive ? 0.6 : 1,
+                }}
+              >
+                <Edit />
+              </IconButton>
+            </span>
           </Tooltip>
 
-          <Tooltip title="Eliminar usuario del sistema" arrow placement="top">
-            <IconButton
-              onClick={() => onDelete(user)}
-              sx={{
-                backgroundColor: "#E57373",
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "#C62828",
-                },
-              }}
-            >
-              <Delete />
-            </IconButton>
-          </Tooltip>
+          {typeof onDelete === 'function' ? (
+            <Tooltip title={isInactive ? "Usuario ya está inactivo" : "Eliminar usuario del sistema"} arrow placement="top">
+              <span>
+                <IconButton
+                  onClick={() => !isInactive && onDelete(user)}
+                  disabled={isInactive}
+                  sx={{
+                    backgroundColor: isInactive ? colorPalette.grisClaro : "#E57373",
+                    color: isInactive ? colorPalette.inactivoTexto : "#fff",
+                    "&:hover": isInactive ? {} : {
+                      backgroundColor: "#C62828",
+                    },
+                    opacity: isInactive ? 0.6 : 1,
+                  }}
+                >
+                  <Delete />
+                </IconButton>
+              </span>
+            </Tooltip>
+          ) : (
+            <Tooltip title="No puedes eliminarte a ti mismo" arrow placement="top">
+              <span>
+                <IconButton
+                  disabled
+                  sx={{
+                    backgroundColor: "#f5f5f5",
+                    color: "#999999",
+                  }}
+                >
+                  <Delete />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
         </Box>
       </CardContent>
     </Card>

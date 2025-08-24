@@ -116,6 +116,9 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     const [snackbar, setSnackbar] = useState({ open: false, type: "info", title: "", message: "" });
     const [saving, setSaving] = useState(false);
 
+    const [generatingToken, setGeneratingToken] = useState(false); // ← NUEVO estado para loading de token
+
+
     const showSnackbar = (type, title, message) =>
         setSnackbar({ open: true, type, title, message });
 
@@ -295,6 +298,25 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         setTouched(prev => ({ ...prev, phone: true }));
     };
 
+
+    const validateTemporalForm = useCallback(() => {
+        const newErrors = {};
+
+        if (!formData.expirationDateTime) {
+            newErrors.expirationDateTime = "La fecha y hora de expiración es obligatoria";
+        } else {
+            const selectedDate = new Date(formData.expirationDateTime);
+            const now = new Date();
+
+            if (selectedDate <= now) {
+                newErrors.expirationDateTime = "La fecha debe ser futura";
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    }, [formData.expirationDateTime]);
+
     const validateForm = useCallback(() => {
         const newErrors = {};
         const trimmedFirstName = formData.firstName.trim();
@@ -396,23 +418,41 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     };
 
     const generarToken = async () => {
+        // Validar formulario temporal
+        if (!validateTemporalForm()) {
+            showSnackbar("error", "Error de validación", "Por favor, complete la fecha y hora correctamente.");
+            return;
+        }
+
+        setGeneratingToken(true); // ← Activar loading
         try {
             const res = await fetch(`${API_URL}/generar-token`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ expirationDateTime: formData.expirationDateTime }),
             });
+
             const data = await res.json();
+
             if (res.ok) {
-                showSnackbar("success", "Token generado", `Token: ${data.token}, expira: ${data.expiracion}`);
                 onTokenCreated && onTokenCreated();
+                onClose(); // Cerrar el diálogo después de generar
             } else {
                 showSnackbar("error", "Error", data.message || "No se pudo generar el token.");
             }
         } catch (e) {
             showSnackbar("error", "Error", e?.message || "No se pudo generar el token.");
+        } finally {
+            setGeneratingToken(false); // ← Desactivar loading
         }
     };
+
+    // Efecto para limpiar errores cuando cambia la pestaña
+    useEffect(() => {
+        if (open) {
+            setErrors({});
+        }
+    }, [tab, open]);
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -529,9 +569,15 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                             type="datetime-local"
                             value={formData.expirationDateTime}
                             onChange={handleChange}
+                            onBlur={() => handleBlur('expirationDateTime')}
                             fullWidth
                             margin="dense"
                             InputLabelProps={{ shrink: true }}
+                            error={Boolean(errors.expirationDateTime)}
+                            helperText={errors.expirationDateTime}
+                            inputProps={{
+                                min: new Date().toISOString().slice(0, 16) // ← Limitar a fechas futuras
+                            }}
                         />
                     </>
                 )}
@@ -548,8 +594,13 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                         {saving ? <CircularProgress size={24} /> : (isEdit ? "Actualizar Usuario" : "Guardar")}
                     </CustomButton>
                 ) : (
-                    <CustomButton type="guardar" onClick={async () => { await generarToken(); onClose(); }}>
-                        Generar Token
+                    <CustomButton
+                        type="guardar"
+                        onClick={generarToken}
+                        disabled={generatingToken}
+                        loading={generatingToken}
+                    >
+                        {"Generar Token"}
                     </CustomButton>
                 )}
             </DialogActions>

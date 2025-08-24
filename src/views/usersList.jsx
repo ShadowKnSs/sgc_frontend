@@ -20,8 +20,6 @@ import {
     TextField,
     MenuItem,
     Stack,
-    ToggleButtonGroup,
-    ToggleButton,
     InputAdornment,
     IconButton,
 } from "@mui/material";
@@ -30,9 +28,9 @@ import FabCustom from "../components/FabCustom";
 import PersonaAddIcon from "@mui/icons-material/PersonAdd";
 import axios from "axios";
 import Title from "../components/Title";
-import Button from "../components/Button";
 import UserCardSkeleton from "../components/UserCardSkeleton";
 import UserTempCardSkeleton from "../components/UserTempCardSkeleton";
+import SectionTabs from "../components/SectionTabs";
 import EmptyState from "../components/EmptyState";
 import { Group as GroupIcon, Schedule as ScheduleIcon, Search as SearchIcon, Clear as ClearIcon, People as PeopleIcon } from "@mui/icons-material";
 import BreadcrumbNav from "../components/BreadcrumbNav";
@@ -62,7 +60,7 @@ function UserManagement() {
     const [usuariosTemporales, setUsuariosTemporales] = useState([]);
 
     // Estados de control
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState(null);
     const [openForm, setOpenForm] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -70,12 +68,18 @@ function UserManagement() {
     const [userToDelete, setUserToDelete] = useState(null);
     const [assignOpen, setAssignOpen] = useState(false);
     const [supervisorToAssign, setSupervisorToAssign] = useState(null);
+    const [allUsers, setAllUsers] = useState([]); // ← NUEVO: almacenar todos los usuarios
+    const [selectedTab, setSelectedTab] = useState(0);
+
+
 
     // Filtros
     const [q, setQ] = useState("");
     const [estado, setEstado] = useState("all"); // all|true|false
     const [rol, setRol] = useState("");
     const [rolesOptions, setRolesOptions] = useState([]);
+    const statusSections = ["Activos", "Inactivos"];
+
 
     // Debounce búsqueda
     const [debouncedQ, setDebouncedQ] = useState("");
@@ -99,9 +103,11 @@ function UserManagement() {
     }, []);
 
     // Transformar datos de API para uso en el frontend
+    // Transformar datos de API para uso en el frontend
     const transformUserData = (user) => {
         if (!user || typeof user !== "object") return null;
         const hasSupervisor = user.supervisor && typeof user.supervisor === "object";
+
         return {
             id: user.idUsuario,
             firstName: user.nombre,
@@ -119,9 +125,14 @@ function UserManagement() {
                     secondLastName: user.supervisor.apellidoMat,
                 }
                 : null,
-            activo: typeof user.activo === "boolean" ? user.activo : true,
+            activo: Boolean(user.activo), // ← Conversión explícita a boolean
         };
     };
+    // Mapear el tab seleccionado al valor de estado
+    useEffect(() => {
+        const statusMap = ["true", "false"];
+        setEstado(statusMap[selectedTab]);
+    }, [selectedTab])
 
     // Cargar roles (para combo)
     useEffect(() => {
@@ -137,44 +148,93 @@ function UserManagement() {
     }, []);
 
     // Cargar usuarios normales con filtros
+    // Cargar usuarios normales con filtros - MODIFICADO
+    // Modificar la función fetchUsers para incluir el parámetro de estado
     const fetchUsers = useCallback(async () => {
         try {
-            setLoading(true);
-            const params = { exclude_me: true, per_page: 100 };
-            if (debouncedQ) params.q = debouncedQ;
-            if (estado !== "all") params.estado = estado; // "true" | "false"
-            if (rol) params.rol = rol;
+            setInitialLoading(true);
+            const params = {
+                exclude_me: true,
+                per_page: 200,
+                estado: estado // ← Incluir el estado en la petición
+            };
 
             const response = await axios.get(`${API_URL}/usuarios`, { params });
             const list = (response.data?.data ?? []).map(transformUserData).filter(Boolean);
+            setAllUsers(list);
             setUsers(list);
             setError(null);
         } catch (err) {
+            setAllUsers([]);
             setUsers([]);
             setError("Error al cargar los usuarios");
             showFeedback("error", "Error", "No se pudieron cargar los usuarios");
         } finally {
-            setLoading(false);
+            setInitialLoading(false);
         }
-    }, [debouncedQ, estado, rol, showFeedback]);
+    }, [showFeedback, estado]); // ← Agregar estado como dependencia
+
+    // Modificar applyFilters para manejar correctamente el estado
+    const applyFilters = useCallback(() => {
+        if (allUsers.length === 0) return;
+
+        let filtered = [...allUsers];
+
+        // Solo filtro de búsqueda (el estado ya se filtró en el backend)
+        if (debouncedQ) {
+            const searchTerm = debouncedQ.toLowerCase();
+            filtered = filtered.filter(user =>
+                user.firstName?.toLowerCase().includes(searchTerm) ||
+                user.lastName?.toLowerCase().includes(searchTerm) ||
+                user.secondLastName?.toLowerCase().includes(searchTerm) ||
+                user.email?.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Solo filtro de rol (el estado ya se filtró en el backend)
+        if (rol) {
+            filtered = filtered.filter(user =>
+                user.roles?.some(userRole => userRole === rol)
+            );
+        }
+
+        setUsers(filtered);
+    }, [allUsers, debouncedQ, rol]);
+
+    // Modificar el efecto para recargar cuando cambie el estado
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]); // ← Recargar cuando cambie el estado
+
+    // Modificar el efecto de aplicacion de filtros
+    useEffect(() => {
+        if (!initialLoading) {
+            applyFilters();
+        }
+    }, [applyFilters, initialLoading, debouncedQ, rol]); // ← Agregar debouncedQ y rol como dependencias
 
     // Cargar usuarios temporales
-    const fetchUsuariosTemporales = useCallback(async () => {
+    const fetchUsuariosTemporales = useCallback(async (showNotification = false) => {
         try {
             const res = await axios.get(`${API_URL}/usuarios-temporales`);
             setUsuariosTemporales(res.data);
+            // Mostrar notificación si se solicita
+            if (showNotification) {
+                showFeedback("success", "Token generado", "Token generado exitosamente");
+            }
         } catch (err) {
-            // opcional: feedback
+            if (showNotification) {
+                showFeedback("error", "Error", "No se pudieron cargar los tokens actualizados");
+            }
         }
-    }, []);
+    }, [showFeedback]);
 
-    // Efecto inicial y cuando cambian filtros
+
+    // Efecto inicial - MODIFICADO
     useEffect(() => {
-        fetchUsers();
         fetchUsuariosTemporales();
-    }, [fetchUsers, fetchUsuariosTemporales]);
+    }, [fetchUsuariosTemporales]);
 
-    // Guardar usuario creado o editado
     // Guardar usuario creado o editado
     const handleAddUser = useCallback((usuarioGuardado) => {
         if (editingUser) {
@@ -192,9 +252,7 @@ function UserManagement() {
     const handleDelete = useCallback(
         async (id) => {
             try {
-                // Obtener token de autenticación
-                const token = localStorage.getItem('auth_token'); // Ajusta según tu almacenamiento
-
+                const token = localStorage.getItem('auth_token');
                 await axios.delete(`${API_URL}/usuarios/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -202,7 +260,14 @@ function UserManagement() {
                     }
                 });
 
-                setUsers((prev) => prev.filter((u) => u.id !== id));
+                // En lugar de eliminar de la lista, actualizar el estado
+                setUsers(prev => prev.map(u =>
+                    u.id === id ? { ...u, activo: false } : u
+                ));
+                setAllUsers(prev => prev.map(u =>
+                    u.id === id ? { ...u, activo: false } : u
+                ));
+
                 setOpenDelete(false);
                 showFeedback("info", "Usuario desactivado", "El usuario fue desactivado correctamente");
             } catch (err) {
@@ -227,27 +292,31 @@ function UserManagement() {
     const handleFormClose = useCallback(() => {
         setOpenForm(false);
         setEditingUser(null);
-        fetchUsers();
-    }, [fetchUsers]);
-
-    const handleEliminarYActualizar = useCallback(async () => {
-        try {
-            const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
-            showFeedback("success", "Tokens eliminados", res.data?.message || "Limpieza completada");
-            await fetchUsuariosTemporales();
-        } catch (err) {
-            showFeedback("error", "Error", "No se pudieron eliminar los tokens expirados");
-        }
-    }, [fetchUsuariosTemporales, showFeedback]);
+    }, []);
+    //Eliminación manual de tokens expirados
+    // const handleEliminarYActualizar = useCallback(async () => {
+    //     try {
+    //         const res = await axios.delete(`${API_URL}/usuarios-temporales/expirados`);
+    //         showFeedback("success", "Tokens eliminados", res.data?.message || "Limpieza completada");
+    //         await fetchUsuariosTemporales();
+    //     } catch (err) {
+    //         showFeedback("error", "Error", "No se pudieron eliminar los tokens expirados");
+    //     }
+    // }, [fetchUsuariosTemporales, showFeedback]);
 
     const handleOpenAssign = useCallback((user) => {
         setSupervisorToAssign(user);
         setAssignOpen(true);
     }, []);
 
-    const handleAssignSaved = useCallback(() => {
+    const handleAssignSaved = useCallback((success = true, message = "") => {
         fetchUsers();
-    }, [fetchUsers]);
+        if (success) {
+            showFeedback("success", "Asignación guardada", message || "Los procesos fueron asignados correctamente al supervisor");
+        } else {
+            showFeedback("error", "Error", message || "No se pudieron asignar los procesos");
+        }
+    }, [fetchUsers, showFeedback]);
 
     // Item renderer para react-window (memoizado)
     const Row = useCallback(
@@ -281,12 +350,11 @@ function UserManagement() {
         >
             <BreadcrumbNav items={[{ label: "Gestión de Usuarios", icon: PeopleIcon }]} />
 
-            {loading ? (
+            {initialLoading ? (
                 <>
-
                     {/* Skeletons para usuarios normales */}
                     <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={2} justifyContent="center">
-                        {Array.from({ length: 6 }).map((_, idx) => (
+                        {Array.from({ length: 8 }).map((_, idx) => (
                             <UserCardSkeleton key={idx} />
                         ))}
                     </Box>
@@ -329,6 +397,8 @@ function UserManagement() {
                             py: 1.5,
                             borderBottom: 1,
                             borderColor: "divider",
+                            mr: 22,
+                            ml: 10
                         }}
                     >
                         <TextField
@@ -338,7 +408,7 @@ function UserManagement() {
                             size="small"
                             fullWidth
                             inputProps={{ "aria-label": "Buscar usuarios" }}
-                            sx={{ maxWidth: 420 }}
+                            sx={{ maxWidth: 300 }}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -355,13 +425,23 @@ function UserManagement() {
                             }}
                         />
 
-                        <ToggleButtonGroup exclusive value={estado} onChange={(_, v) => v && setEstado(v)} size="small">
-                            <ToggleButton value="all">Todos</ToggleButton>
-                            <ToggleButton value="true">Activos</ToggleButton>
-                            <ToggleButton value="false">Inactivos</ToggleButton>
-                        </ToggleButtonGroup>
+                        {/* SectionTabs integrado */}
+                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+                            <SectionTabs
+                                sections={statusSections}
+                                selectedTab={selectedTab}
+                                onTabChange={setSelectedTab}
+                            />
+                        </Box>
 
-                        <TextField select size="small" label="Rol" value={rol} onChange={(e) => setRol(e.target.value)} sx={{ minWidth: 180 }}>
+                        <TextField
+                            select
+                            size="small"
+                            label="Rol"
+                            value={rol}
+                            onChange={(e) => setRol(e.target.value)}
+                            sx={{ minWidth: 180 }}
+                        >
                             <MenuItem value="">Todos</MenuItem>
                             {rolesOptions.map((r) => (
                                 <MenuItem key={r.idTipoUsuario || r.nombreRol} value={r.nombreRol}>
@@ -372,17 +452,25 @@ function UserManagement() {
                     </Stack>
 
                     {/* Usuarios normales */}
-                    {vmUsers.length === 0 ? (
+                    {users.length === 0 ? (
                         <EmptyState
                             icon={GroupIcon}
-                            title="No hay usuarios registrados"
-                            description="Comienza agregando el primer usuario al sistema"
+                            title={
+                                estado === "false" ? "No hay usuarios inactivos" :
+                                    estado !== "all" ? "No hay usuarios activos" :
+                                        "No hay usuarios registrados"
+                            }
+                            description={
+                                estado === "false" ? "No se encontraron usuarios inactivos en el sistema" :
+                                    estado !== "all" ? "No se encontraron usuarios activos que coincidan con los filtros" :
+                                        "Comienza agregando el primer usuario al sistema"
+                            }
                             buttonText="Agregar Usuario"
                             onButtonClick={handleAddNewUser}
                         />
                     ) : (
                         <>
-                            {vmUsers.length >= VIRTUALIZE_THRESHOLD ? (
+                            {users.length >= VIRTUALIZE_THRESHOLD ? (
                                 <VirtualList
                                     height={isMobile ? 520 : 640}
                                     itemCount={vmUsers.length}
@@ -401,7 +489,7 @@ function UserManagement() {
                                     justifyContent="center"
                                     sx={{ width: "100%" }}
                                 >
-                                    {vmUsers.map((user) => {
+                                    {users.map((user) => {
                                         const canDelete = user.id !== currentUserId;
                                         return (
                                             <Suspense key={user.id} fallback={<UserCardSkeleton />}>
@@ -421,7 +509,7 @@ function UserManagement() {
                     )}
 
                     {/* Sección de usuarios temporales */}
-                    {usuariosTemporales.length > 0 && (
+                    {selectedTab === 0 && usuariosTemporales.length > 0 && (
                         <>
                             <Box sx={{ mt: 6 }}>
                                 <Title text="Usuarios Temporales" />
@@ -437,16 +525,22 @@ function UserManagement() {
                                 ))}
                             </Grid>
 
-                            <Box mt={4} display="flex" justifyContent="center">
+                            {/* Eliminación manual de tokens temporales */}
+                            {/* <Box mt={4} display="flex" justifyContent="center">
                                 <Button type="eliminar" onClick={handleEliminarYActualizar}>
                                     Eliminar Tokens Expirados
                                 </Button>
+                            </Box> */}
+                            <Box mt={4} display="flex" justifyContent="center">
+                                <Alert severity="info" sx={{ maxWidth: 500 }}>
+                                    Los tokens expirados se eliminan automáticamente cada semana
+                                </Alert>
                             </Box>
                         </>
                     )}
 
                     {/* Si no hay usuarios temporales */}
-                    {usuariosTemporales.length === 0 && !loading && (
+                    {selectedTab === 0 && usuariosTemporales.length === 0 && !initialLoading && (
                         <EmptyState
                             icon={ScheduleIcon}
                             title="No hay usuarios temporales"
@@ -468,7 +562,7 @@ function UserManagement() {
                     open={openForm}
                     onClose={handleFormClose}
                     onSubmit={handleAddUser}
-                    onTokenCreated={fetchUsuariosTemporales}
+                    onTokenCreated={() => fetchUsuariosTemporales(true)} // ← Pasar true para mostrar notificación
                     editingUser={editingUser}
                 />
             </Suspense>
