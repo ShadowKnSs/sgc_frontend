@@ -43,13 +43,21 @@
  * - Validación del formulario en `AddEntidad`.
  * - Soporte para íconos visuales dinámicos según el valor `icono`.
  */
-
-import React, { useState, useEffect } from 'react';
-import { Box, Dialog, DialogContent, Grid } from '@mui/material';
-import LocationCityIcon from '@mui/icons-material/LocationCity';import FabCustom from "../components/FabCustom";
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { 
+  Box, 
+  Dialog, 
+  DialogContent, 
+  Grid, 
+  CircularProgress,
+  Typography,
+  Alert,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
+import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
-import axios from 'axios';
-
 import AddEntidad from '../components/Modals/AddEntidad';
 import CardEntidad from '../components/CardGesEntidad';
 import ConfirmDelete from '../components/confirmDelete';
@@ -57,125 +65,97 @@ import ConfirmEdit from '../components/confirmEdit';
 import DialogTitleCustom from '../components/TitleDialog';
 import Title from "../components/Title";
 import BreadcrumbNav from "../components/BreadcrumbNav";
-const API_URL = 'http://localhost:8000/api/entidades';
-
+import FeedbackSnackbar from '../components/Feedback';
+import EmptyStateEnty from '../components/EmptyStateEnty';
+import { useEntidades } from '../hooks/useEntidades';
 
 const GestionEntidades = () => {
-  const [entidades, setEntidades] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  const {
+    entidades,
+    loading,
+    error,
+    snackbar,
+    obtenerEntidades,
+    crearEntidad,
+    actualizarEntidad,
+    eliminarEntidad,
+    handleCloseSnackbar
+  } = useEntidades();
 
-  //variables para eliminar una entidad 
+  const [openDialog, setOpenDialog] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [entidadSeleccionada, setEntidadSeleccionada] = useState(null);
-
-  //varaibles para manejar la edicion de una entidad
   const [modoEdicion, setModoEdicion] = useState(false);
-  const [entidadAEditar, setEntidadAEditar] = useState(null); // objeto 
+  const [entidadAEditar, setEntidadAEditar] = useState(null);
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
-  const [entidadEditada, setEntidadEditada] = useState(null); // guarda temporalmente lo editado
-  const [modalAbierto, setModalAbierto] = useState(false);
-
-  const abrirModal = () => setModalAbierto(true);
-  const cerrarModal = () => setModalAbierto(false);
+  const [entidadEditada, setEntidadEditada] = useState(null);
 
   useEffect(() => {
     obtenerEntidades();
-  }, []);
+  }, [obtenerEntidades]);
 
-  const obtenerEntidades = async () => {
-    try {
-      const response = await axios.get(API_URL);
-      console.log('Respuesta de entidades:', response.data);
-      setEntidades(response.data.entidades);
-    } catch (error) {
-      console.error('Error al obtener entidades:', error);
-    }
-  };
-
-  const handleOpenDialog = () => {
-    setModoEdicion(false); // por si venías de editar
+  const handleOpenDialog = useCallback(() => {
+    setModoEdicion(false);
     setEntidadAEditar(null);
     setOpenDialog(true);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setOpenDialog(false);
-  };
+  }, []);
 
-  //funcion para ver el dialog de confirmar eliminar 
-  const handleShowConfirm = (index) => {
+  const handleShowConfirmDelete = useCallback((index) => {
     setEntidadSeleccionada(index);
     setShowConfirmDelete(true);
-  };
+  }, []);
 
-  //funcion por si confirma la eliminación realizarla 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (entidadSeleccionada !== null) {
-      handleEliminar(entidadSeleccionada);
-      setEntidadSeleccionada(null);
-      setShowConfirmDelete(false);
+      try {
+        const entidad = entidades[entidadSeleccionada];
+        await eliminarEntidad(entidad.idEntidadDependencia);
+        setShowConfirmDelete(false);
+        setEntidadSeleccionada(null);
+      } catch (error) {
+        console.error('Error al eliminar:', error);
+      }
     }
-  };
+  }, [entidadSeleccionada, entidades, eliminarEntidad]);
 
-  //funcion para realizar la eliminación
-  const handleEliminar = async (index) => {
-    try {
-      const entidad = entidades[index];
-      await axios.delete(`${API_URL}/${entidad.idEntidadDependencia}`);
-
-      setEntidades((prev) => prev.filter((_, i) => i !== index));
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      alert('No se pudo eliminar la entidad.');
-    }
-  };
-
-  const handleEditar = (index) => {
+  const handleEditar = useCallback((index) => {
     const entidad = entidades[index];
     setEntidadAEditar({ ...entidad, index });
     setModoEdicion(true);
     setOpenDialog(true);
-  };
+  }, [entidades]);
 
-  const handleSubmitEntidad = async (data) => {
+  const handleSubmitEntidad = useCallback(async (data) => {
     if (modoEdicion) {
       setEntidadEditada(data);
       setShowConfirmEdit(true);
     } else {
       try {
-        const nuevaEntidad = {
+        await crearEntidad({
           ...data,
           icono: data.icono || 'BusinessIcon'
-        };
-
-        const response = await axios.post(API_URL, nuevaEntidad);
-        setEntidades((prev) => [...prev, response.data.entidad]); // la respuesta incluye la entidad creada
+        });
         handleCloseDialog();
       } catch (error) {
         console.error('Error al crear entidad:', error);
-        alert(error.response?.data?.error || 'No se pudo crear la entidad.');
       }
     }
-  };
+  }, [modoEdicion, crearEntidad, handleCloseDialog]);
 
-  const handleConfirmEdit = async () => {
+  const handleConfirmEdit = useCallback(async () => {
     try {
       const index = entidadAEditar.index;
       const entidadId = entidades[index].idEntidadDependencia;
-
-      console.log('Entidad a enviar:', {
-        ...entidadEditada
-      });
-
-      const response = await axios.put(`${API_URL}/${entidadId}`, {
-        ...entidadEditada
-      });
-
-      const nuevasEntidades = [...entidades];
-      nuevasEntidades[index] = response.data.entidad; // actualizada desde el backend
-      setEntidades(nuevasEntidades);
-
-      // Limpiar
+      
+      await actualizarEntidad(entidadId, entidadEditada);
+      
       setShowConfirmEdit(false);
       setOpenDialog(false);
       setModoEdicion(false);
@@ -183,32 +163,79 @@ const GestionEntidades = () => {
       setEntidadEditada(null);
     } catch (error) {
       console.error('Error al editar:', error);
-      alert(error.response?.data?.error || 'No se pudo editar la entidad.');
     }
-  };
+  }, [entidadAEditar, entidades, entidadEditada, actualizarEntidad]);
 
+  const entidadesList = useMemo(() => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
 
-  return (
-    <Box sx={{ p: 4 }}>
-      <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
+    if (error) {
+      return (
+        <Box sx={{ width: '100%', py: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        </Box>
+      );
+    }
 
-      <Title text="Gestión de Entidades" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
+    if (entidades.length === 0) {
+      return (
+        <EmptyStateEnty
+          icon={<LocationCityIcon sx={{ fontSize: 60, color: 'text.secondary' }} />}
+          title="No hay entidades registradas"
+          description="Comienza agregando una nueva entidad o dependencia al sistema"
+          actionText="Agregar Entidad"
+          onAction={handleOpenDialog}
+        />
+      );
+    }
 
+    return (
       <Grid container spacing={3}>
         {entidades.map((entidad, index) => (
-          <Grid item key={index}>
+          <Grid item xs={12} sm={6} md={4} key={entidad.idEntidadDependencia}>
             <CardEntidad
               title={entidad.nombreEntidad}
               icon={entidad.icono}
+              subtitle={`${entidad.tipo} - ${entidad.ubicacion}`}
               handleClick={() => console.log('Ver entidad', entidad)}
               handleEdit={() => handleEditar(index)}
-              handleDelete={() => handleShowConfirm(index)}
+              handleDelete={() => handleShowConfirmDelete(index)}
             />
           </Grid>
         ))}
       </Grid>
+    );
+  }, [entidades, loading, error, handleOpenDialog, handleEditar, handleShowConfirmDelete]);
 
-      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+  return (
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, minHeight: '100vh' }}>
+      <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
+
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Title 
+          text="Gestión de Entidades" 
+          sx={{ 
+            fontSize: { xs: "1.5rem", sm: "2rem" }, 
+            fontWeight: "bold",
+            mb: 1
+          }} 
+        />
+        <Typography variant="body1" color="text.secondary">
+          Administra las entidades y dependencias del sistema
+        </Typography>
+      </Box>
+
+      {entidadesList}
+
+      <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1000 }}>
         <FabCustom
           onClick={handleOpenDialog}
           title="Agregar Entidad"
@@ -216,13 +243,20 @@ const GestionEntidades = () => {
         />
       </Box>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+      >
         <DialogTitleCustom title={modoEdicion ? 'Editar Entidad' : 'Nueva Entidad'} />
         <DialogContent>
           <AddEntidad
             onClose={handleCloseDialog}
             onSubmit={handleSubmitEntidad}
             initialData={entidadAEditar}
+            isEditing={modoEdicion}
           />
         </DialogContent>
       </Dialog>
@@ -241,8 +275,16 @@ const GestionEntidades = () => {
         entityName={entidadEditada?.nombreEntidad}
         onConfirm={handleConfirmEdit}
       />
+
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={handleCloseSnackbar}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
+      />
     </Box>
   );
 };
 
-export default GestionEntidades;
+export default React.memo(GestionEntidades);
