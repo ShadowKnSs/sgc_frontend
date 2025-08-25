@@ -61,6 +61,7 @@ const Welcome = () => {
   const menuItems = [
     { icon: <AutoStoriesOutlinedIcon />, title: "Manual de Calidad", path: "/manual-calidad" },
     { icon: <MenuBookOutlinedIcon />, title: "Manual del Sitio", path: "/manualDelSitio" },
+    { icon: <AddHomeWorkOutlinedIcon />, title: "Gestión Entidades", path: "/gestion-entidades" },
     { icon: <GroupAddOutlinedIcon />, title: "Usuarios", path: "/usuarios" },
     { icon: <AccountTreeOutlinedIcon />, title: "Gestión de Procesos", path: "/procesos" },
     { icon: <CampaignOutlinedIcon />, title: "Noticias", path: "/user-eventos" },
@@ -71,7 +72,7 @@ const Welcome = () => {
     { icon: <DocumentScannerIcon />, title: "Formatos", path: "/formatos" },
     { icon: <PersonSearchIcon />, title: "Supervisor", path: "/busca_supervisor" },
     { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
-    { icon: <AddHomeWorkOutlinedIcon />, title: "Gestión Entidades", path: "/gestion-entidades" },
+   
   ];
 
   const getTituloPanel = () => {
