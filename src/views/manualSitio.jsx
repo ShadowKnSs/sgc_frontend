@@ -6,7 +6,11 @@ import {
   Box,
   CircularProgress
 } from "@mui/material";
+import {
+  Article
+} from '@mui/icons-material';
 import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import { getResourcesByRole, getRoleFromStorage } from "../data/roleResources";
 import { downloadManual } from "../utils/downloadUtils";
 
@@ -14,6 +18,7 @@ import { downloadManual } from "../utils/downloadUtils";
 const ResourceCard = lazy(() => import("../components/ManualCard"));
 const FeedbackSnackbar = lazy(() => import("../components/Feedback"));
 const ResourceSkeleton = lazy(() => import("../components/ResourceSkeleton"));
+
 
 const ManualDelSitio = () => {
   const [rol, setRol] = useState("Invitado");
@@ -80,6 +85,8 @@ const ManualDelSitio = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 4, marginTop: 3 }}>
+      <BreadcrumbNav items={[{ label: "Manual del Sitio", icon: Article }]} />
+
       <Box
         sx={{
           position: 'sticky',
@@ -91,6 +98,7 @@ const ManualDelSitio = () => {
           borderColor: 'divider',
         }}
       >
+
         <Title text="Manual del Sitio" />
         <Typography variant="body1" sx={{ textAlign: "center", mt: 1 }}>
           Aquí tienes los tutoriales y manuales para tu rol de{" "}

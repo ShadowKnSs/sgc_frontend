@@ -67,8 +67,9 @@
 
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import { Box } from "@mui/material";
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import Title from "../components/Title";
 import CircularProgress from '@mui/material/CircularProgress';
 import CustomButton from '../components/Button';
@@ -78,6 +79,7 @@ import AuditoriaForm from "../components/Forms/AddAuditoriaForm";
 import DetallesAuditoriaDialog from "../components/Modals/DetallesAuditoriaDialog";
 import useAuditoriaData from "../hooks/useAuditoriaData";
 import useAuditoriaForm from "../hooks/useAuditoriaForm";
+
 
 function Cronograma() {
   // Se obtiene el usuario y el rol activo desde el localStorage.
@@ -108,7 +110,7 @@ function Cronograma() {
     snackbar,
     setSnackbar,
     handleCloseSnackbar,
-     obtenerProcesosPorEntidad
+    obtenerProcesosPorEntidad
   } = useAuditoriaData(usuario, rolActivo, idProceso);
 
   const {
@@ -185,17 +187,17 @@ function Cronograma() {
   return (
     <Box
       sx={{
-        p: 4,
+        p: 1,
         height: "100vh",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
         justifyContent: "flex-start",
         backgroundColor: "#f4f4f4",
         paddingTop: "20px",
         position: "relative",
       }}
     >
+      <BreadcrumbNav items={[{ label: "Cronograma", icon: CalendarMonthIcon }]} />
       <Title text="Cronograma de Auditorías" />
 
       {loading && (

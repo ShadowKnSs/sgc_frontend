@@ -38,8 +38,8 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Box, Grid, Fab } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Box, Grid } from "@mui/material";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import ProcessCard from "../components/processCard";
@@ -48,6 +48,8 @@ import axios from "axios";
 import Title from "../components/Title";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+
 
 function ProcessList() {
   const [processes, setProcesses] = useState([]);
@@ -102,12 +104,12 @@ function ProcessList() {
     setSelectedProcess(process);
     setOpenDelete(true);
   };
-  
+
   const confirmEdit = (process) => {
     setSelectedProcess(process);
     setOpenConfirmEdit(true);
   };
-  
+
 
 
   const handleDelete = async (id) => {
@@ -139,6 +141,8 @@ function ProcessList() {
 
   return (
     <Box sx={{ p: 4 }}>
+      <BreadcrumbNav items={[{ label: "Gestión de Procesos", icon: AccountTreeIcon }]} />
+
       <Title text="Procesos" ></Title>
       <Grid container spacing={2}>
         {enrichedProcesses.map((process) => (
@@ -159,7 +163,7 @@ function ProcessList() {
           icon={<Add />}
         />
       </Box>
-      
+
       <ConfirmDelete
         open={openDelete}
         onClose={() => setOpenDelete(false)}

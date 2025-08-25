@@ -14,28 +14,32 @@
 import React from "react";
 import { Box } from "@mui/material";
 import MenuCard from "../components/menuCard";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 import DescriptionIcon from "@mui/icons-material/Description";
 import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 const TypesReports = () => {
     const navigate = useNavigate();
 
     const menuItems = [
-        { icon: <AnalyticsOutlinedIcon />, title: "Semestral", path: "/principalReportSem"},
+        { icon: <AnalyticsOutlinedIcon />, title: "Semestral", path: "/principalReportSem" },
         { icon: <AccountTreeOutlinedIcon />, title: "Proceso", path: "/listado-reportes-proceso" },
-        { icon: <DescriptionIcon />, title: "Auditoría Interna", path: "/reportes-auditoria"},
+        { icon: <DescriptionIcon />, title: "Auditoría Interna", path: "/reportes-auditoria" },
     ];
 
     return (
-        <Box>
+        <Box sx={{p:3}}>
+            <BreadcrumbNav items={[{ label: "Reportes", icon: SummarizeIcon }]} />
+
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "center",
-                    mt: 5,  // Ajusta la distancia desde el header
+                    mt: 3,  // Ajusta la distancia desde el header
                     mb: 5,
                     position: "relative", // Asegura que no se superponga con elementos fijos
                     zIndex: 1 // Eleva el título en caso de solapamiento

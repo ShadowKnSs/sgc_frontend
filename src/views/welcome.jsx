@@ -168,7 +168,6 @@ const Welcome = () => {
         marginBottom: "20px",
       }}
     >
-
       {/* Aquí agregamos el título */}
       <Box sx={{ gridColumn: "1 / -1", marginBottom: "0px",}}>
         <Title text={getTituloPanel()} />
