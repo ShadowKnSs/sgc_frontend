@@ -25,6 +25,7 @@ const sections = [
   "Control de documentos",
 ];
 
+
 const useEntidadProceso = (idProceso) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);

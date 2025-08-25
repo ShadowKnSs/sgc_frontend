@@ -50,7 +50,7 @@ import CustomButton from "../components/Button";
 function ProcessMapView({ idProceso, soloLectura }) {
   const [users, setUsers] = useState([]);
   const [errors, setErrors] = useState({});
-  const [setActiveCards] = useState([]);
+  const [activeCards, setActiveCards] = useState([]);
   const [openForm, setOpenForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [isFixed, setIsFixed] = useState(false);
@@ -137,14 +137,13 @@ function ProcessMapView({ idProceso, soloLectura }) {
       responsable: newUser.responsable,
       meta: parseInt(newUser.meta) || null
     };
-    axios.post("http://localhost:8000/api/indmapaproceso", payload)
-      .then((response) => {
-        const nuevo = response.data.indMapaProceso;
-        setUsers((prev) => [...prev, nuevo]);
-        setOpenForm(false);
-        setNewUser({ descripcion: "", formula: "", periodo: "", responsable: "", meta: "" });
-        setErrors({});
-      })
+    return axios.post("http://localhost:8000/api/indmapaproceso", payload).then((response) => {
+      const nuevo = response.data.indMapaProceso;
+      setUsers((prev) => [...prev, nuevo]);
+      setOpenForm(false);
+      setNewUser({ descripcion: "", formula: "", periodo: "", responsable: "", meta: "" });
+      setErrors({});
+    })
       .catch((error) => console.error("Error al agregar indicador (indmapaproceso):", error));
   };
 
@@ -194,13 +193,13 @@ function ProcessMapView({ idProceso, soloLectura }) {
   }, [indicadorAEliminar]);
 
   const handleEditUser = (user) => {
-    setEditUser(user);
+    setEditUser({ ...user, periodo: user.periodoMed || "" });
     setEditFormOpen(true);
   };
 
   const handleSaveEditUser = () => {
     if (!editUser) return;
-    axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
+    return axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
       idProceso,
       descripcion: editUser.descripcion,
       formula: editUser.formula,

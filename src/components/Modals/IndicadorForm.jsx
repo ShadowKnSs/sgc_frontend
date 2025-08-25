@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,122 +10,223 @@ import {
 } from "@mui/material";
 import DialogTitleCustom from "../TitleDialog";
 import CustomButton from "../Button";
+import FeedbackSnackbar from "../Feedback"
 
-// Animación de entrada para el Dialog
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
+const PERIODOS = ["Semestral", "Trimestral", "Anual"];
+const normalizePeriodo = (v) => {
+  const s = String(v ?? "").trim().toLowerCase();
+  const match = PERIODOS.find(p => p.toLowerCase() === s);
+  return match || "";
+};
+
 const IndicadorForm = ({
   open,
   onClose,
-  onSave,
+  onSave,           // puede ser async o sync
   formData,
   setFormData,
-  errors = {},
-  modo = "crear" // "crear" o "editar"
+  modo = "crear"    // "crear" | "editar"
 }) => {
-  
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [snack, setSnack] = useState({ open: false, type: "error", title: "", message: "" });
+  const closeSnack = () => setSnack(s => ({ ...s, open: false }));
 
-  const handleSave = () => {
-    onSave();
+  const limits = useMemo(() => ({
+    descripcion: 512,
+    formula: 512,
+    responsable: 255
+  }), []);
+
+  const validate = () => {
+    const e = {};
+    const desc = (formData.descripcion || "").trim();
+    const form = (formData.formula || "").trim();
+    const resp = (formData.responsable || "").trim();
+    const per = normalizePeriodo(formData.periodo);
+    const metaNum = Number(formData.meta);
+
+    if (!desc) e.descripcion = "Descripción es obligatoria.";
+    else if (desc.length > limits.descripcion) e.descripcion = `Máximo ${limits.descripcion} caracteres.`;
+
+    if (!form) e.formula = "Fórmula es obligatoria.";
+    else if (form.length > limits.formula) e.formula = `Máximo ${limits.formula} caracteres.`;
+
+    if (!resp) e.responsable = "Responsable es obligatorio.";
+    else if (resp.length > limits.responsable) e.responsable = `Máximo ${limits.responsable} caracteres.`;
+
+    if (!per) e.periodo = "Período es obligatorio.";
+
+    if (!Number.isFinite(metaNum)) e.meta = "Meta debe ser un número.";
+    else if (metaNum < 1 || metaNum > 100) e.meta = "Meta debe estar entre 1 y 100.";
+
+    return e;
   };
 
-  const handleClose = () => {
-    onClose();
+  const handleSave = async () => {
+    const e = validate();
+    setErrors(e);
+    if (Object.keys(e).length) {
+      const firstKey = Object.keys(e)[0];
+      setSnack({ open: true, type: "error", title: "Validación", message: e[firstKey] })
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await onSave?.(); // el padre ahora devuelve la promesa
+      setSnack({ open: true, type: "success", title: "Listo", message: "Indicador guardado correctamente." });
+      onClose();
+    } catch {
+      setSnack({ open: true, type: "error", title: "Error", message: "No se pudo guardar el indicador." });
+
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handlers con clamp/limites
+  const onChangeText = (key, max) => (ev) => {
+    const val = (ev.target.value || "").slice(0, max);
+    setFormData({ ...formData, [key]: val });
+    if (errors[key]) setErrors(prev => { const cp = { ...prev }; delete cp[key]; return cp; });
+  };
+
+  const onChangePeriodo = (ev) => {
+    const val = ev.target.value;
+    setFormData({ ...formData, periodo: val });
+    if (errors.periodo) setErrors(prev => { const cp = { ...prev }; delete cp.periodo; return cp; });
+  };
+
+  const onChangeMeta = (ev) => {
+    let v = ev.target.value;
+    // permitir cadena vacía mientras escribe
+    if (v === "") { setFormData({ ...formData, meta: "" }); if (errors.meta) setErrors(p => { const cp = { ...p }; delete cp.meta; return cp; }); return; }
+    let n = Number(v);
+    if (!Number.isFinite(n)) n = 0;
+    // clamp 1..100
+    if (n < 1) n = 1;
+    if (n > 100) n = 100;
+    setFormData({ ...formData, meta: n });
+    if (errors.meta) setErrors(prev => { const cp = { ...prev }; delete cp.meta; return cp; });
   };
 
   return (
-    <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        maxWidth="sm"
-        fullWidth
-        TransitionComponent={Transition}
-        keepMounted
-      >
-        {/* Título */}
-        <DialogTitleCustom
-          title={modo === "editar" ? "Editar Indicador" : "Agregar Nuevo Indicador"}
-          subtitle="Complete todos los campos para continuar"
-        />
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      TransitionComponent={Transition}
+      keepMounted
+    >
+      <DialogTitleCustom
+        title={modo === "editar" ? "Editar Indicador" : "Agregar Nuevo Indicador"}
+        subtitle="Complete todos los campos para continuar"
+      />
 
-        {/* Formulario */}
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
-            <TextField
-              label="Descripción"
-              fullWidth
-              multiline
-              minRows={3}
-              variant="outlined"
-              value={formData.descripcion}
-              onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-              error={!!errors.descripcion}
-              helperText={errors.descripcion}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Fórmula"
-              fullWidth
-              multiline
-              minRows={3}
-              variant="outlined"
-              value={formData.formula}
-              onChange={(e) => setFormData({ ...formData, formula: e.target.value })}
-              error={!!errors.formula}
-              helperText={errors.formula}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Período"
-              fullWidth
-              select
-              variant="outlined"
-              value={formData.periodo}
-              onChange={(e) => setFormData({ ...formData, periodo: e.target.value })}
-              error={!!errors.periodo}
-              helperText={errors.periodo}
-            >
-              <MenuItem value="Semestral">Semestral</MenuItem>
-              <MenuItem value="Trimestral">Trimestral</MenuItem>
-              <MenuItem value="Anual">Anual</MenuItem>
-            </TextField>
-            <TextField
-              label="Responsable"
-              fullWidth
-              variant="outlined"
-              value={formData.responsable}
-              onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Meta (número)"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={formData.meta}
-              onChange={(e) => setFormData({ ...formData, meta: e.target.value })}
-              inputProps={{ min: 1, max: 10 }}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Box>
-        </DialogContent>
+      <DialogContent>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+          <TextField
+            label="Descripción"
+            fullWidth
+            multiline
+            minRows={3}
+            variant="outlined"
+            value={formData.descripcion ?? ""}
+            onChange={onChangeText("descripcion", limits.descripcion)}
+            inputProps={{ maxLength: limits.descripcion }}
+            error={!!errors.descripcion}
+            helperText={errors.descripcion || `${(formData.descripcion || "").length}/${limits.descripcion}`}
+            InputLabelProps={{ shrink: true, required: true }}
+          />
 
-        {/* Botones */}
-        <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-          <CustomButton type="cancelar" onClick={handleClose}>
-            Cancelar
-          </CustomButton>
-          <CustomButton type="guardar" onClick={handleSave}>
-            Guardar Indicador
-          </CustomButton>
-        </DialogActions>
-      </Dialog>
+          <TextField
+            label="Fórmula"
+            fullWidth
+            multiline
+            minRows={3}
+            variant="outlined"
+            value={formData.formula ?? ""}
+            onChange={onChangeText("formula", limits.formula)}
+            inputProps={{ maxLength: limits.formula }}
+            error={!!errors.formula}
+            helperText={errors.formula || `${(formData.formula || "").length}/${limits.formula}`}
+            InputLabelProps={{ shrink: true, required: true }}
+          />
 
-    
-    </>
+          <TextField
+            label="Período"
+            fullWidth
+            select
+            variant="outlined"
+            value={normalizePeriodo(formData.periodo ?? formData.periodoMed)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFormData({ ...formData, periodo: val, periodoMed: val }); // mantén ambos sincronizados
+            }}
+            error={!!errors.periodo}
+            helperText={errors.periodo}
+            InputLabelProps={{ shrink: true, required: true }}
+            SelectProps={{ displayEmpty: true }}
+          >
+            <MenuItem value=""><em>Seleccione…</em></MenuItem>
+            {PERIODOS.map(p => (
+              <MenuItem key={p} value={p}>{p}</MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="Responsable"
+            fullWidth
+            variant="outlined"
+            value={formData.responsable ?? ""}
+            onChange={onChangeText("responsable", limits.responsable)}
+            inputProps={{ maxLength: limits.responsable }}
+            error={!!errors.responsable}
+            helperText={errors.responsable || `${(formData.responsable || "").length}/${limits.responsable}`}
+            InputLabelProps={{ shrink: true, required: true }}
+          />
+
+          <TextField
+            label="Meta (1–100)"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={formData.meta ?? ""}
+            onChange={onChangeMeta}
+            inputProps={{ min: 1, max: 100, step: 1 }}
+            error={!!errors.meta}
+            helperText={errors.meta}
+            InputLabelProps={{ shrink: true, required: true }}
+          />
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{ justifyContent: "center", p: 2 }}>
+        <CustomButton type="cancelar" onClick={onClose}>
+          Cancelar
+        </CustomButton>
+        <CustomButton type="guardar" onClick={handleSave} loading={saving}>
+          Guardar Indicador
+        </CustomButton>
+      </DialogActions>
+
+      <FeedbackSnackbar
+        open={snack.open}
+        onClose={closeSnack}
+        type={snack.type}
+        title={snack.title}
+        message={snack.message}
+        autoHideDuration={4000}
+      />
+    </Dialog>
+
+
   );
 };
 
