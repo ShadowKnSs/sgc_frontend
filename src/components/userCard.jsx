@@ -283,27 +283,49 @@ function UserCard({ user, onEdit, onDelete, onAssign, onReactivate, reactivating
           </Tooltip>
 
           {isInactive ? (
-            <Tooltip title="Reactivar usuario" arrow placement="top">
-              <CustomButton
-                type="aceptar"
-                size="small"
-                onClick={() => onReactivate && onReactivate(user)}
-                loading={reactivating} // Mostrar loading state
-                disabled={reactivating} // Deshabilitar durante reactivación
-                sx={{
-                  minWidth: '100px',
-                  height: '32px',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                }}
-              >
-                {reactivating ? 'Reactivando...' : 'Reactivar'}
-              </CustomButton>
-            </Tooltip>
+            // Para usuarios inactivos: Botón de reactivación y eliminación permanente
+            <>
+              <Tooltip title="Reactivar usuario" arrow placement="top">
+                <CustomButton
+                  type="aceptar"
+                  size="small"
+                  onClick={() => onReactivate && onReactivate(user)}
+                  loading={reactivating}
+                  disabled={reactivating}
+                  sx={{
+                    minWidth: '100px',
+                    height: '32px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {reactivating ? 'Reactivando...' : 'Reactivar'}
+                </CustomButton>
+              </Tooltip>
+
+              {typeof onDelete === 'function' && (
+                <Tooltip title="Eliminar permanentemente" arrow placement="top">
+                  <span>
+                    <IconButton
+                      onClick={() => onDelete(user)}
+                      sx={{
+                        backgroundColor: "#D32F2F",
+                        color: "#fff",
+                        "&:hover": {
+                          backgroundColor: "#B71C1C",
+                        },
+                      }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
+            </>
           ) : (
-            // Botón de eliminación para usuarios activos
+            // Para usuarios activos: Solo botón de desactivar
             typeof onDelete === 'function' ? (
-              <Tooltip title="Eliminar usuario del sistema" arrow placement="top">
+              <Tooltip title="Desactivar usuario" arrow placement="top">
                 <span>
                   <IconButton
                     onClick={() => onDelete(user)}
@@ -320,7 +342,7 @@ function UserCard({ user, onEdit, onDelete, onAssign, onReactivate, reactivating
                 </span>
               </Tooltip>
             ) : (
-              <Tooltip title="No puedes eliminarte a ti mismo" arrow placement="top">
+              <Tooltip title="No puedes desactivarte a ti mismo" arrow placement="top">
                 <span>
                   <IconButton
                     disabled

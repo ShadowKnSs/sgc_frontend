@@ -248,37 +248,83 @@ function UserManagement() {
         setEditingUser(null);
     }, [editingUser, showFeedback]);
 
-    // Eliminar (desactivar) usuario
-    const handleDelete = useCallback(
+
+    const handleDeactivate = useCallback(
         async (id) => {
             try {
                 const token = localStorage.getItem('auth_token');
-                await axios.delete(`${API_URL}/usuarios/${id}`, {
+                const response = await axios.post(
+                    `${API_URL}/usuarios/${id}/desactivar`,
+                    {},
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (response.data.success) {
+                    // Actualizar estado a inactivo
+                    setUsers(prev => prev.map(u =>
+                        u.id === id ? { ...u, activo: false } : u
+                    ));
+                    setAllUsers(prev => prev.map(u =>
+                        u.id === id ? { ...u, activo: false } : u
+                    ));
+
+                    setSelectedTab(0);
+                    setOpenDelete(false);
+                    showFeedback("info", "Usuario desactivado", response.data.message || "El usuario fue desactivado correctamente");
+                }
+            } catch (err) {
+                console.error('Error al desactivar:', err.response?.data);
+                showFeedback("error", "Error", err.response?.data?.message || "No se pudo desactivar el usuario");
+            }
+        },
+        [showFeedback]
+    );
+
+    const handleDeletePermanent = useCallback(
+        async (id) => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await axios.delete(`${API_URL}/usuarios/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
 
-                // En lugar de eliminar de la lista, actualizar el estado
-                setUsers(prev => prev.map(u =>
-                    u.id === id ? { ...u, activo: false } : u
-                ));
-                setAllUsers(prev => prev.map(u =>
-                    u.id === id ? { ...u, activo: false } : u
-                ));
+                if (response.data.success) {
+                    // Eliminar completamente de las listas
+                    setUsers(prev => prev.filter(u => u.id !== id));
+                    setAllUsers(prev => prev.filter(u => u.id !== id));
 
-                setSelectedTab(0);
-               
-                setOpenDelete(false);
-                showFeedback("info", "Usuario desactivado", "El usuario fue desactivado correctamente");
+                    setSelectedTab(1);
+
+                    setOpenDelete(false);
+                    showFeedback("success", "Usuario eliminado", response.data.message || "El usuario fue eliminado permanentemente");
+                }
             } catch (err) {
                 console.error('Error al eliminar:', err.response?.data);
-                showFeedback("error", "Error", err.response?.data?.message || "No se pudo desactivar el usuario");
+                showFeedback("error", "Error", err.response?.data?.message || "No se pudo eliminar el usuario");
             }
         },
         [showFeedback]
-    );
+    )
+    // Eliminar (desactivar) usuario
+    const handleDeleteAction = useCallback((user) => {
+        if (user.activo) {
+            // Usuario activo: desactivar
+            setUserToDelete(user);
+            setOpenDelete(true);
+        } else {
+            // Usuario inactivo: eliminar permanentemente
+            setUserToDelete(user);
+            setOpenDelete(true);
+        }
+    }, []);
 
     // Abrir/cerrar UI
     const handleAddNewUser = useCallback(() => {
@@ -551,10 +597,10 @@ function UserManagement() {
                                                 <UserCard
                                                     user={user}
                                                     onEdit={() => handleEdit(user)}
-                                                    onDelete={canDelete ? () => { setUserToDelete(user); setOpenDelete(true); } : undefined}
+                                                    onDelete={canDelete ? () => handleDeleteAction(user) : undefined}
                                                     onAssign={handleOpenAssign}
                                                     onReactivate={handleReactivate}
-                                                    reactivating={reactivatingUser === user.id} // Nueva prop
+                                                    reactivating={reactivatingUser === user.id}
                                                     canDelete={canDelete}
                                                 />
                                             </Suspense>
@@ -639,9 +685,16 @@ function UserManagement() {
                 <ConfirmDelete
                     open={openDelete}
                     onClose={() => setOpenDelete(false)}
-                    onConfirm={() => handleDelete(userToDelete?.id)}
+                    onConfirm={() => {
+                        if (userToDelete?.activo) {
+                            handleDeactivate(userToDelete?.id);
+                        } else {
+                            handleDeletePermanent(userToDelete?.id);
+                        }
+                    }}
                     entityType="usuario"
                     entityName={userToDelete?.firstName}
+                    isPermanent={userToDelete && !userToDelete.activo}
                 />
             </Suspense>
 
