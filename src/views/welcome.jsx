@@ -20,6 +20,7 @@ import { Box, CircularProgress } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Title from "../components/Title";
 
 // Iconos del menú
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
@@ -72,6 +73,23 @@ const Welcome = () => {
     { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
     { icon: <AddHomeWorkOutlinedIcon />, title: "Gestión Entidades", path: "/gestion-entidades" },
   ];
+
+  const getTituloPanel = () => {
+    switch (rolActivo?.nombreRol) {
+      case "Administrador":
+        return "Panel de Administrador";
+      case "Líder":
+        return "Panel de Líder de Proceso";
+      case "Supervisor":
+        return "Panel de Supervisor";
+      case "Auditor":
+        return "Panel de Auditor";
+      case "Personal Operativo":
+        return "Panel del Personal Operativo";
+      default:
+        return `Panel de ${rolActivo?.nombreRol || "Usuario"}`;
+    }
+  };
 
   // Filtra las cards según los permisos del rol
   let itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
@@ -140,16 +158,21 @@ const Welcome = () => {
       sx={{
         display: "grid",
         gridTemplateColumns: "repeat(4, auto)",
-        gap: 8,
+        gap: 5,
         placeItems: "center",
         justifyContent: "center",
         alignContent: "start",
         minHeight: "calc(100vh - 100px)",
         padding: "20px",
-        marginTop: "80px",
+        marginTop: "10px",
         marginBottom: "20px",
       }}
     >
+
+      {/* Aquí agregamos el título */}
+      <Box sx={{ gridColumn: "1 / -1", marginBottom: "0px",}}>
+        <Title text={getTituloPanel()} />
+      </Box>
       {itemsFiltrados.map((item, index) => (
         <MenuCard
           key={index}
