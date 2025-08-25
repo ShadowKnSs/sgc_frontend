@@ -25,7 +25,7 @@ import {
   InsertDriveFile,
   Close,
   CloudUpload,
-  Download
+  Download, Article
 } from '@mui/icons-material';
 import Title from '../components/Title';
 import FabCustom from "../components/FabCustom";
@@ -33,6 +33,7 @@ import Add from "@mui/icons-material/Add";
 import CustomButton from '../components/Button';
 import DialogTitleCustom from '../components/TitleDialog';
 import FeedbackSnackbar from '../components/Feedback';
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import usePermiso from '../hooks/userPermiso';
 
 // Componente para previsualización de imagen
@@ -138,14 +139,14 @@ const FormatoModal = React.memo(({
 
     // Validar tipo de archivo
     const allowedTypes = [
-      'application/pdf', 
-      'image/jpeg', 
-      'image/png', 
-      'image/jpg', 
-      'application/msword', 
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
-    
+
     if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|jpg|jpeg|png)$/i)) {
       return 'Tipo de archivo no permitido. Use PDF, DOC, DOCX o imágenes.';
     }
@@ -256,15 +257,15 @@ const FormatoModal = React.memo(({
         <Box
           sx={{
             border: '2px dashed',
-            borderColor: archivo ? 'success.main' : 
-                        error.archivo ? 'error.main' : 
-                        isDragOver ? 'primary.main' : 'grey.300',
+            borderColor: archivo ? 'success.main' :
+              error.archivo ? 'error.main' :
+                isDragOver ? 'primary.main' : 'grey.300',
             borderRadius: 2,
             p: 3,
             textAlign: 'center',
             mt: 2,
-            backgroundColor: archivo ? alpha('#4caf50', 0.08) : 
-                           isDragOver ? alpha('#1976d2', 0.08) : 'grey.50',
+            backgroundColor: archivo ? alpha('#4caf50', 0.08) :
+              isDragOver ? alpha('#1976d2', 0.08) : 'grey.50',
             transition: 'all 0.3s ease',
             cursor: 'pointer'
           }}
@@ -283,10 +284,10 @@ const FormatoModal = React.memo(({
           />
           <label htmlFor="raised-button-file" style={{ cursor: 'pointer' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <CloudUpload sx={{ 
-                fontSize: 40, 
-                color: isDragOver ? 'primary.main' : 'primary.main', 
-                mb: 1 
+              <CloudUpload sx={{
+                fontSize: 40,
+                color: isDragOver ? 'primary.main' : 'primary.main',
+                mb: 1
               }} />
               <Typography
                 variant="body2"
@@ -301,9 +302,9 @@ const FormatoModal = React.memo(({
                   }
                 }}
               >
-                {archivo ? 'Archivo seleccionado:' : 
-                 isDragOver ? 'Suelte el archivo aquí' : 
-                 'Haga clic o arrastre un archivo aquí'}
+                {archivo ? 'Archivo seleccionado:' :
+                  isDragOver ? 'Suelte el archivo aquí' :
+                    'Haga clic o arrastre un archivo aquí'}
               </Typography>
               {archivo && (
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
@@ -476,7 +477,9 @@ const Formatos = () => {
 
   return (
     <Box sx={{ p: 2, minHeight: '100vh', position: 'relative' }}>
-      <Box sx={{ textAlign: "center", py: 3 }}>
+      <BreadcrumbNav items={[{ label: "Formatos", icon: Article  }]} />
+
+      <Box sx={{ textAlign: "center", py: 1 }}>
         <Title text="Formatos" />
         {!puedeEditar && (
           <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
