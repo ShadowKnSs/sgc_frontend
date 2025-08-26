@@ -14,9 +14,9 @@ import CustomButton from "../components/Button";
 const useCaratulaData = (idProceso) => {
   const [caratulaId, setCaratulaId] = useState(null);
   const [personas, setPersonas] = useState([
-    { nombre: "Sin registrar", cargo: "Sin cargo", fijo: "Responsable", editando: false },
-    { nombre: "Sin registrar", cargo: "Sin cargo", fijo: "Revisó", editando: false },
-    { nombre: "Sin registrar", cargo: "Sin cargo", fijo: "Aprobó", editando: false },
+    { nombre: "", cargo: "", fijo: "Responsable", editando: false },
+    { nombre: "", cargo: "", fijo: "Revisó", editando: false },
+    { nombre: "", cargo: "", fijo: "Aprobó", editando: false },
   ]);
   const [loading, setLoading] = useState(true);
   const [existe, setExiste] = useState(false);
@@ -29,15 +29,43 @@ const useCaratulaData = (idProceso) => {
           setExiste(true);
           setCaratulaId(data.idCaratula);
           setPersonas([
-            { nombre: data.responsableNombre, cargo: data.responsableCargo, fijo: "Responsable", editando: false },
-            { nombre: data.revisoNombre, cargo: data.revisoCargo, fijo: "Revisó", editando: false },
-            { nombre: data.aproboNombre, cargo: data.aproboCargo, fijo: "Aprobó", editando: false },
+            { 
+              nombre: data.responsableNombre || "", 
+              cargo: data.responsableCargo || "", 
+              fijo: "Responsable", 
+              editando: false 
+            },
+            { 
+              nombre: data.revisoNombre || "", 
+              cargo: data.revisoCargo || "", 
+              fijo: "Revisó", 
+              editando: false 
+            },
+            { 
+              nombre: data.aproboNombre || "", 
+              cargo: data.aproboCargo || "", 
+              fijo: "Aprobó", 
+              editando: false 
+            },
           ]);
         } else {
           setExiste(false);
+          // Resetear a valores vacíos
+          setPersonas([
+            { nombre: "", cargo: "", fijo: "Responsable", editando: false },
+            { nombre: "", cargo: "", fijo: "Revisó", editando: false },
+            { nombre: "", cargo: "", fijo: "Aprobó", editando: false },
+          ]);
         }
       })
-      .catch(() => setExiste(false))
+      .catch(() => {
+        setExiste(false);
+        setPersonas([
+          { nombre: "", cargo: "", fijo: "Responsable", editando: false },
+          { nombre: "", cargo: "", fijo: "Revisó", editando: false },
+          { nombre: "", cargo: "", fijo: "Aprobó", editando: false },
+        ]);
+      })
       .finally(() => setLoading(false));
   }, [idProceso]);
 
@@ -46,27 +74,53 @@ const useCaratulaData = (idProceso) => {
   return { caratulaId, personas, setPersonas, loading, existe, setExiste, setCaratulaId, cargar };
 };
 
-const PersonaCard = ({ persona, index, onEdit, onCancel, onChange, onSave, puedeEditar }) => (
+const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar }) => (
   <Card elevation={3} sx={{ minWidth: 240, mx: 1, mb: 2 }}>
     <CardContent sx={{ textAlign: "center" }}>
       {persona.editando ? (
         <>
-          <TextField fullWidth variant="standard" value={persona.nombre}
-            onChange={(e) => onChange(index, "nombre", e.target.value)} label="Nombre" sx={{ mb: 1 }} />
-          <TextField fullWidth variant="standard" value={persona.cargo}
-            onChange={(e) => onChange(index, "cargo", e.target.value)} label="Cargo" sx={{ mb: 2 }} />
-          {puedeEditar && (
-            <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-              <CustomButton type="guardar" size="small" onClick={() => onSave(index)}>Guardar</CustomButton>
-              <CustomButton type="cancelar" size="small" onClick={() => onCancel(index)}>Cancelar</CustomButton>
-            </Box>
-          )}
+          <TextField 
+            fullWidth 
+            variant="standard" 
+            value={persona.nombre}
+            onChange={(e) => onChange(index, "nombre", e.target.value)} 
+            label="Nombre" 
+            placeholder="Ingrese el nombre completo"
+            sx={{ mb: 1 }} 
+            error={persona.nombre.length > 0 && persona.nombre.length > 125}
+            helperText={
+              persona.nombre.length > 0 && persona.nombre.length > 125 
+                ? "Máximo 125 caracteres" 
+                : `${persona.nombre.length}/125`
+            }
+          />
+          <TextField 
+            fullWidth 
+            variant="standard" 
+            value={persona.cargo}
+            onChange={(e) => onChange(index, "cargo", e.target.value)} 
+            label="Cargo" 
+            placeholder="Ingrese el cargo correspondiente"
+            sx={{ mb: 2 }} 
+            error={persona.cargo.length > 0 && persona.cargo.length > 125}
+            helperText={
+              persona.cargo.length > 0 && persona.cargo.length > 125 
+                ? "Máximo 125 caracteres" 
+                : `${persona.cargo.length}/125`
+            }
+          />
         </>
       ) : (
         <>
-          <Typography fontWeight="bold">{persona.nombre}</Typography>
-          <Typography fontWeight="bold">{persona.cargo}</Typography>
-          <Typography sx={{ color: "#004A98", fontWeight: "bold", mt: 1 }}>{persona.fijo}</Typography>
+          <Typography fontWeight="bold">
+            {persona.nombre || "Sin asignar"}
+          </Typography>
+          <Typography fontWeight="bold">
+            {persona.cargo || "Sin cargo"}
+          </Typography>
+          <Typography sx={{ color: "#004A98", fontWeight: "bold", mt: 1 }}>
+            {persona.fijo}
+          </Typography>
           {puedeEditar && (
             <Tooltip title="Editar">
               <IconButton onClick={() => onEdit(index)}>
@@ -87,6 +141,7 @@ const Caratula = ({ puedeEditar }) => {
   } = useCaratulaData(idProceso);
 
   const [alerta, setAlerta] = useState({ tipo: "", texto: "" });
+  const [guardando, setGuardando] = useState(false);
 
   const handleEdit = (index) => {
     if (!puedeEditar) return;
@@ -95,7 +150,7 @@ const Caratula = ({ puedeEditar }) => {
     setPersonas(updated);
   };
 
-  const handleCancel = (index) => {
+  const handleCancel = () => {
     cargar(); // Reset al original
   };
 
@@ -105,7 +160,28 @@ const Caratula = ({ puedeEditar }) => {
     setPersonas(updated);
   };
 
+  const validarCampos = () => {
+    for (const persona of personas) {
+      if ((persona.nombre.length > 0 && persona.nombre.length > 125) ||
+          (persona.cargo.length > 0 && persona.cargo.length > 125)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSave = async () => {
+    // Validar longitudes mínimas
+    if (!validarCampos()) {
+      setAlerta({ 
+        tipo: "error", 
+        texto: "Los campos deben tener al menos 125 caracteres si se completan" 
+      });
+      return;
+    }
+
+    setGuardando(true);
+    
     const payload = {
       idProceso,
       responsable_nombre: personas[0].nombre,
@@ -125,14 +201,21 @@ const Caratula = ({ puedeEditar }) => {
         await axios.put(`http://localhost:8000/api/caratulas/${caratulaId}`, payload);
       }
       setAlerta({ tipo: "success", texto: "Carátula guardada correctamente." });
+      
+      // Salir del modo edición
+      const updated = personas.map(p => ({ ...p, editando: false }));
+      setPersonas(updated);
     } catch (e) {
       console.error("Error guardando carátula", e);
       setAlerta({ tipo: "error", texto: "Error al guardar." });
     } finally {
       setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
-      cargar();
+      setGuardando(false);
     }
   };
+
+  // Verificar si hay alguna tarjeta en modo edición
+  const enEdicion = personas.some(p => p.editando);
 
   if (loading) return <Box sx={{ textAlign: "center", mt: 4 }}><CircularProgress /></Box>;
 
@@ -156,14 +239,32 @@ const Caratula = ({ puedeEditar }) => {
               persona={persona}
               index={index}
               onEdit={handleEdit}
-              onCancel={handleCancel}
               onChange={handleChange}
-              onSave={handleSave}
               puedeEditar={puedeEditar}
             />
           </Grid>
         ))}
       </Grid>
+
+      {puedeEditar && enEdicion && (
+        <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+          <CustomButton 
+            type="cancelar" 
+            onClick={handleCancel}
+            disabled={guardando}
+          >
+            Cancelar
+          </CustomButton>
+          <CustomButton 
+            type="guardar" 
+            onClick={handleSave}
+            loading={guardando}
+            disabled={!validarCampos() || guardando}
+          >
+            {guardando ? "Guardando..." : "Guardar"}
+          </CustomButton>
+        </Box>
+      )}
     </Box>
   );
 };
