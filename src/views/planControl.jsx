@@ -23,7 +23,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
   const [selectedActividad, setSelectedActividad] = useState(null);
-
+  const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: "", type: "success" });
 
   const showFeedback = (message, type = "success") => {
@@ -74,19 +74,24 @@ function ProcessMapView({ idProceso, soloLectura }) {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleAddActividad = () => {
+  const handleAddActividad = async () => {
     if (!validateFields()) return;
 
+    setSaving(true); // ← Activar loading
     const payload = { ...formData, idProceso, año: new Date().getFullYear() };
-    axios
-      .post("http://localhost:8000/api/actividadcontrol", payload)
-      .then((res) => {
-        setActividades((prev) => [...prev, res.data.actividad]);
-        setOpenForm(false);
-        setFormData({});
-        showFeedback("Actividad agregada correctamente", "success");
-      })
-      .catch((err) => console.error("Error al agregar actividad:", err));
+
+    try {
+      const res = await axios.post("http://localhost:8000/api/actividadcontrol", payload);
+      setActividades((prev) => [...prev, res.data.actividad]);
+      setOpenForm(false);
+      setFormData({});
+      showFeedback("Actividad agregada correctamente", "success");
+    } catch (err) {
+      console.error("Error al agregar actividad:", err);
+      showFeedback("Error al agregar actividad", "error");
+    } finally {
+      setSaving(false); // ← Desactivar loading
+    }
   };
 
   const handleEditActividad = (actividad) => {
@@ -180,7 +185,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
   };
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 1 }}>
       <Typography variant="h5" sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}>
         Actividades de Control
       </Typography>
@@ -207,7 +212,6 @@ function ProcessMapView({ idProceso, soloLectura }) {
           flexWrap: "wrap",
           gap: 2,
           justifyContent: "center",
-          mt: 4
         }}
       >
         {actividades
@@ -260,6 +264,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
         setFormData={setFormData}
         errors={errors}
         modo={editMode ? "editar" : "crear"}
+        saving={saving}
       />
 
       <ConfirmDelete
