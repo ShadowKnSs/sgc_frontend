@@ -16,7 +16,20 @@ const USUARIOS_OPCIONES = [
     "COORDINADORES DE SERVICIO SOCIAL"
 ];
 
-const MEDIOS = ["Físico", "Digital", "Ambos"];
+const CHAR_LIMITS = {
+    nombreDocumento: 255,
+    codigoDocumento: 50,
+    responsable: 255,
+    lugarAlmacenamiento: 100,
+    disposicion: 255
+};
+
+const MEDIOS = [
+    { value: "Físico", label: "Físico" },
+    { value: "Digital", label: "Electrónico" },
+    { value: "Ambos", label: "Físico y Electrónico" },
+];
+
 
 const DocumentFormDialog = ({
     open,
@@ -25,9 +38,34 @@ const DocumentFormDialog = ({
     data,
     onChange,
     onSubmit,
-    errors = {}
+    errors = {},
+    submitting = false,
 }) => {
     const esExterno = data.tipoDocumento === "externo";
+    // Función para formatear valores para mostrar
+    const formatValue = (value) => {
+        if (value === null || value === undefined) return "";
+        if (typeof value === "number" && value === 0) return "0";
+        return value;
+    };
+
+    const RequiredLabel = ({ children }) => (
+        <Box component="span">
+            {children}
+            <Box component="span" sx={{ color: 'error.main' }}>*</Box>
+        </Box>
+    );
+
+    const renderHelper = (value, limit, error) => (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <span style={{ color: error ? '#d32f2f' : 'inherit' }}>
+                {error || ''}
+            </span>
+            <span style={{ color: (value?.length || 0) >= limit ? '#d32f2f' : 'inherit' }}>
+                {(value?.length || 0)}/{limit}
+            </span>
+        </Box>
+    );
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -38,26 +76,20 @@ const DocumentFormDialog = ({
 
             <DialogContent>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2 }}>
+                    {/* Campos principales con límites de caracteres */}
                     <TextField
-                        label="Nombre del Documento"
+                        label={<RequiredLabel>Nombre del Documento</RequiredLabel>}
                         fullWidth
                         variant="outlined"
                         value={data.nombreDocumento}
                         onChange={(e) => onChange("nombreDocumento", e.target.value)}
                         error={!!errors.nombreDocumento}
-                        helperText={errors.nombreDocumento}
+                        helperText={renderHelper(data.nombreDocumento, CHAR_LIMITS.nombreDocumento, errors.nombreDocumento)}
+                        inputProps={{ maxLength: CHAR_LIMITS.nombreDocumento }}
                     />
 
                     <TextField
-                        label="Código del Documento"
-                        fullWidth
-                        variant="outlined"
-                        value={data.codigoDocumento}
-                        onChange={(e) => onChange("codigoDocumento", e.target.value)}
-                    />
-
-                    <TextField
-                        label="Tipo de Documento"
+                        label={<RequiredLabel>Tipo de Documento</RequiredLabel>}
                         select
                         fullWidth
                         variant="outlined"
@@ -65,7 +97,9 @@ const DocumentFormDialog = ({
                         onChange={(e) => {
                             const tipo = e.target.value;
                             onChange("tipoDocumento", tipo);
-                            if (tipo !== "externo") onChange("fechaVersion", null);
+                            if (tipo !== "externo") {
+                                onChange("fechaVersion", null);
+                            }
                         }}
                         error={!!errors.tipoDocumento}
                         helperText={errors.tipoDocumento}
@@ -73,63 +107,79 @@ const DocumentFormDialog = ({
                         <MenuItem value="interno">INT</MenuItem>
                         <MenuItem value="externo">EXT</MenuItem>
                     </TextField>
-
-                    {esExterno && (
+                    {/* 1) Código: solo visible para tipo interno */}
+                    {!esExterno && (
                         <TextField
-                            label="Fecha de Última Versión"
-                            type="date"
-                            InputLabelProps={{ shrink: true }}
+                            label="Código del Documento"
                             fullWidth
                             variant="outlined"
-                            value={data.fechaVersion || ""}
-                            onChange={(e) => onChange("fechaVersion", e.target.value)}
-                            error={!!errors.fechaVersion}
-                            helperText={errors.fechaVersion}
+                            value={data.codigoDocumento}
+                            onChange={(e) => onChange("codigoDocumento", e.target.value)}
+                            error={!!errors.codigoDocumento}
+                            helperText={errors.codigoDocumento || `Máximo ${CHAR_LIMITS.codigoDocumento} caracteres`}
+                            inputProps={{ maxLength: CHAR_LIMITS.codigoDocumento }}
                         />
                     )}
 
+                    {/* Campos condicionales para externos */}
                     {esExterno && (
-                        <TextField
-                            label="Número de Revisión"
-                            fullWidth
-                            type="number"
-                            variant="outlined"
-                            value={data.noRevision}
-                            onChange={(e) => onChange("noRevision", parseInt(e.target.value) || 0)}
-                            inputProps={{ min: 0 }}
-                            error={!!errors.noRevision}
-                            helperText={errors.noRevision}
-                        />
+                        <>
+                            <TextField
+                                label="Fecha de Última Versión"
+                                type="date"
+                                InputLabelProps={{ shrink: true }}
+                                fullWidth
+                                variant="outlined"
+                                value={data.fechaVersion || ""}
+                                onChange={(e) => onChange("fechaVersion", e.target.value || null)}
+                                error={!!errors.fechaVersion}
+                                helperText={errors.fechaVersion}
+                            />
+
+                            <TextField
+                                label="Número de Revisión"
+                                fullWidth
+                                type="number"
+                                variant="outlined"
+                                value={formatValue(data.noRevision)}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    onChange("noRevision", value === "" ? 0 : parseInt(value));
+                                }}
+                                inputProps={{ min: 0 }}
+                                error={!!errors.noRevision}
+                                helperText={errors.noRevision}
+                            />
+                        </>
                     )}
 
-
-                    {data.tipoDocumento === "interno" && (
+                    {/* Campos para internos */}
+                    {!esExterno && (
                         <TextField
                             label="Fecha de Revisión"
                             type="date"
                             InputLabelProps={{ shrink: true }}
                             fullWidth
                             variant="outlined"
-                            value={data.fechaRevision}
-                            onChange={(e) => onChange("fechaRevision", e.target.value)}
+                            value={data.fechaRevision || ""}
+                            onChange={(e) => onChange("fechaRevision", e.target.value || null)}
                             error={!!errors.fechaRevision}
                             helperText={errors.fechaRevision}
                         />
                     )}
 
-
-
-
                     <TextField
-                        label="Responsable"
+                        label={<RequiredLabel>Responsable</RequiredLabel>}
                         fullWidth
                         variant="outlined"
                         value={data.responsable}
                         onChange={(e) => onChange("responsable", e.target.value)}
                         error={!!errors.responsable}
-                        helperText={errors.responsable}
+                        helperText={renderHelper(data.responsable, CHAR_LIMITS.responsable, errors.responsable)}
+                        inputProps={{ maxLength: CHAR_LIMITS.responsable }}
                     />
 
+                    {/* Checkbox de usuarios */}
                     <Box>
                         <Typography sx={{ fontWeight: "bold", mb: 1 }}>Usuarios:</Typography>
                         <FormGroup row>
@@ -141,8 +191,8 @@ const DocumentFormDialog = ({
                                             checked={(data.usuarios || []).includes(usuario)}
                                             onChange={(e) => {
                                                 const nuevos = e.target.checked
-                                                    ? [...data.usuarios, usuario]
-                                                    : data.usuarios.filter((u) => u !== usuario);
+                                                    ? [...(data.usuarios || []), usuario]
+                                                    : (data.usuarios || []).filter((u) => u !== usuario);
                                                 onChange("usuarios", nuevos);
                                             }}
                                         />
@@ -153,18 +203,22 @@ const DocumentFormDialog = ({
                         </FormGroup>
                     </Box>
 
+                    {/* Campos numéricos que pueden ser 0 */}
                     <TextField
                         label="No. Copias"
                         fullWidth
                         type="number"
                         variant="outlined"
-                        value={data.noCopias}
-                        onChange={(e) => onChange("noCopias", parseInt(e.target.value) || 0)}
+                        value={formatValue(data.noCopias)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            onChange("noCopias", value === "" ? 0 : parseInt(value));
+                        }}
                         inputProps={{ min: 0 }}
                     />
 
                     <TextField
-                        label="Medio de Almacenamiento"
+                        label={<RequiredLabel>Medio de Almacenamiento</RequiredLabel>}
                         select
                         fullWidth
                         variant="outlined"
@@ -174,7 +228,7 @@ const DocumentFormDialog = ({
                         helperText={errors.medioAlmacenamiento}
                     >
                         {MEDIOS.map((m) => (
-                            <MenuItem key={m} value={m}>{m}</MenuItem>
+                            <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
                         ))}
                     </TextField>
 
@@ -183,37 +237,41 @@ const DocumentFormDialog = ({
                         type="number"
                         fullWidth
                         variant="outlined"
-                        value={data.tiempoRetencion}
-                        onChange={(e) => onChange("tiempoRetencion", parseInt(e.target.value) || 0)}
+                        value={formatValue(data.tiempoRetencion)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            onChange("tiempoRetencion", value === "" ? 0 : parseInt(value));
+                        }}
                         inputProps={{ min: 0 }}
                     />
 
                     <TextField
-                        label="Lugar de Almacenamiento"
+                        label={<RequiredLabel>Lugar de Almacenamiento</RequiredLabel>}
                         fullWidth
                         variant="outlined"
                         value={data.lugarAlmacenamiento}
                         onChange={(e) => onChange("lugarAlmacenamiento", e.target.value)}
                         error={!!errors.lugarAlmacenamiento}
-                        helperText={errors.lugarAlmacenamiento}
+                        helperText={renderHelper(data.lugarAlmacenamiento, CHAR_LIMITS.lugarAlmacenamiento, errors.lugarAlmacenamiento)}
+                        inputProps={{ maxLength: CHAR_LIMITS.lugarAlmacenamiento }}
                     />
 
                     <TextField
                         label="Disposición después del Periodo de Retención"
                         fullWidth
                         variant="outlined"
-                        value={data.disposicion}
-                        onChange={(e) => onChange("disposicion", e.target.value)}
+                        value={data.disposicion || ""}
+                        onChange={(e) => onChange("disposicion", e.target.value || null)}
                         error={!!errors.disposicion}
-                        helperText={errors.disposicion}
+                        helperText={renderHelper(data.disposicion || "", CHAR_LIMITS.disposicion, errors.disposicion)} inputProps={{ maxLength: CHAR_LIMITS.disposicion }}
                     />
 
-                    {data.tipoDocumento === "interno" && (
+                    {/* Upload de archivo solo para internos */}
+                    {!esExterno && (
                         <Box>
                             <Typography sx={{ fontWeight: "bold", mb: 1 }}>
                                 Subir Archivo
                             </Typography>
-
                             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                 <label htmlFor="archivo-upload">
                                     <input
@@ -227,7 +285,6 @@ const DocumentFormDialog = ({
                                         Seleccionar archivo
                                     </CustomButton>
                                 </label>
-
                                 {data.archivo && (
                                     <Typography variant="body2">
                                         {data.archivo.name}
@@ -240,15 +297,17 @@ const DocumentFormDialog = ({
             </DialogContent>
 
             <DialogActions sx={{ justifyContent: "center", padding: 2 }}>
-                <CustomButton type="cancelar" onClick={onClose}>
+                <CustomButton type="cancelar" onClick={onClose} disable={submitting}>
                     Cancelar
                 </CustomButton>
-                <CustomButton type="guardar" onClick={onSubmit}>
+                <CustomButton type="guardar" onClick={onSubmit} loading={submitting} loadingLabel="Guardando...">
                     {modo === "editar" ? "Guardar Cambios" : "Guardar"}
                 </CustomButton>
             </DialogActions>
         </Dialog>
     );
 };
+
+
 
 export default DocumentFormDialog;

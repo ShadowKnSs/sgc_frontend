@@ -42,7 +42,8 @@ function ProcessMapView({ soloLectura, idProceso }) {
   const [docAEliminar, setDocAEliminar] = useState(null);
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
   const [pendingEditDoc, setPendingEditDoc] = useState(null);
-
+  const [savingCreate, setSavingCreate] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false)
   const [alerta, setAlerta] = useState({
     open: false,
     type: "",     // "success", "error", etc.
@@ -92,11 +93,16 @@ function ProcessMapView({ soloLectura, idProceso }) {
 
   const handleAddUser = () => {
     if (!validate()) return;
-
+    setSavingCreate(true);
     const payload = {
       ...newUser,
       idProceso,
-      responsable: newUser.usuarios.join(", ")
+      responsable: newUser.usuarios.join(", "),
+      // Asegurar que los campos null/0 se envíen correctamente
+      noRevision: newUser.noRevision || 0,
+      noCopias: newUser.noCopias || 0,
+      tiempoRetencion: newUser.tiempoRetencion || 0,
+      disposicion: newUser.disposicion || null
     };
 
     if (payload.tipoDocumento !== "externo") {
@@ -107,7 +113,7 @@ function ProcessMapView({ soloLectura, idProceso }) {
     Object.entries(payload).forEach(([key, value]) => {
       if (key === "archivo" && value instanceof File) {
         formData.append("archivo", value);
-      } else {
+      } else if (value !== null && value !== undefined) {
         formData.append(key, value);
       }
     });
@@ -124,6 +130,9 @@ function ProcessMapView({ soloLectura, idProceso }) {
       .catch((error) => {
         console.error("Error al crear documento:", error.response?.data);
         showFeedback("error", "Error", "No se pudo agregar el documento.");
+      })
+      .finally(() => {
+        setSavingCreate(false);
       });
   };
 
@@ -146,28 +155,28 @@ function ProcessMapView({ soloLectura, idProceso }) {
   };
   const handleSaveEditDocument = () => {
     if (!editDoc) return;
-
+    setSavingEdit(true);
     const payload = {
       ...editDoc,
       responsable: editDoc.usuarios?.join(", ") || "",
+      // Asegurar valores por defecto
+      noRevision: editDoc.noRevision || 0,
+      noCopias: editDoc.noCopias || 0,
+      tiempoRetencion: editDoc.tiempoRetencion || 0,
+      disposicion: editDoc.disposicion || null
     };
 
-    // Normalizar campos condicionales
     if (payload.tipoDocumento !== "externo") {
       delete payload.fechaVersion;
     } else {
       delete payload.fechaRevision;
     }
 
-    // Eliminar "null" string explícito (defensivo)
-    if (payload.fechaRevision === "null") payload.fechaRevision = null;
-    if (payload.fechaVersion === "null") payload.fechaVersion = null;
-
     const formData = new FormData();
     Object.entries(payload).forEach(([key, value]) => {
       if (key === "archivo" && value instanceof File) {
         formData.append("archivo", value);
-      } else {
+      } else if (value !== null && value !== undefined) {
         formData.append(key, value);
       }
     });
@@ -187,9 +196,11 @@ function ProcessMapView({ soloLectura, idProceso }) {
       })
       .catch(() => {
         showFeedback("error", "Error", "No se pudo editar el documento.");
+      })
+      .finally(() =>{
+        setSavingEdit(false);
       });
   };
-
 
   return (
     <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 1 }}>
@@ -241,6 +252,7 @@ function ProcessMapView({ soloLectura, idProceso }) {
           resetForm();
         }}
         onSubmit={handleAddUser}
+        submitting={savingCreate}
       />
 
       <DocumentFormDialog
@@ -250,6 +262,7 @@ function ProcessMapView({ soloLectura, idProceso }) {
         onChange={(field, value) => setEditDoc(prev => ({ ...prev, [field]: value }))}
         onClose={() => setEditDialogOpen(false)}
         onSubmit={handleSaveEditDocument}
+        submitting={savingEdit}
       />
 
 

@@ -5,6 +5,8 @@ import {
 import CustomButton from "./Button";
 
 const DocumentCard = ({ documento, onEdit, onDelete, soloLectura }) => {
+
+    
     return (
         <Card
             sx={{

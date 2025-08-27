@@ -24,6 +24,7 @@ const campos = [
 ];
 
 const DocumentTable = ({ documentos, onEdit, onDelete, soloLectura }) => (
+    
     <TableContainer component={Paper} sx={{ mt: 1, borderRadius: 2, boxShadow: 3, overflowX: "auto" }}>
         <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
             <TableHead>

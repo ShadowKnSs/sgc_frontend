@@ -9,9 +9,6 @@ import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
 import FeedbackSnackbar from "../components/Feedback";
 
-
-
-
 function ProcessMapView({ idProceso, soloLectura }) {
   const [actividades, setActividades] = useState([]);
   const [errors, setErrors] = useState({});
@@ -186,9 +183,38 @@ function ProcessMapView({ idProceso, soloLectura }) {
 
   return (
     <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 1 }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}>
-        Actividades de Control
-      </Typography>
+
+
+
+
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        {/* Botón "Desplegar Todo" a la izquierda */}
+        <CustomButton
+          type="generar"
+          onClick={handleToggleAll}
+          startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
+          sx={{ minWidth: '140px' }} // Ancho mínimo para consistencia
+        >
+          {allExpanded ? "Cerrar Todo" : "Desplegar Todo"}
+        </CustomButton>
+
+        {/* Título centrado */}
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            color: "#0056b3",
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)"
+          }}
+        >
+          Actividades de Control
+        </Typography>
+
+        {/* Espacio a la derecha para balancear (opcional) */}
+        <Box sx={{ minWidth: '140px' }}></Box>
+      </Box>
 
       {activeCards.length > 0 && (
         <Stack spacing={2}>
@@ -205,6 +231,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
           ))}
         </Stack>
       )}
+
 
       <Box
         sx={{
@@ -226,17 +253,9 @@ function ProcessMapView({ idProceso, soloLectura }) {
               onEdit={handleEditActividad}
             />
           ))}
-
       </Box>
 
-      <Box sx={{ mt: 4, display: "flex", justifyContent: "space-between" }}>
-        <CustomButton
-          type="generar"
-          onClick={handleToggleAll}
-          startIcon={allExpanded ? <ExpandLess /> : <ExpandMore />}
-        >
-          {allExpanded ? "Cerrar Todo" : "Desplegar Todo"}
-        </CustomButton>
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
         {!soloLectura && (
           <CustomButton
             type="guardar"
@@ -251,8 +270,6 @@ function ProcessMapView({ idProceso, soloLectura }) {
           </CustomButton>
         )}
       </Box>
-
-
       <FormDialogActividad
         open={openForm}
         onClose={() => {
