@@ -480,7 +480,7 @@ const Formatos = () => {
       <BreadcrumbNav items={[{ label: "Formatos", icon: Article  }]} />
 
       <Box sx={{ textAlign: "center", py: 1 }}>
-        <Title text="Formatos" />
+        <Title text="Formatos" mode="sticky"/>
         {!puedeEditar && (
           <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
             Aquí puedes revisar los formatos del sistema.

@@ -143,7 +143,7 @@ function ProcessList() {
     <Box sx={{ p: 4 }}>
       <BreadcrumbNav items={[{ label: "Gestión de Procesos", icon: AccountTreeIcon }]} />
 
-      <Title text="Procesos" ></Title>
+      <Title text="Procesos" mode="sticky" ></Title>
       <Grid container spacing={2}>
         {enrichedProcesses.map((process) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>

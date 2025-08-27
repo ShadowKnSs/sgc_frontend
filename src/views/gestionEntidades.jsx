@@ -216,22 +216,19 @@ const GestionEntidades = () => {
   }, [entidades, loading, error, handleOpenDialog, handleEditar, handleShowConfirmDelete]);
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, minHeight: '100vh' }}>
-      <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, minHeight: "100vh" }}>
+    <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
 
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Title 
-          text="Gestión de Entidades" 
-          sx={{ 
-            fontSize: { xs: "1.5rem", sm: "2rem" }, 
-            fontWeight: "bold",
-            mb: 1
-          }} 
-        />
-        <Typography variant="body1" color="text.secondary">
-          Administra las entidades y dependencias del sistema
-        </Typography>
-      </Box>
+    {/* Contenedor del título */}
+    <Box sx={{ textAlign: "center", mb: 4 }}>
+      <Title
+        text="Gestión de Entidades"
+        mode="sticky" 
+      />
+      <Typography variant="body1" color="text.secondary">
+        Administra las entidades y dependencias del sistema
+      </Typography>
+    </Box>
 
       {entidadesList}
 

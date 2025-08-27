@@ -444,44 +444,54 @@ function UserManagement() {
 
     // Lista a renderizar (ya viene transformada)
     const vmUsers = users;
+return (
+  <Box
+    sx={{
+      p: isMobile ? 2 : isTablet ? 3 : 4,
+      textAlign: "center",
+      maxWidth: "100%",
+      // ❌ quité overflowX: "hidden"
+    }}
+  >
+    <Box>
+      <BreadcrumbNav items={[{ label: "Gestión de Usuarios", icon: PeopleIcon }]} />
+    </Box>
 
-    return (
+    {initialLoading ? (
+      <>
+        {/* Skeletons para usuarios normales */}
         <Box
-            sx={{ p: isMobile ? 2 : isTablet ? 3 : 4, textAlign: "center", maxWidth: "100%", overflowX: "hidden" }}
+          display="grid"
+          gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+          gap={2}
+          justifyContent="center"
         >
-            <BreadcrumbNav items={[{ label: "Gestión de Usuarios", icon: PeopleIcon }]} />
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <UserCardSkeleton key={idx} />
+          ))}
+        </Box>
 
-            {initialLoading ? (
-                <>
-                    {/* Skeletons para usuarios normales */}
-                    <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={2} justifyContent="center">
-                        {Array.from({ length: 8 }).map((_, idx) => (
-                            <UserCardSkeleton key={idx} />
-                        ))}
-                    </Box>
-
-                    {/* Skeletons para usuarios temporales */}
-                    <Box sx={{ mt: 6 }}>
-                        <Skeleton variant="text" width="200px" height={40} sx={{ mx: "auto", mb: 2 }} />
-                        <Grid container spacing={3}>
-                            {Array.from({ length: 3 }).map((_, idx) => (
-                                <Grid item xs={12} sm={6} md={4} key={idx}>
-                                    <UserTempCardSkeleton />
-                                </Grid>
-                            ))}
-                        </Grid>
-                        <Box mt={4} display="flex" justifyContent="center">
-                            <Skeleton variant="rounded" width={200} height={40} />
-                        </Box>
-                    </Box>
-                </>
-            ) : error ? (
-                <Alert severity="error">{error}</Alert>
-            ) : (
-                <>
-                    <Box mb={1}>
-                        <Title text="Gestión de Usuarios" />
-                    </Box>
+        {/* Skeletons para usuarios temporales */}
+        <Box sx={{ mt: 6 }}>
+          <Skeleton variant="text" width="200px" height={40} sx={{ mx: "auto", mb: 2 }} />
+          <Grid container spacing={3}>
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Grid item xs={12} sm={6} md={4} key={idx}>
+                <UserTempCardSkeleton />
+              </Grid>
+            ))}
+          </Grid>
+          <Box mt={4} display="flex" justifyContent="center">
+            <Skeleton variant="rounded" width={200} height={40} />
+          </Box>
+        </Box>
+      </>
+    ) : error ? (
+      <Alert severity="error">{error}</Alert>
+    ) : (
+      <>
+        {/* Aquí ya queda sticky por defecto */}
+        <Title text="Gestión de Usuarios" />
 
                     {/* Toolbar de filtros */}
                     <Stack
@@ -491,7 +501,7 @@ function UserManagement() {
                         justifyContent="space-between"
                         sx={{
                             mb: 2,
-                            position: "sticky",
+                            //position: "sticky",
                             top: isMobile ? 56 : 64,
                             zIndex: 1,
                             bgcolor: "background.paper",
