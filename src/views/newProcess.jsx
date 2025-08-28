@@ -39,6 +39,8 @@ import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ProcessForm from "../components/Forms/ProcesoForm";
 import axios from "axios";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 const NewProcess = () => {
   const navigate = useNavigate();
@@ -94,6 +96,7 @@ const NewProcess = () => {
 
   return (
     <Box sx={{ p: 4 }}>
+      <BreadcrumbNav items={[{ label: "Nuevo Proceso", icon: AccountTreeIcon }]} />
       <ProcessForm
         initialValues={{
           nombreProceso: "",

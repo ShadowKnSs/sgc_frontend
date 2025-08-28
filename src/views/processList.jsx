@@ -38,7 +38,8 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Box, Grid } from "@mui/material";
+import { Box, Grid, Stack, TextField, InputAdornment, IconButton, MenuItem } from "@mui/material";
+import { Search as SearchIcon, Clear as ClearIcon } from "@mui/icons-material";
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
@@ -49,6 +50,7 @@ import Title from "../components/Title";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
 import BreadcrumbNav from "../components/BreadcrumbNav";
+import SectionTabs from "../components/SectionTabs";
 
 
 function ProcessList() {
@@ -59,6 +61,15 @@ function ProcessList() {
   const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState(null);
 
+  const [q, setQ] = useState(""); // buscador
+  const [selectedTab, setSelectedTab] = useState(0); // tabs estado
+  const [macroFilter, setMacroFilter] = useState(""); // filtro macroproceso
+
+  const macroprocesosMap = {
+    1: "Gestión Escolar",
+    2: "Desarrollo y Formación Integral del Estudiante",
+    3: "Gestión Administrativa",
+  };
 
   // Función para obtener la lista de procesos
   const fetchProcesses = async () => {
@@ -89,6 +100,38 @@ function ProcessList() {
     fetchEntidades();
   }, []);
 
+  // Enriquecer cada proceso para agregar el nombre de la entidad y asegurar el id
+  const enrichedProcesses = processes.map((process) => {
+    // Verificamos ambos nombres de propiedad, por si el backend usa otro nombre
+    const processId = process.idProceso || process.idProcesoPK;
+    const entity = entidades.find(
+      (ent) => ent?.idEntidadDependencia?.toString() === process?.idEntidad?.toString()
+    );
+    return {
+      ...process,
+      id: processId,
+      name: process.nombreProceso,
+      entidad: entity ? entity.nombreEntidad : "Sin entidad",
+    };
+  });
+
+  // aplicar filtros
+  const filteredProcesses = enrichedProcesses.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(q.toLowerCase()) ||
+      p.entidad.toLowerCase().includes(q.toLowerCase());
+
+    // filtro por estado
+    const matchesEstado =
+      (selectedTab === 0 && p.estado === "Activo") ||
+      (selectedTab === 1 && p.estado === "Inactivo");
+
+    // filtro por macroproceso
+    const matchesMacro = macroFilter === "" || p.idMacroproceso === parseInt(macroFilter);
+
+    return matchesSearch && matchesEstado && matchesMacro;
+  });
+
   const handleConfirmDelete = async () => {
     if (!selectedProcess) return;
     await handleDelete(selectedProcess.id);
@@ -110,8 +153,6 @@ function ProcessList() {
     setOpenConfirmEdit(true);
   };
 
-
-
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/procesos/${id}`);
@@ -124,28 +165,83 @@ function ProcessList() {
     }
   };
 
-  // Enriquecer cada proceso para agregar el nombre de la entidad y asegurar el id
-  const enrichedProcesses = processes.map((process) => {
-    // Verificamos ambos nombres de propiedad, por si el backend usa otro nombre
-    const processId = process.idProceso || process.idProcesoPK;
-    const entity = entidades.find(
-      (ent) => ent?.idEntidadDependencia?.toString() === process?.idEntidad?.toString()
-    );
-    return {
-      ...process,
-      id: processId,
-      name: process.nombreProceso,
-      entidad: entity ? entity.nombreEntidad : "Sin entidad",
-    };
-  });
-
   return (
     <Box sx={{ p: 4 }}>
       <BreadcrumbNav items={[{ label: "Gestión de Procesos", icon: AccountTreeIcon }]} />
 
-      <Title text="Procesos" mode="sticky" ></Title>
+      <Title text="Procesos" mode="sticky" />
+
+      {/* Toolbar de filtros */}
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={1.5}
+        alignItems={{ xs: "stretch", md: "center" }}
+        justifyContent="space-between"
+        sx={{
+          mb: 3,
+          top: 64,
+          zIndex: 1,
+          bgcolor: "background.paper",
+          py: 1.5,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        {/* Buscador */}
+        <TextField
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar por nombre o entidad"
+          size="small"
+          fullWidth
+          sx={{ maxWidth: 300 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+            endAdornment: q ? (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setQ("")} size="small">
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+        />
+
+        {/* Tabs de estado */}
+        <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+          <SectionTabs
+            sections={["Activos", "Inactivos"]}
+            selectedTab={selectedTab}
+            onTabChange={setSelectedTab}
+          />
+        </Box>
+
+        {/* Filtro por Macroproceso */}
+        <TextField
+          select
+          size="small"
+          label="Macroproceso"
+          value={macroFilter}
+          onChange={(e) => setMacroFilter(e.target.value)}
+          sx={{ minWidth: 250 }}
+        >
+          <MenuItem value="">Todos</MenuItem>
+          {Object.entries(macroprocesosMap).map(([id, nombre]) => (
+            <MenuItem key={id} value={id}>
+              {nombre}
+            </MenuItem>
+          ))}
+        </TextField>
+
+      </Stack>
+
+      {/* Grid de procesos filtrados */}
       <Grid container spacing={2}>
-        {enrichedProcesses.map((process) => (
+        {filteredProcesses.map((process) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
             <ProcessCard
               process={process}
@@ -156,6 +252,7 @@ function ProcessList() {
         ))}
       </Grid>
 
+      {/* Botón agregar */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
         <FabCustom
           onClick={() => navigate("/nuevo-proceso")}
@@ -164,6 +261,7 @@ function ProcessList() {
         />
       </Box>
 
+      {/* Modales */}
       <ConfirmDelete
         open={openDelete}
         onClose={() => setOpenDelete(false)}
@@ -171,7 +269,6 @@ function ProcessList() {
         entityType="proceso"
         entityName={selectedProcess?.nombreProceso}
       />
-
       <ConfirmEdit
         open={openConfirmEdit}
         onClose={() => setOpenConfirmEdit(false)}
@@ -179,9 +276,7 @@ function ProcessList() {
         entityType="proceso"
         entityName={selectedProcess?.nombreProceso}
       />
-
     </Box>
-
   );
 }
 

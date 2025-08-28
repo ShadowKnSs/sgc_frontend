@@ -63,18 +63,25 @@ function Header() {
   }
 
   // Ajustes específicos para líderes
-  if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
-    itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
-    
-    itemsFiltrados.push({
-      title: "Cronograma",
-      path: `/cronograma/${procesoLider.idProceso}`
-    });
+if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
+  // Remover item "Cronograma" si ya existe
+  itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
+
+  // Siempre agregar "Cronograma"
+  itemsFiltrados.push({
+    title: "Cronograma",
+    path: `/cronograma/${procesoLider.idProceso}`
+  });
+
+  // Solo agregar "Mi Proceso" si el estado es "Activo"
+  if (procesoLider.estado === "Activo") {
     itemsFiltrados.push({
       title: "Mi Proceso",
       path: `/estructura-procesos/${procesoLider.idProceso}`
     });
   }
+}
+
 
   const handleOpenDialog = () => {
     setOpenDialog(true);

@@ -450,7 +450,6 @@ return (
       p: isMobile ? 2 : isTablet ? 3 : 4,
       textAlign: "center",
       maxWidth: "100%",
-      // ❌ quité overflowX: "hidden"
     }}
   >
     <Box>
@@ -490,7 +489,6 @@ return (
       <Alert severity="error">{error}</Alert>
     ) : (
       <>
-        {/* Aquí ya queda sticky por defecto */}
         <Title text="Gestión de Usuarios" />
 
                     {/* Toolbar de filtros */}
