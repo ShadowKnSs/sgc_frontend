@@ -165,8 +165,6 @@ function FormularioGestionRiesgos() {
     riesgos,
     savedData,
     handleGuardarGestionRiesgos,
-    setRiesgos,
-    setSavedData,
     cargarRiesgos,
   } = useGestionRiesgos(idRegistro, mostrarSnackbar);
 
