@@ -68,6 +68,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import SectionTabs from "../components/SectionTabs";
 import { Fade } from '@mui/material';
 
 
@@ -515,38 +516,17 @@ const FormularioAnalisis = () => {
       </Fade>
 
 
-      <AppBar position="static" sx={{ bgcolor: "#0056b3", borderRadius: 3, mt: 3 }}>
-        <Tabs
-          value={selectedTab}
-          onChange={(_, newValue) => setSelectedTab(newValue)}
-          centered
-          TabIndicatorProps={{ style: { display: "none" } }}
-          sx={{ display: "flex", justifyContent: "center" }}
-        >
-          {[
-            "Conformidad del Producto o Servicio",
-            "Desempeño del Proceso",
-            "Eficacia de los riesgos y oportunidades",
-            "Satisfacción del Cliente",
-            "Desempeño de Proveedores",
-          ].map((section, index) => (
-            <Tab
-              key={index}
-              label={section}
-              sx={{
-                color: "white",
-                flex: 1,
-                textAlign: "center",
-                "&.Mui-selected": { bgcolor: "#F9B800", color: "black" },
-                borderRadius: 3,
-                m: 0.5,
-                textTransform: "none",
-                fontSize: "1rem",
-              }}
-            />
-          ))}
-        </Tabs>
-      </AppBar>
+      <SectionTabs
+        sections={[
+          "Conformidad del Producto o Servicio",
+          "Desempeño del Proceso",
+          "Eficacia de los riesgos y oportunidades",
+          "Satisfacción del Cliente",
+          "Desempeño de Proveedores",
+        ]}
+        selectedTab={selectedTab}
+        onTabChange={(newValue) => setSelectedTab(newValue)}
+      />
 
       <Box sx={{ mt: 3 }}>
         {selectedTab === 3 ? ( // Satisfacción del Cliente (mostrar ambas tablas)
