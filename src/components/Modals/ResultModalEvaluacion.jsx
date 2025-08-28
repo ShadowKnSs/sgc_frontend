@@ -5,6 +5,9 @@ import {
 } from "@mui/material";
 import DialogActionButtons from "../DialogActionButtons";
 import DialogTitleCustom from "../TitleDialog";
+import { motion } from "framer-motion";
+
+const MotionBox = motion(Box);
 
 const EvaluaContent = ({ formData, setFormData, activeTab }) => (
   <Box component="form" sx={{ mt: 2 }}>
@@ -81,7 +84,7 @@ const EvaluaContent = ({ formData, setFormData, activeTab }) => (
   </Box>
 );
 
-const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedResult = {} }) => {
+const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedResult = {}, anio }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -107,18 +110,16 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
   const toNumberOrNull = (val) => val === "" ? null : Number(val);
 
   const handleSave = () => {
-    if (!indicator || !indicator.idIndicador) {
-      console.error("❌ Error: idIndicador está indefinido.");
-      return;
-    }
+    if (!indicator?.idIndicador) return;
 
-    const resultData = {};
-    if (formData.confiableSem1 !== "") resultData.confiableSem1 = toNumberOrNull(formData.confiableSem1);
-    if (formData.confiableSem2 !== "") resultData.confiableSem2 = toNumberOrNull(formData.confiableSem2);
-    if (formData.condicionadoSem1 !== "") resultData.condicionadoSem1 = toNumberOrNull(formData.condicionadoSem1);
-    if (formData.condicionadoSem2 !== "") resultData.condicionadoSem2 = toNumberOrNull(formData.condicionadoSem2);
-    if (formData.noConfiableSem1 !== "") resultData.noConfiableSem1 = toNumberOrNull(formData.noConfiableSem1);
-    if (formData.noConfiableSem2 !== "") resultData.noConfiableSem2 = toNumberOrNull(formData.noConfiableSem2);
+    const resultData = {
+      confiableSem1: toNumberOrNull(formData.confiableSem1),
+      confiableSem2: toNumberOrNull(formData.confiableSem2),
+      condicionadoSem1: toNumberOrNull(formData.condicionadoSem1),
+      condicionadoSem2: toNumberOrNull(formData.condicionadoSem2),
+      noConfiableSem1: toNumberOrNull(formData.noConfiableSem1),
+      noConfiableSem2: toNumberOrNull(formData.noConfiableSem2)
+    };
 
     onSave(indicator.idIndicador, { result: resultData });
     onClose();
@@ -126,31 +127,38 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitleCustom
-        title={`Registrar Resultado`}
-        subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'}`}
-      />
-      <DialogContent>
-        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} centered>
-          <Tab label="Ene-Jun" />
-          <Tab label="Jul-Dic" />
-        </Tabs>
-        <EvaluaContent
-          formData={formData}
-          setFormData={setFormData}
-          activeTab={activeTab}
+      <MotionBox
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ duration: 0.25 }}
+      >
+        <DialogTitleCustom
+          title="Registrar Resultado"
+          subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
         />
-      </DialogContent>
-      <DialogActions>
-        <DialogActionButtons
-          onCancel={onClose}
-          onSave={handleSave}
-          saveText="Guardar"
-          cancelText="Cancelar"
-          saveColor="terciary.main"
-          cancelColor="primary.main"
-        />
-      </DialogActions>
+        <DialogContent>
+          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} centered>
+            <Tab label="Ene-Jun" />
+            <Tab label="Jul-Dic" />
+          </Tabs>
+          <EvaluaContent
+            formData={formData}
+            setFormData={setFormData}
+            activeTab={activeTab}
+          />
+        </DialogContent>
+        <DialogActions>
+          <DialogActionButtons
+            onCancel={onClose}
+            onSave={handleSave}
+            saveText="Guardar"
+            cancelText="Cancelar"
+            saveColor="terciary.main"
+            cancelColor="primary.main"
+          />
+        </DialogActions>
+      </MotionBox>
     </Dialog>
   );
 };

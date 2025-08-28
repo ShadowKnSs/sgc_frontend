@@ -15,12 +15,13 @@ import axios from "axios";
 
 const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => {
   const [indicadores, setIndicadores] = useState([]);
+  const [planControlData, setPlanControlData] = useState([]); // Obtención de los datos de indicadores de  planControl
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (idRegistro) {
       axios
-        .get("http://localhost:8000/api/indicadoresconsolidados", {
+        .get("http://localhost:8000/api/indicadoresconsolidados/detalles", {
           params: { idRegistro },
         })
         .then((res) => {
@@ -33,6 +34,20 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
         });
     }
   }, [idRegistro]);
+
+  useEffect(() => {
+    if (!idProceso) return;
+    axios
+      .get(`http://localhost:8000/api/plan-control/${idProceso}`)
+      .then((res) => {
+        setPlanControlData(res.data || []);
+        console.log("PlanControlData:", res.data);
+      })
+      .catch((err) => {
+        console.error("❌ Error al cargar resultados de Plan de Control:", err);
+        // No rompas toda la vista por esto; la gráfica ya muestra alerta si viene vacío
+      });
+  }, [idProceso]);
 
   const getIndicador = (origen) =>
     indicadores.find((i) => i.origenIndicador === origen);
@@ -84,30 +99,31 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       <TablaPlanControl idProceso={idProceso} anio={anio} />
       {/* Gráfica Plan de Control */}
       <PlanControlBarChart
+        data={planControlData}
         onImageReady={(imgBase64) => onImagenGenerada("planControl", imgBase64)}
-        idProceso={idProceso}
       />
 
       <TablaSatisfaccion idProceso={idProceso} anio={anio} />
       {/* Gráfica Encuesta de Satisfacción */}
       {getIndicador("Encuesta") && (
         <GraficaEncuesta
-          id={getIndicador("Encuesta").idIndicador}
-          onImageReady={(imgBase64) => onImagenGenerada("encuesta", imgBase64)}
+          data={getIndicador("Encuesta")}
+          onImageReady={(tipo, imgBase64) => onImagenGenerada(tipo, imgBase64)}
         />
       )}
 
       {getRetroList().length > 0 && (
         <GraficaRetroalimentacion
-          retroList={getRetroList()}
+          data={getRetroList()}
           onImageReady={(img) => onImagenGenerada("retroalimentacion", img)}
         />
       )}
 
       <TablaMapaProceso idProceso={idProceso} anio={anio} />
       <GraficaMapaProceso
-        onImageReady={(img) => onImagenGenerada("mapaProceso", img)}
+        onImageReady={(tipo, img) => onImagenGenerada(tipo, img)}
         idProceso={idProceso}
+        anio={anio}
       />
 
       <TablaEficaciaRiesgos idProceso={idProceso} anio={anio} />
@@ -119,7 +135,8 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       <TablaEvaluacionProveedores idProceso={idProceso} anio={anio} />
       {getIndicador("EvaluaProveedores") && (
         <GraficaEvaluacion
-          id={getIndicador("EvaluaProveedores").idIndicador}
+          idProceso={idProceso}
+          anio={anio} 
           onImageReady={(imgBase64) => onImagenGenerada("evaluacionProveedores", imgBase64)}
         />
       )}

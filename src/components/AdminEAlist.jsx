@@ -17,10 +17,10 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 
 import AdminEAModal from './Modals/AdminEAModal';
-import ConfirmDelete from '../components/confirmDelete'; 
-import ConfirmEdit from '../components/confirmEdit';     
-import NewEAButton from "../components/NewCardButtom";
-
+import ConfirmDelete from '../components/confirmDelete';
+import ConfirmEdit from '../components/confirmEdit';
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 
 function formatDate(dateString) {
   if (!dateString) return '';
@@ -133,14 +133,22 @@ const AdminEAList = ({ tipo }) => {
   // Crear => POST /api/eventos-avisos
   const createItem = async (formData) => {
     try {
-      const data = new FormData();
-      data.append('idUsuario', 2);
-      data.append('tipo', tipo);
-      if (formData.file) {
-        data.append('imagen', formData.file);
+      const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+      const idUsuario = usuario?.idUsuario;
+
+      if (!idUsuario) {
+        handleApiError({ response: { data: { message: 'Sesión inválida: no hay idUsuario en localStorage' } } }, 'Error');
+        return;
       }
 
-      const resp = await axios.post('http://127.0.0.1:8000/api/eventos-avisos', data,);
+      const data = new FormData();
+      data.append('idUsuario', idUsuario);  
+      data.append('tipo', tipo);            // 'Evento' o 'Aviso'
+      if (formData.file) data.append('imagen', formData.file);
+
+      const resp = await axios.post('http://127.0.0.1:8000/api/eventos-avisos', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
       setItems([...items, resp.data]);
       showSuccessSnackbar(`${tipo} creado con éxito`);
@@ -149,6 +157,7 @@ const AdminEAList = ({ tipo }) => {
     }
     handleCloseModal();
   };
+
 
   const showSuccessSnackbar = (message) => {
     setSnackbarMessage(message);
@@ -188,7 +197,7 @@ const AdminEAList = ({ tipo }) => {
     setEditItem(null);
     setPendingChanges(null);
     setConfirmEditOpen(false);
-    
+
   };
 
   // Confirmar edición => PUT /api/eventos-avisos/{id}
@@ -247,8 +256,12 @@ const AdminEAList = ({ tipo }) => {
       </Grid>
 
       {/* Botón Crear */}
-      <Box sx={{ position: 'absolute', bottom: -30, right: 16 }}>
-        <NewEAButton onClick={handleCreate} />
+      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+        <FabCustom
+          onClick={handleCreate}
+          title="Agregar Evento/Aviso"
+          icon={<Add />}
+        />
       </Box>
 
       {/* Modal de Crear/Editar */}
@@ -270,7 +283,7 @@ const AdminEAList = ({ tipo }) => {
         entityType="noticia"
         entityName={`${tipo} #${deleteItem ? deleteItem.idEventosAvisos : ''}`}
       />
-      
+
 
       {/* Confirmar Edición */}
       <ConfirmEdit

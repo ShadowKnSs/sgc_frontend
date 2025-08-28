@@ -1,235 +1,118 @@
-/**
- * Componente: ControlCambios
- * Ubicación: src/views/ControlCambios.jsx
- * Props:
- *  - soloLectura (boolean): si es `true`, desactiva funcionalidades de agregar, editar y eliminar.
- *
- * Descripción:
- * Vista que gestiona el historial de cambios (control de versiones) sobre un proceso específico.
- * Soporta visualización, creación, edición y eliminación de registros, incluyendo validación de campos
- * y confirmaciones mediante diálogos.
-
- * Funcionalidades principales:
- * 1.  Obtiene la lista de cambios para un proceso desde la API: `/api/controlcambios/proceso/:idProceso`.
- * 2.  Visualiza los registros en una tabla con columnas: sección, edición, versión, fecha, descripción.
- * 3.  Permite crear un nuevo cambio mediante `Dialog` con formulario validado.
- * 4.  Permite editar un cambio existente con confirmación previa (`ConfirmEdit`).
- * 5.  Permite eliminar un cambio con confirmación (`ConfirmDelete`).
- * 6.  Valida campos obligatorios y formatos correctos (números positivos, fechas válidas).
- * 7.  Utiliza props de solo lectura (`soloLectura`) para habilitar/deshabilitar acciones de edición.
-
- * Estados importantes:
- * - `data`: lista de registros cargados desde la base de datos.
- * - `newRow`: fila en edición/creación, editable desde el formulario.
- * - `errors`: errores de validación por campo.
- * - `openDialog`: controla visibilidad del formulario.
- * - `pendingEdit` / `pendingDeleteId`: registros pendientes de edición/eliminación.
- * - `showConfirmEdit` / `showConfirmDelete`: controlan visibilidad de confirmaciones.
-
- * Estructura de un cambio:
- * {
- *   idCambio: number,
- *   seccion: string,
- *   edicion: number,
- *   version: number,
- *   fechaRevision: datetime (formato: "YYYY-MM-DDTHH:mm"),
- *   descripcion: string
- * }
-
- * Funciones destacadas:
- * - `validateFields`: valida todos los campos del formulario antes de enviar.
- * - `handleAddRow`: POST o PUT según se trate de un nuevo registro o edición.
- * - `handleEdit`: prepara y muestra confirmación antes de edición.
- * - `confirmEdit`: aplica edición a través del formulario.
- * - `handleDelete`: muestra confirmación de eliminación.
- * - `confirmDelete`: realiza DELETE y actualiza el estado local.
-
- * Reutiliza:
- * - `ConfirmDelete`: componente de confirmación para eliminar.
- * - `ConfirmEdit`: componente de confirmación para editar.
- *
- * Diseño UX:
- * - Color azul primario para encabezados.
- * - Uso de íconos de Material UI (`Edit`, `Delete`, `Add`) para acciones.
- * - `Fab` flotante para añadir nuevos registros.
- * - Validación de inputs con mensajes de ayuda (`helperText`).
-
- * Recomendaciones futuras:
- * - Implementar paginación si hay muchos cambios.
- * - Exportar historial de cambios a PDF o Excel.
- * - Agregar campos de auditoría (usuario que creó/modificó el cambio).
- * - Hacer editable el `idArchivo` (actualmente hardcoded como 1).
- */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  IconButton, Box, Fab, Card, CardContent, Typography,
-  Table, TableBody, TableCell, TableContainer, TableRow, Paper,
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Pagination
 } from "@mui/material";
-import { Edit, Delete, Add } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
-import ConfirmDelete from "../components/confirmDelete";
-import ConfirmEdit from "../components/confirmEdit";
 
-
-
-const ControlCambios = ({ soloLectura }) => {
-
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newRow, setNewRow] = useState({ seccion: "", edicion: "", version: "", fechaRevision: "", descripcion: "" });
+const ControlCambios = () => {
   const [data, setData] = useState([]);
-  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
   const { idProceso } = useParams();
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const [showConfirmEdit, setShowConfirmEdit] = useState(false);
-  const [pendingEdit, setPendingEdit] = useState(null);
-  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
+  const formatDate = (fecha) => fecha.split(" ")[0];
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/controlcambios/proceso/${idProceso}`);
-        setData(response.data);
+        const response = await axios.get(
+          `http://localhost:8000/api/controlcambios/proceso/${idProceso}`
+        );
+        const ordenados = [...response.data].sort(
+          (a, b) => new Date(b.fechaRevision) - new Date(a.fechaRevision)
+        );
+        setData(ordenados);
       } catch (error) {
         console.error("Error al obtener los datos:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, [idProceso]);
 
-  const validateFields = () => {
-    let tempErrors = {};
-    if (!newRow.seccion.trim()) tempErrors.seccion = "Este campo es obligatorio";
-    if (!newRow.descripcion.trim()) tempErrors.descripcion = "Este campo es obligatorio";
-    if (!newRow.fechaRevision) tempErrors.fechaRevision = "Debe seleccionar una fecha";
+  const paginatedData = data.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+  const totalPages = Math.ceil(data.length / rowsPerPage);
 
-    if (!newRow.edicion || isNaN(newRow.edicion) || parseInt(newRow.edicion) <= 0) {
-      tempErrors.edicion = "Debe ser un número mayor a 0";
-    }
-    if (!newRow.version || isNaN(newRow.version) || parseInt(newRow.version) <= 0) {
-      tempErrors.version = "Debe ser un número mayor a 0";
-    }
-
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
-  };
-
-  const handleAddRow = async () => {
-    if (soloLectura) return;
-    if (validateFields()) {
-      try {
-        if (newRow.idCambio) {
-          await axios.put(`http://localhost:8000/api/controlcambios/${newRow.idCambio}`, {
-            seccion: newRow.seccion,
-            edicion: parseInt(newRow.edicion),
-            version: parseInt(newRow.version),
-            fechaRevision: newRow.fechaRevision,
-            descripcion: newRow.descripcion
-          });
-          setData(data.map(item => (item.idCambio === newRow.idCambio ? newRow : item)));
-        } else {
-          const response = await axios.post("http://localhost:8000/api/controlcambios", {
-            idProceso: parseInt(idProceso),
-            idArchivo: 1,
-            seccion: newRow.seccion,
-            edicion: parseInt(newRow.edicion),
-            version: parseInt(newRow.version),
-            fechaRevision: newRow.fechaRevision,
-            descripcion: newRow.descripcion
-          });
-          setData([...data, response.data]);
-        }
-
-        setNewRow({ seccion: "", edicion: "", version: "", fechaRevision: "", descripcion: "" });
-        setErrors({});
-        setOpenDialog(false);
-
-      } catch (error) {
-        console.error("Error al guardar en la base de datos:", error.response?.data || error);
-      }
-    }
-  };
-
-  const handleEdit = (item) => {
-    if (soloLectura) return;
-    setPendingEdit(item);
-    setShowConfirmEdit(true);
-  };
-
-  const confirmEdit = () => {
-    const item = pendingEdit;
-    setNewRow({
-      idCambio: item.idCambio,
-      seccion: item.seccion,
-      edicion: item.edicion,
-      version: item.version,
-      fechaRevision: item.fechaRevision,
-      descripcion: item.descripcion
-    });
-    setOpenDialog(true);
-    setPendingEdit(null);
-  };
-
-
-  const handleDelete = (id) => {
-    if (soloLectura) return;
-    setPendingDeleteId(id);
-    setShowConfirmDelete(true);
-  };
-
-
-  const confirmDelete = async () => {
-    try {
-      await axios.delete(`http://localhost:8000/api/controlcambios/${pendingDeleteId}`);
-      setData(data.filter((item) => item.idCambio !== pendingDeleteId));
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-    } finally {
-      setShowConfirmDelete(false);
-      setPendingDeleteId(null);
-    }
-  };
-
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "80%", margin: "auto", mt: 1 }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}>
+      <Typography
+        variant="h5"
+        sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}
+      >
         CONTROL DE CAMBIOS
       </Typography>
       <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
         <CardContent>
-          <TableContainer component={Paper} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+          <TableContainer
+            component={Paper}
+            sx={{ borderRadius: 3, overflowX: "auto", minWidth: 600 }}
+          >
             <Table>
               <TableBody>
                 <TableRow sx={{ bgcolor: "#0056b3", color: "white" }}>
-                  <TableCell sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}>SECCIÓN</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}>EDICIÓN</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}>VERSIÓN</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}>FECHA DE REVISIÓN</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}>DESCRIPCIÓN</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}></TableCell>
+                  <TableCell
+                    sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}
+                  >
+                    SECCIÓN
+                  </TableCell>
+                  <TableCell
+                    sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}
+                  >
+                    EDICIÓN
+                  </TableCell>
+                  <TableCell
+                    sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}
+                  >
+                    VERSIÓN
+                  </TableCell>
+                  <TableCell
+                    sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}
+                  >
+                    FECHA DE REVISIÓN
+                  </TableCell>
+                  <TableCell
+                    sx={{ fontWeight: "bold", color: "white", textAlign: "center" }}
+                  >
+                    DESCRIPCIÓN
+                  </TableCell>
                 </TableRow>
-                {data.map((row, index) => (
+                {paginatedData.map((row, index) => (
                   <TableRow key={index}>
                     <TableCell align="center">{row.seccion}</TableCell>
                     <TableCell align="center">{row.edicion}</TableCell>
                     <TableCell align="center">{row.version}</TableCell>
-                    <TableCell align="center">{row.fechaRevision}</TableCell>
+                    <TableCell align="center">{formatDate(row.fechaRevision)}</TableCell>
                     <TableCell align="center">{row.descripcion}</TableCell>
-                    <TableCell align="center">
-                      {!soloLectura && (
-                        <>
-                          <IconButton onClick={() => handleEdit(row)} sx={{ color: "#0056b3", "&:hover": { color: "#003f80" } }}>
-                            <Edit sx={{ fontSize: 24 }} />
-                          </IconButton>
-                          <IconButton onClick={() => handleDelete(row.idCambio)} sx={{ color: "#F9B800", "&:hover": { color: "#E0A500" }, ml: 1 }}>
-                            <Delete sx={{ fontSize: 24 }} />
-                          </IconButton>
-                        </>
-                      )}
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -238,100 +121,15 @@ const ControlCambios = ({ soloLectura }) => {
         </CardContent>
       </Card>
 
-      {!soloLectura && (
-        <Box sx={{ position: "fixed", bottom: 16, right: 70, paddingRight: 0 }}>
-          <Fab
-            sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'primary.main' } }}
-            onClick={() => {
-              const now = new Date();
-              const formatted = now.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
-              setNewRow({
-                seccion: "",
-                edicion: "",
-                version: "",
-                fechaRevision: formatted,
-                descripcion: "",
-              });
-              setErrors({});
-              setOpenDialog(true);
-            }}
-          >
-            <Add sx={{ color: 'white' }} />
-          </Fab>
-
-
-        </Box>
-      )}
-
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle sx={{ fontWeight: "bold", color: "#0056b3" }}>
-          {newRow.idCambio ? "Editar versión" : "Agregar nueva versión"}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Sección" fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.seccion} disabled={soloLectura}
-            onChange={(e) => setNewRow({ ...newRow, seccion: e.target.value })}
-            error={!!errors.seccion} helperText={errors.seccion}
-          />
-          <TextField
-            label="Edición" type="number" fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.edicion} disabled={soloLectura}
-            onChange={(e) => setNewRow({ ...newRow, edicion: e.target.value })}
-            error={!!errors.edicion} helperText={errors.edicion}
-            inputProps={{ min: 0 }}
-          />
-          <TextField
-            label="Versión" type="number" fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.version} disabled={soloLectura}
-            onChange={(e) => setNewRow({ ...newRow, version: e.target.value })}
-            error={!!errors.version} helperText={errors.version}
-            inputProps={{ min: 0 }}
-          />
-          <TextField
-            label="Fecha de Revisión" type="datetime-local" InputLabelProps={{ shrink: true }}
-            fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.fechaRevision} disabled={soloLectura}
-            onChange={(e) => setNewRow({ ...newRow, fechaRevision: e.target.value })}
-            error={!!errors.fechaRevision} helperText={errors.fechaRevision}
-          />
-          <TextField
-            label="Descripción" multiline rows={3} fullWidth variant="outlined" sx={{ mb: 2, backgroundColor: "white" }}
-            value={newRow.descripcion} disabled={soloLectura}
-            onChange={(e) => setNewRow({ ...newRow, descripcion: e.target.value })}
-            error={!!errors.descripcion} helperText={errors.descripcion}
-          />
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "space-between", p: 2 }}>
-          <Button onClick={() => setOpenDialog(false)} sx={{ bgcolor: "#D3D3D3", color: "black", '&:hover': { bgcolor: "#B0B0B0" } }}>
-            CANCELAR
-          </Button>
-          {!soloLectura && (
-            <Button onClick={handleAddRow} sx={{ bgcolor: "#F9B800", color: "black", '&:hover': { bgcolor: "#E0A500" } }}>
-              GUARDAR
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
-
-      <ConfirmDelete
-        open={showConfirmDelete}
-        onClose={() => setShowConfirmDelete(false)}
-        entityType="cambio"
-        entityName={`ID ${pendingDeleteId}`}
-        onConfirm={confirmDelete}
-      />
-
-      <ConfirmEdit
-        open={showConfirmEdit}
-        onClose={() => setShowConfirmEdit(false)}
-        entityType="cambio"
-        entityName={pendingEdit?.seccion || "sin nombre"}
-        onConfirm={confirmEdit}
-      />
-
+      <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+        />
+      </Box>
     </Box>
-
   );
 };
 

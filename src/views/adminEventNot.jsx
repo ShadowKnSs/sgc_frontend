@@ -37,10 +37,13 @@
  * - [ ] Indicar si hay contenido nuevo no leído o no publicado.
  */
 import React, { useState } from 'react';
-import { Box, Tabs, Tab} from '@mui/material';
+import { Box, Tabs, Tab } from '@mui/material';
+import NewspaperIcon from '@mui/icons-material/Newspaper';
 import AdminNewsList from '../components/AdminNewsList';
 import AdminEAList from '../components/AdminEAlist';
 import Title from '../components/Title';
+import BreadcrumbNav from "../components/BreadcrumbNav";
+
 
 
 const AdminHome = () => {
@@ -52,7 +55,9 @@ const AdminHome = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Title text="Panel Administrativo"></Title>
+      <BreadcrumbNav items={[{ label: "Gestión de Noticias", icon: NewspaperIcon }]} />
+
+      <Title text="Gestión de Noticias/Eventos/Avisos"></Title>
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ paddingBottom: 3 }}>
         <Tab label="Noticias" />
         <Tab label="Eventos" />

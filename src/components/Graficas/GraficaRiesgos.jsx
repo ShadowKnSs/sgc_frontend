@@ -1,67 +1,48 @@
-// src/views/Graficas/GraficaGestionRiesgos.jsx
-import React, { useEffect, useState } from 'react';
-import { Box, CircularProgress, Alert, Grid, Typography } from '@mui/material';
-import axios from 'axios';
-import CircularProgressIndicator from './CiruclarProgressIndicador';
+import React, { useEffect, useState } from "react";
+import { Box, Alert, Grid, Typography, Tooltip } from "@mui/material";
+import CircularProgressIndicator from "./CiruclarProgressIndicador";
 
-const GraficaGestionRiesgos = ({idRegistro}) => {
+const GraficaGestionRiesgos = ({ data = [] }) => {
+  const [readyData, setReadyData] = useState([]);
 
-  const [riesgoData, setRiesgoData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Definir una paleta de 4 colores
-  const colors = ['#F44336', '#FF9800', '#4caf50', '#2196F3'];
+  const colors = ["#F44336", "#FF9800", "#4caf50", "#2196F3", "#9C27B0", "#00ACC1"];
 
   useEffect(() => {
-    if (!idRegistro) return; // No hagas la petición si no hay idRegistro
+    if (Array.isArray(data) && data.length > 0) {
+      setReadyData(data);
+    }
+  }, [data]);
 
-    axios.get(`http://127.0.0.1:8000/api/gestion-riesgos/${idRegistro}`)
-      .then(response => {
-        const data = response.data;
-        console.log("Datos de gestión de riesgos:", data);
-        if (!data || data.length === 0) {
-          setError("No se encontraron datos de gestión de riesgos.");
-          setLoading(false);
-          return;
-        }
-        setRiesgoData(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error al cargar datos de gestión de riesgos:", err);
-        setError("Error al cargar datos de gestión de riesgos.");
-        setLoading(false);
-      });
-  }, [idRegistro]);
-
-  const truncarTexto = (texto, maxLength = 50) =>
-    texto.length > maxLength ? texto.slice(0, maxLength - 3) + "..." : texto;
-
-  if (loading) {
+  if (!Array.isArray(data) || data.length === 0) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <CircularProgress />
+        <Alert severity="info">No hay datos de Gestión de Riesgos disponibles.</Alert>
       </Box>
     );
   }
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
+
+  const truncarTexto = (texto, maxLength = 50) =>
+    texto.length > maxLength ? texto.slice(0, maxLength - 3) + "..." : texto;
 
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h5" align="center" gutterBottom paddingBottom={5}>
         Gestión de Riesgos
       </Typography>
-      <Grid container spacing={2}>
-        {riesgoData.map((item, index) => (
+
+      <Grid container spacing={3} justifyContent={data.length < 3 ? "center" : "flex-start"}>
+        {readyData.map((item, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
-            <CircularProgressIndicator
-              label={truncarTexto(item.nombreIndicador)}
-              value={item.resultadoAnual || 0}
-              color={colors[index % colors.length]}  // Asignación cíclica de colores
-            />
+            <Tooltip title={item.nombreIndicador}>
+              <div>
+                <CircularProgressIndicator
+                  label={truncarTexto(item.nombreIndicador)}
+                  value={item.resultadoAnual || 0}
+                  color={colors[index % colors.length]}
+                  aria-label={`Indicador ${item.nombreIndicador}, resultado anual ${item.resultadoAnual || 0}%`}
+                />
+              </div>
+            </Tooltip>
           </Grid>
         ))}
       </Grid>

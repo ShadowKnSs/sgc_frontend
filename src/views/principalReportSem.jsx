@@ -38,8 +38,9 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Fab, Modal, TextField, MenuItem, Button, Grid, Snackbar } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar } from "@mui/material";
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
@@ -112,10 +113,10 @@ const PrincipalReportSem = () => {
     const fetchData = async (anio, periodo) => {
         try {
             const urls = [
-               `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
-               `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-riesgos-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-indicador-sem?anio=${anio}&periodo=${periodo}`,
                 `http://127.0.0.1:8000/api/get-acciones-sem?anio=${anio}&periodo=${periodo}`,
-               `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
+                `http://127.0.0.1:8000/api/get-auditorias-sem?anio=${anio}&periodo=${periodo}`,
                 `http://127.0.0.1:8000/api/get-seguimiento-sem?anio=${anio}&periodo=${periodo}`,
             ];
 
@@ -200,9 +201,14 @@ const PrincipalReportSem = () => {
                 </Grid>
 
                 {/* Botón flotante */}
-                <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpenForm}>
-                    <AddIcon />
-                </Fab>
+                <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+                    <FabCustom
+                        onClick={handleOpenForm}
+                        title="Agregar Reporte"
+                        icon={<Add />}
+                    />
+                </Box>
+
 
                 {/* Modal para generar reporte */}
                 <Modal open={open} onClose={handleCloseForm} aria-labelledby="modal-title">

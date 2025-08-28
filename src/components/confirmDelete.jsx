@@ -1,62 +1,105 @@
-/**
- * Componente: ConfirmDelete
- * Descripción:
- * Diálogo reutilizable para confirmar la eliminación de diferentes tipos de entidades (usuario, proceso, entidad, etc.).
- * Usa `DialogTitleCustom` y `CustomButton` para mantener el estilo consistente.
- */
-import { Dialog, DialogContent, DialogActions } from "@mui/material";
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogActions, Typography } from "@mui/material";
 import DialogTitleCustom from './TitleDialog';
 import CustomButton from './Button';
 
-// Genera el mensaje según el tipo de entidad
-
-const getDeleteMessage = (type, name) => {
+const getDeleteMessage = (type, name, isPermanent = false) => {
   switch (type) {
     case "usuario":
-      return `¿Estás seguro de que deseas eliminar al usuario "${name}"? Esta acción no se puede deshacer.`;
+      return isPermanent
+        ? `¿Estás seguro de que deseas eliminar permanentemente al usuario "${name}"? Esta acción no se puede deshacer. Los procesos asignados a este usuario quedarán disponibles para reasignación.`
+        : `¿Estás seguro de que deseas desactivar al usuario "${name}"? El usuario se moverá a la sección de inactivos.`;
     case "proceso":
       return `¿Estás seguro de que deseas eliminar el proceso "${name}"?`;
-    case "entidad":
-      return `¿Estás seguro de que deseas eliminar la entidad "${name}"?`;
-    case "minuta":
-      return `¿Deseas eliminar la minuta "${name}" de forma permanente?`;
-    case "reporte":
-      return `¿Seguro que deseas eliminar el reporte "${name}"?`;
+    case "tokens":
+      return `¿Estás seguro de que deseas eliminar todos los tokens expirados?`;
     default:
       return `¿Estás seguro de que deseas eliminar "${name}"?`;
   }
 };
 
-const ConfirmDelete = ({ open, onClose, entityType, entityName, onConfirm }) => {
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitleCustom title="Confirmar Eliminación" />
 
-      <DialogContent
-        sx={{
-          backgroundColor: "#DFECDF",
-          color: "#0D1321",
-          fontSize: "16px",
-          paddingY: 2,
-        }}
-      >
-        {getDeleteMessage(entityType, entityName)}
+const getDialogTitle = (type, isPermanent = false) => {
+  switch (type) {
+    case "usuario":
+      return isPermanent ? "Eliminar Usuario Permanentemente" : "Desactivar Usuario";
+    default:
+      return "Confirmar Eliminación";
+  }
+};
+
+const getButtonText = (type, isPermanent = false, deleting = false) => {
+  if (deleting) {
+    return isPermanent ? "Eliminando..." : "Desactivando...";
+  }
+
+  switch (type) {
+    case "usuario":
+      return isPermanent ? "Eliminar Permanentemente" : "Desactivar";
+    default:
+      return "Eliminar";
+  }
+};
+const ConfirmDelete = ({
+  open,
+  onClose,
+  entityType,
+  entityName,
+  onConfirm,
+  description,
+  isPermanent = false
+}) => {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    setDeleting(true);
+    try {
+      await onConfirm();
+      onClose();
+    } catch (error) {
+      console.error("Error en la eliminación:", error);
+      // El error debería ser manejado por la función onConfirm
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!deleting) {
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitleCustom title={getDialogTitle(entityType, isPermanent)} />
+
+      <DialogContent sx={{ py: 3 }}>
+        <Typography variant="body1" gutterBottom>
+          {getDeleteMessage(entityType, entityName, isPermanent)}
+        </Typography>
+        {description && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {description}
+          </Typography>
+        )}
       </DialogContent>
 
-      <DialogActions
-        sx={{ backgroundColor: "#E3EBDA", padding: "16px", gap: 1 }}
-      >
-        <CustomButton type="cancelar" onClick={onClose}>
+      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+        <CustomButton
+          type="cancelar"
+          onClick={handleClose}
+          disabled={deleting}
+        >
           Cancelar
         </CustomButton>
         <CustomButton
-          type="Eliminar"
-          onClick={() => {
-            onConfirm();
-            onClose();
-          }}
+          type={isPermanent ? "eliminar" : "warning"} // Puedes usar "warning" para desactivar
+          onClick={handleConfirm}
+          disabled={deleting}
+          loading={deleting}
         >
-          Eliminar
+          {getButtonText(entityType, isPermanent, deleting)}
         </CustomButton>
       </DialogActions>
     </Dialog>

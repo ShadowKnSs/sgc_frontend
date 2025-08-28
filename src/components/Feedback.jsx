@@ -4,11 +4,11 @@ import { Snackbar, Alert, AlertTitle } from "@mui/material";
 // Colores personalizados por tipo
 const customColors = {
   success: {
-    background: "#85E29A", // verde
-    text: "#0D1321",
+    background: "#C8FACC", // verde
+    text: "#14532D",
   },
   info: {
-    background: "#0D1321", // azul 
+    background: "#8ba7e8ff", // azul 
     text: "#DFECDF",
   },
   warning: {
@@ -16,8 +16,8 @@ const customColors = {
     text: "#E3EBDA",
   },
   error: {
-    background: "#0D1321", //rojo
-    text: "#F8D7DA",
+    background: "#FECACA", //rojo
+    text: "#7F1D1D",
   },
 };
 

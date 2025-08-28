@@ -1,47 +1,41 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, Card, CardContent, Typography, CircularProgress } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { Add } from "@mui/icons-material";
-import axios from "axios";
 import { useParams } from "react-router-dom";
 import FormularioProyMejora from "../components/Forms/FormProyMejora";
-import DetalleProyectoModal from "../components/Modals/DetalleProyectoModal"; // importa el nuevo componente
-
+import DetalleProyectoModal from "../components/Modals/DetalleProyectoModal";
+import CustomButton from "../components/Button";
+import { useProyectosMejora } from "../hooks/useProyectosMejora";
 
 function ProyectoMejoraContainer({ soloLectura, puedeEditar }) {
   const { idRegistro } = useParams();
-  const [proyectos, setProyectos] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const {
+    proyectos,
+    loading,
+    error,
+    hasProyectos,
+    refetch,
+  } = useProyectosMejora(idRegistro);
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
 
-
-  const fetchProyectos = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/proyectos-mejora/${idRegistro}`);
-      setProyectos(res.data);
-    } catch (err) {
-      setError("Error al cargar los proyectos de mejora");
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (idRegistro) fetchProyectos();
-  }, [idRegistro]);
-
   return (
     <Box sx={{ p: 4 }}>
-      {!soloLectura && (
-        <Button
-          variant="contained"
+      {!soloLectura && !mostrarFormulario && (
+        <CustomButton
+          type="guardar"
           startIcon={<Add />}
           onClick={() => setMostrarFormulario(true)}
-          sx={{ backgroundColor: "secondary.main", mb: 2 }}
         >
-          Añadir Proyecto de Mejora
-        </Button>
+          Nuevo Proyecto de Mejora
+        </CustomButton>
       )}
 
       {mostrarFormulario ? (
@@ -52,43 +46,47 @@ function ProyectoMejoraContainer({ soloLectura, puedeEditar }) {
           onCancel={() => setMostrarFormulario(false)}
           onSaved={() => {
             setMostrarFormulario(false);
-            fetchProyectos();
+            refetch();
           }}
         />
+      ) : loading ? (
+        <Box sx={{ mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Typography color="error" sx={{ mt: 4 }}>{error}</Typography>
+      ) : !hasProyectos ? (
+        <Typography sx={{ mt: 4 }}>No hay proyectos aún.</Typography>
       ) : (
-        <>
-          {loading ? (
-            <CircularProgress />
-          ) : proyectos.length === 0 ? (
-            <Typography>No hay proyectos aún.</Typography>
-          ) : (
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-              {proyectos.map((proj) => (
-                <Card
-                  key={proj.idProyectoMejora}
-                  sx={{ width: 250, cursor: "pointer" }}
-                  onClick={() => setProyectoSeleccionado(proj)}
-                >
-                  <CardContent>
-                    <Typography variant="h6">{proj.noMejora || "Proyecto"}</Typography>
-                    <Typography variant="body2">{proj.descripcionMejora?.slice(0, 80)}...</Typography>
-                    <Typography variant="caption">Responsable: {proj.responsable}</Typography>
-                  </CardContent>
-                </Card>
-              ))}
-            </Box>
-          )}
-        </>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 2 }}>
+          {proyectos.map((proj) => (
+            <Card
+              key={proj.idProyectoMejora}
+              sx={{ width: 250, cursor: "pointer" }}
+              onClick={() => setProyectoSeleccionado(proj)}
+            >
+              <CardContent>
+                <Typography variant="h6">
+                  {proj.noMejora != null ? `Mejora #${proj.noMejora}` : "Proyecto sin número"}
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  {proj.descripcionMejora ? `${proj.descripcionMejora.slice(0, 80)}...` : "Sin descripción"}
+                </Typography>
+                <Typography variant="caption" sx={{ display: "block", mt: 1 }}>
+                  Responsable: {proj.responsable || "No definido"}
+                </Typography>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
       )}
+
       <DetalleProyectoModal
         open={!!proyectoSeleccionado}
         onClose={() => setProyectoSeleccionado(null)}
         proyecto={proyectoSeleccionado}
       />
-
     </Box>
-
-
   );
 }
 

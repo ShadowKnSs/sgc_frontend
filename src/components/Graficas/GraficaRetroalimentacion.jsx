@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Alert } from '@mui/material';
-import axios from 'axios';
-import { Bar } from 'react-chartjs-2';
+// src/components/Graficas/GraficaRetroalimentacion.jsx
+import React, { useEffect, useRef, useState } from "react";
+import { Box, Alert } from "@mui/material";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,117 +9,100 @@ import {
   Title,
   Tooltip,
   Legend
-} from 'chart.js';
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const GraficaRetroalimentacionConjunta = ({ retroList, onImageReady }) => {
+const GraficaRetroalimentacion = ({ data = [], onImageReady }) => {
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
-
   const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!retroList || retroList.length === 0) {
-      setError("No se encontraron indicadores de retroalimentación.");
-      setLoading(false);
-      return;
-    }
+    if (!Array.isArray(data) || data.length === 0) return;
 
-    const fetchData = async () => {
-      try {
-        const requests = retroList.map(ind =>
-          axios.get(`http://127.0.0.1:8000/api/retroalimentacion/${ind.idIndicador}/resultados`)
-        );
-        const responses = await Promise.all(requests);
-        const retroDataArray = responses.map(res => res.data);
+    const labels = data.map(item => item.nombreIndicador);
+    const datasetFelicitaciones = data.map(item => item.cantidadFelicitacion ?? item.felicitaciones ?? 0);
+    const datasetSugerencias = data.map(item => item.cantidadSugerencia ?? item.sugerencias ?? 0);
+    const datasetQuejas = data.map(item => item.cantidadQueja ?? item.quejas ?? 0);
 
-        const labels = retroList.map(ind => ind.nombreIndicador);
-        const datasetFelicitaciones = retroDataArray.map(item => item.resultado.cantidadFelicitacion ?? 0);
-        const datasetSugerencias = retroDataArray.map(item => item.resultado.cantidadSugerencia ?? 0);
-        const datasetQuejas = retroDataArray.map(item => item.resultado.cantidadQueja ?? 0);
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: "Felicitaciones",
+          data: datasetFelicitaciones,
+          backgroundColor: "#66BB6A"
+        },
+        {
+          label: "Sugerencias",
+          data: datasetSugerencias,
+          backgroundColor: "#FFA726"
+        },
+        {
+          label: "Quejas",
+          data: datasetQuejas,
+          backgroundColor: "#EF5350"
+        }
+      ]
+    });
+  }, [data]);
 
-        const formattedData = {
-          labels,
-          datasets: [
-            { label: "Felicitaciones", data: datasetFelicitaciones, backgroundColor: "#4caf50" },
-            { label: "Sugerencias", data: datasetSugerencias, backgroundColor: "#ff9800" },
-            { label: "Quejas", data: datasetQuejas, backgroundColor: "#f44336" }
-          ]
-        };
-
-        setChartData(formattedData);
-        setLoading(false);
-      } catch (err) {
-        console.error("❌ Error al cargar datos:", err);
-        setError("Error al cargar retroalimentación.");
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [retroList]);
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: "top" },
-      title: { display: true, text: "Retroalimentación" }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: "Cantidad" }
-      },
-      x: {
-        title: { display: true, text: "Tipo de Retroalimentación" }
-      }
-    },
-    animation: {
-      duration: 1000,
-      easing: 'easeOutQuart',
-      onComplete: () => {
-        if (
-          chartRef.current &&
-          chartRef.current.toBase64Image &&
-          !yaGenerada.current
-        ) {
+  useEffect(() => {
+    if (chartRef.current && chartData && !yaGenerada.current) {
+      const timer = setTimeout(() => {
+        if (chartRef.current) {
           const base64 = chartRef.current.toBase64Image("image/png", 1.0);
-          if (base64) {
-            console.log("🖼️ Imagen generada (retroalimentación - onComplete):", base64.substring(0, 100));
-            if (onImageReady) onImageReady(base64, "retroalimentacion");
+          if (base64 && typeof onImageReady === "function") {
+            onImageReady(base64);
             yaGenerada.current = true;
           }
         }
-      }
-    }
-  };
+      }, 500);
 
-  if (loading) {
+      return () => clearTimeout(timer);
+    }
+  }, [chartData, onImageReady]);
+
+  if (!Array.isArray(data) || data.length === 0) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Alert severity="info">No hay datos de retroalimentación disponibles.</Alert>
       </Box>
     );
   }
 
-  if (error) {
-    return <Alert severity="info">{error}</Alert>;
-  }
+  if (!chartData) return null;
+
+  const options = {
+    responsive: true,
+    indexAxis: "y",
+    plugins: {
+      legend: { position: "bottom" },
+      title: { display: true, text: "Retroalimentación" },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ${ctx.raw}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        title: { display: true, text: "Cantidad" }
+      },
+      y: {
+        title: { display: true, text: "Indicador" }
+      }
+    }
+  };
 
   return (
-    <Box sx={{ maxWidth: "70%", mx: "auto", mt: 4 }}>
-      <Bar
-        ref={(ref) => {
-          chartRef.current = ref;
-        }}
-        data={chartData}
-        options={options}
-      />
+    <Box sx={{ width: "100%", maxWidth: 800, mx: "auto", mt: 4 }}>
+      <Bar ref={chartRef} data={chartData} options={options} />
     </Box>
   );
 };
 
-export default GraficaRetroalimentacionConjunta;
+export default GraficaRetroalimentacion;

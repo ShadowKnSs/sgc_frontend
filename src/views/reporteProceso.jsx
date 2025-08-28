@@ -54,7 +54,7 @@ const ReportView = () => {
     axios.get(`http://localhost:8000/api/datos-reporte/${idProceso}/${year}`)
       .then(res => {
         setReportData(res.data);
-        console.log("Datos del repore Info General",res.data);
+        console.log("Datos del repore Info General", res.data);
         setLoading(false);
       })
       .catch(err => {
@@ -81,10 +81,10 @@ const ReportView = () => {
   }, [idProceso, year]);
 
   // ✅ Función para recibir cada imagen generada
-  const handleImagenGenerada = (tipo, base64) => {
-    console.log(`📥 Recibida imagen de tipo: ${tipo}, longitud: ${base64?.length}`);
+  const handleImagenGenerada = React.useCallback((tipo, base64) => {
+    console.log(`📥 Recibida imagen de tipo: ${tipo}`);
     setImagenes(prev => ({ ...prev, [tipo]: base64 }));
-  };
+  }, []);
 
   // ✅ Guardar imágenes y abrir PDF
   const handleDownload = async () => {
@@ -111,14 +111,14 @@ const ReportView = () => {
     <Box sx={{ p: 4 }}>
 
       {/* Flecha de regreso en la parte superior izquierda */}
-      <Box sx={{ position: 'relative', mb: 2, color:"secondary.main" }}>
-        <ArrowBackIcon 
-          sx={{ fontSize: 32, cursor: 'pointer' }} 
+      <Box sx={{ position: 'relative', mb: 2, color: "secondary.main" }}>
+        <ArrowBackIcon
+          sx={{ fontSize: 32, cursor: 'pointer' }}
           onClick={() => navigate(-1)}
         />
       </Box>
-      <Box sx={{ textAlign: "center", paddingTop: 3, paddingBottom: 3}}>
-      <Title text={reportData ? `Reporte ${reportData.nombreProceso} ${reportData.entidad}` : "Reporte"} />
+      <Box sx={{ textAlign: "center", paddingTop: 3, paddingBottom: 3 }}>
+        <Title text={reportData ? `Reporte ${reportData.nombreProceso} ${reportData.entidad}` : "Reporte"} />
       </Box>
 
       <GeneralInfo reportData={reportData} />

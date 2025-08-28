@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Stepper,
@@ -9,7 +9,6 @@ import {
   Checkbox,
   FormControlLabel,
   FormControl,
-  Typography,
   IconButton,
   Radio,
   RadioGroup,
@@ -18,6 +17,7 @@ import {
 } from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import axios from "axios";
+
 
 
 const steps = [
@@ -52,7 +52,9 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
   };
 
   // Fusionamos initialData con defaultForm para que no falten propiedades al editar
-  const mergedData = initialData ? { ...defaultForm, ...initialData } : defaultForm;
+  const mergedData = useMemo(() => (
+    initialData ? { ...defaultForm, ...initialData } : defaultForm
+  ), [initialData]);
   const [formData, setFormData] = useState(mergedData);
   const [activeStep, setActiveStep] = useState(0);
   const [errors, setErrors] = useState({});
@@ -60,80 +62,142 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
   // Simulación de carga para Dependencia/Entidad
   useEffect(() => {
     if (!idProceso) return;
-
     axios.get(`http://127.0.0.1:8000/api/proceso-entidad/${idProceso}`)
       .then(res => {
-        const { entidad, proceso } = res.data;
-        setFormData(prev => ({
-          ...prev,
-          entidad: entidad || "" // ← actualiza el campo automáticamente
-        }));
+        const { entidad } = res.data;
+        setFormData(prev => ({ ...prev, entidad: entidad || "" }));
       })
-      .catch(err => {
-        console.error("❌ Error al obtener entidad desde idProceso:", err);
-      });
+      .catch(err => console.error("❌ Error al obtener entidad:", err));
   }, [idProceso]);
 
-
-
-  // Si es un registro nuevo, se genera el código al montar el componente
   useEffect(() => {
-    if (!initialData) {
-      const currentYear = new Date().getFullYear();
-      const yearLastTwo = currentYear.toString().slice(-2);
+    if (!initialData && idProceso) {
+      const year = new Date().getFullYear().toString().slice(-2);
       const seqStr = sequence.toString().padStart(2, "0");
-      setFormData((prev) => ({ ...prev, codigo: `PAC-${seqStr}${yearLastTwo}` }));
+      setFormData(prev => ({ ...prev, codigo: `PAC-${seqStr}${year}` }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialData, idProceso, sequence]);
+
 
   const validateForm = () => {
     let formErrors = {};
 
-    // Sección 0: Datos del Proceso
+    // Sección 0
     if (!formData.entidad) formErrors.entidad = "La entidad es requerida.";
     if (!formData.coordinadorPlan) formErrors.coordinadorPlan = "El coordinador es requerido.";
     if (!formData.fechaInicio) formErrors.fechaInicio = "La fecha de inicio es requerida.";
-    if (!formData.origenConformidad)
-      formErrors.origenConformidad = "El origen es requerido.";
-    if (!formData.equipoMejora)
-      formErrors.equipoMejora = "El equipo de mejora es requerido.";
+    if (!formData.origenConformidad) formErrors.origenConformidad = "El origen es requerido.";
+    if (!formData.equipoMejora) formErrors.equipoMejora = "El equipo de mejora es requerido.";
 
-    // Sección 1: Descripción de la No Conformidad
+    // Sección 1
     if (!formData.requisito) formErrors.requisito = "El requisito es obligatorio.";
-    if (!formData.incumplimiento)
-      formErrors.incumplimiento = "El incumplimiento es requerido.";
+    if (!formData.incumplimiento) formErrors.incumplimiento = "El incumplimiento es requerido.";
     if (!formData.evidencia) formErrors.evidencia = "La evidencia es requerida.";
 
-    // Sección 3: Consecuencias Identificadas
-    if (!formData.revisionAnalisis)
-      formErrors.revisionAnalisis = "La revisión es obligatoria.";
+    // Sección 2 - Validación dinámica de reaccion
+    (formData.reaccion || []).forEach((item, index) => {
+      if (!item.actividad) formErrors[`reaccion.${index}.actividad`] = "Actividad requerida";
+      if (!item.responsable) formErrors[`reaccion.${index}.responsable`] = "Responsable requerido";
+      if (!item.fechaProgramada) formErrors[`reaccion.${index}.fechaProgramada`] = "Fecha requerida";
+    });
+
+    // Sección 3
+    if (!formData.revisionAnalisis) formErrors.revisionAnalisis = "La revisión es obligatoria.";
     if (!formData.causaRaiz) formErrors.causaRaiz = "La causa raíz es obligatoria.";
     if (!formData.estadoSimilares) formErrors.estadoSimilares = "Seleccione una opción.";
+
+    // Sección 4 - Validación dinámica de planAccion
+    (formData.planAccion || []).forEach((item, index) => {
+      const anyFilled = item.actividad || item.responsable || item.fechaProgramada;
+      if (!anyFilled) return; // todo vacío es válido
+      if (!item.actividad) formErrors[`planAccion.${index}.actividad`] = "Actividad requerida";
+      if (!item.responsable) formErrors[`planAccion.${index}.responsable`] = "Responsable requerido";
+      if (!item.fechaProgramada) formErrors[`planAccion.${index}.fechaProgramada`] = "Fecha requerida";
+    });
 
     setErrors(formErrors);
     return Object.keys(formErrors).length === 0;
   };
 
+  const getStepsCompleted = () => {
+    const completed = [];
+
+    // Paso 0: Datos del Proceso
+    if (
+      formData.entidad &&
+      formData.coordinadorPlan &&
+      formData.fechaInicio &&
+      formData.origenConformidad &&
+      formData.equipoMejora
+    ) completed.push(0);
+
+    // Paso 1: No Conformidad
+    if (
+      formData.requisito &&
+      formData.incumplimiento &&
+      formData.evidencia
+    ) completed.push(1);
+
+    // Paso 2: Reacción
+    const validReaccion = (formData.reaccion || []).every(
+      item => item.actividad && item.responsable && item.fechaProgramada
+    );
+    if (formData.reaccion?.length > 0 && validReaccion) completed.push(2);
+
+    // Paso 3: Consecuencias
+    if (
+      formData.revisionAnalisis &&
+      formData.causaRaiz &&
+      formData.estadoSimilares
+    ) completed.push(3);
+
+    // Paso 4: Plan de Acción
+    const acciones = formData.planAccion || [];
+    const vacio = acciones.length === 0;
+    const completo = acciones.length > 0 && acciones.every(item => item.actividad && item.responsable && item.fechaProgramada);
+    if (vacio || completo) completed.push(4);
+    return completed;
+  };
+
+
+  const sectionHasErrors = (prefix) => Object.keys(errors).some(key => key.startsWith(prefix));
+
   const getStepsWithErrors = () => {
     const stepsError = [];
-    if (errors.entidad || errors.coordinadorPlan || errors.fechaInicio || errors.origenConformidad || errors.equipoMejora) {
+
+    if (
+      errors.entidad ||
+      errors.coordinadorPlan ||
+      errors.fechaInicio ||
+      errors.origenConformidad ||
+      errors.equipoMejora
+    ) {
       stepsError.push(0);
     }
-    if (errors.requisito || errors.incumplimiento || errors.evidencia) {
+
+    if (
+      errors.requisito ||
+      errors.incumplimiento ||
+      errors.evidencia
+    ) {
       stepsError.push(1);
     }
-    if ((Object.keys(errors).filter(key => key.startsWith("reaccion.")).length) > 0) {
+
+    if (sectionHasErrors("reaccion.")) {
       stepsError.push(2);
     }
-    if (errors.revisionAnalisis || errors.causaRaiz || errors.estadoSimilares) {
+
+    if (
+      errors.revisionAnalisis ||
+      errors.causaRaiz ||
+      errors.estadoSimilares
+    ) {
       stepsError.push(3);
     }
-    if ((Object.keys(errors).filter(key => key.startsWith("planAccion.")).length) > 0) {
-      stepsError.push(4);
-    }
+
     return stepsError;
   };
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -322,9 +386,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 2:
         return (
           <Box>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Reacción para controlar y corregir
-            </Typography>
+
             {(formData.reaccion || []).map((item, index) => (
               <Box
                 key={index}
@@ -332,7 +394,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               >
                 <TextField
                   label="Actividad"
-                  value={item.descripcionAct}
+                  value={item.actividad}
                   onChange={(e) => handleDynamicChange("reaccion", index, "actividad", e.target.value)}
                   fullWidth
                   error={!!errors[`reaccion.${index}.actividad`]}
@@ -406,9 +468,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 4:
         return (
           <Box>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Plan de Acción
-            </Typography>
+
             {(formData.planAccion || []).map((item, index) => (
               <Box
                 key={index}
@@ -416,19 +476,17 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               >
                 <TextField
                   label="Actividad"
-                  value={item.descripcionAct}
+                  value={item.actividad || ""}
                   onChange={(e) => handleDynamicChange("planAccion", index, "actividad", e.target.value)}
                   fullWidth
-                  error={!!errors[`planAccion.${index}.actividad`]}
-                  helperText={errors[`planAccion.${index}.actividad`]}
+                  
                 />
                 <TextField
                   label="Responsable"
                   value={item.responsable}
                   onChange={(e) => handleDynamicChange("planAccion", index, "responsable", e.target.value)}
                   fullWidth
-                  error={!!errors[`planAccion.${index}.responsable`]}
-                  helperText={errors[`planAccion.${index}.responsable`]}
+                  
                 />
                 <TextField
                   label="Fecha Programada"
@@ -437,8 +495,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   onChange={(e) => handleDynamicChange("planAccion", index, "fechaProgramada", e.target.value)}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors[`planAccion.${index}.fechaProgramada`]}
-                  helperText={errors[`planAccion.${index}.fechaProgramada`]}
+                  
                 />
                 <IconButton onClick={() => removeDynamicEntry("planAccion", index)}>
                   <Remove />
@@ -459,11 +516,17 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     <Box sx={{ p: 4 }}>
       <Stepper nonLinear activeStep={activeStep} alternativeLabel>
         {steps.map((label, index) => (
-          <Step key={label} onClick={() => handleStepClick(index)} style={{ cursor: "pointer" }}>
+          <Step
+            key={label}
+            onClick={() => handleStepClick(index)}
+            completed={getStepsCompleted().includes(index)}
+            sx={{ cursor: "pointer" }}
+          >
             <StepLabel error={stepsWithErrors.includes(index)}>{label}</StepLabel>
           </Step>
         ))}
       </Stepper>
+
 
       <Box sx={{ mt: 4, mb: 2 }}>{renderStepContent(activeStep)}</Box>
 
@@ -476,7 +539,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
             Guardar
           </Button>
         ) : (
-          <Button variant="contained" onClick={handleNext} sx={{ backgroundColor: "terciary.main" }}>
+          <Button variant="contained" onClick={handleNext} sx={{ backgroundColor: "#68A2C9" }}>
             Siguiente
           </Button>
         )}

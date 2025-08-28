@@ -20,7 +20,8 @@ import axios from 'axios';
 import AdminNewsModal from './Modals/AdminNewsModal';
 import ConfirmDelete from '../components/confirmDelete'; 
 import ConfirmEdit from '../components/confirmEdit';     
-import NewNoticiaButton from '../components/NewCardButtom';
+import FabCustom from "../components/FabCustom";
+import Add from "@mui/icons-material/Add";
 
 
 // Formatea la fecha con dayjs
@@ -30,6 +31,10 @@ function formatDate(dateString) {
 }
 
 const AdminNewsList = () => {
+
+   // Usuario desde localStorage 
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+  const idUsuario = usuario?.idUsuario ?? null;
   // Lista de noticias
   const [news, setNews] = useState([]);
 
@@ -139,7 +144,7 @@ const AdminNewsList = () => {
   const createNews = async (formData) => {
     try {
       const data = new FormData();
-      data.append('idUsuario', 1); // o el ID real del usuario
+      data.append('idUsuario', idUsuario); // o el ID real del usuario
       data.append('titulo', formData.titulo);
       data.append('descripcion', formData.descripcion);
       if (formData.file) {
@@ -280,8 +285,12 @@ const AdminNewsList = () => {
       </Grid>
 
       {/* Botón Crear Noticia */}
-      <Box sx={{ position: 'absolute', bottom: -30, right: 16 }}>
-        <NewNoticiaButton onClick={handleCreate} />
+      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+        <FabCustom
+          onClick={handleCreate}
+          title="Agregar Noticia"
+          icon={<Add />}
+        />
       </Box>
 
       {/* Modal Crear/Editar Noticia */}
