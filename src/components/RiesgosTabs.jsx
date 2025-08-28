@@ -1,5 +1,5 @@
 // components/RiesgosTabs.jsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -10,10 +10,14 @@ import {
   Paper,
   IconButton,
   Box,
-  Typography
+  Typography,
+  Tooltip
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import EvaluacionEfectividadModal from "./Modals/EvaluacionEfectividadModal";
+
 const formatearFecha = (valor) => {
   if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}/.test(valor)) {
     const [año, mes, dia] = valor.split(" ")[0].split("-");
@@ -29,8 +33,24 @@ const RiesgosTabs = ({
   soloLectura,
   onEdit,
   onDelete,
-  sections
+  sections, 
+  onEvaluate
 }) => {
+  const [evaluationModalOpen, setEvaluationModalOpen] = useState(false);
+  const [selectedRiesgo, setSelectedRiesgo] = useState(null);
+
+  const handleEvaluateClick = (riesgo) => {
+    setSelectedRiesgo(riesgo);
+    setEvaluationModalOpen(true);
+  };
+
+  const handleSaveEvaluation = async (evaluationData) => {
+    if (selectedRiesgo && onEvaluate) {
+      await onEvaluate(selectedRiesgo.idRiesgo, evaluationData);
+      setEvaluationModalOpen(false);
+    }
+  };
+
   return (
     <>
       <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
@@ -101,20 +121,39 @@ const RiesgosTabs = ({
 
                 {!soloLectura && (
                   <TableCell align="center">
-                    <IconButton
-                      color="primary"
-                      onClick={() => onEdit(riesgos[index])}
-                      sx={{ mr: 1 }}
-                    >
-                      <EditIcon />
-                    </IconButton>
+                    {/* Botón de Editar con Tooltip */}
+                    <Tooltip title="Editar riesgo" arrow>
+                      <IconButton
+                        color="primary"
+                        onClick={() => onEdit(riesgos[index])}
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
 
-                    <IconButton
-                      color="error"
-                      onClick={() => onDelete(riesgos[index])}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    {/* Botón de Evaluación (solo visible en sección 3 - Evaluación) */}
+                    {selectedTab === 3 && (
+                      <Tooltip title="Evaluar efectividad" arrow>
+                        <IconButton
+                          color="secondary"
+                          onClick={() => handleEvaluateClick(riesgos[index])}
+                          sx={{ mr: 1 }}
+                        >
+                          <AssessmentIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+
+                    {/* Botón de Eliminar con Tooltip */}
+                    <Tooltip title="Eliminar riesgo" arrow>
+                      <IconButton
+                        color="error"
+                        onClick={() => onDelete(riesgos[index])}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 )}
               </TableRow>
@@ -122,6 +161,13 @@ const RiesgosTabs = ({
           </TableBody>
         </Table>
       </TableContainer>
+      
+      <EvaluacionEfectividadModal
+        open={evaluationModalOpen}
+        onClose={() => setEvaluationModalOpen(false)}
+        riesgo={selectedRiesgo}
+        onGuardar={handleSaveEvaluation}
+      />
     </>
   );
 };

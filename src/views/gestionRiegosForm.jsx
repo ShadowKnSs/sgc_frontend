@@ -147,6 +147,9 @@ function FormularioGestionRiesgos() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
 
+  const [riesgoErrors, setRiesgoErrors] = useState({});
+  const [evaluationModalOpen, setEvaluationModalOpen] = useState(false);
+  const [selectedRiesgoId, setSelectedRiesgoId] = useState(null);
 
 
   // Funcion para mostrar snackbar (FeedBack)
@@ -213,13 +216,23 @@ function FormularioGestionRiesgos() {
   // Handler para CREAR/EDITAR un riesgo
   // --------------------------------------------------------------------------
   const handleGuardarRiesgo = async () => {
+    setRiesgoErrors({});
+
     if (!gestionRiesgo.idGesRies) {
       mostrarSnackbar("warning", "Falta información general", "Primero guarda los datos generales.");
       return;
     }
 
-    if (!nuevoRiesgo.tipoRiesgo || !nuevoRiesgo.descripcion) {
-      mostrarSnackbar("warning", "Campos requeridos", "Tipo de Riesgo y Descripción son obligatorios.");
+
+    const newErrors = {};
+    if (!nuevoRiesgo.tipoRiesgo) newErrors.tipoRiesgo = "El tipo de riesgo es obligatorio";
+    if (!nuevoRiesgo.descripcion) newErrors.descripcion = "La descripción es obligatoria";
+    if (!nuevoRiesgo.valorSeveridad) newErrors.valorSeveridad = "La severidad es obligatoria";
+    if (!nuevoRiesgo.valorOcurrencia) newErrors.valorOcurrencia = "La ocurrencia es obligatoria";
+
+    if (Object.keys(newErrors).length > 0) {
+      setRiesgoErrors(newErrors);
+      mostrarSnackbar("warning", "Campos requeridos", "Complete todos los campos obligatorios.");
       return;
     }
 
@@ -254,14 +267,12 @@ function FormularioGestionRiesgos() {
       });
 
       if (!response.ok) {
-        try {
-          const errorJson = await response.json();
-          console.error("[ERROR]", errorJson);
-          throw new Error(errorJson.message || "Error al guardar el riesgo.");
-        } catch {
-          const text = await response.text();
-          throw new Error(text || "Error desconocido al guardar el riesgo.");
+        const errorData = await response.json();
+        if (errorData.errors) {
+          setRiesgoErrors(errorData.errors);
+          throw new Error("Errores de validación");
         }
+        throw new Error(errorData.message || "Error al guardar el riesgo.");
       }
 
       await cargarRiesgos(gestionRiesgo.idGesRies);
@@ -275,10 +286,34 @@ function FormularioGestionRiesgos() {
       setNuevoRiesgo(nuevoRiesgo);
     } catch (err) {
       console.error("[ERROR] al crear/editar el riesgo:", err);
-      mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar el riesgo.");
+      if (err.message !== "Errores de validación") {
+        mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar el riesgo.");
+      }
     }
   };
 
+
+  const handleEvaluateRiesgo = async (riesgoId, evaluationData) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos/${riesgoId}/evaluar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(evaluationData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al guardar la evaluación.");
+      }
+
+      // Recargar riesgos para ver los cambios
+      await cargarRiesgos(gestionRiesgo.idGesRies);
+      mostrarSnackbar("success", "Evaluación guardada", "La evaluación de efectividad se guardó correctamente.");
+    } catch (err) {
+      console.error("[ERROR] al evaluar riesgo:", err);
+      mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar la evaluación.");
+    }
+  };
 
   // --------------------------------------------------------------------------
   // Handler para editar
@@ -373,6 +408,7 @@ function FormularioGestionRiesgos() {
             soloLectura={soloLectura}
             onEdit={handleEditRiesgo}
             onDelete={handleDeleteRiesgo}
+            onEvaluate={handleEvaluateRiesgo}
             sections={sections}
           />
 
@@ -419,6 +455,7 @@ function FormularioGestionRiesgos() {
           setCurrentSection(0);
           setIsEditing(false);
           setEditingRiesgo(null);
+          setRiesgoErrors({});
         }}
         isEditing={isEditing}
         currentSection={currentSection}
@@ -428,6 +465,8 @@ function FormularioGestionRiesgos() {
         nuevoRiesgo={nuevoRiesgo}
         onChange={handleRiesgoChange}
         sections={sections}
+        errors={riesgoErrors}
+
       />
 
 

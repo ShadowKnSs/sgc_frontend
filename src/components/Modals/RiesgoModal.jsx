@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Modal,
   IconButton,
   TextField,
-  Grid
+  Grid,
+  FormHelperText,
+  Typography
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CustomButton from "../Button";
@@ -20,108 +22,136 @@ const RiesgoModal = ({
   onGuardar,
   nuevoRiesgo,
   onChange,
-  sections
+  sections,
+  errors = {}
 }) => {
-  const field = (label, name, options = {}) => (
-    <TextField
-      fullWidth
-      variant="outlined"
-      label={label}
-      name={name}
-      value={options.value ?? nuevoRiesgo[name] ?? ""}
-      onChange={onChange}
-      disabled={options.disabled}
-      multiline={options.multiline}
-      minRows={options.minRows || 1}
-      type={options.type || "text"}
-      InputLabelProps={options.InputLabelProps}
-      sx={{ mb: 2 }}
-    />
-  );
+  const [characterCount, setCharacterCount] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // Inicializar contador de caracteres
+    const initialCounts = {};
+    Object.keys(nuevoRiesgo).forEach(key => {
+      if (typeof nuevoRiesgo[key] === 'string') {
+        initialCounts[key] = nuevoRiesgo[key].length;
+      }
+    });
+    setCharacterCount(initialCounts);
+  }, [nuevoRiesgo]);
+
+
+  const handleGuardarClick = async () => {
+    try {
+      setSaving(true);
+      await onGuardar(); // tu función ya existente (puede ser async)
+    } finally {
+      setSaving(false);
+    }
+  };
+  const handleFieldChange = (e) => {
+    const { name, value } = e.target;
+
+    // Actualizar contador de caracteres
+    setCharacterCount(prev => ({
+      ...prev,
+      [name]: value.length
+    }));
+
+    // Propagamos el cambio
+    onChange(e);
+  };
+
+  const field = (label, name, options = {}) => {
+    const maxLength = options.maxLength || 255;
+    const isError = errors[name] && errors[name] !== "";
+    const currentCount = characterCount[name] || 0;
+
+    return (
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          label={label}
+          name={name}
+          value={options.value ?? nuevoRiesgo[name] ?? ""}
+          onChange={handleFieldChange}
+          disabled={options.disabled}
+          multiline={options.multiline}
+          minRows={options.minRows || 1}
+          type={options.type || "text"}
+          InputLabelProps={options.InputLabelProps}
+          error={isError}
+          helperText={isError ? errors[name] : ""}
+          inputProps={{
+            maxLength: maxLength,
+            ...options.inputProps
+          }}
+        />
+        {options.multiline && (
+          <FormHelperText sx={{ textAlign: 'right' }}>
+            {currentCount}/{maxLength} caracteres
+          </FormHelperText>
+        )}
+      </Box>
+    );
+  };
 
   const renderSection = () => {
     switch (currentSection) {
       case 0:
         return (
           <>
-            {field("Fuente", "fuente")}
-            {field("Tipo de Riesgo", "tipoRiesgo")}
-            {field("Descripción", "descripcion", { multiline: true, minRows: 3 })}
+            {field("Fuente", "fuente", {
+              maxLength: 100,
+              helperText: "Origen del riesgo (proceso, actividad, etc.)"
+            })}
+            {field("Tipo de Riesgo", "tipoRiesgo", {
+              maxLength: 100,
+              helperText: "Clasificación del riesgo"
+            })}
+            {field("Descripción", "descripcion", {
+              multiline: true,
+              minRows: 3,
+              maxLength: 500,
+              helperText: "Describa detalladamente el riesgo identificado"
+            })}
           </>
         );
       case 1:
         return (
           <>
-            {field("Consecuencias", "consecuencias")}
-            {field("Severidad", "valorSeveridad", { type: "number" })}
-            {field("Ocurrencia", "valorOcurrencia", { type: "number" })}
+            {field("Consecuencias", "consecuencias", {
+              maxLength: 255,
+              helperText: "Impacto potencial del riesgo"
+            })}
+            {field("Severidad (1-100)", "valorSeveridad", {
+              type: "number",
+              inputProps: { min: 1, max: 100 },
+              helperText: "Evalúe la severidad del impacto (1=mínimo, 100=máximo)"
+            })}
+            {field("Ocurrencia (1-100)", "valorOcurrencia", {
+              type: "number",
+              inputProps: { min: 1, max: 100 },
+              helperText: "Probabilidad de ocurrencia (1=baja, 100=alta)"
+            })}
             {field("NRP", "valorNRP", {
               type: "number",
               disabled: true,
-              value: nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad || ""
+              value: (nuevoRiesgo.valorOcurrencia || 0) * (nuevoRiesgo.valorSeveridad || 0),
+              helperText: "Nivel de Riesgo Prioritario (Severidad × Ocurrencia)"
             })}
-          </>
-        );
-      case 2:
-        return (
-          <>
-            {field("Actividades", "actividades", {
-              multiline: true,
-              minRows: 3,
-              disabled: true,
-              variant: "filled",
-              sx: { backgroundColor: "#f5f5f5" }
-            })}
-
-            {field("Acción de Mejora", "accionMejora", {
-              disabled: true,
-              variant: "filled",
-              sx: { backgroundColor: "#f5f5f5" }
-            })}
-
-            {field("Fecha de Implementación", "fechaImp", {
-              type: "date",
-              InputLabelProps: { shrink: true }
-            })}
-
-            {field("Fecha de Evaluación", "fechaEva", {
-              type: "date",
-              InputLabelProps: { shrink: true }
-            })}
-
-            {field("Responsable", "responsable", {
-              disabled: true,
-              variant: "filled",
-              sx: { backgroundColor: "#f5f5f5" }
-            })}
-          </>
-        );
-
-      case 3:
-        const valorNRP = nuevoRiesgo.valorOcurrencia * nuevoRiesgo.valorSeveridad || 0;
-        const reevaluacionNRP = nuevoRiesgo.reevaluacionOcurrencia * nuevoRiesgo.reevaluacionSeveridad || 0;
-        const efectividad = reevaluacionNRP < valorNRP ? "Mejoró" : "No mejoró";
-
-        return (
-          <>
-            {field("Reevaluación Severidad", "reevaluacionSeveridad", { type: "number" })}
-            {field("Reevaluación Ocurrencia", "reevaluacionOcurrencia", { type: "number" })}
-            {field("Reevaluación NRP", "reevaluacionNRP", {
-              type: "number",
-              disabled: true,
-              value: reevaluacionNRP
-            })}
-            {field("Reevaluación Efectividad", "reevaluacionEfectividad", {
-              disabled: true,
-              value: efectividad
-            })}
-            {field("Análisis de Efectividad", "analisisEfectividad")}
           </>
         );
       default:
         return null;
     }
   };
+
+  // Para creación nueva, solo mostramos las primeras 2 secciones
+  const showNavigation = !isEditing || currentSection < 2;
+  const canProceed = currentSection === 0 ?
+    (nuevoRiesgo.fuente && nuevoRiesgo.tipoRiesgo && nuevoRiesgo.descripcion) :
+    (nuevoRiesgo.valorSeveridad && nuevoRiesgo.valorOcurrencia);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -132,6 +162,8 @@ const RiesgoModal = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: 640,
+          maxHeight: "90vh",
+          overflowY: "auto",
           bgcolor: "#fff",
           boxShadow: 6,
           p: 4,
@@ -169,18 +201,36 @@ const RiesgoModal = ({
               </CustomButton>
             </Grid>
           )}
+
           <Grid item ml="auto">
-            {currentSection < 3 ? (
-              <CustomButton type="aceptar" onClick={onSiguiente}>
+            {currentSection < 1 ? (
+              <CustomButton
+                type="aceptar"
+                onClick={onSiguiente}
+                disabled={!canProceed}
+              >
                 Siguiente
               </CustomButton>
             ) : (
-              <CustomButton type="guardar" onClick={onGuardar}>
+              <CustomButton
+                type="guardar"
+                onClick={handleGuardarClick}
+                disabled={!canProceed}
+                loading={saving}
+              >
                 {isEditing ? "Actualizar" : "Guardar"}
               </CustomButton>
+
             )}
           </Grid>
         </Grid>
+
+        {!isEditing && (
+          <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic', color: 'text.secondary' }}>
+            Nota: Los campos de Tratamiento y Evaluación se completarán automáticamente
+            desde el Plan de Trabajo después de guardar este riesgo.
+          </Typography>
+        )}
       </Box>
     </Modal>
   );
