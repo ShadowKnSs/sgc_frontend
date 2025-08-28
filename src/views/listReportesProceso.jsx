@@ -323,7 +323,7 @@ const ReportesDeProceso = () => {
         onClick={() => setSearchOpen(!searchOpen)}
         sx={{
           position: "absolute",
-          top: "60%",
+          top: "40%",
           left: "3%",
           transform: "translateY(-50%)",
           width: "5px",

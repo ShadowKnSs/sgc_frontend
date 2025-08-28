@@ -650,6 +650,7 @@ const FormularioAnalisis = () => {
               }
               variant="outlined"
               disabled={soloLectura}
+              
             />
           </Grid>
           <Grid item xs={6}>
