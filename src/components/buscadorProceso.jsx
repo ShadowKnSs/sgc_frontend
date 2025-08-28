@@ -13,6 +13,8 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
   const [selectedProceso, setSelectedProceso] = useState('todos');
   const [procesos, setProcesos] = useState([]);
 
+  const [lider, setLider] = useState("");
+
   const API_URL = 'http://127.0.0.1:8000/api/procesos-buscar';
 
   const validateYear = (year) => {
@@ -48,7 +50,7 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
     setLoadingResults(true);
     try {
       const response = await axios.get(API_URL, { 
-        params: { anio: searchTerm } 
+        params: { anio: searchTerm, lider }
       });
       
       if (response.data.success) {
@@ -83,7 +85,6 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
     searchProcesos();
   };
 
-
   const handleFilterChange = (event) => {
     setSelectedProceso(event.target.value);
   };
@@ -94,21 +95,12 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
       open={open} 
       onClose={onClose}
       PaperProps={{
-        sx: { 
-          width: 450,
-          overflowY: 'auto'
-        }
+        sx: { width: 450, overflowY: 'auto' }
       }}
     >
       <Box sx={{ p: 3 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 3,
-          borderBottom: '1px solid #eee',
-          pb: 2
-        }}>
+        {/* --- Cabecera --- */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, borderBottom: '1px solid #eee', pb: 2 }}>
           <Typography variant="h5" fontWeight="bold">
             Buscar Reportes de Procesos
           </Typography>
@@ -117,31 +109,43 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
           </IconButton>
         </Box>
         
+        {/* --- Input Año --- */}
         <TextField 
           label="Año del reporte (4 dígitos)"
           variant="outlined"
           fullWidth
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+            setSearchTerm(value);
+          }}
+          inputProps={{
+            inputMode: "numeric", 
+            pattern: "[0-9]*",   
+            maxLength: 4   
+          }}
           error={inputError}
           helperText={inputError ? "Ingrese un año válido (ej. 2023)" : ""}
           sx={{ mb: 2 }}
         />
-        
+
+        <TextField 
+          label="Líder de proceso"
+          variant="outlined"
+          fullWidth
+          value={lider}
+          onChange={(e) => setLider(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+
+        {/* --- Botón Buscar --- */}
         <Button 
           variant="contained" 
           onClick={handleSearch} 
           disabled={loadingResults}
           fullWidth
-          sx={{ 
-            py: 1.5,
-            mb: 3,
-            fontWeight: 'bold',
-            backgroundColor: '#1976d2',
-            '&:hover': {
-              backgroundColor: '#1565c0'
-            }
-          }}
+          sx={{ py: 1.5, mb: 3, fontWeight: 'bold', backgroundColor: '#1976d2',
+            '&:hover': { backgroundColor: '#1565c0' } }}
         >
           {loadingResults ? (
             <CircularProgress size={24} sx={{ color: 'white' }} />
@@ -150,6 +154,7 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
           )}
         </Button>
 
+        {/* --- Filtro de proceso --- */}
         {hasSearched && !loadingResults && procesos.length > 0 && (
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="proceso-filter-label">Filtrar por proceso</InputLabel>
@@ -158,119 +163,47 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
               value={selectedProceso}
               onChange={handleFilterChange}
               label="Filtrar por proceso"
-              sx={{
-                '& .MuiSelect-select': {
-                  py: 1.5
-                }
-              }}
+              sx={{ '& .MuiSelect-select': { py: 1.5 } }}
             >
               <MenuItem value="todos">
                 <Typography fontWeight="medium">Todos los procesos</Typography>
               </MenuItem>
               {procesos.map((proceso) => (
-                <MenuItem 
-                  key={proceso.idProceso} 
-                  value={proceso.idProceso}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <span>{proceso.nombreProceso}</span>
-                  <Typography 
-                    variant="caption" 
-                    color="textSecondary"
-                    sx={{ ml: 1 }}
-                  >
-                  </Typography>
+                <MenuItem key={proceso.idProceso} value={proceso.idProceso}>
+                  {proceso.nombreProceso}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         )}
 
+        {/* --- Resultados --- */}
         {hasSearched && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1" sx={{ mb: 2 }}>
-              {filteredResults.length > 0 ? (
-                <>
-                  Mostrando <strong>{filteredResults.length}</strong> de <strong>{allResults.length}</strong> reportes para <strong>{searchTerm}</strong>
-                  {selectedProceso !== 'todos' && (
-                    <span> (filtrado por <strong>{
-                      procesos.find(p => p.idProceso === selectedProceso)?.nombreProceso || 'proceso seleccionado'
-                    }</strong>)</span>
-                  )}
-                </>
-              ) : (
-                `No hay reportes para ${searchTerm}${
-                  selectedProceso !== 'todos' ? ' con el filtro aplicado' : ''
-                }`
-              )}
-            </Typography>
-
-            {loadingResults ? (
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                height: 200
-              }}>
-                <CircularProgress />
-              </Box>
-            ) : filteredResults.length > 0 ? (
-              <Grid container spacing={2}>
-                {filteredResults.map((reporte) => (
-                  <Grid item xs={12} key={reporte.id}>
-                    <Card
-                      variant="outlined"
-                      sx={{
-                        transition: 'box-shadow 0.3s',
-                        '&:hover': {
-                          boxShadow: 2
-                        }
-                      }}
-                    >
-                      <CardContent>
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            mb: 1,
-                            color: '#1976d2'
-                          }}
-                        >
-                          {reporte.nombre || 'Reporte sin nombre'}
-                        </Typography>
-                        
-                        <Box sx={{ 
-                          display: 'flex', 
-                          flexWrap: 'wrap',
-                          gap: 2,
-                          mb: 2
-                        }}>
-                          <Typography variant="body2">
-                            <strong>Fecha:</strong> {reporte.fecha}
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
-              <Box sx={{ 
-                textAlign: 'center', 
-                p: 4,
-                border: '1px dashed #ddd',
-                borderRadius: 1,
-                backgroundColor: '#f9f9f9'
-              }}>
-                <Typography variant="body1" color="textSecondary">
-                  {allResults.length === 0 
-                    ? `No se encontraron reportes para el año ${searchTerm}`
-                    : `No hay resultados para el filtro seleccionado`}
+            {filteredResults.length > 0 ? (
+              <>
+                <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                  Mostrando <strong>{filteredResults.length}</strong> de <strong>{allResults.length}</strong> reportes 
+                  para <strong>{searchTerm}</strong>
+                  {lider && <> con líder <strong>{lider}</strong></>}
                 </Typography>
-              </Box>
+                <Grid container spacing={2}>
+                  {filteredResults.map((reporte) => (
+                    <Grid item xs={12} key={reporte.id}>
+                      <Card variant="outlined" sx={{ '&:hover': { boxShadow: 2 } }}>
+                        <CardContent>
+                          <Typography variant="h6" sx={{ mb: 1, color: '#1976d2' }}>
+                            {reporte.nombre || 'Reporte sin nombre'}
+                          </Typography>
+                          <Typography variant="body2"><strong>Fecha:</strong> {reporte.fecha}</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </>
+            ) : (
+              <Typography>No hay resultados</Typography>
             )}
           </Box>
         )}
@@ -281,16 +214,12 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
           onClose={() => setError(null)}
           message={error}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          sx={{ 
-            '& .MuiSnackbarContent-root': { 
-              fontWeight: 'bold',
-              backgroundColor: '#d32f2f'
-            } 
-          }}
+          sx={{ '& .MuiSnackbarContent-root': { fontWeight: 'bold', backgroundColor: '#d32f2f' } }}
         />
       </Box>
     </Drawer>
   );
 };
+
 
 export default BuscadorProceso;
