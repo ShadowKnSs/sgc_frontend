@@ -19,7 +19,6 @@ const ReportCard = ({ report, onDelete }) => {
         "&:hover": { transform: "translateY(-4px)" }
       }}
     >
-      {/* Contenido centrado */}
       <Box sx={{ 
         mb: 1, 
         display: "flex", 
@@ -43,7 +42,6 @@ const ReportCard = ({ report, onDelete }) => {
         </Typography>
       </Box>
 
-      {/* Botones (se mantienen en su posición actual) */}
       <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
         <Button
           variant="contained"
