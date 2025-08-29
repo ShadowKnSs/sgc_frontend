@@ -84,6 +84,41 @@ export const useEntidades = () => {
         }
     }, [showSnackbar]);
 
+    const toggleEntidad = useCallback(async (id, estadoActual) => {
+        try {
+        // Si está activa (1) la desactivamos (0), y viceversa
+        const nuevoEstado = estadoActual === 1 ? 0 : 1;
+
+        // Enviar al backend el cambio de estado
+        await axios.put(`${API_URL}/${id}`, { activo: nuevoEstado });
+
+        // Actualizar el estado local
+        setEntidades(prev =>
+            prev.map(entidad =>
+                entidad.idEntidadDependencia === id
+                    ? { ...entidad, activo: nuevoEstado }
+                    : entidad
+            )
+        );
+
+        showSnackbar(
+            'success',
+            'Éxito',
+            nuevoEstado === 1
+                ? 'Entidad activada correctamente'
+                : 'Entidad desactivada correctamente'
+        );
+        await axios.post(`${API_URL}/${id}/toggleProcesos`, { idEntidadDependencia: id });
+    } catch (error) {
+        const message =
+            error.response?.data?.error ||
+            'Error al cambiar el estado de la entidad';
+        showSnackbar('error', 'Error', message);
+        throw error;
+    }
+}, [showSnackbar]);
+
+
     return {
         entidades,
         loading,
@@ -96,6 +131,7 @@ export const useEntidades = () => {
         crearEntidad,
         actualizarEntidad,
         eliminarEntidad,
+        toggleEntidad,
         showSnackbar,
         handleCloseSnackbar
     };

@@ -39,6 +39,9 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+
 
 const iconMap = {
   Business: <BusinessIcon />,
@@ -84,7 +87,7 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
-const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete }) => {
+const CardEntidad = ({ title, icon, isActive, handleClick, handleEdit, handleToggle }) => {
   return (
     <Card
       onClick={handleClick}
@@ -138,7 +141,7 @@ const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete }) => 
 
         <IconButton
           size="small"
-          onClick={handleDelete}
+          onClick={handleToggle}
           sx={{
             backgroundColor: "#E57373",
             color: "#fff",
@@ -147,7 +150,7 @@ const CardEntidad = ({ title, icon, handleClick, handleEdit, handleDelete }) => 
             }
           }}
         >
-          <DeleteIcon fontSize="small" />
+          {isActive ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
         </IconButton>
       </Box>
 
