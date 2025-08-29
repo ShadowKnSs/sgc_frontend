@@ -37,8 +37,8 @@
  * - Soporte para paginación si la cantidad de entidades crece.
  */
 
-import React, { useState, useEffect } from "react";
-import { Box, CircularProgress } from "@mui/material";
+import React, { useState, useEffect, useMemo } from "react";
+import { Box, CircularProgress, Stack, TextField, MenuItem } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -116,9 +116,9 @@ const iconMap = {
 const Entity = () => {
   const navigate = useNavigate();
   const [entidades, setEntidades] = useState([]);
+  const [entidadesFiltradas, setEntidadesFiltradas] = useState([]); // <- la salida del Buscador
   const [loading, setLoading] = useState(true);
-  const [entidadesFiltradas, setEntidadesFiltradas] = useState([]);
-
+  const [tipoFilter, setTipoFilter] = useState(""); // "", "Entidad", "Dependencia"
 
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -126,12 +126,14 @@ const Entity = () => {
 
     if (!usuario || !rolActivo) {
       console.error("No se encontró información del usuario o rol.");
+      setLoading(false);
       return;
     }
 
     const permisos = rolActivo.permisos || [];
     const puedeVerProcesos = permisos.some(
-      (permiso) => permiso.modulo === "Entidades" &&
+      (permiso) =>
+        permiso.modulo === "Entidades" &&
         ["Lectura", "Edición", "Administración"].includes(permiso.tipoAcceso)
     );
 
@@ -147,27 +149,69 @@ const Entity = () => {
         rolActivo: rolActivo.nombreRol,
       })
       .then((response) => {
-        console.log("📦 Entidades desde backend:", response.data.entidades);
-
-        const entidadesConIcono = response.data.entidades.map((entidad) => ({
+        const entidadesCrudas = response.data.entidades || [];
+        const entidadesConIcono = entidadesCrudas.map((entidad) => ({
           ...entidad,
-          icono: iconMap[entidad.icono] || <BusinessIcon />, // ícono por defecto si no se encuentra
+          icono: (typeof iconMap !== "undefined" && iconMap?.[entidad.icono]) || <BusinessIcon />,
         }));
 
         setEntidades(entidadesConIcono);
+        // Inicialmente, mostrar todas
         setEntidadesFiltradas(entidadesConIcono);
-
       })
-      .catch((error) =>
-        console.error("❌ Error al obtener entidades:", error)
-      )
+      .catch((error) => console.error("❌ Error al obtener entidades:", error))
       .finally(() => setLoading(false));
   }, []);
 
-  return (
-    <Box sx={{ width: "100%", paddingX: "20px", marginTop: "40px" }}>
-      <Buscador entidades={entidades} onFiltrar={setEntidadesFiltradas} />
+  const entidadesMostradas = useMemo(() => {
 
+    return (entidadesFiltradas || []).filter((ent) => {
+      console.log("Comparando:", ent);
+      if (tipoFilter === "") return true;
+      return ent.tipo === tipoFilter;
+    });
+  }, [entidadesFiltradas, tipoFilter]);
+
+  return (
+    <Box sx={{ width: "100%", px: 2, mt: 4 }}>
+      {/* Toolbar: Buscador + MenuItem por tipo */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1.5}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        justifyContent="center"
+        sx={{
+          mb: 3,
+          zIndex: 1,
+          bgcolor: "background.paper",
+          py: 1.5,
+          borderBottom: 1,
+          borderColor: "divider",
+          flexWrap: "wrap", 
+          gap: 2,           
+        }}
+      >
+        <Buscador
+          entidades={entidades}
+          onFiltrar={setEntidadesFiltradas}
+        />
+
+        <TextField
+          select
+          size="small"
+          label="Tipo"
+          value={tipoFilter}
+          onChange={(e) => setTipoFilter(e.target.value)}
+          sx={{ minWidth: 160, maxWidth: 200 }} // ✅ evita que crezca demasiado
+        >
+          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="Entidad">Entidad</MenuItem>
+          <MenuItem value="Dependencia">Dependencia</MenuItem>
+        </TextField>
+      </Stack>
+
+
+      {/* Grid de tarjetas */}
       <Box
         sx={{
           display: "grid",
@@ -176,8 +220,8 @@ const Entity = () => {
           justifyContent: "center",
           alignItems: "start",
           textAlign: "center",
-          marginTop: "80px",
-          paddingX: "20px",
+          mt: 4,
+          px: 2,
           width: "100%",
         }}
       >
@@ -186,14 +230,12 @@ const Entity = () => {
             <CircularProgress />
           </Box>
         ) : (
-          entidadesFiltradas.map((entidad) => (
+          entidadesMostradas.map((entidad) => (
             <MenuCard
               key={entidad.idEntidadDependencia}
               icon={entidad.icono}
               title={entidad.nombreEntidad}
-              onClick={() =>
-                navigate(`/procesos/${entidad.idEntidadDependencia}`)
-              }
+              onClick={() => navigate(`/procesos/${entidad.idEntidadDependencia}`)}
             />
           ))
         )}

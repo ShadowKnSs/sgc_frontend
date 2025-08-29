@@ -32,11 +32,11 @@
  * Cada proceso tiene un campo `icono` que debe coincidir con los nombres definidos en `iconOptions`.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom"; 
 import axios from "axios";
 import MenuCard from "../components/menuCard"; 
-import { Box, CircularProgress, Alert } from "@mui/material";
+import { Box, CircularProgress, Alert, Stack, TextField, MenuItem } from "@mui/material";
 import Title from "../components/Title"; 
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -107,82 +107,120 @@ const iconOptions = [
 
 ];
 
+const macroprocesoMap = {
+  1: "Gestión Escolar",
+  2: "Desarrollo y Formación Integral del Estudiante",
+  3: "Gestión Administrativa"
+};
+
 const ProcessInEntity = () => {
-    const { idEntidad } = useParams(); 
-    const navigate = useNavigate(); 
-    const [procesos, setProcesos] = useState([]);
-    const [nombreEntidad, setNombreEntidad] = useState("");
-    const [isLoading, setIsLoading] = useState(true); 
+  const { idEntidad } = useParams(); 
+  const navigate = useNavigate(); 
+  const [procesos, setProcesos] = useState([]);
+  const [nombreEntidad, setNombreEntidad] = useState("");
+  const [isLoading, setIsLoading] = useState(true); 
+  const [macroFilter, setMacroFilter] = useState("");
 
-    useEffect(() => {
-        if (!idEntidad) {
-            console.error("ID de entidad no recibido");
-            return;
-        }
+  useEffect(() => {
+    if (!idEntidad) return;
 
-        axios.get(`http://127.0.0.1:8000/api/procesos/entidad/${idEntidad}`)
-            .then(response => {
-                console.log("Procesos obtenidos:", response.data);
-                setProcesos(response.data.procesos || response.data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Error obteniendo procesos:", error);
-                setIsLoading(false);
-            });
+    axios.get(`http://127.0.0.1:8000/api/procesos/entidad/${idEntidad}`)
+      .then(response => {
+        setProcesos(response.data.procesos || response.data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error("Error obteniendo procesos:", error);
+        setIsLoading(false);
+      });
 
-        axios.get(`http://127.0.0.1:8000/api/entidades/${idEntidad}`)
-            .then(response => setNombreEntidad(response.data.nombreEntidad))
-            .catch(error => console.error("Error obteniendo el nombre de la entidad:", error));
+    axios.get(`http://127.0.0.1:8000/api/entidades/${idEntidad}`)
+      .then(response => setNombreEntidad(response.data.nombreEntidad))
+      .catch(error => console.error("Error obteniendo el nombre de la entidad:", error));
+  }, [idEntidad]);
 
-    }, [idEntidad]);
+  // Filtrado por macroproceso
+  const procesosFiltrados = useMemo(() => {
+    return procesos.filter(p => {
+      if (!macroFilter) return true;
+      return p.idMacroproceso === parseInt(macroFilter);
+    });
+  }, [procesos, macroFilter]);
 
-    return (
+  // Detectar macroprocesos presentes
+  const macroProcesosPresentes = useMemo(() => {
+    const setMacro = new Set(procesos.map(p => p.idMacroproceso));
+    return Array.from(setMacro); // Array de ids distintos
+  }, [procesos]);
+
+  
+  return (
+    <Box sx={{ textAlign: "center", padding: "20px" }}>
+      <Title text={`Procesos de ${nombreEntidad}`} />
+
+      {/* Mostrar filtro solo si hay más de un macroproceso */}
+      {procesos.length > 0 && macroProcesosPresentes.length > 1 && (
+        <Stack
+          direction="row"
+          spacing={2}
+          justifyContent="flex-end"
+          sx={{ mb: 3 }}
+        >
+          <TextField
+            select
+            size="small"
+            label="Macroproceso"
+            value={macroFilter}
+            onChange={(e) => setMacroFilter(e.target.value)}
+            sx={{ minWidth: 250 }}
+          >
+            <MenuItem value="">Todos</MenuItem>
+            {macroProcesosPresentes.map(id => (
+              <MenuItem key={id} value={id}>{macroprocesoMap[id]}</MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+      )}
+
+      {isLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
+        <Box 
+          sx={{
+            display: "flex", 
+            flexWrap: "wrap", 
+            justifyContent: "center", 
+            gap: "16px", 
+            marginTop: "20px"
+          }}
+        >
+          {procesosFiltrados.length === 0 ? (
+            <Alert severity="warning" sx={{ width: "50%", margin: "0 auto" }}>
+              No se encontraron procesos para esta entidad.
+            </Alert>
+          ) : (
+            procesosFiltrados.map(proceso => {
+              const iconObj = iconOptions.find(icon => icon.name === proceso.icono);
+              const IconComponent = iconObj ? iconObj.component : null;
         
-        <Box sx={{ textAlign: "center", padding: "20px" }}>
-            
-            {/* Título mejorado con el componente Title */}
-            <Title text={`Procesos de ${nombreEntidad}`} />
-
-            {/* Indicador de carga elegante */}
-            {isLoading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-                    <CircularProgress color="primary" />
-                </Box>
-            ) : (
-                <Box 
-                    sx={{
-                        display: "flex", 
-                        flexWrap: "wrap", 
-                        justifyContent: "center", 
-                        gap: "16px", 
-                        marginTop: "20px"
-                    }}
-                >
-                    {procesos.length === 0 ? (
-                        <Alert severity="warning" sx={{ width: "50%", margin: "0 auto" }}>
-                            No se encontraron procesos para esta entidad.
-                        </Alert>
-                    ) : (
-                        procesos.map(proceso => {
-                            const iconObj = iconOptions.find(icon => icon.name === proceso.icono);
-                            const IconComponent = iconObj ? iconObj.component : null;
-              
-                            return (
-                              <MenuCard 
-                                key={proceso.idProceso}
-                                icon={IconComponent || null}
-                                title={proceso.nombreProceso}
-                                onClick={() => navigate(`/estructura-procesos/${proceso.idProceso}`)}
-                              />
-                            );
-                          })
-                        )}
-                      </Box>
-                    )}
-                  </Box>
-                );
-              };
+              return (
+                <MenuCard 
+                  key={proceso.idProceso}
+                  icon={IconComponent || null}
+                  title={proceso.nombreProceso}
+                  onClick={() => navigate(`/estructura-procesos/${proceso.idProceso}`)}
+                />
+              );
+            })
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 export default ProcessInEntity;
+
 

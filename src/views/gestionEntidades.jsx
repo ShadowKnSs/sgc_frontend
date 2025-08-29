@@ -23,6 +23,8 @@ import FeedbackSnackbar from '../components/Feedback';
 import EmptyStateEnty from '../components/EmptyStateEnty';
 import ConfirmToggle from '../components/confirmToogle';
 import { useEntidades } from '../hooks/useEntidades';
+import { Stack, TextField, InputAdornment, IconButton, MenuItem } from "@mui/material";
+import { Search as SearchIcon, Clear as ClearIcon } from "@mui/icons-material";
 
 const GestionEntidades = () => {
   const theme = useTheme();
@@ -47,6 +49,8 @@ const GestionEntidades = () => {
   const [entidadAEditar, setEntidadAEditar] = useState(null);
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [entidadEditada, setEntidadEditada] = useState(null);
+  const [q, setQ] = useState(""); // buscador
+  const [tipoFilter, setTipoFilter] = useState("");
 
   useEffect(() => {
     obtenerEntidades();
@@ -151,43 +155,103 @@ const GestionEntidades = () => {
         />
       );
     }
+    const filteredEntidades = entidades.filter((ent) => {
+  const matchesSearch = ent.nombreEntidad.toLowerCase().includes(q.toLowerCase());
+  const matchesTipo = tipoFilter === "" || ent.tipo === tipoFilter;
+  return matchesSearch && matchesTipo;
+});
+
 
     return (
       <Grid container spacing={3}>
-        {entidades.map((entidad, index) => (
-          <Grid item xs={12} sm={6} md={4} key={entidad.idEntidadDependencia}>
-            <CardEntidad
-              title={entidad.nombreEntidad}
-              icon={entidad.icono}
-              subtitle={`${entidad.tipo} - ${entidad.ubicacion}`}
+        {filteredEntidades.map((entidad, index) => (
+  <Grid item xs={12} sm={6} md={4} key={entidad.idEntidadDependencia}>
+    <CardEntidad
+      title={entidad.nombreEntidad}
+      icon={entidad.icono}
+      subtitle={`${entidad.tipo} - ${entidad.ubicacion}`}
               isActive={entidad.activo === 1}
-              handleClick={() => console.log('Ver entidad', entidad)}
-              handleEdit={() => handleEditar(index)}
-              handleToggle={() => handleShowConfirmToggle(index)}
-            />
-          </Grid>
-        ))}
+      handleClick={() => console.log("Ver entidad", entidad)}
+      handleEdit={() => handleEditar(index)}
+      handleToggle={() => handleShowConfirmToggle(index)}
+    />
+  </Grid>
+))}
+
       </Grid>
     );
-  }, [entidades, loading, error, handleOpenDialog, handleEditar, handleShowConfirmToggle]);
+  }, [entidades, loading, error, q, tipoFilter, handleOpenDialog, handleEditar, handleShowConfirmToggle]);
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, minHeight: '100vh' }}>
-      <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, minHeight: "100vh" }}>
+    <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
 
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Title 
-          text="Gestión de Entidades" 
-          sx={{ 
-            fontSize: { xs: "1.5rem", sm: "2rem" }, 
-            fontWeight: "bold",
-            mb: 1
-          }} 
-        />
-        <Typography variant="body1" color="text.secondary">
-          Administra las entidades y dependencias del sistema
-        </Typography>
-      </Box>
+    {/* Contenedor del título */}
+    <Box sx={{ textAlign: "center", mb: 4 }}>
+      <Title
+        text="Gestión de Entidades"
+        mode="sticky" 
+      />
+      <Typography variant="body1" color="text.secondary">
+        Administra las entidades y dependencias del sistema
+      </Typography>
+    </Box>
+
+    {/* Toolbar de filtros */}
+<Stack
+  direction={{ xs: "column", sm: "row" }}
+  spacing={1.5}
+  alignItems={{ xs: "stretch", sm: "center" }}
+  justifyContent="space-between"
+  sx={{
+    mb: 3,
+    zIndex: 1,
+    bgcolor: "background.paper",
+    py: 1.5,
+    borderBottom: 1,
+    borderColor: "divider",
+  }}
+>
+  {/* Buscador por nombreEntidad */}
+  <TextField
+    value={q}
+    onChange={(e) => setQ(e.target.value)}
+    placeholder="Buscar por nombre de entidad"
+    size="small"
+    fullWidth
+    inputProps={{ "aria-label": "Buscar entidades" }}
+    sx={{ maxWidth: 300 }}
+    InputProps={{
+      startAdornment: (
+        <InputAdornment position="start">
+          <SearchIcon fontSize="small" />
+        </InputAdornment>
+      ),
+      endAdornment: q ? (
+        <InputAdornment position="end">
+          <IconButton onClick={() => setQ("")} size="small">
+            <ClearIcon fontSize="small" />
+          </IconButton>
+        </InputAdornment>
+      ) : null,
+    }}
+  />
+
+  {/* Filtro por tipo */}
+  <TextField
+    select
+    size="small"
+    label="Tipo"
+    value={tipoFilter}
+    onChange={(e) => setTipoFilter(e.target.value)}
+    sx={{ minWidth: 200 }}
+  >
+    <MenuItem value="">Todos</MenuItem>
+    <MenuItem value="Entidad">Entidad</MenuItem>
+    <MenuItem value="Dependencia">Dependencia</MenuItem>
+  </TextField>
+</Stack>
+
 
       {entidadesList}
 

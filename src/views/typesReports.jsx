@@ -45,7 +45,7 @@ const TypesReports = () => {
                     zIndex: 1 // Eleva el título en caso de solapamiento
                 }}
             >
-                <Title text="Reportes" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
+                <Title text="Reportes" mode="sticky"  />
             </Box>
             <Box
                 sx={{

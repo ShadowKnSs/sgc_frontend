@@ -198,7 +198,7 @@ function Cronograma() {
       }}
     >
       <BreadcrumbNav items={[{ label: "Cronograma", icon: CalendarMonthIcon }]} />
-      <Title text="Cronograma de Auditorías" />
+      <Title text="Cronograma de Auditorías" mode="sticky" />
 
       {loading && (
         <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
