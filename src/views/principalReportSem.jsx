@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip } from "@mui/material";
+import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip, Typography } from "@mui/material";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -167,19 +167,26 @@ const PrincipalReportSem = () => {
                     <Title text="Reportes Semestrales" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
                 </Box>
 
-                {/* Grid de cards */}
-                <Grid container spacing={3} justifyContent="center">
-                    {reportes.map((reporte) => (
-                        <Grid item key={reporte.idReporteSemestral}>
-                            <ReporteSemCard
-                                anio={reporte.anio}
-                                periodo={reporte.periodo}
-                                fechaGeneracion={reporte.fechaGeneracion}
-                                ubicacion={reporte.ubicacion}
-                            />
-                        </Grid>
-                    ))}
-                </Grid>
+                {/* Grid de cards o mensaje si no hay reportes */}
+    {reportes.length === 0 ? (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
+        <Typography variant="h6" color="text.secondary" textAlign="center">
+          No hay reportes semestrales generados
+        </Typography>
+      </Box>
+    ) : (
+      <Grid container spacing={3} justifyContent="center">
+        {reportes.map((reporte) => (
+          <Grid item key={reporte.idReporteSemestral}>
+            <ReporteSemCard
+              anio={reporte.anio}
+              periodo={reporte.periodo}
+              fechaGeneracion={reporte.fechaGeneracion}
+              ubicacion={reporte.ubicacion}
+            />
+          </Grid>
+        ))}
+      </Grid>)}
 
                 {/* Botón flotante de búsqueda */}
                 <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
