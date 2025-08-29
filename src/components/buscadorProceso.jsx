@@ -140,7 +140,7 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
 
   return (
     <Drawer 
-      anchor="left" 
+      anchor="right" 
       open={open} 
       onClose={onClose}
       PaperProps={{

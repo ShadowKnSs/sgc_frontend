@@ -27,7 +27,8 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Modal, TextField, MenuItem, Typography } from "@mui/material";
+import { Box, Button, Modal, TextField, MenuItem, Typography, IconButton, Tooltip } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import FiltroAuditoria from "../components/buscadorAuditoria"
@@ -196,25 +197,8 @@ const ReportesAuditoria = () => {
                     <CircularProgress size={60} color="primary" />
                 </Box>
             )}
-            {/* 🔍 Línea lateral clickeable */}
-            <Box
-                onClick={() => setSearchOpen(!searchOpen)}
-                sx={{
-                    position: "absolute",
-                    top: "60%",
-                    left: "3%",
-                    transform: "translateY(-50%)",
-                    width: "5px",
-                    height: "1.5cm",
-                    bgcolor: "#D3D3D3",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    "&:hover": { bgcolor: "#004A98" },
-                    transition: "background-color 0.3s",
-                }}
-            />
-
-            {/* 🔎 Componente de búsqueda lat */}
+            
+            {/* 🔎 Componente de búsqueda lateral */}
             <FiltroAuditoria
                 open={searchOpen}
                 onClose={() => setSearchOpen(false)}
@@ -241,6 +225,27 @@ const ReportesAuditoria = () => {
                     ))}
                 </Box>
 
+                {/* 🔍 Botón flotante de búsqueda */}
+                <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
+                    <Tooltip title="Buscar Reportes">
+                        <IconButton
+                            onClick={() => setSearchOpen(!searchOpen)}
+                            sx={{
+                                backgroundColor: "#004A98",
+                                color: "white",
+                                "&:hover": { backgroundColor: "#003366" },
+                                width: 56,
+                                height: 56,
+                                borderRadius: "50%",
+                                boxShadow: 3
+                            }}
+                        >
+                            <SearchIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+
+                {/* ➕ Botón flotante para agregar */}
                 <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
                     <FabCustom
                         onClick={() => setOpenModal(true)} title="Agregar Reporte"
