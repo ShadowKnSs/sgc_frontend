@@ -575,9 +575,9 @@ function InformeAud() {
                         setVerificaciones(nuevas);
                       }}
                     >
-                      <MenuItem value="Mayor">Mayor</MenuItem>
-                      <MenuItem value="Menor">Menor</MenuItem>
-                      <MenuItem value="Oportunidad">Oportunidad</MenuItem>
+                      <MenuItem value="NC">NC</MenuItem>
+                      <MenuItem value="PM">PM</MenuItem>
+                      <MenuItem value="NINGUNO">NINGUNO</MenuItem>
                     </TextField>
                   </Grid>
                 </Grid>
