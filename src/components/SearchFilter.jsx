@@ -70,7 +70,7 @@ const SearchFilter = ({ open, onClose, searchTerm, setSearchTerm }) => {
   };
 
   return (
-    <Drawer anchor="left" open={open} onClose={onClose}>
+    <Drawer anchor="right" open={open} onClose={onClose}>
       <Box sx={{ width: 350, p: 3 }}>
         {/* Título y botón de cerrar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>

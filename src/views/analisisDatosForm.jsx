@@ -492,6 +492,10 @@ const FormularioAnalisis = () => {
                   onChange={handleChange}
                   fullWidth
                   sx={{ mt: 1 }}
+                  onKeyDown={(e) => {
+                    if (/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }}}
                 />
               ) : (
                 <Typography sx={{ ml: 4 }}>{formData.periodoEvaluacion || "Sin definir"}</Typography>
@@ -626,6 +630,7 @@ const FormularioAnalisis = () => {
               }
               variant="outlined"
               disabled={soloLectura}
+              
             />
           </Grid>
           <Grid item xs={6}>

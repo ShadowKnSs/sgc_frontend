@@ -55,13 +55,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Snackbar,
-  Alert,
-  Typography,
-  CircularProgress
-} from "@mui/material";
+import {Box, Snackbar, Alert, Typography, CircularProgress, IconButton, Tooltip} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import ReportCard from "../components/CardReport";
@@ -316,112 +311,115 @@ const ReportesDeProceso = () => {
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
   return (
-    <Box sx={{ p: 2, position: 'relative', minHeight: '100vh', display: "flex", flexDirection: "row" }}>
+  <Box sx={{ p: 2, position: 'relative', minHeight: '100vh', display: "flex", flexDirection: "row" }}>
 
-      {/* Barra lateral clickeable */}
-      <Box
-        onClick={() => setSearchOpen(!searchOpen)}
-        sx={{
-          position: "absolute",
-          top: "60%",
-          left: "3%",
-          transform: "translateY(-50%)",
-          width: "5px",
-          height: "1.5cm",
-          bgcolor: "#D3D3D3",
-          borderRadius: "10px",
-          cursor: "pointer",
-          "&:hover": { bgcolor: "#004A98" },
-          transition: "background-color 0.3s",
-        }}
-      />
+    {/* Filtro lateral */}
+    <FiltroReportes
+      open={searchOpen}
+      onClose={() => setSearchOpen(false)}
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+    />
 
-      {/* Filtro lateral */}
-      <FiltroReportes
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
-
-      {/* Contenido principal */}
-      <Box sx={{ flex: 1 }}>
-        <Box sx={{ textAlign: "center", paddingTop: 3 }}>
-          <Title text="Reportes de Proceso" />
-        </Box>
-
-        {loadingReports ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <>
-            {reports && reports.length > 0 ? (
-              reports.map((rep) => (
-                <ReportCard
-                  key={rep.idReporteProceso}
-                  report={rep}
-                  onClick={() => handleCardClick(rep)}
-                  onDelete={() => handleOpenDeleteModal(rep)}
-                />
-              ))
-            ) : (
-              <Typography variant="body1" sx={{ textAlign: "center", mt: 2 }}>
-                No hay reportes registrados.
-              </Typography>
-            )}
-          </>
-        )}
-
-        <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
-          <FloatingActionButton onClick={handleOpenModal} />
-        </Box>
-
-        {/* Modales */}
-        <DeleteConfirmModal
-          open={Boolean(reportToDelete)}
-          reportName={reportToDelete ? reportToDelete.nombreReporte : ""}
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
-        />
-        <GenerateReportModal
-          open={openModal}
-          onClose={handleCloseModal}
-          onSave={handleGuardarReporte}
-          entities={entities}
-          processes={processes}
-          years={years}
-          selectedEntity={selectedEntity}
-          selectedProcess={selectedProcess}
-          selectedYear={selectedYear}
-          setSelectedEntity={setSelectedEntity}
-          setSelectedProcess={setSelectedProcess}
-          setSelectedYear={setSelectedYear}
-        />
-
-        <ConfirmModal
-          open={confirmIncompleteOpen}
-          title="Información incompleta"
-          message="Algunos apartados del reporte no están completos. ¿Desea continuar?"
-          onAccept={handleConfirmIncompleteAccept}
-          onCancel={handleConfirmIncompleteCancel}
-        />
-
-        <WarningModal
-          open={warningReportExistsOpen}
-          title="Reporte Existente"
-          message={`Ya existe el reporte para el año ${selectedYear}. No se puede generar uno nuevo.`}
-          onClose={() => setWarningReportExistsOpen(false)}
-        />
-
-        <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}>
-          <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
+    {/* Contenido principal */}
+    <Box sx={{ flex: 1 }}>
+      <Box sx={{ textAlign: "center", paddingTop: 3 }}>
+        <Title text="Reportes de Proceso" />
       </Box>
+
+      {loadingReports ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {reports && reports.length > 0 ? (
+            reports.map((rep) => (
+              <ReportCard
+                key={rep.idReporteProceso}
+                report={rep}
+                onClick={() => handleCardClick(rep)}
+                onDelete={() => handleOpenDeleteModal(rep)}
+              />
+            ))
+          ) : (
+            <Typography variant="body1" sx={{ textAlign: "center", mt: 2 }}>
+              No hay reportes registrados.
+            </Typography>
+          )}
+        </>
+      )}
+
+      {/* Botón flotante de búsqueda */}
+      <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
+        <Tooltip title="Buscar Reportes">
+          <IconButton
+            onClick={() => setSearchOpen(!searchOpen)}
+            sx={{
+              backgroundColor: "#004A98",
+              color: "white",
+              "&:hover": { backgroundColor: "#003366" },
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              boxShadow: 3
+            }}
+          >
+            <SearchIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {/* Botón flotante para agregar */}
+      <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
+        <FloatingActionButton onClick={handleOpenModal} />
+      </Box>
+
+      {/* Modales */}
+      <DeleteConfirmModal
+        open={Boolean(reportToDelete)}
+        reportName={reportToDelete ? reportToDelete.nombreReporte : ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+      <GenerateReportModal
+        open={openModal}
+        onClose={handleCloseModal}
+        onSave={handleGuardarReporte}
+        entities={entities}
+        processes={processes}
+        years={years}
+        selectedEntity={selectedEntity}
+        selectedProcess={selectedProcess}
+        selectedYear={selectedYear}
+        setSelectedEntity={setSelectedEntity}
+        setSelectedProcess={setSelectedProcess}
+        setSelectedYear={setSelectedYear}
+      />
+
+      <ConfirmModal
+        open={confirmIncompleteOpen}
+        title="Información incompleta"
+        message="Algunos apartados del reporte no están completos. ¿Desea continuar?"
+        onAccept={handleConfirmIncompleteAccept}
+        onCancel={handleConfirmIncompleteCancel}
+      />
+
+      <WarningModal
+        open={warningReportExistsOpen}
+        title="Reporte Existente"
+        message={`Ya existe el reporte para el año ${selectedYear}. No se puede generar uno nuevo.`}
+        onClose={() => setWarningReportExistsOpen(false)}
+      />
+
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
-  );
+  </Box>
+);
 
 };
 

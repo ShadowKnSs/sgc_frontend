@@ -38,9 +38,10 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar } from "@mui/material";
+import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip } from "@mui/material";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
@@ -124,8 +125,6 @@ const PrincipalReportSem = () => {
             const results = await Promise.all(responses.map(res => res.json()));
 
             const nombresListas = ["Riesgos", "Indicadores", "AccionesMejora", "Auditorías", "Seguimiento"];
-            //const nombresListas = ["Riesgos", "Indicadores","Auditorías","Seguimiento"];
-
 
             let hayDatos = false;
             results.forEach((lista, index) => {
@@ -154,24 +153,6 @@ const PrincipalReportSem = () => {
 
     return (
         <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-            {/* Línea lateral clickeable */}
-            <Box
-                onClick={toggleSearch}
-                sx={{
-                    position: "absolute",
-                    top: "60%",
-                    left: "3%",
-                    transform: "translateY(-50%)",
-                    width: "5px",
-                    height: "1.5cm",
-                    bgcolor: "#D3D3D3",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    "&:hover": { bgcolor: "#004A98" },
-                    transition: "background-color 0.3s",
-                }}
-            />
-
             {/* Componente SearchFilter */}
             <SearchFilter
                 open={searchOpen}
@@ -200,7 +181,27 @@ const PrincipalReportSem = () => {
                     ))}
                 </Grid>
 
-                {/* Botón flotante */}
+                {/* Botón flotante de búsqueda */}
+                <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
+                    <Tooltip title="Buscar Reportes">
+                        <IconButton
+                            onClick={toggleSearch}
+                            sx={{
+                                backgroundColor: "#004A98",
+                                color: "white",
+                                "&:hover": { backgroundColor: "#003366" },
+                                width: 56,
+                                height: 56,
+                                borderRadius: "50%",
+                                boxShadow: 3
+                            }}
+                        >
+                            <SearchIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+
+                {/* Botón flotante para agregar */}
                 <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
                     <FabCustom
                         onClick={handleOpenForm}
@@ -208,7 +209,6 @@ const PrincipalReportSem = () => {
                         icon={<Add />}
                     />
                 </Box>
-
 
                 {/* Modal para generar reporte */}
                 <Modal open={open} onClose={handleCloseForm} aria-labelledby="modal-title">
@@ -281,3 +281,4 @@ const PrincipalReportSem = () => {
 };
 
 export default PrincipalReportSem;
+
