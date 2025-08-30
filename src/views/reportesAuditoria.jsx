@@ -413,7 +413,7 @@ const ReportCard = ({ report, onDelete }) => {
         <b>Proceso:</b> {report.proceso}
         </Typography>
         <Typography variant="body2">
-        <b>Líder:</b> {report.lider}
+        <b>Auditor líder:</b> {report.lider}
         </Typography>
         <Typography variant="body2">
         <b>Fecha:</b> {report.date}
