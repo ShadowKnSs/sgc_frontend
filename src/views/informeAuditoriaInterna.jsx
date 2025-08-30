@@ -294,6 +294,8 @@ function InformeAud() {
         plazos: plazos.filter(p => p.trim() !== ""),
         auditorLider: lider,
 
+        idAuditor: usuario?.idUsuario || null,
+
         equipoAuditor: equipoAuditor.map(item => ({
           rolAsignado: item.rol,
           nombreAuditor: item.auditor,
