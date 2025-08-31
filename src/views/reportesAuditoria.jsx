@@ -209,7 +209,6 @@ const ReportesAuditoria = () => {
                 </Box>
             )}
             
-            {/* 🔎 Componente de búsqueda lateral */}
             <FiltroAuditoria
                 open={searchOpen}
                 onClose={() => setSearchOpen(false)}
@@ -217,7 +216,6 @@ const ReportesAuditoria = () => {
                 setSearchTerm={setSearchTerm}
             />
 
-            {/* 🎯 Contenido principal */}
             <Box sx={{ flex: 1, p: 4 }}>
                 <Title text="Reportes Auditoría" />
                 {alerta.mensaje && (
@@ -236,7 +234,6 @@ const ReportesAuditoria = () => {
                     ))}
                 </Box>
 
-                {/* 🔍 Botón flotante de búsqueda */}
                 <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
                     <Tooltip title="Buscar Reportes">
                         <IconButton
@@ -256,7 +253,6 @@ const ReportesAuditoria = () => {
                     </Tooltip>
                 </Box>
 
-                {/* ➕ Botón flotante para agregar */}
                 <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
                     <FabCustom
                         onClick={() => setOpenModal(true)} title="Agregar Reporte"

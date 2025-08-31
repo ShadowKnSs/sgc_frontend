@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Box, Drawer, TextField, IconButton, Typography, 
-  Button, Snackbar, Grid, CircularProgress, MenuItem 
-} from '@mui/material';
+import{useState, useEffect} from 'react';
+import{Box, Drawer, TextField, IconButton, Typography, Button, Snackbar, Grid, CircularProgress, MenuItem} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import ReportCard from '../components/ReportCard';
@@ -18,15 +15,23 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
   const [auditoresOptions, setAuditoresOptions] = useState([]);
   const [loadingAuditores, setLoadingAuditores] = useState(false);
 
+  const [entidad, setEntidad] = useState('');
+  const [proceso, setProceso] = useState('');
+  const [entidadesOptions, setEntidadesOptions] = useState([]);
+  const [procesosOptions, setProcesosOptions] = useState([]);
+
   const API_URLS = {
     auditorias: 'http://127.0.0.1:8000/api/buscar-auditorias',
-    auditores: 'http://127.0.0.1:8000/api/auditores'
+    auditores: 'http://127.0.0.1:8000/api/auditores',
+    entidades: 'http://127.0.0.1:8000/api/entidades',
+    procesos: 'http://127.0.0.1:8000/api/procesos'
   };
 
-  // Cargar auditores al abrir el Drawer
   useEffect(() => {
     if (open) {
       fetchAuditores();
+      fetchEntidades();
+      fetchProcesos();
     }
   }, [open]);
 
@@ -55,6 +60,33 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
     }
   };
 
+  const fetchEntidades = async () => {
+    try {
+      const response = await axios.get(API_URLS.entidades);
+      if (response.data.entidades) {
+        setEntidadesOptions(response.data.entidades);
+      } else {
+        setEntidadesOptions([]);
+      }
+    } catch (err) {
+      console.error("Error al obtener entidades", err);
+      setEntidadesOptions([]);
+    }
+  };
+
+  const fetchProcesos = async () => {
+    try {
+      const response = await axios.get(API_URLS.procesos);
+      if (response.data.procesos) {
+        setProcesosOptions(response.data.procesos);
+      } else {
+        setProcesosOptions([]);
+      }
+    } catch (err) {
+      console.error("Error al obtener procesos", err);
+      setProcesosOptions([]);
+    }
+  };
 
   const handleYearChange = (e) => {
     const value = e.target.value;
@@ -105,7 +137,9 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
     try {
       const params = { 
         fechaGeneracion: searchTerm,
-        auditor 
+        auditor,
+        idEntidad: entidad,
+        idProceso: proceso
       };
       const response = await axios.get(API_URLS.auditorias, { params });
       const reportes = formatAuditorias(response.data);
@@ -138,6 +172,8 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
   const handleClearFilters = () => {
     setSearchTerm('');
     setAuditor('');
+    setEntidad('');
+    setProceso('');
     setAllResults([]);
     setHasSearched(false);
     setError(null);
@@ -194,6 +230,44 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
               </MenuItem>
             ))
           )}
+        </TextField>
+
+        <TextField
+          select
+          label="Entidad (opcional)"
+          variant="outlined"
+          fullWidth
+          value={entidad || ''} 
+          onChange={(e) => setEntidad(e.target.value)}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem value="">
+            <em>Todas las entidades</em>
+          </MenuItem>
+          {entidadesOptions.map((e) => (
+            <MenuItem key={e.idEntidadDependencia} value={e.idEntidadDependencia}>
+              {e.nombreEntidad}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          select
+          label="Proceso (opcional)"
+          variant="outlined"
+          fullWidth
+          value={proceso}
+          onChange={(e) => setProceso(e.target.value)}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem value="">
+            <em>Todos los procesos</em>
+          </MenuItem>
+          {procesosOptions.map((p) => (
+            <MenuItem key={p.idProceso} value={p.idProceso}>
+              {p.nombreProceso}
+            </MenuItem>
+          ))}
         </TextField>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
