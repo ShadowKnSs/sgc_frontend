@@ -7,7 +7,7 @@ import {
   InputAdornment,
   Box
 } from '@mui/material';
-import DialogActionButtons from '../DialogActionButtons';
+import CustomButton from "../Button";
 import DialogTitleCustom from "../TitleDialog";
 import { motion } from 'framer-motion';
 
@@ -15,6 +15,7 @@ const MotionBox = motion(Box);
 
 const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult, anio }) => {
   const [result, setResult] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open && indicator) {
@@ -24,22 +25,31 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult, anio
         setResult(savedResult?.resultadoSemestral1?.toString() || "");
       } else {
         setResult(savedResult?.result?.toString() || "");
+
       }
     }
   }, [open, savedResult, indicator]);
 
   const handleSave = () => {
     if (!indicator?.idIndicador) return;
+    setSaving(true);
+    try {
+      const payload = {
+        periodicidad: indicator.periodicidad,
+        result: indicator.periodicidad === "Anual"
+          ? { resultadoAnual: result }
+          : { resultadoSemestral1: result }
+      };
 
-    const payload = {
-      periodicidad: indicator.periodicidad,
-      result: indicator.periodicidad === "Anual"
-        ? { resultadoAnual: result }
-        : { resultadoSemestral1: result }
-    };
+      onSave(indicator.idIndicador, payload);
+      onClose();
+    } catch (error) {
+      console.error('Error al guardar:', error);
 
-    onSave(indicator.idIndicador, payload);
-    onClose();
+    } finally {
+      setSaving(false);
+    }
+
   };
 
   return (
@@ -71,14 +81,12 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult, anio
           />
         </DialogContent>
         <DialogActions>
-          <DialogActionButtons
-            onCancel={onClose}
-            onSave={handleSave}
-            saveText="Guardar"
-            cancelText="Cancelar"
-            saveColor="terciary.main"
-            cancelColor="primary.main"
-          />
+          <CustomButton type="cancelar" onClick={onClose} disabled={saving}>
+            Cancelar
+          </CustomButton>
+          <CustomButton type="guardar" onClick={handleSave} loading={saving}>
+            Guardar
+          </CustomButton>
         </DialogActions>
       </MotionBox>
     </Dialog>

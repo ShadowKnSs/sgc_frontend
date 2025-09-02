@@ -7,7 +7,7 @@ import {
   Grid,
   Box
 } from "@mui/material";
-import DialogActionButtons from "../DialogActionButtons";
+import CustomButton from "../Button";
 import DialogTitleCustom from "../TitleDialog";
 import { motion } from "framer-motion";
 
@@ -56,6 +56,8 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
     quejas: "",
     sugerencias: "",
   });
+  const [isSaving, setIsSaving] = useState(false);
+
 
   useEffect(() => {
     if (open) {
@@ -71,45 +73,49 @@ const ResultModalRetroalimentacion = ({ open, onClose, onSave, indicator, savedR
 
   const handleSave = () => {
     if (!indicator?.idIndicador) return;
+    try {
+      const resultData = {
+        cantidadFelicitacion: Number(formData.felicitaciones),
+        cantidadSugerencia: Number(formData.sugerencias),
+        cantidadQueja: Number(formData.quejas),
+      };
 
-    const resultData = {
-      cantidadFelicitacion: Number(formData.felicitaciones),
-      cantidadSugerencia: Number(formData.sugerencias),
-      cantidadQueja: Number(formData.quejas),
+      onSave(indicator.idIndicador, { result: resultData });
+      onClose();
+    } catch (error) {
+      console.error('Error al guardar:', error);
+    } finally {
+      setIsSaving(false);
+
     };
-
-    onSave(indicator.idIndicador, { result: resultData });
-    onClose();
   };
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <MotionBox
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.60 }}
-      >
-        <DialogTitleCustom
-          title="Registrar Resultado"
-          subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
-        />
-        <DialogContent>
-          <RetroalimentacionContent formData={formData} setFormData={setFormData} />
-        </DialogContent>
-        <DialogActions>
-          <DialogActionButtons
-            onCancel={onClose}
-            onSave={handleSave}
-            saveText="Guardar"
-            cancelText="Cancelar"
-            saveColor="terciary.main"
-            cancelColor="primary.main"
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <MotionBox
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.60 }}
+        >
+          <DialogTitleCustom
+            title="Registrar Resultado"
+            subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
           />
-        </DialogActions>
-      </MotionBox>
-    </Dialog>
-  );
-};
+          <DialogContent>
+            <RetroalimentacionContent formData={formData} setFormData={setFormData} />
+          </DialogContent>
+          <DialogActions>
+            <CustomButton type="cancelar" onClick={onClose} disabled={isSaving}>
+              Cancelar
+            </CustomButton>
+            <CustomButton type="guardar" onClick={handleSave} loading={isSaving}>
+              Guardar
+            </CustomButton>
+          </DialogActions>
+        </MotionBox>
+      </Dialog>
+    );
+  };
 
-export default ResultModalRetroalimentacion;
+  export default ResultModalRetroalimentacion;

@@ -8,7 +8,7 @@ import {
   Box,
   Typography
 } from '@mui/material';
-import DialogActionButtons from '../DialogActionButtons';
+import CustomButton from "../Button";
 import DialogTitleCustom from "../TitleDialog";
 import { motion } from "framer-motion";
 
@@ -21,9 +21,9 @@ const EncuestaContent = ({ formData, setFormData, error, setError }) => {
     const regulares = Number(nuevosDatos.regulares || 0);
     const buenas = Number(nuevosDatos.buenas || 0);
     const excelentes = Number(nuevosDatos.excelentes || 0);
-    
+
     const sumaRespuestas = malas + regulares + buenas + excelentes;
-    
+
     if (sumaRespuestas > encuestas) {
       setError(`La suma de las respuestas (${sumaRespuestas}) no puede exceder el total de encuestas (${encuestas})`);
       return false;
@@ -36,12 +36,12 @@ const EncuestaContent = ({ formData, setFormData, error, setError }) => {
   const handleChange = (campo, valor) => {
     // Convertir a número y evitar valores negativos
     const valorNumerico = Math.max(0, Number(valor) || 0);
-    
+
     const nuevosDatos = {
       ...formData,
       [campo]: valorNumerico.toString()
     };
-    
+
     setFormData(nuevosDatos);
     validarSumaRespuestas(nuevosDatos);
   };
@@ -125,6 +125,8 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
     excelentes: ""
   });
   const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
 
   useEffect(() => {
     if (open) {
@@ -142,17 +144,23 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
 
   const handleSave = () => {
     if (!indicator?.idIndicador || error) return;
+    try {
+      const resultData = {
+        noEncuestas: Number(formData.encuestas),
+        malo: Number(formData.malas),
+        regular: Number(formData.regulares),
+        bueno: Number(formData.buenas),
+        excelente: Number(formData.excelentes)
+      };
 
-    const resultData = {
-      noEncuestas: Number(formData.encuestas),
-      malo: Number(formData.malas),
-      regular: Number(formData.regulares),
-      bueno: Number(formData.buenas),
-      excelente: Number(formData.excelentes)
-    };
+      onSave(indicator.idIndicador, { result: resultData });
+      onClose();
+    } catch (error) {
+      console.error('Error al guardar:', error);
+    } finally {
+      setIsSaving(false);
+    }
 
-    onSave(indicator.idIndicador, { result: resultData });
-    onClose();
   };
 
   return (
@@ -168,23 +176,25 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
           subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
         />
         <DialogContent>
-          <EncuestaContent 
-            formData={formData} 
-            setFormData={setFormData} 
+          <EncuestaContent
+            formData={formData}
+            setFormData={setFormData}
             error={error}
             setError={setError}
           />
         </DialogContent>
         <DialogActions>
-          <DialogActionButtons
-            onCancel={onClose}
-            onSave={handleSave}
-            saveText="Guardar"
-            cancelText="Cancelar"
-            saveColor="terciary.main"
-            cancelColor="primary.main"
-            disableSave={!!error} // Deshabilitar guardado si hay error
-          />
+          <CustomButton type="cancelar" onClick={onClose} disabled={isSaving}>
+            Cancelar
+          </CustomButton>
+          <CustomButton
+            type="guardar"
+            onClick={handleSave}
+            loading={isSaving}
+            disabled={!!error} // Mantener deshabilitado si hay error
+          >
+            Guardar
+          </CustomButton>
         </DialogActions>
       </MotionBox>
     </Dialog>

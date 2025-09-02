@@ -3,7 +3,7 @@ import {
   Dialog, DialogContent, DialogActions,
   TextField, Tabs, Tab, Box, Grid
 } from "@mui/material";
-import DialogActionButtons from "../DialogActionButtons";
+import CustomButton from "../Button";
 import DialogTitleCustom from "../TitleDialog";
 import { motion } from "framer-motion";
 
@@ -86,6 +86,7 @@ const EvaluaContent = ({ formData, setFormData, activeTab }) => (
 
 const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedResult = {}, anio }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     confiableSem1: "", confiableSem2: "",
@@ -111,18 +112,24 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
 
   const handleSave = () => {
     if (!indicator?.idIndicador) return;
+    try {
+      const resultData = {
+        confiableSem1: toNumberOrNull(formData.confiableSem1),
+        confiableSem2: toNumberOrNull(formData.confiableSem2),
+        condicionadoSem1: toNumberOrNull(formData.condicionadoSem1),
+        condicionadoSem2: toNumberOrNull(formData.condicionadoSem2),
+        noConfiableSem1: toNumberOrNull(formData.noConfiableSem1),
+        noConfiableSem2: toNumberOrNull(formData.noConfiableSem2)
+      };
 
-    const resultData = {
-      confiableSem1: toNumberOrNull(formData.confiableSem1),
-      confiableSem2: toNumberOrNull(formData.confiableSem2),
-      condicionadoSem1: toNumberOrNull(formData.condicionadoSem1),
-      condicionadoSem2: toNumberOrNull(formData.condicionadoSem2),
-      noConfiableSem1: toNumberOrNull(formData.noConfiableSem1),
-      noConfiableSem2: toNumberOrNull(formData.noConfiableSem2)
-    };
+      onSave(indicator.idIndicador, { result: resultData });
+      onClose();
+    } catch (error) {
+      console.error('Error al guardar:', error);
+    } finally {
+      setIsSaving(false);
+    }
 
-    onSave(indicator.idIndicador, { result: resultData });
-    onClose();
   };
 
   return (
@@ -149,14 +156,12 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
           />
         </DialogContent>
         <DialogActions>
-          <DialogActionButtons
-            onCancel={onClose}
-            onSave={handleSave}
-            saveText="Guardar"
-            cancelText="Cancelar"
-            saveColor="terciary.main"
-            cancelColor="primary.main"
-          />
+          <CustomButton type="cancelar" onClick={onClose} disabled={isSaving}>
+            Cancelar
+          </CustomButton>
+          <CustomButton type="guardar" onClick={handleSave} loading={isSaving}>
+            Guardar
+          </CustomButton>
         </DialogActions>
       </MotionBox>
     </Dialog>
