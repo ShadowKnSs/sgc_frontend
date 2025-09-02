@@ -93,24 +93,31 @@ export const usePlanTrabajo = (idRegistro) => {
   const crearFuentesBatch = async (nuevas) => {
     if (!nuevas.length) return null;
 
-    // batch con arreglo, SOLO para crear
     const body = {
       fuentes: nuevas.map((f) => ({
         ...f,
-        noActividad: f.numero, // mapeo consistente
+        noActividad: f.numero,
         elementoEntrada: f.elementoEntrada || "",
-        descripcion: f.descripcion || "",
-        entregable: f.entregable || "",
+        descripcion: String(f.descripcion || ""), // Conversión explícita
+        entregable: String(f.entregable || ""),    // Conversión explícita
+        fechaInicio: f.fechaInicio || null,
+        fechaTermino: f.fechaTermino || null,
       })),
     };
-    const { data } = await api.post(`/plantrabajo/${idRegistro}/fuentes`, body);
-    return data;
-  };
+
+    try {
+      const { data } = await api.post(`/plantrabajo/${idRegistro}/fuentes`, body);
+      return data;
+    } catch (error) {
+      console.error("Error creating fuentes:", error.response?.data);
+      throw error;
+    }
+  }
 
   const updateFuente = async (f) => {
     if (!f.idFuente) return null;
 
-    // payload PLANO (sin "fuentes")
+    // Asegurar que los campos sean strings incluso si son null/undefined
     const body = {
       responsable: f.responsable ?? "",
       fechaInicio: f.fechaInicio || null,
@@ -118,12 +125,19 @@ export const usePlanTrabajo = (idRegistro) => {
       estado: f.estado || "En proceso",
       nombreFuente: f.nombreFuente ?? "",
       elementoEntrada: f.elementoEntrada || "",
-      descripcion: f.descripcion || "",
-      entregable: f.entregable || "",
-      noActividad: f.numero, // requerido para PT-XX en backend
+      descripcion: String(f.descripcion || ""), // Convertir a string
+      entregable: String(f.entregable || ""),    // Convertir a string
+      noActividad: f.numero,
     };
-    const { data } = await api.put(`/plantrabajo/fuentes/${f.idFuente}`, body);
-    return data;
+
+    console.log("Enviando datos para actualizar fuente:", body);
+    try {
+      const { data } = await api.put(`/plantrabajo/fuentes/${f.idFuente}`, body);
+      return data;
+    } catch (error) {
+      console.error("Error updating fuente:", error.response?.data);
+      throw error;
+    }
   };
 
   const guardarTodo = async () => {
