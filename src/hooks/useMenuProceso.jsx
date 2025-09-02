@@ -49,11 +49,12 @@ import WarningIcon from "@mui/icons-material/Warning";
 import InsertDriveFileIcon from "@mui/icons-material/Assessment";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import DescriptionIcon from "@mui/icons-material/Description";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import LinkIcon from "@mui/icons-material/Link";
 
 const useMenuProceso = () => {
   let { idProceso } = useParams();
-   // Verifica si el parámetro no está disponible en la URL
+  // Verifica si el parámetro no está disponible en la URL
   if (!idProceso) {
     idProceso = localStorage.getItem("idProcesoActivo");
   } else {
@@ -62,6 +63,11 @@ const useMenuProceso = () => {
   }
 
   const menuItems = useMemo(() => [
+    {
+      title: "Estructura",
+      path: `/estructura-procesos/${idProceso}`,
+      icon: <AccountTreeIcon fontSize="small" />,
+    },
     {
       title: "Manual Operativo",
       path: `/manual-operativo/${idProceso}`,
