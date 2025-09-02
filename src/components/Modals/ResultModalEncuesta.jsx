@@ -5,7 +5,8 @@ import {
   DialogActions,
   TextField,
   Grid,
-  Box
+  Box,
+  Typography
 } from '@mui/material';
 import DialogActionButtons from '../DialogActionButtons';
 import DialogTitleCustom from "../TitleDialog";
@@ -13,62 +14,107 @@ import { motion } from "framer-motion";
 
 const MotionBox = motion(Box);
 
-const EncuestaContent = ({ formData, setFormData }) => (
-  <Box component="form" sx={{ mt: 2 }}>
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <TextField
-          label="No. de Encuestas"
-          type="number"
-          fullWidth
-          value={formData.encuestas || ""}
-          onChange={(e) => setFormData({ ...formData, encuestas: e.target.value })}
-          margin="dense"
-        />
+const EncuestaContent = ({ formData, setFormData, error, setError }) => {
+  const validarSumaRespuestas = (nuevosDatos) => {
+    const encuestas = Number(nuevosDatos.encuestas || 0);
+    const malas = Number(nuevosDatos.malas || 0);
+    const regulares = Number(nuevosDatos.regulares || 0);
+    const buenas = Number(nuevosDatos.buenas || 0);
+    const excelentes = Number(nuevosDatos.excelentes || 0);
+    
+    const sumaRespuestas = malas + regulares + buenas + excelentes;
+    
+    if (sumaRespuestas > encuestas) {
+      setError(`La suma de las respuestas (${sumaRespuestas}) no puede exceder el total de encuestas (${encuestas})`);
+      return false;
+    } else {
+      setError("");
+      return true;
+    }
+  };
+
+  const handleChange = (campo, valor) => {
+    // Convertir a número y evitar valores negativos
+    const valorNumerico = Math.max(0, Number(valor) || 0);
+    
+    const nuevosDatos = {
+      ...formData,
+      [campo]: valorNumerico.toString()
+    };
+    
+    setFormData(nuevosDatos);
+    validarSumaRespuestas(nuevosDatos);
+  };
+
+  return (
+    <Box component="form" sx={{ mt: 2 }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TextField
+            label="No. de Encuestas"
+            type="number"
+            inputProps={{ min: 0 }}
+            fullWidth
+            value={formData.encuestas || ""}
+            onChange={(e) => handleChange("encuestas", e.target.value)}
+            margin="dense"
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            label="Respuestas Malas"
+            type="number"
+            inputProps={{ min: 0 }}
+            fullWidth
+            value={formData.malas || ""}
+            onChange={(e) => handleChange("malas", e.target.value)}
+            margin="dense"
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            label="Respuestas Regulares"
+            type="number"
+            inputProps={{ min: 0 }}
+            fullWidth
+            value={formData.regulares || ""}
+            onChange={(e) => handleChange("regulares", e.target.value)}
+            margin="dense"
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            label="Respuestas Buenas"
+            type="number"
+            inputProps={{ min: 0 }}
+            fullWidth
+            value={formData.buenas || ""}
+            onChange={(e) => handleChange("buenas", e.target.value)}
+            margin="dense"
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            label="Respuestas Excelentes"
+            type="number"
+            inputProps={{ min: 0 }}
+            fullWidth
+            value={formData.excelentes || ""}
+            onChange={(e) => handleChange("excelentes", e.target.value)}
+            margin="dense"
+          />
+        </Grid>
+        {error && (
+          <Grid item xs={12}>
+            <Typography color="error" variant="body2">
+              {error}
+            </Typography>
+          </Grid>
+        )}
       </Grid>
-      <Grid item xs={6}>
-        <TextField
-          label="Respuestas Malas"
-          type="number"
-          fullWidth
-          value={formData.malas || ""}
-          onChange={(e) => setFormData({ ...formData, malas: e.target.value })}
-          margin="dense"
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          label="Respuestas Regulares"
-          type="number"
-          fullWidth
-          value={formData.regulares || ""}
-          onChange={(e) => setFormData({ ...formData, regulares: e.target.value })}
-          margin="dense"
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          label="Respuestas Buenas"
-          type="number"
-          fullWidth
-          value={formData.buenas || ""}
-          onChange={(e) => setFormData({ ...formData, buenas: e.target.value })}
-          margin="dense"
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          label="Respuestas Excelentes"
-          type="number"
-          fullWidth
-          value={formData.excelentes || ""}
-          onChange={(e) => setFormData({ ...formData, excelentes: e.target.value })}
-          margin="dense"
-        />
-      </Grid>
-    </Grid>
-  </Box>
-);
+    </Box>
+  );
+};
 
 const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {}, anio }) => {
   const [formData, setFormData] = useState({
@@ -78,6 +124,7 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
     buenas: "",
     excelentes: ""
   });
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -89,11 +136,12 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
         buenas: resultado.bueno?.toString() || "",
         excelentes: resultado.excelente?.toString() || ""
       });
+      setError("");
     }
   }, [open, savedResult]);
 
   const handleSave = () => {
-    if (!indicator?.idIndicador) return;
+    if (!indicator?.idIndicador || error) return;
 
     const resultData = {
       noEncuestas: Number(formData.encuestas),
@@ -120,7 +168,12 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
           subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
         />
         <DialogContent>
-          <EncuestaContent formData={formData} setFormData={setFormData} />
+          <EncuestaContent 
+            formData={formData} 
+            setFormData={setFormData} 
+            error={error}
+            setError={setError}
+          />
         </DialogContent>
         <DialogActions>
           <DialogActionButtons
@@ -130,6 +183,7 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
             cancelText="Cancelar"
             saveColor="terciary.main"
             cancelColor="primary.main"
+            disableSave={!!error} // Deshabilitar guardado si hay error
           />
         </DialogActions>
       </MotionBox>

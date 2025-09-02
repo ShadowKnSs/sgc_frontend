@@ -19,6 +19,7 @@ const GraficasPage = () => {
   const datosGraficasFromState = location.state?.datosGraficas;
   const idProceso = location.state?.idProceso;
   const anio = location.state?.anio;
+
   useEffect(() => {
     if (!datosGraficasFromState) {
       setError("Datos no disponibles para mostrar gráficas.");
@@ -31,7 +32,6 @@ const GraficasPage = () => {
 
   const handleImageReady = (tipo, base64) => {
     console.log(`Imagen de ${tipo} lista:`, base64);
-    // Aquí puedes hacer algo con la imagen, como guardarla en un estado
   };
 
   if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /></Box>;
@@ -56,8 +56,7 @@ const GraficasPage = () => {
 
         <Grid item xs={12} md={6}>
           <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Encuesta de Satisfacción</Typography>
-          {datosGraficas.encuesta ? <GraficaEncuesta data={datosGraficas.encuesta} onImageReady={handleImageReady}
-          /> : <Alert severity="info">No se encontró indicador de encuesta.</Alert>}
+          {datosGraficas.encuesta ? <GraficaEncuesta data={datosGraficas.encuesta} onImageReady={handleImageReady} /> : <Alert severity="info">No se encontró indicador de encuesta.</Alert>}
         </Grid>
 
         <Grid item xs={12} md={6}>
@@ -77,7 +76,14 @@ const GraficasPage = () => {
 
         <Grid item xs={12} md={6}>
           <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Evaluación de Proveedores</Typography>
-          {datosGraficas.evaluacion ? <GraficaEvaluacionProveedores idProceso={idProceso} anio={anio} /> : <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>}
+          {datosGraficas.evaluacion ? (
+            <GraficaEvaluacionProveedores 
+              data={datosGraficas.evaluacion} 
+              onImageReady={handleImageReady}
+            />
+          ) : (
+            <Alert severity="info">No se encontró indicador de evaluación de proveedores.</Alert>
+          )}
         </Grid>
       </Grid>
     </Container>

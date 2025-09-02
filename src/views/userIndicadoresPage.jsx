@@ -56,6 +56,7 @@ const UnifiedIndicatorPage = () => {
     setConfirmEditOpen(false);
   };
 
+  // En UnifiedIndicatorPage, modifica el useEffect que carga los indicadores
   useEffect(() => {
     if (!paramProceso || !anio) return;
 
@@ -79,97 +80,119 @@ const UnifiedIndicatorPage = () => {
 
       try {
         const [resAnalisis, resGestion, resEstructura] = await Promise.all([
-          registros["Análisis de Datos"] ? axios.get(`http://localhost:8000/api/indicadoresconsolidados/detalles`, { params: { idRegistro: registros["Análisis de Datos"] } }) : { data: { indicadores: [] } },
-          registros["Gestion de Riesgo"] ? axios.get(`http://localhost:8000/api/indicadoresconsolidados/detalles`, { params: { idRegistro: registros["Gestion de Riesgo"] } }) : { data: { indicadores: [] } },
-          axios.get(`http://localhost:8000/api/indicadoresconsolidados/detalles`, { params: { idProceso: paramProceso, tipo: "estructura" } })
+          registros["Análisis de Datos"] ?
+            axios.get(`http://localhost:8000/api/indicadoresconsolidados/detalles`, {
+              params: { idRegistro: registros["Análisis de Datos"] }
+            }) : { data: { indicadores: [] } },
+          registros["Gestion de Riesgo"] ?
+            axios.get(`http://localhost:8000/api/indicadoresconsolidados/detalles`, {
+              params: { idRegistro: registros["Gestion de Riesgo"] }
+            }) : { data: { indicadores: [] } },
+          axios.get(`http://localhost:8000/api/indicadoresconsolidados/detalles`, {
+            params: { idProceso: paramProceso, tipo: "estructura" }
+          })
         ]);
 
-        const indicadores = [...resAnalisis.data.indicadores, ...resGestion.data.indicadores, ...resEstructura.data.indicadores];
+        // Combinar todos los indicadores
+        const indicadores = [
+          ...resAnalisis.data.indicadores,
+          ...resGestion.data.indicadores,
+          ...resEstructura.data.indicadores
+        ];
+
         setIndicators(indicadores);
-        console.log("Indicadores", indicadores);
+
+        // Inicializar estructuras para gráficas
         const resultadosMap = {};
         const planControl = [], mapaProceso = [], riesgos = [], retroalimentacion = [];
         let encuesta = null, evaluacion = null;
 
+        // Procesar cada indicador
         indicadores.forEach(ind => {
-          let resultado = {};
+          // Guardar resultado para este indicador
+          resultadosMap[ind.idIndicador] = ind;
+
+          // Clasificar por tipo de indicador
           switch (ind.origenIndicador) {
             case "Encuesta":
-              // CORRECCIÓN: Los datos de encuesta están en las propiedades directas del objeto
-              resultado = {
-                malo: ind.malo,
-                regular: ind.regular,
-                bueno: ind.bueno,
-                excelente: ind.excelente,
-                noEncuestas: ind.noEncuestas
-              };
-              encuesta = resultado; // Asignamos el objeto resultado a encuesta
+              if (ind.noEncuestas > 0) {
+                encuesta = {
+                  malo: ind.malo || 0,
+                  regular: ind.regular || 0,
+                  bueno: ind.bueno || 0,
+                  excelente: ind.excelente || 0,
+                  noEncuestas: ind.noEncuestas
+                };
+              }
               break;
+
             case "Retroalimentacion":
-              // CORRECCIÓN: Los datos de retroalimentación están en las propiedades directas del objeto
-              resultado = {
-                cantidadFelicitacion: ind.cantidadFelicitacion,
-                cantidadSugerencia: ind.cantidadSugerencia,
-                cantidadQueja: ind.cantidadQueja
-              };
-              if (resultado.cantidadFelicitacion != null ||
-                resultado.cantidadSugerencia != null ||
-                resultado.cantidadQueja != null) {
+              if (ind.cantidadFelicitacion > 0 || ind.cantidadSugerencia > 0 || ind.cantidadQueja > 0) {
                 retroalimentacion.push({
                   nombreIndicador: ind.nombreIndicador,
-                  ...resultado
+                  cantidadFelicitacion: ind.cantidadFelicitacion || 0,
+                  cantidadSugerencia: ind.cantidadSugerencia || 0,
+                  cantidadQueja: ind.cantidadQueja || 0
                 });
               }
               break;
+
             case "EvaluaProveedores":
-              // CORRECCIÓN: Los datos de evaluación de proveedores están en las propiedades directas del objeto
-              resultado = {
-                resultadoConfiableSem1: ind.resultadoConfiableSem1,
-                resultadoConfiableSem2: ind.resultadoConfiableSem2,
-                resultadoCondicionadoSem1: ind.resultadoCondicionadoSem1,
-                resultadoCondicionadoSem2: ind.resultadoCondicionadoSem2,
-                resultadoNoConfiableSem1: ind.resultadoNoConfiableSem1,
-                resultadoNoConfiableSem2: ind.resultadoNoConfiableSem2
+              evaluacion = {
+                resultadoConfiableSem1: ind.resultadoConfiableSem1 || 0,
+                resultadoConfiableSem2: ind.resultadoConfiableSem2 || 0,
+                resultadoCondicionadoSem1: ind.resultadoCondicionadoSem1 || 0,
+                resultadoCondicionadoSem2: ind.resultadoCondicionadoSem2 || 0,
+                resultadoNoConfiableSem1: ind.resultadoNoConfiableSem1 || 0,
+                resultadoNoConfiableSem2: ind.resultadoNoConfiableSem2 || 0
               };
-              evaluacion = resultado; // Asignamos el objeto resultado a evaluacion
               break;
+
             case "ActividadControl":
-              resultado = {
-                resultadoSemestral1: ind.resultadoSemestral1,
-                resultadoSemestral2: ind.resultadoSemestral2,
-                resultadoAnual: ind.resultadoAnual
-              };
-              planControl.push({ nombreIndicador: ind.nombreIndicador, ...resultado });
+              planControl.push({
+                nombreIndicador: ind.nombreIndicador,
+                resultadoSemestral1: ind.resultadoSemestral1 || 0,
+                resultadoSemestral2: ind.resultadoSemestral2 || 0,
+                resultadoAnual: ind.resultadoAnual || 0
+              });
               break;
+
             case "MapaProceso":
-              resultado = {
-                resultadoSemestral1: ind.resultadoSemestral1,
-                resultadoSemestral2: ind.resultadoSemestral2,
-                resultadoAnual: ind.resultadoAnual
-              };
-              mapaProceso.push({ nombreIndicador: ind.nombreIndicador, ...resultado });
+              mapaProceso.push({
+                nombreIndicador: ind.nombreIndicador,
+                resultadoSemestral1: ind.resultadoSemestral1 || 0,
+                resultadoSemestral2: ind.resultadoSemestral2 || 0,
+                resultadoAnual: ind.resultadoAnual || 0
+              });
               break;
+
             case "GestionRiesgo":
-              resultado = {
-                resultadoSemestral1: ind.resultadoSemestral1,
-                resultadoSemestral2: ind.resultadoSemestral2,
-                resultadoAnual: ind.resultadoAnual
-              };
-              riesgos.push({ nombreIndicador: ind.nombreIndicador, resultadoAnual: ind.resultadoAnual });
-              break;
-            default:
-              resultado = {};
+              riesgos.push({
+                nombreIndicador: ind.nombreIndicador,
+                resultadoAnual: ind.resultadoAnual || 0
+              });
               break;
           }
-          resultadosMap[ind.idIndicador] = resultado;
         });
 
         setResults(resultadosMap);
-        setDatosGraficas({ planControl, mapaProceso, riesgos, encuesta, evaluacion, retroalimentacion });
+        setDatosGraficas({
+          planControl,
+          mapaProceso,
+          riesgos,
+          encuesta,
+          evaluacion,
+          retroalimentacion
+        });
 
       } catch (err) {
         console.error("Error al cargar indicadores:", err);
-        setSnackbar({ open: true, type: "error", title: "Error", message: "No se pudieron cargar los indicadores." });
+        setSnackbar({
+          open: true,
+          type: "error",
+          title: "Error",
+          message: "No se pudieron cargar los indicadores."
+        });
       } finally {
         setLoading(false);
       }

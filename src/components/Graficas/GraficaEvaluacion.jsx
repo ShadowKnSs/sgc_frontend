@@ -18,8 +18,18 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
   const yaGenerada = useRef(false);
   const [chartInstance, setChartInstance] = useState(null);
 
+  // Verificar que los datos necesarios estén presentes
+  const hasValidData = data && (
+    data.resultadoConfiableSem1 !== undefined || 
+    data.resultadoConfiableSem2 !== undefined ||
+    data.resultadoCondicionadoSem1 !== undefined ||
+    data.resultadoCondicionadoSem2 !== undefined ||
+    data.resultadoNoConfiableSem1 !== undefined ||
+    data.resultadoNoConfiableSem2 !== undefined
+  );
+
   const chartData = useMemo(() => {
-    if (!data) return null;
+    if (!hasValidData) return null;
 
     return {
       labels: ["Ene-Jun", "Jul-Dic"],
@@ -59,7 +69,7 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         }
       ]
     };
-  }, [data]);
+  }, [data, hasValidData]);
 
   const onChartReady = (chart) => {
     setChartInstance(chart);
@@ -84,7 +94,7 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
     }
   }, [chartInstance, chartData, onImageReady]);
 
-  if (!data) {
+  if (!hasValidData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <Alert severity="info">No hay datos de Evaluación de Proveedores disponibles.</Alert>
