@@ -192,7 +192,6 @@ function Cronograma() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        backgroundColor: "#f4f4f4",
         paddingTop: "20px",
         position: "relative",
       }}

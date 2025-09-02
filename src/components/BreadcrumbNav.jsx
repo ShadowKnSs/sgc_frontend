@@ -6,7 +6,7 @@ import { Home as HomeIcon, NavigateNext as NavigateNextIcon } from "@mui/icons-m
 
 const BreadcrumbNav = ({ items }) => {
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box sx={{ mb: 1 }}>
       <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
         {/* Home siempre con RouterLink */}
         <Link

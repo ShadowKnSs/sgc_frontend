@@ -26,14 +26,7 @@ import Permiso from "../hooks/userPermiso";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import Subtitle from "../components/Subtitle";
 import ConfirmEdit from "../components/confirmEdit";
-
-const rutas = {
-  "Gestión de Riesgo": "gestion-riesgos",
-  "Análisis de Datos": "analisis-datos",
-  "Acciones de Mejora": "actividad-mejora",
-  "Generar informe de auditoría": "informe-auditoria",
-  "Seguimiento": "seguimientoPrincipal",
-};
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 function Carpetas() {
   const { state } = useLocation();
@@ -50,6 +43,7 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
 
   const rolActivo = state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso(title);
+  const idProcesoActivo = idProceso || localStorage.getItem("idProcesoActvio");
 
   const rutas = {
     "Gestión de Riesgo": "gestion-riesgos",
@@ -60,6 +54,10 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
     "Auditoria": "auditoria"
   };
 
+  const breadcrumbItems = [
+    { label: "Estructura", href: `/estructura-procesos/${idProcesoActivo}` },
+    { label: title } // último tramo, se muestra como texto (no link)
+  ];
   useEffect(() => {
     obtenerRegistros();
   }, []);
@@ -82,12 +80,6 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
       console.error("Error al obtener registros:", error);
     }
   };
-
-  /*const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    setNuevoAnio("");
-    setOpen(false);
-  };*/
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -179,7 +171,11 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
 
   return (
     <Box sx={{ p: 4 }}>
-      <Subtitle text={title}  withBackground={true}/>
+      {/* Breadcrumb: Inicio > Estructura > {title} */}
+     <Box sx={{ width: '100%', alignSelf: 'stretch', mb: 2 }}>
+       <BreadcrumbNav items={breadcrumbItems} />
+     </Box>
+      {/* <Subtitle text={title}  withBackground={true}/> */}
       
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         

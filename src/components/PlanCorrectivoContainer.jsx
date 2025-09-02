@@ -85,22 +85,22 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
   };
 
   const handleEdit = (record) => {
-    const recordForEdit = {
-      ...record,
-      entidad: record.entidad || "",
-      codigo: record.codigo || "",
-      fechaInicio: record.fechaInicio ? record.fechaInicio.split(" ")[0] : "",
-      reaccion: record.actividades || [{ descripcionAct: "", responsable: "", fechaProgramada: "" }],
-      planAccion: record.actividades || [{ descripcionAct: "", responsable: "", fechaProgramada: "" }]
-    };
-    setEditingRecord(recordForEdit);
-    setShowForm(true);
-    setSelectedRecord(null);
+  const recordForEdit = {
+    ...record,
+    entidad: record.entidad || "",
+    codigo: record.codigo || "Código existente",
+    fechaInicio: record.fechaInicio ? record.fechaInicio.split(" ")[0] : "",
+    reaccion: record.actividades || [{ descripcionAct: "", responsable: "", fechaProgramada: "" }],
+    planAccion: record.actividades || [{ descripcionAct: "", responsable: "", fechaProgramada: "" }]
   };
+  setEditingRecord(recordForEdit);
+  setShowForm(true);
+  setSelectedRecord(null);
+};
 
   return (
     <Box sx={{ p: 4 }}>
-      {!soloLectura && (
+      {!soloLectura && !showForm && (
         <CustomButton
           type="guardar"
           startIcon={<Add />}
@@ -129,7 +129,8 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
         </Box>
       ) : (
         <Box sx={{ mt: 4, display: "flex", flexWrap: "wrap", gap: 2 }}>
-          {records.length === 0 ? (
+          {/* Mostrar mensaje solo si no hay registros y no estamos mostrando el formulario */}
+          {records.length === 0 && !showForm ? (
             <Typography variant="h6" color="textSecondary">
               No hay registros. Cree un nuevo plan de acción.
             </Typography>

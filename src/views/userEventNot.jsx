@@ -25,10 +25,12 @@ import DualCarousel from '../components/EventosAvisosCarousel';
 import ImageModal from '../components/Modals/ImageModal';
 import NewsModal from '../components/Modals/NewsModal';
 import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import NewspaperIcon from '@mui/icons-material/Newspaper'
 import { useNavigate } from 'react-router-dom';
 
 
@@ -62,6 +64,11 @@ const UserHome = () => {
   const esInvitado = rolActivo.nombreRol === "Invitado";
 
   const navigate = useNavigate();
+
+  // Breadcrumb: Inicio > Noticias y Eventos (con icono)
+  const breadcrumbItems = [
+    { label: "Noticias y Eventos", icon: NewspaperIcon }
+  ];
 
   // Cargar datos al montar la vista
   useEffect(() => {
@@ -122,6 +129,10 @@ const UserHome = () => {
     <Box sx={{ p: 3 }}>
       <style>{arrowOverride}</style>
 
+{/* Breadcrumb pegado a la izquierda */}
+      <Box sx={{ mb: 2 }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
       {esInvitado && (
         <SpeedDial
           ariaLabel="Accesos rápidos"

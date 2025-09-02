@@ -70,13 +70,13 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       .catch(err => console.error("❌ Error al obtener entidad:", err));
   }, [idProceso]);
 
-  useEffect(() => {
-    if (!initialData && idProceso) {
-      const year = new Date().getFullYear().toString().slice(-2);
-      const seqStr = sequence.toString().padStart(2, "0");
-      setFormData(prev => ({ ...prev, codigo: `PAC-${seqStr}${year}` }));
-    }
-  }, [initialData, idProceso, sequence]);
+  // useEffect(() => {
+  //   if (!initialData && idProceso) {
+  //     const year = new Date().getFullYear().toString().slice(-2);
+  //     const seqStr = sequence.toString().padStart(2, "0");
+  //     setFormData(prev => ({ ...prev, codigo: `PAC-${seqStr}${year}` }));
+  //   }
+  // }, [initialData, idProceso, sequence]);
 
 
   const validateForm = () => {
@@ -295,9 +295,12 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 sx={{ flex: 1 }}
                 label="Código"
                 name="codigo"
-                value={formData.codigo}
-                InputProps={{ readOnly: true }}
+                value={formData.codigo || "Se generará automáticamente"}
+                InputProps={{
+                  readOnly: true,
+                }}
                 fullWidth
+                helperText="El código se genera automáticamente al guardar"
               />
             </Box>
             {/* Segunda fila: Coordinador y Fecha de Inicio */}
@@ -360,6 +363,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               value={formData.requisito}
               onChange={handleChange}
               fullWidth
+              multiline
+              rows={5}
               error={!!errors.requisito}
               helperText={errors.requisito || "Especifica los requisitos relacionados."}
             />
@@ -369,6 +374,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               value={formData.incumplimiento}
               onChange={handleChange}
               fullWidth
+              multiline
+              rows={5}
               error={!!errors.incumplimiento}
               helperText={errors.incumplimiento || "Describe el incumplimiento detectado."}
             />
@@ -378,6 +385,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               value={formData.evidencia}
               onChange={handleChange}
               fullWidth
+              multiline
+              rows={5}
               error={!!errors.evidencia}
               helperText={errors.evidencia || "Adjunta o describe la evidencia recopilada."}
             />
@@ -437,6 +446,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               value={formData.revisionAnalisis}
               onChange={handleChange}
               fullWidth
+              multiline
+              rows={5}
               helperText="Ej: Se requiere acción inmediata."
               error={!!errors.revisionAnalisis}
             />
@@ -446,6 +457,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               value={formData.causaRaiz}
               onChange={handleChange}
               fullWidth
+              multiline
+              rows={5}
               helperText="Indique la causa principal."
               error={!!errors.causaRaiz}
             />
@@ -479,14 +492,14 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   value={item.actividad || ""}
                   onChange={(e) => handleDynamicChange("planAccion", index, "actividad", e.target.value)}
                   fullWidth
-                  
+
                 />
                 <TextField
                   label="Responsable"
                   value={item.responsable}
                   onChange={(e) => handleDynamicChange("planAccion", index, "responsable", e.target.value)}
                   fullWidth
-                  
+
                 />
                 <TextField
                   label="Fecha Programada"
@@ -495,7 +508,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   onChange={(e) => handleDynamicChange("planAccion", index, "fechaProgramada", e.target.value)}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  
+
                 />
                 <IconButton onClick={() => removeDynamicEntry("planAccion", index)}>
                   <Remove />

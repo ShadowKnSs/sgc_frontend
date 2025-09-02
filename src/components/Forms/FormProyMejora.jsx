@@ -49,7 +49,19 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
             <TextField fullWidth label="División" name="division" value={formData.division} onChange={handleChange} margin="normal" disabled={disabled} error={getError("division")} helperText={getHelper("division")} />
             <TextField fullWidth label="Departamento" name="departamento" value={formData.departamento} onChange={handleChange} margin="normal" disabled={disabled} error={getError("departamento")} helperText={getHelper("departamento")} />
             <TextField fullWidth label="Fecha" name="fecha" type="date" value={formData.fecha} onChange={handleChange} margin="normal" InputLabelProps={{ shrink: true }} disabled={disabled} error={getError("fecha")} helperText={getHelper("fecha")} />
-            <TextField fullWidth label="Número de Mejora" name="noMejora" type="number" value={formData.noMejora} onChange={handleChange} margin="normal" disabled={disabled} error={getError("noMejora")} helperText={getHelper("noMejora")} />
+            <TextField
+              fullWidth
+              label="Número de Mejora"
+              name="noMejora"
+              type="number"
+              value={formData.noMejora}
+              onChange={handleChange}
+              margin="normal"
+              disabled={disabled}
+              error={getError("noMejora")}
+              helperText={getHelper("noMejora")}
+              inputProps={{ min: 0 }}
+            />
             <TextField fullWidth label="Responsable" name="responsable" value={formData.responsable} onChange={handleChange} margin="normal" disabled={disabled} error={getError("responsable")} helperText={getHelper("responsable")} />
           </Box>
         );
@@ -75,7 +87,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                 />
                 {!soloLectura && puedeEditar && (
                   <CustomButton
-                    type="eliminar"
+                    type="cancelar"
                     onClick={() => removeDynamicField("objetivos", index)}
                   >
                     Eliminar
@@ -104,7 +116,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   helperText={getHelper(`responsables.${index}.nombre`)} />
                 {!soloLectura && puedeEditar && (
                   <CustomButton
-                    type="eliminar"
+                    type="cancelar"
                     onClick={() => removeDynamicField("responsables", index)}
                   >
                     Eliminar
@@ -164,7 +176,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                 />
                 {!soloLectura && puedeEditar && (
                   <CustomButton
-                    type="eliminar"
+                    type="cancelar"
                     onClick={() => removeDynamicField("indicadoresExito", index)}
                   >
                     Eliminar
@@ -291,8 +303,28 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   error={getError(`actividadesPM.${index}.fecha`)}
                   helperText={getHelper(`actividadesPM.${index}.fecha`)}
                 />
+                {/* Botón para eliminar actividad */}
+                {!soloLectura && puedeEditar && (
+                  <CustomButton
+                    type="cancelar"
+                    onClick={() => removeDynamicField("actividadesPM", index)}
+                  >
+                    Eliminar
+                  </CustomButton>
+                )}
               </Box>
             ))}
+            {/* Botón para añadir más actividades - AQUÍ ESTÁ LO NUEVO */}
+            {!soloLectura && puedeEditar && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <CustomButton
+                  type="aceptar"
+                  onClick={() => addDynamicField("actividadesPM", { actividad: "", responsable: "", fecha: "" })}
+                >
+                  Añadir Actividad
+                </CustomButton>
+              </Box>
+            )}
           </Box>
         );
 
@@ -340,16 +372,17 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
               <Box sx={{ minHeight: "300px" }}>{renderStepContent(index)}</Box>
               <Box sx={{ mb: 2, display: "flex", justifyContent: "center", gap: 2 }}>
                 {!soloLectura && puedeEditar && (
+                  <CustomButton type="cancelar" onClick={handleBack}>
+                    Anterior
+                  </CustomButton>
+
+                )}
+                {activeStep > 0 && (
                   <CustomButton
                     type="guardar"
                     onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
                   >
                     {activeStep === steps.length - 1 ? "Enviar" : "Siguiente"}
-                  </CustomButton>
-                )}
-                {activeStep > 0 && (
-                  <CustomButton type="cancelar" onClick={handleBack}>
-                    Anterior
                   </CustomButton>
                 )}
               </Box>

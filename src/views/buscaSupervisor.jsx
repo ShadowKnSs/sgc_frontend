@@ -62,8 +62,10 @@ import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import SchoolIcon from "@mui/icons-material/School";
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import Title from "../components/Title";
 import FeedbackSnackbar from "../components/Feedback";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import { motion } from "framer-motion";
 import axios from "axios";
 
@@ -76,6 +78,10 @@ const BuscaSupervisor = () => {
     title: "",
     message: "",
   });
+
+  const breadcrumbItems = [
+    { label: "Buscar supervisor", icon: SupervisorAccountIcon },
+  ];
 
   const obtenerSupervisor = async () => {
     setLoading(true);
@@ -126,9 +132,12 @@ const BuscaSupervisor = () => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        backgroundColor: "#f4f4f4",
       }}
     >
+      {/* Breadcrumb alineado a la izquierda */}
+      <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto", mb: 1 }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
       <Title text="Supervisor" />
 
       {loading ? (
