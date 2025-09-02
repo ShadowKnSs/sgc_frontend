@@ -95,7 +95,15 @@ function InformeAud() {
 
   useEffect(() => {
     if (!modoEdicion) {
-      setLider(usuario?.nombre || "");
+      const nombreCompleto = [
+        usuario?.nombre,
+        usuario?.apellidoPat,
+        usuario?.apellidoMat
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      setLider(nombreCompleto);
     }
   }, [usuario, modoEdicion]);
 
