@@ -21,12 +21,12 @@
  * - Para mejorar la jerarquía visual en vistas con múltiples bloques de contenido.
 
  * Ventajas:
- * - 🎨 Consistencia visual
- * - 🧩 Reutilizable y configurable
+ * -  Consistencia visual
+ * -  Reutilizable y configurable
 
  * Mejoras futuras:
- * - 💡 Soporte para íconos decorativos
- * - 💡 Variantes adicionales de color
+ * - Soporte para íconos decorativos
+ * -  Variantes adicionales de color
  */
 
 import React from "react";

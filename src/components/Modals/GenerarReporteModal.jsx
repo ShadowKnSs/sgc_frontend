@@ -1,16 +1,15 @@
 import React from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
   Box,
   FormControl,
   InputLabel,
   Select,
   MenuItem
 } from '@mui/material';
+import DialogTitleCustom from '../TitleDialog';
+import CustomButton from '../Button'; 
 
 const GenerateReportModal = ({
   open,
@@ -28,7 +27,12 @@ const GenerateReportModal = ({
 }) => {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Generar Reporte</DialogTitle>
+      {/* Usando DialogTitleCustom personalizado */}
+      <DialogTitleCustom 
+        title="Generar Reporte" 
+        subtitle="Seleccione los criterios para generar el reporte" 
+      />
+      
       <DialogContent>
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {/* Selector de Entidad */}
@@ -98,14 +102,29 @@ const GenerateReportModal = ({
           </FormControl>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="secondary">
+      
+      {/* Usando CustomButtons personalizados */}
+      <Box sx={{ 
+        p: 2, 
+        display: 'flex', 
+        justifyContent: 'flex-end', 
+        gap: 1,
+        borderTop: '1px solid #e0e0e0'
+      }}>
+        <CustomButton 
+          type="cancelar" 
+          onClick={onClose}
+        >
           Cancelar
-        </Button>
-        <Button onClick={onSave} variant="contained" color="primary">
-          Guardar
-        </Button>
-      </DialogActions>
+        </CustomButton>
+        <CustomButton 
+          type="guardar" 
+          onClick={onSave}
+          disabled={!selectedEntity || !selectedProcess || !selectedYear}
+        >
+          Generar Reporte
+        </CustomButton>
+      </Box>
     </Dialog>
   );
 };

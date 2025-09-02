@@ -55,7 +55,7 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
   };
 
   const breadcrumbItems = [
-    { label: "Estructura", href: `/estructura-procesos/${idProcesoActivo}` },
+    { label: "Estructura", to: `/estructura-procesos/${idProcesoActivo}` },
     { label: title } // último tramo, se muestra como texto (no link)
   ];
   useEffect(() => {
