@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, TextField, Stepper, Step, StepButton, StepContent, Snackbar, Alert } from "@mui/material";
+import { Box, TextField, Stepper, Step, StepButton, StepContent, Snackbar, Alert , Typography} from "@mui/material";
 import Title from "../Title";
 import { useProyectoMejoraForm } from "../../hooks/useProyectoMejoraForm"
 import CustomButton from "../../components/Button";
@@ -37,6 +37,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
     "Aprobación"
   ];
 
+  const maxChars = 255;
   const renderStepContent = (step) => {
     const disabled = soloLectura;
     const getError = (name) => erroresCampos[name] || false;
@@ -67,7 +68,15 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
         );
       case 1:
         return (
-          <TextField fullWidth label="Descripción de la Mejora" name="descripcionMejora" value={formData.descripcionMejora} onChange={handleChange} margin="normal" multiline rows={10} disabled={disabled} error={getError("descripcionMejora")} helperText={getHelper("descripcionMejora")} />
+          <Box sx={{ mt: 2 }}>
+            <Typography
+                variant="caption"
+                sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+              >
+                {formData.descripcionMejora.length}/{maxChars}
+             </Typography>
+            <TextField fullWidth label="Descripción de la Mejora" name="descripcionMejora" value={formData.descripcionMejora} onChange={handleChange} margin="normal" multiline minRows={2} maxRows={6}  inputProps={{ maxLength: maxChars }} disabled={disabled} error={getError("descripcionMejora")} helperText={getHelper("descripcionMejora")} />
+          </Box>
         );
       case 2:
         return (
@@ -108,8 +117,18 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
       case 3:
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("areaImpacto")} helperText={getHelper("areaImpacto")} />
-            <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("personalBeneficiado")} helperText={getHelper("personalBeneficiado")} />
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                  variant="caption"
+                  sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+                >
+                  {formData.areaImpacto.length}/{maxChars}
+              </Typography>
+            <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" multiline rows={6} inputProps={{ maxLength: maxChars }} disabled={disabled} error={getError("areaImpacto")} helperText={getHelper("areaImpacto")} />
+            </Box>
+
+              <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("personalBeneficiado")} helperText={getHelper("personalBeneficiado")} />
+
             {formData.responsables.map((resp, index) => (
               <Box key={index} display="flex" alignItems="center">
                 <TextField fullWidth label={`Responsable ${index + 1}`} value={resp.nombre} onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} margin="normal" disabled={disabled} error={getError(`responsables.${index}.nombre`)}
@@ -131,8 +150,13 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                 Agregar Responsable
               </CustomButton>
             )}
-            <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("situacionActual")}
-              helperText={getHelper("situacionActual")} />
+            <Box>
+              <Typography variant="caption" sx={{ display: "block", textAlign: "right", color: "text.secondary" }}>
+                {formData.situacionActual.length}/{maxChars}
+              </Typography>
+              <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" multiline rows={6} inputProps={{ maxLength: maxChars }} disabled={disabled} error={getError("situacionActual")} helperText={getHelper("situacionActual")} />
+            </Box>
+            
           </Box>
         );
       case 4:
@@ -171,6 +195,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   fullWidth
                   sx={{ flex: 0.5 }}
                   disabled={disabled}
+                  inputProps={{ min: 0 }}
                   error={getError(`indicadoresExito.${index}.meta`)}
                   helperText={getHelper(`indicadoresExito.${index}.meta`)}
                 />
@@ -244,6 +269,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
               onChange={handleChange}
               margin="normal"
               disabled={disabled}
+              inputProps={{ min: 0 }}
               error={getError("costoProyecto")}
               helperText={getHelper("costoProyecto")}
             />

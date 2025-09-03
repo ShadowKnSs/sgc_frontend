@@ -13,7 +13,8 @@ import {
   Radio,
   RadioGroup,
   FormLabel,
-  FormHelperText
+  FormHelperText,
+  Typography
 } from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import axios from "axios";
@@ -261,6 +262,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
   };
 
   const stepsWithErrors = getStepsWithErrors();
+  const maxChars = 255;
 
   const renderStepContent = (step) => {
     switch (step) {
@@ -357,6 +359,72 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 1:
         return (
           <Box sx={{ display: "grid", gap: 2 }}>
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+              >
+                {formData.requisito.length}/{maxChars}
+              </Typography>
+              <TextField
+                label="Requisito"
+                name="requisito"
+                value={formData.requisito}
+                onChange={handleChange}
+                fullWidth
+                error={!!errors.requisito}
+                helperText={errors.requisito || "Especifica los requisitos relacionados."}
+                multiline
+                minRows={2}
+                maxRows={6}
+                inputProps={{ maxLength: maxChars }}
+              />
+            </Box>
+
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+              >
+                {formData.incumplimiento.length}/{maxChars}
+              </Typography>
+              <TextField
+                label="Incumplimiento"
+                name="incumplimiento"
+                value={formData.incumplimiento}
+                onChange={handleChange}
+                fullWidth
+                error={!!errors.incumplimiento}
+                helperText={errors.incumplimiento || "Describe el incumplimiento detectado."}
+                multiline
+                minRows={2}
+                maxRows={6}
+                inputProps={{ maxLength: maxChars }}
+              />
+              
+            </Box>
+
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+              >
+                {formData.evidencia.length}/{maxChars}
+              </Typography>
+              <TextField
+                label="Evidencia"
+                name="evidencia"
+                value={formData.evidencia}
+                onChange={handleChange}
+                fullWidth
+                error={!!errors.evidencia}
+                helperText={errors.evidencia || "Adjunta o describe la evidencia recopilada."}
+                multiline
+                minRows={2}
+                maxRows={6}
+                inputProps={{ maxLength: maxChars }}
+              />
+            </Box>
             <TextField
               label="Requisito"
               name="requisito"
@@ -440,6 +508,48 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 3:
         return (
           <Box sx={{ display: "grid", gap: 2 }}>
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+              >
+                {formData.revisionAnalisis.length}/{maxChars}
+              </Typography>
+              <TextField
+                label="Revisión de la necesidad de acción para eliminar la causa"
+                name="revisionAnalisis"
+                value={formData.revisionAnalisis}
+                onChange={handleChange}
+                fullWidth
+                helperText="Ej: Se requiere acción inmediata."
+                error={!!errors.revisionAnalisis}
+                multiline
+                minRows={2}
+                maxRows={6}
+                inputProps={{ maxLength: maxChars }}
+              />
+            </Box>
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+              >
+                {formData.causaRaiz.length}/{maxChars}
+              </Typography>
+              <TextField
+                label="Determinación de la causa raíz"
+                name="causaRaiz"
+                value={formData.causaRaiz}
+                onChange={handleChange}
+                fullWidth
+                helperText="Indique la causa principal."
+                error={!!errors.causaRaiz}
+                multiline
+                minRows={2}
+                maxRows={6}
+                inputProps={{ maxLength: maxChars }}
+              />
+            </Box>
             <TextField
               label="Revisión de la necesidad de acción para eliminar la causa"
               name="revisionAnalisis"

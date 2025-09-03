@@ -181,8 +181,6 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
     }
     
   };
-
-
   return (
     <Box component="form" sx={{ padding: 4, maxWidth: 600, margin: "auto", backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 3 }}>
 
@@ -219,6 +217,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
             <TextField
               fullWidth
               label="Duración en minutos"
+              type="number"
               value={duracion}
               onChange={(e) => {
                 // Aseguramos que solo se permita la entrada de números enteros
@@ -282,6 +281,7 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
           <>
             {compromisos.map((compromiso, index) => (
               <Box key={index} display="flex" flexDirection="column" gap={1} mb={2}>
+                
                 <TextField
                   fullWidth
                   label="Descripción"
