@@ -174,8 +174,9 @@ function Carpetas() {
   };
   return (
     <Box sx={{ p: 4 }}>
-      <Subtitle text={title} withBackground={true} />
-
+      <Box sx={{ width: '100%', alignSelf: 'stretch', mb: 2 }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         <ContextoProcesoEntidad idProceso={idProceso} />
       </Box>
@@ -271,4 +272,4 @@ function Carpetas() {
 
 
 
-  export default Carpetas;
+export default Carpetas;
