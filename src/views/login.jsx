@@ -72,7 +72,7 @@ export default function Login() {
       if (roles.length === 1) {
         const rol = roles[0];
         localStorage.setItem("rolActivo", JSON.stringify(rol));
-        showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema");
+        //showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema");
         setTimeout(() => {
           rol.nombreRol === "Administrador" ? navigate("/") : navigate("/user-eventos");
         }, 1500);

@@ -21,7 +21,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import CardArchivos from "../components/CardArchivos";
-import { Box, Grid, Fab, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Snackbar, Alert } from "@mui/material";
+import { Box, Grid, Fab, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Snackbar, Alert, CircularProgress, Typography } from "@mui/material";
 import Permiso from "../hooks/userPermiso";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import Subtitle from "../components/Subtitle";
@@ -43,9 +43,11 @@ function Carpetas() {
   const [nuevoAnio, setNuevoAnio] = useState("");
   const [error, setError] = useState(null);
   const { idProceso, title } = useParams();
-  const [editarCarpeta, setEditarCarpeta] = useState(null); 
+  const [editarCarpeta, setEditarCarpeta] = useState(null);
   const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
-const [carpetaPendiente, setCarpetaPendiente] = useState(null);
+  const [carpetaPendiente, setCarpetaPendiente] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
 
 
   const rolActivo = state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
@@ -65,29 +67,27 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
   }, []);
 
   useEffect(() => {
-  if (idProceso) {
-    localStorage.setItem("idProcesoActivo", idProceso);
-  }
-}, [idProceso]);
+    if (idProceso) {
+      localStorage.setItem("idProcesoActivo", idProceso);
+    }
+  }, [idProceso]);
 
   const obtenerRegistros = async () => {
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/api/registros/filtrar", {
-        idProceso,
-        Apartado: title,
-      });
-      const carpetasOrdenadas = response.data.sort((a, b) => a.año - b.año);
-      setCarpetas(carpetasOrdenadas);
-    } catch (error) {
-      console.error("Error al obtener registros:", error);
-    }
-  };
+  try {
+    setIsLoading(true); // ⬅️ empieza la carga
+    const response = await axios.post("http://127.0.0.1:8000/api/registros/filtrar", {
+      idProceso,
+      Apartado: title,
+    });
 
-  /*const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    setNuevoAnio("");
-    setOpen(false);
-  };*/
+    const carpetasOrdenadas = response.data.sort((a, b) => a.año - b.año);
+    setCarpetas(carpetasOrdenadas);
+  } catch (error) {
+    console.error("Error al obtener registros:", error);
+  } finally {
+    setIsLoading(false); // ⬅️ termina la carga SIEMPRE
+  }
+};
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -159,7 +159,7 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
       const response = await axios.put(`http://127.0.0.1:8000/api/registros/${carpetaPendiente.idRegistro}`, {
         año: carpetaPendiente.año,
       });
-      
+
       const updatedCarpetas = carpetas.map((carpeta) =>
         carpeta.idRegistro === carpetaPendiente.idRegistro ? response.data : carpeta
       );
@@ -174,79 +174,102 @@ const [carpetaPendiente, setCarpetaPendiente] = useState(null);
       setOpenConfirmEdit(false);
     }
   };
-  
-  
-
   return (
-    <Box sx={{ p: 4 }}>
-      <Subtitle text={title}  withBackground={true}/>
-      
-      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-        
-        <ContextoProcesoEntidad idProceso={idProceso }/>
-      </Box>
+  <Box sx={{ p: 4 }}>
+    <Subtitle text={title} withBackground={true} />
 
+    <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+      <ContextoProcesoEntidad idProceso={idProceso} />
+    </Box>
+
+    {/* Estado de carga */}
+    {isLoading ? (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
+        <CircularProgress color="primary" />
+      </Box>
+    ) : carpetas.length === 0 ? (
+      // Mensaje cuando no hay registros
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
+        <Typography variant="h6" color="text.secondary" textAlign="center">
+          Aún no existe ningún registro de ningún año para este apartado
+        </Typography>
+      </Box>
+    ) : (
       <Grid container spacing={4} justifyContent="left" paddingLeft={10} sx={{ mt: 4 }}>
         {carpetas.map((registro) => (
           <Grid item key={registro.idRegistro}>
             <Box sx={{ cursor: "pointer" }}>
-  <CardArchivos
-    nombreCarpeta={registro.año.toString()}
-    ruta={`/${rutas[title]}/${registro.idRegistro}${title === "Seguimiento" ? `/${idProceso}` : ""}`}
-    onEditClick={handleEditCarpeta}
-    rolActivo={rolActivo}
-    soloLectura={soloLectura}
-    puedeEditar={puedeEditar}
-    año={registro.año}
-  />
-</Box>
-
+              <CardArchivos
+                nombreCarpeta={registro.año.toString()}
+                ruta={`/${rutas[title]}/${registro.idRegistro}${
+                  title === "Seguimiento" ? `/${idProceso}` : ""
+                }`}
+                onEditClick={handleEditCarpeta}
+                rolActivo={rolActivo}
+                soloLectura={soloLectura}
+                puedeEditar={puedeEditar}
+                año={registro.año}
+              />
+            </Box>
           </Grid>
         ))}
       </Grid>
+    )}
 
-      {!soloLectura && (
-        <Fab color="primary" sx={{ position: "fixed", bottom: 20, right: 20 }} onClick={handleOpen}>
-          <AddIcon />
-        </Fab>
-      )}
-
-      <Dialog open={open} onClose={handleClose}>
+    {!soloLectura && (
+      <Fab
+        color="primary"
+        sx={{ position: "fixed", bottom: 20, right: 20 }}
+        onClick={handleOpen}
+      >
+        <AddIcon />
+      </Fab>
+    )}
+    <Dialog open={open} onClose={handleClose}>
       <DialogTitle>{editarCarpeta ? "Editar Carpeta" : "Nueva Carpeta"}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Año"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={nuevoAnio}
-            onChange={(e) => setNuevoAnio(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="secondary">Cancelar</Button>
-          <Button onClick={editarCarpeta ? handleTryUpdateCarpeta : handleAddCarpeta} color="primary">
-  {editarCarpeta ? "Guardar Cambios" : "Aceptar"}
-</Button>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          label="Año"
+          type="number"
+          fullWidth
+          variant="outlined"
+          value={nuevoAnio}
+          onChange={(e) => setNuevoAnio(e.target.value)}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="secondary">
+          Cancelar
+        </Button>
+        <Button
+          onClick={editarCarpeta ? handleTryUpdateCarpeta : handleAddCarpeta}
+          color="primary"
+        >
+          {editarCarpeta ? "Guardar Cambios" : "Aceptar"}
+        </Button>
+      </DialogActions>
+    </Dialog>
 
-        </DialogActions>
-      </Dialog>
+    <Snackbar
+      open={!!error}
+      autoHideDuration={4000}
+      onClose={() => setError(null)}
+    >
+      <Alert severity="error">{error}</Alert>
+    </Snackbar>
 
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)}>
-        <Alert severity="error">{error}</Alert>
-      </Snackbar>
-      <ConfirmEdit
-  open={openConfirmEdit}
-  onClose={() => setOpenConfirmEdit(false)}
-  onConfirm={handleEditConfirmada}
-  entityType="carpeta"
-  entityName={nuevoAnio}
-/>
+    <ConfirmEdit
+      open={openConfirmEdit}
+      onClose={() => setOpenConfirmEdit(false)}
+      onConfirm={handleEditConfirmada}
+      entityType="carpeta"
+      entityName={nuevoAnio}
+    />
+  </Box>
+);
 
-    </Box>
-  );
 }
 
 export default Carpetas;

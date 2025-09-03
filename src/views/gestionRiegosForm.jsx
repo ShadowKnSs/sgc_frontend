@@ -69,7 +69,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {
 
-  Box
+  Box, CircularProgress
 } from "@mui/material";
 
 import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
@@ -150,6 +150,8 @@ function FormularioGestionRiesgos() {
   const [riesgoErrors, setRiesgoErrors] = useState({});
   const [evaluationModalOpen, setEvaluationModalOpen] = useState(false);
   const [selectedRiesgoId, setSelectedRiesgoId] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(true);
 
 
   // Funcion para mostrar snackbar (FeedBack)
@@ -292,7 +294,6 @@ function FormularioGestionRiesgos() {
     }
   };
 
-
   const handleEvaluateRiesgo = async (riesgoId, evaluationData) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos/${riesgoId}/evaluar`, {
@@ -372,146 +373,164 @@ function FormularioGestionRiesgos() {
     setNuevoRiesgo({ ...nuevoRiesgo, [name]: value });
   };
 
+  // Función para cargar riesgos
+  const cargarRiesgosConLoading = async (idGesRies) => {
+    setIsLoading(true);
+    try {
+      await cargarRiesgos(idGesRies);
+    } catch (err) {
+      console.error("[ERROR] al cargar riesgos:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Llamada inicial
+  useEffect(() => {
+    if (gestionRiesgo?.idGesRies) {
+      cargarRiesgosConLoading(gestionRiesgo.idGesRies);
+    }
+  }, [gestionRiesgo?.idGesRies]);
   return (
-
     <Box sx={{ width: "90%", margin: "auto", mt: 5, borderRadius: 3, boxShadow: 3, p: 3 }}>
-      <Title text="Gestión de Riesgos"></Title>
-
-      <MenuNavegacionProceso items={menuItems} />
-
-      {/* === Sección de Info General (gestionriesgos) === */}
-
-      <GestionRiesgosGeneral
-        data={gestionRiesgo}
-        onChange={(key, value) => setGestionRiesgo(prev => ({ ...prev, [key]: value }))}
-        onSave={handleGuardarGestionRiesgos}
-        puedeEditar={puedeEditar}
-        modoEdicion={modoEdicion}
-        setModoEdicion={setModoEdicion}
-        tieneGesRies={tieneGesRies}
-      />
-
-
-      {/* === Tabs para los riesgos (solo si ya existe idGesRies) === */}
-      {tieneGesRies && gestionRiesgo.idGesRies && (
+      {isLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
         <>
-          <SectionTabs
-            sections={sections}
-            selectedTab={selectedTab}
-            onTabChange={handleTabChange}
+          <Title text="Gestión de Riesgos" />
+          <MenuNavegacionProceso items={menuItems} />
+
+          <GestionRiesgosGeneral
+            data={gestionRiesgo}
+            onChange={(key, value) => setGestionRiesgo(prev => ({ ...prev, [key]: value }))}
+            onSave={handleGuardarGestionRiesgos}
+            puedeEditar={puedeEditar}
+            modoEdicion={modoEdicion}
+            setModoEdicion={setModoEdicion}
+            tieneGesRies={tieneGesRies}
           />
 
-          <RiesgosTabs
-            selectedTab={selectedTab}
-            savedData={savedData}
-            riesgos={riesgos}
-            soloLectura={soloLectura}
-            onEdit={handleEditRiesgo}
-            onDelete={handleDeleteRiesgo}
-            onEvaluate={handleEvaluateRiesgo}
-            sections={sections}
-          />
+          {tieneGesRies && gestionRiesgo.idGesRies && (
+            <>
+              <SectionTabs
+                sections={sections}
+                selectedTab={selectedTab}
+                onTabChange={handleTabChange}
+              />
+              <RiesgosTabs
+                selectedTab={selectedTab}
+                savedData={savedData}
+                riesgos={riesgos}
+                soloLectura={soloLectura}
+                onEdit={handleEditRiesgo}
+                onDelete={handleDeleteRiesgo}
+                onEvaluate={handleEvaluateRiesgo}
+                sections={sections}
+              />
+              {/* Botón para abrir el modal y agregar un riesgo nuevo */}
+              {!soloLectura && (
+                <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                  <CustomButton
+                    onClick={() => {
+                      setOpenModal(true);
+                      setIsEditing(false);
+                      setEditingRiesgo(null);
+                      setNuevoRiesgo({
+                        idRiesgo: null,
+                        responsable: "",
+                        fuente: "",
+                        tipoRiesgo: "",
+                        descripcion: "",
+                        consecuencias: "",
+                        valorSeveridad: "",
+                        valorOcurrencia: "",
+                        actividades: "",
+                        accionMejora: "",
+                        fechaImp: "",
+                        fechaEva: "",
+                        reevaluacionSeveridad: "",
+                        reevaluacionOcurrencia: "",
+                        analisisEfectividad: "",
+                      });
+                    }}
 
-          {/* Botón para abrir el modal y agregar un riesgo nuevo */}
-          {!soloLectura && (
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-              <CustomButton
-                onClick={() => {
-                  setOpenModal(true);
-                  setIsEditing(false);
-                  setEditingRiesgo(null);
-                  setNuevoRiesgo({
-                    idRiesgo: null,
-                    responsable: "",
-                    fuente: "",
-                    tipoRiesgo: "",
-                    descripcion: "",
-                    consecuencias: "",
-                    valorSeveridad: "",
-                    valorOcurrencia: "",
-                    actividades: "",
-                    accionMejora: "",
-                    fechaImp: "",
-                    fechaEva: "",
-                    reevaluacionSeveridad: "",
-                    reevaluacionOcurrencia: "",
-                    analisisEfectividad: "",
-                  });
-                }}
-
-              >
-                Añadir Riesgo
-              </CustomButton>
-            </Box>
+                  >
+                    Añadir Riesgo
+                  </CustomButton>
+                </Box>
+              )}
+            </>
           )}
-        </>
+
+          {/* Modal para crear/editar riesgo */}
+          <RiesgoModal
+            open={openModal}
+            onClose={() => {
+              setOpenModal(false);
+              setCurrentSection(0);
+              setIsEditing(false);
+              setEditingRiesgo(null);
+              setRiesgoErrors({});
+            }}
+            isEditing={isEditing}
+            currentSection={currentSection}
+            onAnterior={handlePreviousSection}
+            onSiguiente={handleNextSection}
+            onGuardar={handleRequestEditRiesgo}
+            nuevoRiesgo={nuevoRiesgo}
+            onChange={handleRiesgoChange}
+            sections={sections}
+            errors={riesgoErrors}
+
+          />
+
+
+          {/* SnackBars */}
+          < FeedbackSnackbar
+            open={snackbar.open}
+            onClose={cerrarSnackbar}
+            type={snackbar.type}
+            title={snackbar.title}
+            message={snackbar.message}
+          />
+
+          {/* Diálogo de confirmación para eliminar */}
+          < ConfirmDelete
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)
+            }
+            entityType="riesgo"
+            entityName={`el riesgo ${rowToDelete?.fuente}`}
+            onConfirm={confirmDeleteRiesgo}
+          />
+
+          <ConfirmEdit
+            open={confirmEditOpen}
+            onClose={() => setConfirmEditOpen(false)}
+            entityType="riesgo"
+            entityName={` el riesgo ${editingRiesgo?.fuente}`}
+            onConfirm={() => {
+              setNuevoRiesgo({
+                ...editingRiesgo,
+                fechaImp: editingRiesgo.fechaImp ? editingRiesgo.fechaImp.slice(0, 10) : "",
+                fechaEva: editingRiesgo.fechaEva ? editingRiesgo.fechaEva.slice(0, 10) : "",
+              });
+              setIsEditing(true);
+              setCurrentSection(0);
+              setOpenModal(true);
+              setConfirmEditOpen(false); // opcional pero recomendable para limpiar estado
+              setConfirmadoEditar(true);
+
+            }}
+          />
+          </>
       )}
 
-      {/* Modal para crear/editar riesgo */}
-      <RiesgoModal
-        open={openModal}
-        onClose={() => {
-          setOpenModal(false);
-          setCurrentSection(0);
-          setIsEditing(false);
-          setEditingRiesgo(null);
-          setRiesgoErrors({});
-        }}
-        isEditing={isEditing}
-        currentSection={currentSection}
-        onAnterior={handlePreviousSection}
-        onSiguiente={handleNextSection}
-        onGuardar={handleRequestEditRiesgo}
-        nuevoRiesgo={nuevoRiesgo}
-        onChange={handleRiesgoChange}
-        sections={sections}
-        errors={riesgoErrors}
 
-      />
-
-
-      {/* SnackBars */}
-      < FeedbackSnackbar
-        open={snackbar.open}
-        onClose={cerrarSnackbar}
-        type={snackbar.type}
-        title={snackbar.title}
-        message={snackbar.message}
-      />
-
-      {/* Diálogo de confirmación para eliminar */}
-      < ConfirmDelete
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)
-        }
-        entityType="riesgo"
-        entityName={`el riesgo ${rowToDelete?.fuente}`}
-        onConfirm={confirmDeleteRiesgo}
-      />
-
-      <ConfirmEdit
-        open={confirmEditOpen}
-        onClose={() => setConfirmEditOpen(false)}
-        entityType="riesgo"
-        entityName={` el riesgo ${editingRiesgo?.fuente}`}
-        onConfirm={() => {
-          setNuevoRiesgo({
-            ...editingRiesgo,
-            fechaImp: editingRiesgo.fechaImp ? editingRiesgo.fechaImp.slice(0, 10) : "",
-            fechaEva: editingRiesgo.fechaEva ? editingRiesgo.fechaEva.slice(0, 10) : "",
-          });
-          setIsEditing(true);
-          setCurrentSection(0);
-          setOpenModal(true);
-          setConfirmEditOpen(false); // opcional pero recomendable para limpiar estado
-          setConfirmadoEditar(true);
-
-        }}
-      />
-
-    </Box >
-
-  );
+        </Box>
+      );
 }
 
-export default FormularioGestionRiesgos;
+      export default FormularioGestionRiesgos;
