@@ -385,39 +385,42 @@ const ReportesAuditoria = () => {
 };
 
 const ReportCard = ({ report, onDelete }) => {
-    return (
-        <Box
-            sx={{
-                backgroundColor: "#fff",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                borderRadius: "8px",
-                p: 2,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                width: 320,
-                minHeight: 160,
-                borderLeft: "6px solid #004A98",
-                transition: "transform 0.2s",
-                "&:hover": {
-                    transform: "translateY(-4px)"
-                }
-            }}
-        >
-            <Box sx={{ mb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
-                    {report.titulo || "Auditoría Interna"}
-                </Typography>
-                <Typography variant="body2">
-                    <b>Entidad:</b> {report.entidad || "Sin entidad"}
-                </Typography>
-                <Typography variant="body2">
-                    <b>Líder:</b> {report.lider || "Sin líder"}
-                </Typography>
-                <Typography variant="body2">
-                    <b>Fecha:</b> {report.date}
-                </Typography>
-            </Box>
+  return (
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        borderRadius: "8px",
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        width: 320,
+        minHeight: 160,
+        borderLeft: "6px solid #004A98",
+        transition: "transform 0.2s",
+        "&:hover": {
+          transform: "translateY(-4px)"
+        }
+      }}
+    >
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
+          {report.titulo || "Auditoría Interna"}
+        </Typography>
+        <Typography variant="body2">
+        <b>Entidad:</b> {report.entidad}
+        </Typography>
+        <Typography variant="body2">
+        <b>Proceso:</b> {report.proceso}
+        </Typography>
+        <Typography variant="body2">
+        <b>Auditor líder:</b> {report.lider}
+        </Typography>
+        <Typography variant="body2">
+        <b>Fecha:</b> {report.date}
+        </Typography>
+      </Box>
 
             <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
                 <Button

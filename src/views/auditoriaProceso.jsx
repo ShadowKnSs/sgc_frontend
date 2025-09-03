@@ -230,7 +230,7 @@ const AuditoriaProceso = () => {
                   {auditoria?.registro?.proceso?.nombreProceso || "Proceso desconocido"}
                 </Typography>
                 <Typography variant="body2"><strong>Entidad:</strong> {auditoria?.registro?.proceso?.entidad?.nombreEntidad || "Entidad desconocida"}</Typography>
-                <Typography variant="body2"><strong>Líder:</strong> {auditoria.auditorLider || "No asignado"}</Typography>
+                <Typography variant="body2"><strong>Auditor líder:</strong> {auditoria.auditorLider || "No asignado"}</Typography>
                 <Typography variant="body2"><strong>Fecha:</strong> {new Date(auditoria.fecha).toLocaleDateString()}</Typography>
 
                 {/* Botones */}

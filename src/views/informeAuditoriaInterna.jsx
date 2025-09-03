@@ -84,13 +84,43 @@ function InformeAud() {
   const [entidad, setEntidad] = useState("");
   const [proceso, setProceso] = useState("");
   const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const [lider, setLider] = useState(usuario?.nombre || "");
+  const [lider, setLider] = useState("");
   const navigate = useNavigate();
   const modoEdicion = location.state?.modoEdicion || false;
   const datosAuditoria = location.state?.datosAuditoria || null;
   const [mensaje, setMensaje] = useState(null);
   const [error, setError] = useState(null);
   const [auditoresDisponibles, setAuditoresDisponibles] = useState([]);
+  const [liderProceso, setLiderProceso] = useState("");
+
+  useEffect(() => {
+    if (!modoEdicion) {
+      const nombreCompleto = [
+        usuario?.nombre,
+        usuario?.apellidoPat,
+        usuario?.apellidoMat
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      setLider(nombreCompleto);
+    }
+  }, [usuario, modoEdicion]);
+
+  useEffect(() => {
+    const fetchDatos = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8000/api/procesos/${idProceso}/lider`);
+        setProceso(res.data.proceso);
+        setEntidad(res.data.entidad);
+        setLiderProceso(res.data.liderProceso);
+      } catch (error) {
+        console.error("Error al obtener datos:", error);
+      }
+    };
+
+    if (idProceso) fetchDatos();
+  }, [idProceso]);
 
   useEffect(() => {
     const fetchAuditores = async () => {
@@ -272,6 +302,8 @@ function InformeAud() {
         plazos: plazos.filter(p => p.trim() !== ""),
         auditorLider: lider,
 
+        idAuditor: usuario?.idUsuario || null,
+
         equipoAuditor: equipoAuditor.map(item => ({
           rolAsignado: item.rol,
           nombreAuditor: item.auditor,
@@ -370,7 +402,7 @@ function InformeAud() {
               <Typography variant="body1"><strong>Proceso:</strong> {proceso}</Typography>
             </Grid>
             <Grid item xs={4}>
-              <Typography variant="body1"><strong>Líder:</strong> {lider}</Typography>
+              <Typography variant="body1"><strong>Líder:</strong> {liderProceso}</Typography>
             </Grid>
           </Grid>
         </Box>
@@ -382,13 +414,13 @@ function InformeAud() {
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Objetivo:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={objetivo} onChange={(e) => setObjetivo(e.target.value)}
+          <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" value={objetivo} onChange={(e) => setObjetivo(e.target.value)}
           />
         </Box>
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Alcance:</strong></Typography>
-          <TextField fullWidth multiline rows={1} variant="outlined" value={alcance} onChange={(e) => setAlcance(e.target.value)} />
+          <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" value={alcance} onChange={(e) => setAlcance(e.target.value)} />
         </Box>
 
         <Box mt={3}>
@@ -397,8 +429,7 @@ function InformeAud() {
             <Box key={index} display="flex" alignItems="center" mt={1}>
               <TextField
                 fullWidth
-                multiline
-                rows={1}
+                multiline minRows={1} maxRows={10}
                 variant="outlined"
                 value={criterio}
                 onChange={(e) => {
@@ -502,10 +533,10 @@ function InformeAud() {
               {personalAuditado.map((item, index) => (
                 <Grid container spacing={2} alignItems="center" mt={1} key={index}>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Nombre" variant="outlined" value={item.nombre} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].nombre = e.target.value; setPersonalAuditado(nuevos); }} />
+                    <TextField fullWidth multiline minRows={1} maxRows={3} label="Nombre" variant="outlined" value={item.nombre} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].nombre = e.target.value; setPersonalAuditado(nuevos); }} />
                   </Grid>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Cargo" variant="outlined" value={item.cargo} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].cargo = e.target.value; setPersonalAuditado(nuevos); }} />
+                    <TextField fullWidth multiline minRows={1} maxRows={3} label="Cargo" variant="outlined" value={item.cargo} onChange={(e) => { const nuevos = [...personalAuditado]; nuevos[index].cargo = e.target.value; setPersonalAuditado(nuevos); }} />
                   </Grid>
                   <Grid item xs={12} display="flex" justifyContent="flex-end">
                     <Typography variant="body2" color="primary" sx={{ cursor: "pointer", mr: 2 }} onClick={agregarPersonal}>
@@ -532,7 +563,7 @@ function InformeAud() {
               <Box key={index} width="100%" mt={2}>
                 <Grid container spacing={2}>
                   <Grid item xs={2}>
-                    <TextField fullWidth variant="outlined" size="small" label="Criterio" value={verificacion.criterio}
+                    <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" size="small" label="Criterio" value={verificacion.criterio}
                       onChange={(e) => {
                         const nuevas = [...verificaciones];
                         nuevas[index].criterio = e.target.value;
@@ -541,7 +572,7 @@ function InformeAud() {
                     />
                   </Grid>
                   <Grid item xs={2}>
-                    <TextField fullWidth variant="outlined" size="small" label="Req. Asociado" value={verificacion.reqAsociado}
+                    <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" size="small" label="Req. Asociado" value={verificacion.reqAsociado}
                       onChange={(e) => {
                         const nuevas = [...verificaciones];
                         nuevas[index].reqAsociado = e.target.value;
@@ -550,7 +581,7 @@ function InformeAud() {
                     />
                   </Grid>
                   <Grid item xs={3}>
-                    <TextField fullWidth variant="outlined" size="small" label="Observaciones" value={verificacion.observaciones}
+                    <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" size="small" label="Observaciones" value={verificacion.observaciones}
                       onChange={(e) => {
                         const nuevas = [...verificaciones];
                         nuevas[index].observaciones = e.target.value;
@@ -559,7 +590,7 @@ function InformeAud() {
                     />
                   </Grid>
                   <Grid item xs={3}>
-                    <TextField fullWidth variant="outlined" size="small" label="Evidencia" value={verificacion.evidencia}
+                    <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" size="small" label="Evidencia" value={verificacion.evidencia}
                       onChange={(e) => {
                         const nuevas = [...verificaciones];
                         nuevas[index].evidencia = e.target.value;
@@ -609,12 +640,12 @@ function InformeAud() {
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Fortalezas:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={fortalezas} onChange={(e) => setFortalezas(e.target.value)} />
+          <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" value={fortalezas} onChange={(e) => setFortalezas(e.target.value)} />
         </Box>
 
         <Box mt={3}>
           <Typography variant="body1" gutterBottom><strong>Debilidades:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={debilidades} onChange={(e) => setDebilidades(e.target.value)} />
+          <TextField fullWidth multiline minRows={1} maxRows={10} variant="outlined" value={debilidades} onChange={(e) => setDebilidades(e.target.value)} />
         </Box>
 
         <Box mt={4} display="flex" flexDirection="column" alignItems="center">
@@ -703,7 +734,7 @@ function InformeAud() {
           {conclusiones.map((conclusion, index) => (
             <Box key={index} mt={2} p={2} sx={{ border: "1px solid #ccc", borderRadius: "8px" }}>
               <TextField
-                fullWidth
+                fullWidth multiline minRows={1} maxRows={10}
                 label="Nombre de la conclusión"
                 variant="outlined"
                 size="small"
@@ -720,8 +751,7 @@ function InformeAud() {
                 label="Observaciones"
                 variant="outlined"
                 size="small"
-                multiline
-                rows={3}
+                multiline minRows={1} maxRows={10}
                 sx={{ mt: 2 }}
                 value={conclusion.observaciones}
                 onChange={(e) => {
@@ -763,8 +793,7 @@ function InformeAud() {
             <Box key={index} display="flex" alignItems="center" mt={1}>
               <TextField
                 fullWidth
-                multiline
-                rows={1}
+                multiline minRows={1} maxRows={10}
                 variant="outlined"
                 value={plazo}
                 onChange={(e) => {

@@ -174,7 +174,8 @@ const DetalleAuditor = ({ auditor, onBack }) => {
               minWidth: "300px",
               display: "flex",
               flexDirection: "column",
-              gap: 2
+              gap: 3,
+              position: "relative"
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -182,6 +183,22 @@ const DetalleAuditor = ({ auditor, onBack }) => {
               <Typography variant="h6" fontWeight="bold" color="#004A98">
                 Auditorías Realizadas
               </Typography>
+
+              {/* Cantidad total */}
+              <Box
+                sx={{
+                  ml: 2,
+                  backgroundColor: "#004A98",
+                  color: "#fff",
+                  borderRadius: "12px",
+                  px: 2,
+                  py: 0.5,
+                  fontWeight: "bold",
+                  fontSize: "0.9rem"
+                }}
+              >
+                {auditorias.length} {auditorias.length === 1 ? "auditoría" : "auditorías"}
+              </Box>
             </Box>
 
             {auditorias.length === 0 ? (
@@ -189,24 +206,37 @@ const DetalleAuditor = ({ auditor, onBack }) => {
                 No se han registrado auditorías aún.
               </Typography>
             ) : (
-              auditorias.map((auditoria, index) => (
-                <Paper
-                  key={index}
-                  elevation={1}
-                  sx={{
-                    p: 2,
-                    borderLeft: "4px solid #004A98",
-                    backgroundColor: "#f9f9f9"
-                  }}
-                >
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {auditoria.nombreProceso}
-                  </Typography>
-                  <Typography variant="body2">Entidad: {auditoria.idEntidad}</Typography>
-                  <Typography variant="body2">Fecha: {auditoria.fechaAuditoria}</Typography>
-                  <Typography variant="body2">Tipo: {auditoria.tipoAuditoria}</Typography>
-                </Paper>
-              ))
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {auditorias.map((auditoria, index) => (
+                  <Paper
+                    key={index}
+                    elevation={3}
+                    sx={{
+                      p: 2.5,
+                      borderLeft: "6px solid #004A98",
+                      backgroundColor: "#f0f4ff",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+                      }
+                    }}
+                  >
+                    <Typography variant="subtitle1" fontWeight="bold" color="#003366">
+                      {auditoria.nombreProceso}
+                    </Typography>
+                    <Typography variant="body2" color="#555">
+                      Entidad: <strong>{auditoria.nombreEntidad || "Sin entidad"}</strong>
+                    </Typography>
+                    <Typography variant="body2" color="#555">
+                      Fecha: {new Date(auditoria.fechaAuditoria).toLocaleDateString()}
+                    </Typography>
+                    <Typography variant="body2" color="#555">
+                      Alcance: {auditoria.tipoAuditoria}
+                    </Typography>
+                  </Paper>
+                ))}
+              </Box>
             )}
           </Paper>
         </Box>
