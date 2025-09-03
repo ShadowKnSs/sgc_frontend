@@ -54,6 +54,8 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
   const getRetroList = () =>
     indicadores.filter((i) => i.origenIndicador === "Retroalimentacion");
 
+
+
   if (error) {
     return (
       <Box
@@ -135,8 +137,7 @@ const DRPAnalisisDatos = ({ idProceso, anio, idRegistro, onImagenGenerada }) => 
       <TablaEvaluacionProveedores idProceso={idProceso} anio={anio} />
       {getIndicador("EvaluaProveedores") && (
         <GraficaEvaluacion
-          idProceso={idProceso}
-          anio={anio} 
+          data={getIndicador("EvaluaProveedores")}
           onImageReady={(imgBase64) => onImagenGenerada("evaluacionProveedores", imgBase64)}
         />
       )}

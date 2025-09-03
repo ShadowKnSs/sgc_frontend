@@ -37,7 +37,6 @@ import ProyectoMejora from "../components/ReporteProceso/DRPProyectoMejora";
 import PlanAccion from "../components/ReporteProceso/DRPPlanAccion";
 import Title from "../components/Title";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import FiltroReportes from "../components/buscadorProceso";
 
 const ReportView = () => {
   const { idProceso, year } = useParams();
