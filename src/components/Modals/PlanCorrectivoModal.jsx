@@ -124,10 +124,10 @@ const PlanCorrectivoDetalleModal = ({
             <DialogActions>
                 {!soloLectura && puedeEditar && (
                     <>
-                        <CustomButton type="guardar" onClick={() => onEdit(record)}>
+                        <CustomButton type="cancelar" onClick={() => onEdit(record)}>
                             Editar
                         </CustomButton>
-                        <CustomButton type="cancelar" onClick={() => onDelete(record)}>
+                        <CustomButton type="guardar" onClick={() => onDelete(record)}>
                             Eliminar
                         </CustomButton>
                     </>

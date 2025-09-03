@@ -13,8 +13,6 @@ import { Edit, Person, CalendarMonth } from "@mui/icons-material";
 
 const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo }) => {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-
-  // Nombre completo (si hay apellidos en el storage)
   const fullName = [
     usuario?.nombre,
     usuario?.apellidoPat,
@@ -22,12 +20,10 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
   ].filter(Boolean).join(" ") || "";
 
   const fechaHoy = new Date().toISOString().split("T")[0];
-
-  // Soporte para rolActivo como string u objeto { nombreRol: "Líder" }
   const rolNombre = (typeof rolActivo === "string" ? rolActivo : rolActivo?.nombreRol) || "";
 
-  // Normaliza acentos para comparar “Líder” == “Lider”
-  const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  // Función mejorada para normalizar y comparar roles
+  const norm = (s) => s?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() || "";
 
   const [editable, setEditable] = useState({
     responsable: false,
@@ -36,40 +32,49 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
 
   const formatearFecha = (fechaStr) => {
     if (!fechaStr) return "";
-    const date = new Date(fechaStr);
-    const dia = String(date.getDate()).padStart(2, "0");
-    const mes = String(date.getMonth() + 1).padStart(2, "0");
-    const anio = date.getFullYear();
-    return `${dia}/${mes}/${anio}`;
-    // Si tu backend ya manda YYYY-MM-DD, esto funciona bien.
+    try {
+      const date = new Date(fechaStr);
+      if (isNaN(date.getTime())) return fechaStr; // Si no es fecha válida, devolver original
+      const dia = String(date.getDate()).padStart(2, "0");
+      const mes = String(date.getMonth() + 1).padStart(2, "0");
+      const anio = date.getFullYear();
+      return `${dia}/${mes}/${anio}`;
+    } catch (error) {
+      return fechaStr;
+    }
   };
 
-  // Helper para llamar a tu handleChange con la misma forma que esperas
   const setField = (name, value) =>
     handleChange?.({ target: { name, value } });
 
   useEffect(() => {
-    // Si es Líder -> setear elaboradoPor y fechaElaboracion por defecto
-    if (norm(rolNombre) === "lider") {
-      if (!formData?.fechaElaboracion) {
-        setField("fechaElaboracion", fechaHoy);
-      }
-      if (!formData?.elaboradoPor) {
-        setField("elaboradoPor", fullName);
-      }
-    }
+   
 
-    // Si es Coordinador o Supervisor -> setear revisadoPor y fechaRevision por defecto
-    if (["coordinador", "supervisor"].includes(norm(rolNombre))) {
-      if (!formData?.revisadoPor) {
-        setField("revisadoPor", fullName);
+    // Solo establecer valores si el usuario tiene permiso para editar
+    if (puedeEditar && !soloLectura) {
+      // Si es Líder -> setear elaboradoPor y fechaElaboracion
+      if (norm(rolNombre) === "lider") {
+        if (!formData?.elaboradoPor || formData.elaboradoPor !== fullName) {
+          console.log("Estableciendo elaboradoPor:", fullName);
+          setField("elaboradoPor", fullName);
+        }
+        if (!formData?.fechaElaboracion) {
+          console.log("Estableciendo fechaElaboracion:", fechaHoy);
+          setField("fechaElaboracion", fechaHoy);
+        }
       }
-      if (!formData?.fechaRevision) {
-        setField("fechaRevision", fechaHoy);
+
+      // Si es Coordinador o Supervisor -> setear revisadoPor y fechaRevision
+      if (["coordinador", "supervisor"].includes(norm(rolNombre))) {
+        if (!formData?.revisadoPor || formData.revisadoPor !== fullName) {
+          setField("revisadoPor", fullName);
+        }
+        if (!formData?.fechaRevision) {
+          setField("fechaRevision", fechaHoy);
+        }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rolNombre]); // no hace falta depender de formData/handleChange para evitar loops
+  }, [rolNombre, formData, puedeEditar, soloLectura, fullName, fechaHoy]); // Agregar todas las dependencias necesarias
 
   const enableEdit = (campo) => {
     if (!soloLectura && puedeEditar) {
@@ -98,37 +103,34 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
         mx: "auto",
       }}
     >
+      
       <Grid container spacing={3}>
-        {/* === Columna izquierda === */}
         <Grid item xs={12} md={6}>
-          {/* 👇 Muestra explícitamente “Elaboró” */}
           <InfoDisplay
             icon={<Person sx={{ color: "#185FA4" }} />}
             label="Elaboró"
-            value={formData.elaboradoPor}
+            value={formData.elaboradoPor || "No asignado"}
           />
           <InfoDisplay
             icon={<CalendarMonth sx={{ color: "#185FA4" }} />}
             label="Fecha de Elaboración"
-            value={formatearFecha(formData.fechaElaboracion)}
+            value={formatearFecha(formData.fechaElaboracion) || "No asignada"}
           />
         </Grid>
 
-        {/* === Columna derecha === */}
         <Grid item xs={12} md={6}>
           <InfoDisplay
             icon={<Person sx={{ color: "#185FA4" }} />}
             label="Revisado por"
-            value={formData.revisadoPor}
+            value={formData.revisadoPor || "No asignado"}
           />
           <InfoDisplay
             icon={<CalendarMonth sx={{ color: "#185FA4" }} />}
             label="Fecha de Revisión"
-            value={formatearFecha(formData.fechaRevision)}
+            value={formatearFecha(formData.fechaRevision) || "No asignada"}
           />
         </Grid>
 
-        {/* === Objetivo, centrado en 2 columnas === */}
         <Grid item xs={12}>
           <TextField
             fullWidth

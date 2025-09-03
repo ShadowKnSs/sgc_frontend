@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useMemo, useState } from "react";
-import { Box, Alert, Typography } from "@mui/material";
+import React, { useRef, useEffect, useState } from "react";
+import { Box, Alert, Typography, CircularProgress } from "@mui/material";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,9 +14,11 @@ import { Bar } from "react-chartjs-2";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
+  console.log("Datos recibidos en GraficaEvaluacion:", data); 
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
   const [chartInstance, setChartInstance] = useState(null);
+  const [chartData, setChartData] = useState(null);
 
   // Verificar que los datos necesarios estén presentes
   const hasValidData = data && (
@@ -28,10 +30,14 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
     data.resultadoNoConfiableSem2 !== undefined
   );
 
-  const chartData = useMemo(() => {
-    if (!hasValidData) return null;
+  // Preparamos los datos del gráfico
+  useEffect(() => {
+    if (!hasValidData) {
+      setChartData(null);
+      return;
+    }
 
-    return {
+    const newChartData = {
       labels: ["Ene-Jun", "Jul-Dic"],
       datasets: [
         {
@@ -69,30 +75,46 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         }
       ]
     };
+    
+    setChartData(newChartData);
   }, [data, hasValidData]);
 
   const onChartReady = (chart) => {
     setChartInstance(chart);
   };
 
-  useEffect(() => {
-    if (chartInstance && chartData && !yaGenerada.current) {
-      const timer = setTimeout(() => {
+  // Función para generar y enviar la imagen
+  const generarImagen = () => {
+    if (!chartInstance || yaGenerada.current) return;
+    
+    try {
+      // Pequeña demora para asegurar que el gráfico esté renderizado
+      setTimeout(() => {
         try {
           const base64 = chartInstance.toBase64Image("image/png", 1.0);
           
-          if (base64 && base64.startsWith("data:image/png;base64,") && typeof onImageReady === "function") {
-            onImageReady("evaluacionProveedores", base64);
+          if (base64 && base64.startsWith("data:image/png;base64,")) {
+            console.log("Imagen de evaluación de proveedores generada correctamente");
+            onImageReady(base64);
             yaGenerada.current = true;
+          } else {
+            console.error("Base64 inválido generado por Chart.js");
           }
         } catch (error) {
           console.error("Error al generar imagen:", error);
         }
-      }, 500);
-      
-      return () => clearTimeout(timer);
+      }, 1000);
+    } catch (error) {
+      console.error("Error en generarImagen:", error);
     }
-  }, [chartInstance, chartData, onImageReady]);
+  };
+
+  // Efecto para generar la imagen cuando el chart esté listo
+  useEffect(() => {
+    if (chartInstance && chartData) {
+      generarImagen();
+    }
+  }, [chartInstance, chartData]);
 
   if (!hasValidData) {
     return (
@@ -102,7 +124,13 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
     );
   }
 
-  if (!chartData) return null;
+  if (!chartData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   const options = {
     responsive: true,
@@ -188,7 +216,12 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
       }
     },
     animation: {
-      duration: 0
+      duration: 1000,
+      onComplete: () => {
+        if (chartInstance && !yaGenerada.current) {
+          generarImagen();
+        }
+      }
     }
   };
 

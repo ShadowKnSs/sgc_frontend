@@ -26,14 +26,7 @@ import Permiso from "../hooks/userPermiso";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import Subtitle from "../components/Subtitle";
 import ConfirmEdit from "../components/confirmEdit";
-
-const rutas = {
-  "Gestión de Riesgo": "gestion-riesgos",
-  "Análisis de Datos": "analisis-datos",
-  "Acciones de Mejora": "actividad-mejora",
-  "Generar informe de auditoría": "informe-auditoria",
-  "Seguimiento": "seguimientoPrincipal",
-};
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 function Carpetas() {
   const { state } = useLocation();
@@ -52,6 +45,7 @@ function Carpetas() {
 
   const rolActivo = state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso(title);
+  const idProcesoActivo = idProceso || localStorage.getItem("idProcesoActvio");
 
   const rutas = {
     "Gestión de Riesgo": "gestion-riesgos",
@@ -62,6 +56,10 @@ function Carpetas() {
     "Auditoria": "auditoria"
   };
 
+  const breadcrumbItems = [
+    { label: "Estructura", to: `/estructura-procesos/${idProcesoActivo}` },
+    { label: title } // último tramo, se muestra como texto (no link)
+  ];
   useEffect(() => {
     obtenerRegistros();
   }, []);
@@ -88,6 +86,17 @@ function Carpetas() {
     setIsLoading(false); // ⬅️ termina la carga SIEMPRE
   }
 };
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/registros/filtrar", {
+        idProceso,
+        Apartado: title,
+      });
+      const carpetasOrdenadas = response.data.sort((a, b) => a.año - b.año);
+      setCarpetas(carpetasOrdenadas);
+    } catch (error) {
+      console.error("Error al obtener registros:", error);
+    }
+  };
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -193,6 +202,16 @@ function Carpetas() {
         <Typography variant="h6" color="text.secondary" textAlign="center">
           Aún no existe ningún registro de ningún año para este apartado
         </Typography>
+    <Box sx={{ p: 4 }}>
+      {/* Breadcrumb: Inicio > Estructura > {title} */}
+     <Box sx={{ width: '100%', alignSelf: 'stretch', mb: 2 }}>
+       <BreadcrumbNav items={breadcrumbItems} />
+     </Box>
+      {/* <Subtitle text={title}  withBackground={true}/> */}
+      
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+        
+        <ContextoProcesoEntidad idProceso={idProceso }/>
       </Box>
     ) : (
       <Grid container spacing={4} justifyContent="left" paddingLeft={10} sx={{ mt: 4 }}>

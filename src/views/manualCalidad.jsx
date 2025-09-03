@@ -39,9 +39,10 @@
  */
 
 import React, { useRef, useState } from "react";
-import { Typography, CircularProgress, Box, SpeedDial, SpeedDialAction } from "@mui/material";
+import { Typography, CircularProgress, Box, SpeedDial, SpeedDialAction, Container } from "@mui/material";
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import { useNavigate } from "react-router-dom";
 
 const ManualCalidad = () => {
@@ -52,6 +53,10 @@ const ManualCalidad = () => {
   // Verificar si es Invitado
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null") || { nombreRol: "Invitado" };
   const esInvitado = rolActivo?.nombreRol === "Invitado";
+
+  const breadcrumbItems = [
+    { label: "Manual de Calidad", icon: NewspaperIcon }
+  ];
 
   // Función para pantalla completa
   const handleFullscreen = () => {
@@ -70,7 +75,11 @@ const ManualCalidad = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-4 relative">
+      <Container sx={{ minHeight: "100vh", py: 3 }}>
+      {/* Breadcrumb pegado a la izquierda */}
+      <Box sx={{ width: "100%", mb: 2 }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
       <Typography
         variant="h4"
         align="center"
@@ -87,7 +96,7 @@ const ManualCalidad = () => {
         </Box>
       )}
 
-      <div className={`w-full max-w-4xl ${!isLoaded ? "hidden" : ""}`}>
+      <Box className={!isLoaded ? "hidden" : ""} sx={{ width: "100%", maxWidth: 960, mx: "auto" }}>
         <iframe
           ref={iframeRef}
           src="https://uaslpedu.sharepoint.com/sites/Sical-virtual/_layouts/15/embed.aspx?UniqueId=69f2e061-d922-4e84-984a-bbba68b7246d"
@@ -97,10 +106,10 @@ const ManualCalidad = () => {
           allowFullScreen
           title="MANUAL DE CALIDAD 28042024"
           aria-label="Manual de Calidad"
-          className="shadow-lg rounded-lg"
+          style={{ border: "0", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
           onLoad={() => setIsLoaded(true)}
         />
-      </div>
+      </Box>
 
       {/* SpeedDial solo para Invitado */}
       {esInvitado && (
@@ -121,7 +130,7 @@ const ManualCalidad = () => {
           />
         </SpeedDial>
       )}
-    </div>
+    </Container>
   );
 };
 

@@ -10,7 +10,7 @@ import {
   Grid,
   InputAdornment
 } from '@mui/material';
-import DialogActionButtons from '../DialogActionButtons';
+import CustomButton from '../Button'; 
 import DialogTitleCustom from "../TitleDialog";
 import { motion } from 'framer-motion';
 
@@ -18,6 +18,7 @@ const MotionBox = motion(Box);
 
 const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult = {}, anio }) => {
   const [tab, setTab] = useState(0);
+  const [isSaving, setIsSaving] = useState(false); // Estado para loading
 
   const defaultState = useMemo(() => {
     const obj = {};
@@ -62,21 +63,27 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
 
   const handleSave = () => {
     if (!indicator?.idIndicador) return;
+    try {
+      const payload = {
+        periodicidad: indicator.periodicidad,
+        result: {},
+      };
 
-    const payload = {
-      periodicidad: indicator.periodicidad,
-      result: {},
-    };
+      if (indicator.periodicidad === "Anual") {
+        payload.result.resultadoAnual = parseFloat(resultEneJun[fields[0].name]);
+      } else {
+        payload.result.resultadoSemestral1 = parseFloat(resultEneJun[fields[0].name]);
+        payload.result.resultadoSemestral2 = parseFloat(resultJulDic[fields[0].name]);
+      }
 
-    if (indicator.periodicidad === "Anual") {
-      payload.result.resultadoAnual = parseFloat(resultEneJun[fields[0].name]);
-    } else {
-      payload.result.resultadoSemestral1 = parseFloat(resultEneJun[fields[0].name]);
-      payload.result.resultadoSemestral2 = parseFloat(resultJulDic[fields[0].name]);
+      onSave(indicator.idIndicador, payload);
+      onClose();
+    } catch (error) {
+      console.error('Error al guardar:', error);
+    } finally {
+      setIsSaving(false); // Desactivar loading
     }
 
-    onSave(indicator.idIndicador, payload);
-    onClose();
   };
 
   return (
@@ -138,14 +145,20 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
           </Box>
         </DialogContent>
         <DialogActions>
-          <DialogActionButtons
-            onCancel={onClose}
-            onSave={handleSave}
-            saveText="Guardar"
-            cancelText="Cancelar"
-            saveColor="terciary.main"
-            cancelColor="primary.main"
-          />
+          <CustomButton
+            type="cancelar"
+            onClick={onClose}
+            disabled={isSaving} // Deshabilitar durante el guardado
+          >
+            Cancelar
+          </CustomButton>
+          <CustomButton
+            type="guardar"
+            onClick={handleSave}
+            loading={isSaving} // Pasar estado de loading
+          >
+            Guardar
+          </CustomButton>
         </DialogActions>
       </MotionBox>
     </Dialog>

@@ -22,7 +22,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
   const [error, setError] = useState(null);
   const [rawData, setRawData] = useState([]);
 
-  const colors = ['#1D2D5F', '#F65E5D', '#FFBC47', '#40CEE3', '#8E44AD', '#27AE60'];
+  const colors = ['#40CEE3', '#8E44AD', '#27AE60'];
 
   useEffect(() => {
     if (!idRegistro) {
@@ -46,10 +46,9 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
           return;
         }
 
-        const labels = data.map((_, index) => `${index + 1}`);
+        const labels = data.map(item => item.nombreIndicador || 'Indicador sin nombre');
         
         const resultados = data.map(item => {
-          // Validar que el resultado sea un número válido
           const resultado = parseFloat(item.resultadoAnual);
           return isNaN(resultado) ? 0 : resultado;
         });
@@ -62,7 +61,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
           datasets: [{
             label: 'Eficacia de Riesgos (%)',
             data: resultados,
-            backgroundColor: backgroundColor.map(color => color + '80'), // Agregar transparencia
+            backgroundColor: backgroundColor.map(color => color + '80'),
             borderColor: borderColor,
             borderWidth: 2,
             borderRadius: 4,
@@ -81,88 +80,63 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
       });
   }, [idRegistro]);
 
-  // *** CORRECCIÓN PRINCIPAL: Mejor manejo de la generación de imagen ***
+  // *** CORRECCIÓN PRINCIPAL: Generar imagen después de que la animación termine ***
   useEffect(() => {
     if (chartRef.current && chartData && !yaGenerada.current && !loading) {
       console.log('🎯 Iniciando proceso de generación de imagen para riesgos');
       
+      // Función para generar la imagen
       const generateImage = () => {
         try {
           const chart = chartRef.current;
-          console.log('Chart instance (riesgos):', chart);
           
           if (!chart) {
             console.warn('❌ No se encontró la instancia del chart de riesgos');
             return;
           }
 
-          let base64Image = null;
+          // Desactivar animaciones temporalmente para capturar la imagen
+          chart.options.animation = false;
+          chart.update('none'); // Actualizar sin animación
           
-          // Intento 1: Método directo de Chart.js
-          if (typeof chart.toBase64Image === 'function') {
-            base64Image = chart.toBase64Image('image/png', 1.0);
-            console.log('✅ Imagen de riesgos generada con toBase64Image');
-          }
-          // Intento 2: Canvas directo
-          else if (chart.canvas && typeof chart.canvas.toDataURL === 'function') {
-            base64Image = chart.canvas.toDataURL('image/png');
-            console.log('✅ Imagen de riesgos generada con canvas.toDataURL');
-          }
-          // Intento 3: Buscar canvas en DOM
-          else {
-            const canvasElements = document.querySelectorAll('canvas');
-            for (let canvas of canvasElements) {
-              try {
-                base64Image = canvas.toDataURL('image/png');
-                console.log('✅ Imagen de riesgos generada desde canvas del DOM');
-                break;
-              } catch (e) {
-                console.warn('Canvas no válido:', e);
+          // Pequeña demora para asegurar que el gráfico se actualice
+          setTimeout(() => {
+            try {
+              const base64Image = chart.toBase64Image('image/png', 1.0);
+              
+              if (base64Image && base64Image.startsWith('data:image/png;base64,')) {
+                console.log('✅ Imagen base64 generada correctamente para Gestión de Riesgos');
+                
+                if (typeof onImageReady === 'function') {
+                  onImageReady(base64Image);
+                  yaGenerada.current = true;
+                  console.log('📤 Callback onImageReady ejecutado para riesgos');
+                  
+                  // Restaurar animaciones para la visualización
+                  chart.options.animation = {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                  };
+                  chart.update();
+                }
+              } else {
+                console.error('❌ No se pudo generar imagen base64 válida para riesgos');
               }
+            } catch (error) {
+              console.error('❌ Error generando imagen de riesgos:', error);
             }
-          }
-
-          if (base64Image && base64Image.startsWith('data:image/png;base64,')) {
-            console.log('✅ Imagen base64 generada correctamente para Gestión de Riesgos');
-            console.log('📸 Imagen preview:', base64Image.substring(0, 60));
-            
-            if (typeof onImageReady === 'function') {
-              // *** CORRECCIÓN: Orden correcto de parámetros ***
-              onImageReady(base64Image); // Solo pasar la imagen, el tipo se maneja internamente
-              yaGenerada.current = true;
-              console.log('📤 Callback onImageReady ejecutado para riesgos');
-            } else {
-              console.warn('⚠️ onImageReady no es una función');
-            }
-          } else {
-            console.error('❌ No se pudo generar imagen base64 válida para riesgos');
-            console.log('Imagen recibida:', base64Image?.substring(0, 100));
-          }
+          }, 100);
         } catch (error) {
-          console.error('❌ Error generando imagen de riesgos:', error);
+          console.error('❌ Error en generateImage:', error);
         }
       };
 
-      // Usar múltiples intentos con diferentes delays
-      const delays = [100, 300, 800, 1500];
-      const timeouts = [];
-
-      delays.forEach(delay => {
-        const timeout = setTimeout(() => {
-          if (!yaGenerada.current) {
-            console.log(`🔄 Intento de generar imagen de riesgos (delay: ${delay}ms)`);
-            requestAnimationFrame(generateImage);
-          }
-        }, delay);
-        timeouts.push(timeout);
-      });
-
-      return () => {
-        timeouts.forEach(timeout => clearTimeout(timeout));
-      };
+      // Esperar a que la animación termine antes de generar la imagen
+      setTimeout(generateImage, 1500);
     }
   }, [chartData, onImageReady, loading]);
 
+  // Opciones del gráfico con animación
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -202,7 +176,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
           title: (context) => {
             const index = context[0].dataIndex;
             const indicador = rawData[index];
-            return `Indicador ${index + 1}: ${indicador?.nombreIndicador || 'Sin nombre'}`;
+            return indicador?.nombreIndicador || `Indicador ${index + 1}`;
           },
           label: (context) => {
             const value = context.parsed.y;
@@ -215,7 +189,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
       x: {
         title: {
           display: true,
-          text: 'Número de Indicador',
+          text: 'Indicadores de Riesgo',
           font: {
             size: 12,
             weight: '500'
@@ -234,7 +208,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
       },
       y: {
         beginAtZero: true,
-        max: 100, // Asumiendo que son porcentajes
+        max: 100,
         title: {
           display: true,
           text: 'Eficacia (%)',
@@ -257,31 +231,11 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
       }
     },
     animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart',
       onComplete: () => {
         console.log('🎬 Animación de chart de riesgos completada');
-        // Trigger adicional para generar imagen después de la animación
-        if (!yaGenerada.current && chartRef.current) {
-          setTimeout(() => {
-            if (!yaGenerada.current) {
-              console.log('🔄 Intento adicional desde onComplete');
-              const chart = chartRef.current;
-              try {
-                const base64 = chart.toBase64Image?.('image/png', 1.0) || 
-                              chart.canvas?.toDataURL?.('image/png');
-                if (base64 && typeof onImageReady === 'function') {
-                  onImageReady(base64);
-                  yaGenerada.current = true;
-                  console.log('✅ Imagen generada desde onComplete');
-                }
-              } catch (error) {
-                console.error('❌ Error en onComplete de riesgos:', error);
-              }
-            }
-          }, 200);
-        }
-      },
-      duration: 1000,
-      easing: 'easeInOutQuart'
+      }
     },
     interaction: {
       intersect: false,
@@ -321,7 +275,7 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
         color="text.secondary" 
         sx={{ mb: 2, fontStyle: 'italic' }}
       >
-        Los números en el eje corresponden a los indicadores de la tabla superior
+        Eficacia en la gestión de riesgos por indicador
       </Typography>
       
       <Box 
@@ -341,9 +295,8 @@ const GraficaGestionRiesgos = ({ onImageReady, idRegistro }) => {
         />
       </Box>
       
-      {/* Debug info - remover en producción */}
       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-        Debug: {rawData.length} indicadores de riesgo, Imagen generada: {yaGenerada.current ? 'Sí' : 'No'}
+        {rawData.length} indicadores de riesgo cargados
       </Typography>
     </Box>
   );

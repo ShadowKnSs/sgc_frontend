@@ -1,39 +1,45 @@
-import React from 'react';
-import { Breadcrumbs, Link, Typography, Box } from '@mui/material';
-import { Home as HomeIcon, NavigateNext as NavigateNextIcon } from '@mui/icons-material';
+// components/BreadcrumbNav.jsx
+import React from "react";
+import { Breadcrumbs, Link, Typography, Box } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { Home as HomeIcon, NavigateNext as NavigateNextIcon } from "@mui/icons-material";
 
 const BreadcrumbNav = ({ items }) => {
   return (
-    <Box sx={{ mb: 2 }}>
-      <Breadcrumbs 
-        separator={<NavigateNextIcon fontSize="small" />} 
-        aria-label="breadcrumb"
-      >
+    <Box sx={{ mb: 1 }}>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
+        {/* Home siempre con RouterLink */}
         <Link
+          component={RouterLink}
+          to="/"
           color="inherit"
-          href="/"
-          sx={{ display: 'flex', alignItems: 'center' }}
+          underline="hover"
+          sx={{ display: "flex", alignItems: "center" }}
         >
           <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
           Inicio
         </Link>
-        
-        {items.map((item, index) => 
-          index === items.length - 1 ? (
+
+        {items.map((item, i) =>
+          i === items.length - 1 ? (
+            // Último: solo texto y aria-current
             <Typography
-              key={index}
+              key={i}
               color="text.primary"
-              sx={{ display: 'flex', alignItems: 'center' }}
+              aria-current="page"
+              sx={{ display: "flex", alignItems: "center" }}
             >
               {item.icon && <item.icon sx={{ mr: 0.5 }} fontSize="inherit" />}
               {item.label}
             </Typography>
           ) : (
             <Link
-              key={index}
+              key={i}
+              component={RouterLink}
+              to={item.to}                 // ← usa 'to' en vez de 'href'
               color="inherit"
-              href={item.href}
-              sx={{ display: 'flex', alignItems: 'center' }}
+              underline="hover"
+              sx={{ display: "flex", alignItems: "center" }}
             >
               {item.icon && <item.icon sx={{ mr: 0.5 }} fontSize="inherit" />}
               {item.label}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Box, Alert, CircularProgress, IconButton, Tooltip, Grid } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Container, Typography, Box, Alert, CircularProgress, Grid } from '@mui/material';
+import { useLocation, useParams } from 'react-router-dom';
 import PlanControlBarChart from '../components/Graficas/GraficaPlanControl';
 import GraficaEncuesta from '../components/Graficas/GraficaEncuesta';
 import GraficaRetroalimentacion from '../components/Graficas/GraficaRetroalimentacion';
@@ -8,17 +8,29 @@ import GraficaMapaProceso from '../components/Graficas/GraficaIndMP';
 import GraficaRiesgos from '../components/Graficas/GraficaRiesgos';
 import GraficaEvaluacionProveedores from '../components/Graficas/GraficaEvaluacion';
 import Title from '../components/Title';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BreadcrumbNav from '../components/BreadcrumbNav';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import InsightsIcon from '@mui/icons-material/Insights';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 const GraficasPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [datosGraficas, setDatosGraficas] = useState({});
-  const navigate = useNavigate();
+  const { idRegistro: idRegistroParam } = useParams();
   const location = useLocation();
   const datosGraficasFromState = location.state?.datosGraficas;
   const idProceso = location.state?.idProceso;
   const anio = location.state?.anio;
+  const idRegistro = location.state?.idRegistro || idRegistroParam;
+
+  const breadcrumbItems = [
+    { label: 'Estructura', to: idProceso ? `/estructura-procesos/${idProceso}` : '/procesos', icon: AccountTreeIcon },
+    { label: 'Análisis de Datos', to: idRegistro ? `/analisis-datos/${idRegistro}` : '/analisis-datos', icon: AssessmentIcon },
+    { label: 'Indicadores', to: (idProceso && anio) ? `/indicadores/${idProceso}/${anio}` : '/indicadores', icon: InsightsIcon },
+    { label: 'Gráficas', to: location.pathname, icon: ShowChartIcon },
+  ];
 
   useEffect(() => {
     if (!datosGraficasFromState) {
@@ -38,13 +50,17 @@ const GraficasPage = () => {
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 5 , position: 'relative'}}>
+      <Box sx={{
+        position: 'absolute',
+        left: -130,
+        top: -20, // Ajusta según sea necesario para la posición vertical
+        width: '100%'
+      }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
+
       <Box sx={{ position: 'relative', textAlign: 'center', mb: 3 }}>
-        <Tooltip title="Volver a Indicadores">
-          <IconButton onClick={() => navigate(-1)} sx={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)' }}>
-            <ArrowBackIcon />
-          </IconButton>
-        </Tooltip>
         <Title text="Vista Gráficas" />
       </Box>
 
@@ -77,8 +93,8 @@ const GraficasPage = () => {
         <Grid item xs={12} md={6}>
           <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Evaluación de Proveedores</Typography>
           {datosGraficas.evaluacion ? (
-            <GraficaEvaluacionProveedores 
-              data={datosGraficas.evaluacion} 
+            <GraficaEvaluacionProveedores
+              data={datosGraficas.evaluacion}
               onImageReady={handleImageReady}
             />
           ) : (

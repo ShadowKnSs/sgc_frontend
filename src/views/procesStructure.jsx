@@ -33,6 +33,7 @@ import LinkIcon from "@mui/icons-material/Link";
 import { useNavigate, useParams } from "react-router-dom";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import { motion } from "framer-motion";
 
 const ProcessStructure = () => {
@@ -41,6 +42,9 @@ const ProcessStructure = () => {
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
   const permisos = rolActivo?.permisos?.map((p) => p.modulo) || [];
 
+  const breadcrumbItems = useMemo(() => [
+    { label: "Estructura", href: `/estructura-procesos/${idProceso}` },
+  ], [idProceso]);
   const menuItems = useMemo(() => [
     { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
     { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
@@ -64,9 +68,14 @@ const ProcessStructure = () => {
         alignItems: "center",
         justifyContent: "flex-start",
         minHeight: '100vh',
-        paddingTop: 4,
+        paddingTop: 3,
       }}
     >
+      {/* Breadcrumb alineado a la izquierda */}
+      <Box sx={{ width: '100%', maxWidth: 900, mx: 'auto', alignSelf: 'stretch' }}>
+        <BreadcrumbNav items={breadcrumbItems}/>
+      </Box>
+
       <Title text="Estructura del Proceso" />
       <ContextoProcesoEntidad idProceso={idProceso} />
       <Box

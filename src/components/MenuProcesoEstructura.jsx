@@ -10,6 +10,7 @@ const MenuNavegacionProceso = ({ items = [] }) => {
   const permisos = rolActivo?.permisos?.map((p) => p.modulo) || [];
 
   const itemsFiltrados = items.filter((item) => permisos.includes(item.title));
+  console.log("Permisos", permisos);
 
   return (
     <Box sx={{ position: "fixed", top: 120 , left: 16, zIndex: 999 }}>

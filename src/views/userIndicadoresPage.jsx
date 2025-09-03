@@ -10,6 +10,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 
 import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import InsightsIcon from '@mui/icons-material/Insights';
 import IndicatorCard from "../components/CardIndicador";
 import ConfirmEdit from "../components/confirmEdit";
 import IrGraficasBoton from "../components/Modals/BotonGraficas";
@@ -296,8 +300,34 @@ const UnifiedIndicatorPage = () => {
     return categorizedIndicators[selectedState]?.filter(origenValido) || [];
   }, [categorizedIndicators, selectedState, origenSeleccionado]);
 
+
+  const idRegistroAnalisis = registrosPorApartado["Análisis de Datos"];
+  const breadcrumbItems = [
+    {
+      label: 'Estructura',
+      to: paramProceso ? `/estructura-procesos/${paramProceso}` : '/procesos',
+      icon: AccountTreeIcon
+    },
+    {
+      label: 'Análisis de Datos',
+      to: idRegistroAnalisis ? `/analisis-datos/${idRegistroAnalisis}` : '/analisis-datos',
+      icon: AssessmentIcon
+    },
+    {
+      label: 'Indicadores',
+      to: (paramProceso && anio) ? `/indicadores/${paramProceso}/${anio}` : '/indicadores',
+      icon: InsightsIcon
+    }
+  ];
+
   return (
-    <Box sx={{ p: 2, maxWidth: 1200, mx: "auto" }}>
+    <Box sx={{ p: 2, maxWidth: 1200, mx: "auto", position: 'relative' }}>
+      <Box sx={{
+        ml: -16, 
+        mb: 2   
+      }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
       <Box sx={{ position: "relative", mb: 2 }}>
         <Box sx={{ textAlign: "center" }}>
           <Title text="Indicadores" />
