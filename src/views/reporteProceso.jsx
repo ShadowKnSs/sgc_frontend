@@ -35,6 +35,7 @@ import AnalisisDatos from "../components/ReporteProceso/DRPAnalisisDatos";
 import Seguimiento from "../components/ReporteProceso/DRPSegumiento";
 import ProyectoMejora from "../components/ReporteProceso/DRPProyectoMejora";
 import PlanAccion from "../components/ReporteProceso/DRPPlanAccion";
+import DRPPlanTrabajo from "../components/ReporteProceso/DRPPlanTrabajo";
 import Title from "../components/Title";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -134,6 +135,7 @@ const ReportView = () => {
       <Seguimiento idProceso={idProceso} anio={year} />
       <PlanAccion idProceso={idProceso} anio={year} />
       <Auditoria idProceso={idProceso} />
+      <DRPPlanTrabajo idProceso={idProceso} anio={year}/>
 
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Button
