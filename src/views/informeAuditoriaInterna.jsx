@@ -322,7 +322,7 @@ function InformeAud() {
       setError("Error al guardar la auditoría");
     }
   };
-
+  const maxChars = 255;
   return (
     <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh" }}>
 
@@ -381,14 +381,26 @@ function InformeAud() {
         </Box>
 
         <Box mt={3}>
+          <Typography
+            variant="caption"
+            sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+          >
+            {objetivo.length}/{maxChars}
+          </Typography>
           <Typography variant="body1" gutterBottom><strong>Objetivo:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={objetivo} onChange={(e) => setObjetivo(e.target.value)}
+          <TextField fullWidth multiline minRows={2} maxRows={5} variant="outlined" value={objetivo} inputProps={{ maxLength: maxChars }} onChange={(e) => setObjetivo(e.target.value)}
           />
         </Box>
 
         <Box mt={3}>
+          <Typography
+            variant="caption"
+            sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+          >
+            {alcance.length}/{maxChars}
+          </Typography>
           <Typography variant="body1" gutterBottom><strong>Alcance:</strong></Typography>
-          <TextField fullWidth multiline rows={1} variant="outlined" value={alcance} onChange={(e) => setAlcance(e.target.value)} />
+          <TextField fullWidth multiline minRows={2} maxRows={5} variant="outlined" value={alcance} inputProps={{ maxLength: maxChars }} onChange={(e) => setAlcance(e.target.value)} />
         </Box>
 
         <Box mt={3}>
@@ -608,13 +620,23 @@ function InformeAud() {
         </Box>
 
         <Box mt={3}>
+          <Typography variant="caption"
+            sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+          >
+            {fortalezas.length}/{maxChars}
+          </Typography>
           <Typography variant="body1" gutterBottom><strong>Fortalezas:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={fortalezas} onChange={(e) => setFortalezas(e.target.value)} />
+          <TextField fullWidth multiline minRows={2} maxRows={5} variant="outlined" inputProps={{ maxLength: maxChars }} value={fortalezas} onChange={(e) => setFortalezas(e.target.value)} />
         </Box>
 
         <Box mt={3}>
+          <Typography variant="caption"
+            sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+          >
+            {debilidades.length}/{maxChars}
+          </Typography>
           <Typography variant="body1" gutterBottom><strong>Debilidades:</strong></Typography>
-          <TextField fullWidth multiline rows={2} variant="outlined" value={debilidades} onChange={(e) => setDebilidades(e.target.value)} />
+          <TextField fullWidth multiline minRows={2} maxRows={5} variant="outlined" inputProps={{ maxLength: maxChars }} value={debilidades} onChange={(e) => setDebilidades(e.target.value)} />
         </Box>
 
         <Box mt={4} display="flex" flexDirection="column" alignItems="center">
