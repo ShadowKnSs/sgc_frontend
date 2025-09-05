@@ -88,9 +88,7 @@ function Cronograma() {
   const usuario = useMemo(() => JSON.parse(localStorage.getItem("usuario") || "null"), []);
   const rolActivo = useMemo(() => JSON.parse(localStorage.getItem("rolActivo") || "null"), []);
 
-  const idUsuario = usuario?.idUsuario || 0;
-  // Se derivan los permisos del rolActivo; por ejemplo, si se debe tener acceso al módulo "Cronograma"
-  const permisos = rolActivo?.permisos?.map(p => p.modulo) || [];
+  
   const { idProceso } = useParams();
   const [openForm, setOpenForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

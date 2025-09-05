@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogActions,
@@ -32,6 +32,11 @@ const AuditoriaForm = ({
   loading = false,
   onEntidadChange
 }) => {
+
+  const [touched] = useState(false);
+
+  const descripcionLength = formData.descripcion?.length || 0;
+  const descripcionError = touched && descripcionLength === 0;
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitleCustom
@@ -59,7 +64,6 @@ const AuditoriaForm = ({
                   }}
                   label="Entidad"
                   aria-label="Selecciona la entidad"
-                  displayEmpty
                 >
                   {entidades.map((entidad, index) => (
                     <MenuItem key={index} value={entidad}>{entidad}</MenuItem>
@@ -70,7 +74,7 @@ const AuditoriaForm = ({
 
             <Grid item xs={12} md={6}>
               <FormControl fullWidth variant="outlined" margin="dense">
-                <InputLabel id="label-proceso">Proceso</InputLabel>
+                <InputLabel id="label-proceso"> Proceso</InputLabel>
                 <Select
                   labelId="label-proceso"
                   id="select-proceso"
@@ -79,7 +83,6 @@ const AuditoriaForm = ({
                   onChange={onChange}
                   label="Proceso"
                   aria-label="Selecciona el proceso"
-                  displayEmpty
                 >
                   {procesos.map((proceso, index) => (
                     <MenuItem key={index} value={proceso}>{proceso}</MenuItem>
@@ -99,6 +102,10 @@ const AuditoriaForm = ({
                 onChange={onChange}
                 margin="dense"
                 aria-label="Selecciona la fecha de auditoría"
+                inputProps={{
+                  min: new Date().toISOString().split('T')[0]
+                }}
+
               />
             </Grid>
 
@@ -149,7 +156,7 @@ const AuditoriaForm = ({
                   labelId="label-estado"
                   id="select-estado"
                   name="estado"
-                  value={formData.estado}
+                  value={formData.estado || "Pendiente"}
                   onChange={onChange}
                   label="Estado"
                   aria-label="Selecciona el estado"
@@ -171,7 +178,7 @@ const AuditoriaForm = ({
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth margin="dense">
-                <InputLabel id="label-auditor-lider">Líder Auditor</InputLabel>
+                <InputLabel id="label-auditor-lider">Auditor Líder</InputLabel>
                 <Select
                   labelId="label-auditor-lider"
                   id="select-auditor-lider"
@@ -182,11 +189,22 @@ const AuditoriaForm = ({
                   aria-label="Selecciona el líder auditor"
                   disabled={formData.tipo === "externa"}
                 >
-                  {auditores.map((auditor) => (
-                    <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
-                      {`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
-                    </MenuItem>
-                  ))}
+                  {auditores.map((auditor) => {
+                    // Formatear el nombre para quitar los "null"
+                    const nombreCompleto = [
+                      auditor.nombre,
+                      auditor.apellidoPat,
+                      auditor.apellidoMat
+                    ]
+                      .filter(part => part !== null && part !== undefined && part !== '')
+                      .join(' ');
+
+                    return (
+                      <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
+                        {nombreCompleto || 'Nombre no disponible'}
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
             </Grid>
@@ -227,7 +245,11 @@ const AuditoriaForm = ({
                           checked={(formData.auditoresAdicionales || []).includes(auditor.idUsuario)}
                         />
                         <ListItemText
-                          primary={`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`}
+                          primary={
+                            [auditor.nombre, auditor.apellidoPat, auditor.apellidoMat]
+                              .filter(part => part !== null && part !== undefined && part !== '')
+                              .join(' ')
+                          }
                         />
                       </MenuItem>
                     ))}
@@ -251,6 +273,13 @@ const AuditoriaForm = ({
             onChange={onChange}
             margin="dense"
             aria-label="Descripción de la auditoría"
+            inputProps={{ maxLength: 512 }}
+            error={descripcionError}
+            helperText={
+              descripcionError
+                ? "La descripción es obligatoria (máx. 512 caracteres)."
+                : `${descripcionLength}/512`
+            }
           />
         </Box>
       </DialogContent>

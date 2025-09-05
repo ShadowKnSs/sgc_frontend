@@ -40,20 +40,23 @@ const useAuditoriaForm = ({
   };
 
   const handleEditOpen = () => {
-    if (!selectedEvent) return;
-    setFormData({
-      entidad: selectedEvent.entidad || "",
-      proceso: selectedEvent.proceso || "",
-      fecha: moment(selectedEvent.start).format("YYYY-MM-DD"),
-      hora: moment(selectedEvent.start).format("HH:mm"),
-      tipo: selectedEvent.tipo || "",
-      estado: selectedEvent.estado || "Pendiente",
-      descripcion: selectedEvent.descripcion || "",
-      auditorLider: selectedEvent.auditorLiderId || "",
-      auditoresAdicionales:
-        selectedEvent.auditoresAdicionales?.map((a) => a.id) || [],
-    });
-  };
+  if (!selectedEvent) return;
+  
+  console.log("Datos del evento para edición:", selectedEvent);
+  
+  setFormData({
+    entidad: selectedEvent.entidad || "",
+    proceso: selectedEvent.proceso || "",
+    fecha: moment(selectedEvent.start).format("YYYY-MM-DD"),
+    hora: moment(selectedEvent.start).format("HH:mm"),
+    tipo: selectedEvent.tipo || "",
+    estado: selectedEvent.estado || "Pendiente",
+    descripcion: selectedEvent.descripcion || "",
+    auditorLider: selectedEvent.auditorLiderId || "",
+    auditoresAdicionales: selectedEvent.auditoresAdicionales?.map((a) => a.idUsuario) || [],
+    idAuditoria: selectedEvent.id // Añadir el ID de la auditoría
+  });
+};
 
   const resetForm = () => setFormData(initialFormData);
 
@@ -87,7 +90,7 @@ const useAuditoriaForm = ({
       setSnackbar({
         open: true,
         message: "Todos los campos son obligatorios.",
-        severity: "warning",
+        severity: "erroR"
       });
       return;
     }
@@ -138,19 +141,19 @@ const useAuditoriaForm = ({
           prev.map((event) =>
             event.id === selectedEvent.id
               ? {
-                  ...event,
-                  start: new Date(`${fecha}T${hora}`),
-                  end: new Date(`${fecha}T${hora}`),
-                  descripcion,
-                  estado: (estado || "").toLowerCase(),
-                  tipo: (tipo || "").toLowerCase(),
-                  proceso,
-                  entidad,
-                  hora,
-                  auditorLider: nombreLider,     // << nombre para tooltip
-                  auditorLiderId: auditorLider,  // << id para lógica
-                  auditoresAdicionales: nuevosAuditores,
-                }
+                ...event,
+                start: new Date(`${fecha}T${hora}`),
+                end: new Date(`${fecha}T${hora}`),
+                descripcion,
+                estado: (estado || "").toLowerCase(),
+                tipo: (tipo || "").toLowerCase(),
+                proceso,
+                entidad,
+                hora,
+                auditorLider: nombreLider,     // << nombre para tooltip
+                auditorLiderId: auditorLider,  // << id para lógica
+                auditoresAdicionales: nuevosAuditores,
+              }
               : event
           )
         );
