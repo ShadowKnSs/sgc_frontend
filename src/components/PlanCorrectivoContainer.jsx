@@ -1,11 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  CircularProgress
-} from "@mui/material";
+import { useState, useEffect } from "react";
+import {Box, Card, CardContent, Typography, CircularProgress} from "@mui/material";
 import { Add } from "@mui/icons-material";
 import PlanCorrectivoForm from "./Forms/PlanCorrectivoForm";
 import PlanCorrectivoDetalleModal from './Modals/PlanCorrectivoModal';
@@ -24,6 +18,7 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [sequence, setSequence] = useState(1);
   const [snackbar, setSnackbar] = useState({ open: false, type: '', title: '', message: '' });
+  const [saving, setSaving] = useState(false);
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -46,6 +41,7 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
   }, [idRegistro]);
 
   const handleSave = async (data) => {
+    setSaving(true);
     try {
       if (editingRecord) {
         await axios.put(`http://127.0.0.1:8000/api/plan-correctivos/${editingRecord.idPlanCorrectivo}`, {
@@ -108,6 +104,7 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
             setEditingRecord(null);
             setShowForm(true);
           }}
+          disabled={saving}
         >
           Nuevo Plan de Acción
         </CustomButton>
@@ -120,6 +117,7 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar }) {
           initialData={editingRecord}
           sequence={sequence}
           idProceso={idProceso}
+          disabled={saving}
         />
       )}
 
