@@ -1,32 +1,8 @@
 // src/views/Formatos.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import {
-  Box,
-  Modal,
-  Typography,
-  TextField,
-  Card,
-  CardContent,
-  CardActions,
-  CircularProgress,
-  Grid,
-  Chip,
-  IconButton,
-  InputAdornment,
-  Avatar,
-  alpha
-} from '@mui/material';
-import {
-  Search,
-  PictureAsPdf,
-  Description,
-  Image as ImageIcon,
-  InsertDriveFile,
-  Close,
-  CloudUpload,
-  Download, Article
-} from '@mui/icons-material';
+import {Box, Modal, Typography, TextField, Card, CardContent, CardActions, CircularProgress, Grid, Chip, IconButton, InputAdornment, Avatar, alpha, Dialog, DialogTitle, DialogContent, DialogActions, Button} from '@mui/material';
+import {Search, PictureAsPdf, Description, Image as ImageIcon, InsertDriveFile, Close, CloudUpload, Download, Article, Delete} from '@mui/icons-material';
 import Title from '../components/Title';
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
@@ -364,6 +340,7 @@ const Formatos = () => {
   const [uploading, setUploading] = useState(false);
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
+  
 
   // Snackbar
   const [snackbar, setSnackbar] = useState({
@@ -472,6 +449,38 @@ const Formatos = () => {
         return <ImageIcon color="primary" sx={{ fontSize: 40 }} />;
       default:
         return <InsertDriveFile sx={{ fontSize: 40 }} />;
+    }
+  };
+
+  // Estados y funciones para eliminar formato
+  const [confirmDelete, setConfirmDelete] = useState({
+    open: false,
+    formato: null,
+  });
+  
+  const [loading, setLoading] = useState(false);
+
+  const handleOpenDeleteModal = (formato) => {
+    setConfirmDelete({ open: true, formato });
+  };
+
+  const handleCloseDeleteModal = () => {
+    setConfirmDelete({ open: false, formato: null });
+  };
+
+  const handleDeleteFormato = async () => {
+    if (!confirmDelete.formato) return;
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/formatos/${confirmDelete.formato.idFormato}`);
+      
+      setFormatos(prev => prev.filter(f => f.idFormato !== confirmDelete.formato.idFormato));
+      showSnackbar('success', 'Formato eliminado', 'El formato se ha eliminado correctamente.');
+    } catch (error) {
+      console.error('Error al eliminar formato', error);
+      showSnackbar('error', 'Error', 'No se pudo eliminar el formato.');
+    } finally {
+      handleCloseDeleteModal();
     }
   };
 
@@ -602,7 +611,7 @@ const Formatos = () => {
                     sx={{ mt: 1 }}
                   />
                 </CardContent>
-                <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                <CardActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
                   <CustomButton
                     type="descargar"
                     href={`http://127.0.0.1:8000/storage/${formato.ruta}`}
@@ -612,6 +621,16 @@ const Formatos = () => {
                   >
                     Descargar
                   </CustomButton>
+
+                  {/* Botón de eliminar - Solo para usuarios con permiso */}
+                  {puedeEditar && (
+                    <IconButton 
+                      color="error" 
+                      onClick={() => handleOpenDeleteModal(formato)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  )}
                 </CardActions>
               </Card>
             </Grid>
@@ -626,6 +645,50 @@ const Formatos = () => {
         title={snackbar.title}
         message={snackbar.message}
       />
+
+      {/* Modal de confirmación de eliminación */}
+      <Dialog open={confirmDelete.open} onClose={handleCloseDeleteModal}>
+        <DialogTitle 
+          sx={{ 
+            textAlign: "center", 
+            paddingBottom: 2, 
+            color: "primary.main", 
+            fontWeight: "bold" 
+          }}
+        >
+          Confirmar eliminación
+        </DialogTitle>
+        <DialogContent>
+          <Typography align="center">
+            ¿Estás seguro que quieres eliminar el formato{" "}
+            <span style={{ color: "#0056b3", fontWeight: "bold" }}>
+              {confirmDelete.formato?.nombreFormato}
+            </span>
+            ?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center" }}>
+          <Button 
+            onClick={handleCloseDeleteModal} 
+            color="primary" 
+            disabled={loading} 
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={async () => {
+              setLoading(true); 
+              await handleDeleteFormato(); 
+              setLoading(false); 
+            }} 
+            color="error" 
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} color="inherit" /> : "Eliminar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
