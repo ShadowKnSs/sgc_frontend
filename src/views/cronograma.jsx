@@ -88,7 +88,7 @@ function Cronograma() {
   const usuario = useMemo(() => JSON.parse(localStorage.getItem("usuario") || "null"), []);
   const rolActivo = useMemo(() => JSON.parse(localStorage.getItem("rolActivo") || "null"), []);
 
-  
+
   const { idProceso } = useParams();
   const [openForm, setOpenForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -146,6 +146,7 @@ function Cronograma() {
     setFormData({
       entidad: "",
       proceso: "",
+      procesoId: "",
       fecha: "",
       hora: "",
       tipo: "",
@@ -165,6 +166,9 @@ function Cronograma() {
 
 
   const handleEdit = () => {
+    if (selectedEvent?.entidad) {
+      obtenerProcesosPorEntidad(selectedEvent.entidad);
+    }
     handleEditOpen();
     setOpenDetails(false);
     setIsEditing(true);

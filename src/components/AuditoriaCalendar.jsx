@@ -60,35 +60,41 @@ const AuditoriaCalendar = ({
     const handleView = useCallback((newView) => setView(newView), [setView]);
     const handleNavigate = useCallback((newDate) => setDate(newDate), [setDate]);
 
-    const renderEvent = ({ event }) => (
-        <Tooltip
-            title={
-                <Box>
-                    <Typography fontSize={13}><strong>Hora:</strong> {event.hora}</Typography>
-                    <Typography fontSize={13}><strong>Auditor Líder:</strong> {event.auditorLider}</Typography>
+    const renderEvent = ({ event }) => {
+        const leaderName = typeof event.auditorLider === 'object'
+            ? (event.auditorLider?.nombre || 'No asignado')
+            : (event.auditorLider || 'No asignado');
+
+        return (
+            <Tooltip
+                title={
+                    <Box>
+                        <Typography fontSize={13}><strong>Hora:</strong> {event.hora}</Typography>
+                        <Typography fontSize={13}><strong>Auditor Líder:</strong> {leaderName}</Typography>
+                    </Box>
+                }
+                arrow
+                placement="top"
+            >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Typography sx={{ fontWeight: 500 }}>{event.title}</Typography>
+                    <Chip
+                        size="small"
+                        label={capitalizeFirstLetter(event.estado)}
+                        sx={{
+                            backgroundColor:
+                                event.estado === "Finalizada" ? "#66bb6a" :
+                                    event.estado === "Cancelada" ? "#ef5350" :
+                                        "#42a5f5",
+                            color: "white",
+                            height: 20,
+                            fontSize: "0.7rem"
+                        }}
+                    />
                 </Box>
-            }
-            arrow
-            placement="top"
-        >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <Typography sx={{ fontWeight: 500 }}>{event.title}</Typography>
-                <Chip
-                    size="small"
-                    label={capitalizeFirstLetter(event.estado)}
-                    sx={{
-                        backgroundColor:
-                            event.estado === "Finalizada" ? "#66bb6a" :
-                                event.estado === "Cancelada" ? "#ef5350" :
-                                    "#42a5f5",
-                        color: "white",
-                        height: 20,
-                        fontSize: "0.7rem"
-                    }}
-                />
-            </Box>
-        </Tooltip>
-    );
+            </Tooltip>
+        );
+    };
 
     return (
         <div

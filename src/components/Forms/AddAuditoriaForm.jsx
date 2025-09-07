@@ -78,16 +78,23 @@ const AuditoriaForm = ({
                 <Select
                   labelId="label-proceso"
                   id="select-proceso"
-                  name="proceso"
-                  value={formData.proceso}
-                  onChange={onChange}
+                  name="procesoId"
+                  value={formData.procesoId || ""}
+                  onChange={(e) => {
+                    // guarda el id
+                    onChange(e);
+                    // opcional: guarda también el nombre para UI
+                    const seleccionado = procesos.find(p => p.id === Number(e.target.value));
+                    onChange({ target: { name: "proceso", value: seleccionado?.nombre || "" } });
+                  }}
                   label="Proceso"
                   aria-label="Selecciona el proceso"
                 >
-                  {procesos.map((proceso, index) => (
-                    <MenuItem key={index} value={proceso}>{proceso}</MenuItem>
+                  {procesos.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>{p.nombre}</MenuItem>
                   ))}
                 </Select>
+
               </FormControl>
             </Grid>
 
@@ -156,15 +163,15 @@ const AuditoriaForm = ({
                   labelId="label-estado"
                   id="select-estado"
                   name="estado"
-                  value={formData.estado || "Pendiente"}
+                  value={formData.estado || "pendiente"}
                   onChange={onChange}
                   label="Estado"
                   aria-label="Selecciona el estado"
                   disabled={!isEditing}
                 >
-                  <MenuItem value="Pendiente">Pendiente</MenuItem>
-                  <MenuItem value="Finalizada">Finalizada</MenuItem>
-                  <MenuItem value="Cancelada">Cancelada</MenuItem>
+                  <MenuItem value="pendiente">Pendiente</MenuItem>
+                  <MenuItem value="finalizada">Finalizada</MenuItem>
+                  <MenuItem value="cancelada">Cancelada</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -183,8 +190,11 @@ const AuditoriaForm = ({
                   labelId="label-auditor-lider"
                   id="select-auditor-lider"
                   name="auditorLider"
-                  value={formData.auditorLider}
-                  onChange={onChange}
+                  value={formData.auditorLider ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value === "" ? "" : Number(e.target.value);
+                    onChange({ target: { name: "auditorLider", value: v } });
+                  }}
                   label="Líder Auditor"
                   aria-label="Selecciona el líder auditor"
                   disabled={formData.tipo === "externa"}
@@ -200,8 +210,8 @@ const AuditoriaForm = ({
                       .join(' ');
 
                     return (
-                      <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
-                        {nombreCompleto || 'Nombre no disponible'}
+                      <MenuItem key={auditor.idUsuario} value={Number(auditor.idUsuario)}>
+                        {[auditor.nombre, auditor.apellidoPat, auditor.apellidoMat].filter(Boolean).join(" ")}
                       </MenuItem>
                     );
                   })}
@@ -217,32 +227,29 @@ const AuditoriaForm = ({
                   id="select-auditores-adicionales"
                   multiple
                   name="auditoresAdicionales"
-                  value={formData.auditoresAdicionales || []}
-                  onChange={onChange}
-                  label="Auditores Adicionales"
+                  value={(formData.auditoresAdicionales || []).map(Number)}
+                  onChange={(e) => {
+                    const arr = (e.target.value || []).map(Number);
+                    onChange({ target: { name: "auditoresAdicionales", value: arr } });
+                  }} label="Auditores Adicionales"
                   aria-label="Selecciona los auditores adicionales"
                   disabled={formData.tipo === "externa"}
                   renderValue={(selected) => (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                       {selected.map((id) => {
-                        const auditor = auditores.find((a) => a.idUsuario === id);
-                        return auditor ? (
-                          <Chip
-                            key={id}
-                            label={`${auditor.nombre} ${auditor.apellidoPat}`}
-                            size="small"
-                          />
-                        ) : null;
+                        const a = auditores.find((x) => Number(x.idUsuario) === Number(id));
+                        return <Chip key={id} label={a ? [a.nombre, a.apellidoPat, a.apellidoMat].filter(Boolean).join(" ") : `#${id}`} size="small" />;
                       })}
                     </Box>
                   )}
+
                 >
                   {auditores
-                    .filter((a) => a.idUsuario !== formData.auditorLider)
+                    .filter((a) => Number(a.idUsuario) !== Number(formData.auditorLider))
                     .map((auditor) => (
-                      <MenuItem key={auditor.idUsuario} value={auditor.idUsuario}>
+                      <MenuItem key={auditor.idUsuario} value={Number(auditor.idUsuario)}>
                         <Checkbox
-                          checked={(formData.auditoresAdicionales || []).includes(auditor.idUsuario)}
+                          checked={(formData.auditoresAdicionales || []).map(Number).includes(Number(auditor.idUsuario))}
                         />
                         <ListItemText
                           primary={

@@ -9,6 +9,9 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
+  const nombreCompleto = (p) =>
+    +[p?.nombre, p?.apellidoPat, p?.apellidoMat].filter(Boolean).join(" ");
+
   const auditoresMap = useMemo(() => {
     return new Map(auditores.map(a => [a.idUsuario, a]));
   }, [auditores]);
@@ -43,31 +46,39 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
 
       const auditorias = await Promise.all(
         auditoriasRaw.map(async (auditoria) => {
-          const lider = auditoresMap.get(auditoria.auditorLider);
-          const nombreLider = lider
-            ? `${lider.nombre} ${lider.apellidoPat} ${lider.apellidoMat}`
-            : "No asignado";
+          const start = new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`);
+          const end = new Date(start.getTime() + 60 * 60 * 1000);
 
+          // nombre del líder (si viene en lista de usuarios global)
+          const lider = auditoresMap.get(auditoria.auditorLider);
+          const nombreLider = lider ? nombreCompleto(lider) : (auditoria.nombreAuditorLider || "No asignado");
+
+          // Carga auditores asignados (ahora devuelve idAuditor y rol)
           let auditoresAdicionales = [];
           try {
             const res = await axios.get(`http://localhost:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
-            auditoresAdicionales = res.data;
+            auditoresAdicionales = (Array.isArray(res.data) ? res.data : [])
+              .filter(a => Number(a.idAuditor) !== Number(auditoria.auditorLider))
+              .map(a => ({
+                idAuditor: Number(a.idAuditor),
+                nombre: a.nombreCompleto,
+                rol: a.rol || "Auditor"
+              }));
           } catch (err) {
             console.warn(`No se pudieron cargar auditores adicionales para auditoría ${auditoria.idAuditoria}`);
           }
 
           return {
             id: auditoria.idAuditoria,
-            title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`,
-            start: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
-            end: new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`),
+            title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`, // solo para UI (en /todas ya viene por JOIN)
+            start, end,
             descripcion: auditoria.descripcion,
-            estado: auditoria.estado,
-            tipo: auditoria.tipoAuditoria,
-            proceso: auditoria.nombreProceso,
-            entidad: auditoria.nombreEntidad,
+            estado: auditoria.estado, // Pendiente|Finalizada|Cancelada (capitalizado)
+            tipo: (auditoria.tipoAuditoria || "").toLowerCase() === "externa" ? "Externa" : "Interna",
+            proceso: auditoria.nombreProceso,     // en /todas viene por JOIN
+            entidad: auditoria.nombreEntidad,     // en /todas viene por JOIN
             hora: auditoria.horaProgramada,
-            auditorLider: nombreLider,
+            auditorLider: { idAuditor: auditoria.auditorLider, nombre: nombreLider },
             auditorLiderId: auditoria.auditorLider,
             auditoresAdicionales
           };
@@ -111,13 +122,18 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       const res = await axios.get("http://localhost:8000/api/procesos-por-nombre-entidad", {
         params: { nombre: entidadNombre }
       });
-      const nombres = res.data.procesos.map(p => p.nombreProceso);
-      setProcesos(nombres);
+      // ✅ ahora mantenemos id + nombre
+      const opts = (res.data.procesos || []).map(p => ({
+        id: Number(p.idProceso),
+        nombre: p.nombreProceso
+      }));
+      setProcesos(opts);
     } catch (err) {
       console.error("❌ Error al obtener procesos:", err);
       setProcesos([]);
     }
   };
+
 
   const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
