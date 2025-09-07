@@ -1,25 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  Box,
-  Stepper,
-  Step,
-  StepLabel,
-  Button,
-  TextField,
-  Checkbox,
-  FormControlLabel,
-  FormControl,
-  IconButton,
-  Radio,
-  RadioGroup,
-  FormLabel,
-  FormHelperText,
-  Typography
-} from "@mui/material";
+import { useState, useEffect, useMemo } from "react";
+import {Box, Stepper, Step, StepLabel, Button, TextField, Checkbox, FormControlLabel, FormControl, IconButton, Radio, RadioGroup, FormLabel, FormHelperText, Typography} from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import axios from "axios";
-
-
 
 const steps = [
   "Datos del Proceso",
@@ -31,7 +13,7 @@ const steps = [
 
 const initialDynamicEntry = { actividad: "", responsable: "", fechaProgramada: "" };
 
-function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence }) {
+function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence, }) {
   // Objeto por defecto que contiene todas las propiedades esperadas
   const defaultForm = {
     entidad: "",
@@ -51,6 +33,9 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     planAccion: [{ ...initialDynamicEntry }],
     estadoConformidad: "Activo"
   };
+
+  const [saving, setSaving] = useState(false);
+
 
   // Fusionamos initialData con defaultForm para que no falten propiedades al editar
   const mergedData = useMemo(() => (
@@ -248,14 +233,22 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
       console.log("Datos a enviar:", formData);
       onSave(formData);
     } else {
-      console.log("Errores en el formulario:", errors);
+      console.log("Errores en el formulario", errors);
+    }
+
+    try {
+      setSaving(true); 
+      await onSave(formData); 
+    } finally {
+      setSaving(false); 
     }
   };
+
 
   const handleStepClick = (step) => {
     setActiveStep(step);
@@ -274,12 +267,12 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
               <FormControl sx={{ flex: 1 }} error={!!errors.entidad}>
                 <TextField
                   label="Entidad"
+                  name="entidad"
                   value={formData.entidad}
                   fullWidth
                   margin="normal"
                   InputProps={{ readOnly: true }}
                 />
-
                 {errors.entidad && <FormHelperText>{errors.entidad}</FormHelperText>}
               </FormControl>
               <FormControlLabel
@@ -298,11 +291,10 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 label="Código"
                 name="codigo"
                 value={formData.codigo || "Se generará automáticamente"}
-                InputProps={{
-                  readOnly: true,
-                }}
+                InputProps={{ readOnly: true }}
                 fullWidth
                 helperText="El código se genera automáticamente al guardar"
+                inputProps={{ maxLength: 255 }}
               />
             </Box>
             {/* Segunda fila: Coordinador y Fecha de Inicio */}
@@ -315,7 +307,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 onChange={handleChange}
                 fullWidth
                 error={!!errors.coordinadorPlan}
-                helperText={errors.coordinadorPlan}
+                helperText={errors.coordinadorPlan || `${formData.coordinadorPlan.length}/255`}
+                inputProps={{ maxLength: 255 }}
               />
               <TextField
                 sx={{ flex: 1 }}
@@ -339,7 +332,11 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.origenConformidad}
                 onChange={handleChange}
                 error={!!errors.origenConformidad}
-                helperText={errors.origenConformidad}
+                helperText={errors.origenConformidad || `${formData.origenConformidad.length}/510`}
+                inputProps={{ maxLength: 510 }}
+                multiline
+                minRows={2}
+                maxRows={6}
               />
             </Box>
             {/* Cuarta fila: Equipo de Mejora */}
@@ -351,7 +348,11 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.equipoMejora}
                 onChange={handleChange}
                 error={!!errors.equipoMejora}
-                helperText={errors.equipoMejora}
+                helperText={errors.equipoMejora || `${formData.equipoMejora.length}/255`}
+                inputProps={{ maxLength: 255 }}
+                multiline
+                minRows={2}   
+                maxRows={4} 
               />
             </Box>
           </Box>
@@ -359,12 +360,13 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 1:
         return (
           <Box sx={{ display: "grid", gap: 2 }}>
+            {/* Requisito */}
             <Box>
               <Typography
                 variant="caption"
                 sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
               >
-                {formData.requisito.length}/{maxChars}
+                {formData.requisito.length} caracteres
               </Typography>
               <TextField
                 label="Requisito"
@@ -372,21 +374,20 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.requisito}
                 onChange={handleChange}
                 fullWidth
+                multiline
+                minRows={5}
+                maxRows={10}
                 error={!!errors.requisito}
                 helperText={errors.requisito || "Especifica los requisitos relacionados."}
-                multiline
-                minRows={2}
-                maxRows={6}
-                inputProps={{ maxLength: maxChars }}
               />
             </Box>
-
+            {/* Incumplimiento */}
             <Box>
               <Typography
                 variant="caption"
                 sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
               >
-                {formData.incumplimiento.length}/{maxChars}
+                {formData.incumplimiento.length} caracteres
               </Typography>
               <TextField
                 label="Incumplimiento"
@@ -394,22 +395,20 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.incumplimiento}
                 onChange={handleChange}
                 fullWidth
+                multiline
+                minRows={5}
+                maxRows={10}
                 error={!!errors.incumplimiento}
                 helperText={errors.incumplimiento || "Describe el incumplimiento detectado."}
-                multiline
-                minRows={2}
-                maxRows={6}
-                inputProps={{ maxLength: maxChars }}
               />
-              
             </Box>
-
+            {/* Evidencia */}
             <Box>
               <Typography
                 variant="caption"
                 sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
               >
-                {formData.evidencia.length}/{maxChars}
+                {formData.evidencia.length}/{510}
               </Typography>
               <TextField
                 label="Evidencia"
@@ -417,79 +416,56 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.evidencia}
                 onChange={handleChange}
                 fullWidth
+                multiline
+                minRows={5}
+                maxRows={10}
+                inputProps={{ maxLength: 510 }}
                 error={!!errors.evidencia}
                 helperText={errors.evidencia || "Adjunta o describe la evidencia recopilada."}
-                multiline
-                minRows={2}
-                maxRows={6}
-                inputProps={{ maxLength: maxChars }}
               />
             </Box>
-            <TextField
-              label="Requisito"
-              name="requisito"
-              value={formData.requisito}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={5}
-              error={!!errors.requisito}
-              helperText={errors.requisito || "Especifica los requisitos relacionados."}
-            />
-            <TextField
-              label="Incumplimiento"
-              name="incumplimiento"
-              value={formData.incumplimiento}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={5}
-              error={!!errors.incumplimiento}
-              helperText={errors.incumplimiento || "Describe el incumplimiento detectado."}
-            />
-            <TextField
-              label="Evidencia"
-              name="evidencia"
-              value={formData.evidencia}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={5}
-              error={!!errors.evidencia}
-              helperText={errors.evidencia || "Adjunta o describe la evidencia recopilada."}
-            />
           </Box>
         );
       case 2:
         return (
           <Box>
-
             {(formData.reaccion || []).map((item, index) => (
               <Box
                 key={index}
-                sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 2, mb: 2 }}
+                sx={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr auto", gap: 2, mb: 2 }}
               >
                 <TextField
                   label="Actividad"
                   value={item.actividad}
-                  onChange={(e) => handleDynamicChange("reaccion", index, "actividad", e.target.value)}
+                  onChange={(e) =>
+                    handleDynamicChange("reaccion", index, "actividad", e.target.value)
+                  }
                   fullWidth
+                  multiline
+                  maxRows={1}
                   error={!!errors[`reaccion.${index}.actividad`]}
-                  helperText={errors[`reaccion.${index}.actividad`]}
+                  helperText={errors[`reaccion.${index}.actividad`] || "Describa la actividad."}
                 />
                 <TextField
                   label="Responsable"
                   value={item.responsable}
-                  onChange={(e) => handleDynamicChange("reaccion", index, "responsable", e.target.value)}
+                  onChange={(e) =>
+                    handleDynamicChange("reaccion", index, "responsable", e.target.value)
+                  }
                   fullWidth
+                  multiline
+                  maxRows={1}
+                  inputProps={{ maxLength: 255 }}
                   error={!!errors[`reaccion.${index}.responsable`]}
-                  helperText={errors[`reaccion.${index}.responsable`]}
+                  helperText={errors[`reaccion.${index}.responsable`] || `${item.responsable?.length || 0}/255`}
                 />
                 <TextField
                   label="Fecha Programada"
                   type="date"
                   value={item.fechaProgramada}
-                  onChange={(e) => handleDynamicChange("reaccion", index, "fechaProgramada", e.target.value)}
+                  onChange={(e) =>
+                    handleDynamicChange("reaccion", index, "fechaProgramada", e.target.value)
+                  }
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                   error={!!errors[`reaccion.${index}.fechaProgramada`]}
@@ -500,7 +476,11 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 </IconButton>
               </Box>
             ))}
-            <Button variant="outlined" startIcon={<Add />} onClick={() => addDynamicEntry("reaccion")}>
+            <Button
+              variant="outlined"
+              startIcon={<Add />}
+              onClick={() => addDynamicEntry("reaccion")}
+            >
               Añadir actividad
             </Button>
           </Box>
@@ -513,7 +493,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 variant="caption"
                 sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
               >
-                {formData.revisionAnalisis.length}/{maxChars}
+                {formData.revisionAnalisis.length}
               </Typography>
               <TextField
                 label="Revisión de la necesidad de acción para eliminar la causa"
@@ -521,12 +501,11 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.revisionAnalisis}
                 onChange={handleChange}
                 fullWidth
-                helperText="Ej: Se requiere acción inmediata."
+                helperText={errors.revisionAnalisis || "Ej: Se requiere acción inmediata."}
                 error={!!errors.revisionAnalisis}
                 multiline
-                minRows={2}
-                maxRows={6}
-                inputProps={{ maxLength: maxChars }}
+                minRows={4}
+                maxRows={8}
               />
             </Box>
             <Box>
@@ -534,7 +513,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 variant="caption"
                 sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
               >
-                {formData.causaRaiz.length}/{maxChars}
+                {formData.causaRaiz.length}/{510}
               </Typography>
               <TextField
                 label="Determinación de la causa raíz"
@@ -542,36 +521,14 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 value={formData.causaRaiz}
                 onChange={handleChange}
                 fullWidth
-                helperText="Indique la causa principal."
+                helperText={errors.causaRaiz || "Indique la causa principal."}
                 error={!!errors.causaRaiz}
                 multiline
-                minRows={2}
-                maxRows={6}
-                inputProps={{ maxLength: maxChars }}
+                minRows={4}
+                maxRows={8}
+                inputProps={{ maxLength: 510 }}
               />
             </Box>
-            <TextField
-              label="Revisión de la necesidad de acción para eliminar la causa"
-              name="revisionAnalisis"
-              value={formData.revisionAnalisis}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={5}
-              helperText="Ej: Se requiere acción inmediata."
-              error={!!errors.revisionAnalisis}
-            />
-            <TextField
-              label="Determinación de la causa raíz"
-              name="causaRaiz"
-              value={formData.causaRaiz}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={5}
-              helperText="Indique la causa principal."
-              error={!!errors.causaRaiz}
-            />
             <FormControl component="fieldset" error={!!errors.estadoSimilares}>
               <FormLabel component="legend">¿Ha habido casos similares?</FormLabel>
               <RadioGroup
@@ -591,7 +548,6 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
       case 4:
         return (
           <Box>
-
             {(formData.planAccion || []).map((item, index) => (
               <Box
                 key={index}
@@ -602,14 +558,18 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   value={item.actividad || ""}
                   onChange={(e) => handleDynamicChange("planAccion", index, "actividad", e.target.value)}
                   fullWidth
-
+                  multiline
+                  maxRows={1}
                 />
                 <TextField
                   label="Responsable"
                   value={item.responsable}
                   onChange={(e) => handleDynamicChange("planAccion", index, "responsable", e.target.value)}
                   fullWidth
-
+                  multiline
+                  maxRows={1}
+                  inputProps={{ maxLength: 255 }}
+                  helperText={`${item.responsable?.length || 0}/255`}
                 />
                 <TextField
                   label="Fecha Programada"
@@ -618,14 +578,13 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   onChange={(e) => handleDynamicChange("planAccion", index, "fechaProgramada", e.target.value)}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-
                 />
                 <IconButton onClick={() => removeDynamicEntry("planAccion", index)}>
                   <Remove />
                 </IconButton>
               </Box>
             ))}
-            <Button variant="outlined" startIcon={<Add />} onClick={() => addDynamicEntry("planAccion")}>
+            <Button variant="outlined" startIcon={<Add />} onClick={() => addDynamicEntry("planAccion")} disabled={saving}>
               Añadir actividad
             </Button>
           </Box>
@@ -649,16 +608,13 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
           </Step>
         ))}
       </Stepper>
-
-
       <Box sx={{ mt: 4, mb: 2 }}>{renderStepContent(activeStep)}</Box>
-
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Button disabled={activeStep === 0} onClick={handleBack}>
           Atrás
         </Button>
         {activeStep === steps.length - 1 ? (
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
+          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={saving}>
             Guardar
           </Button>
         ) : (
@@ -666,7 +622,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
             Siguiente
           </Button>
         )}
-        <Button variant="outlined" color="secondary" onClick={onCancel}>
+        <Button variant="outlined" color="secondary" onClick={onCancel} disabled={saving}>
           Cancelar
         </Button>
       </Box>

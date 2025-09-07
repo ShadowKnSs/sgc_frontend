@@ -1,21 +1,6 @@
 // src/components/PlanCorrectivoDetalleModal.jsx
 import React from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    Typography,
-    Box,
-    TableContainer,
-    Paper,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    Fade
-} from "@mui/material";
+import {Dialog, DialogContent, DialogActions, IconButton, Typography, Box, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Fade} from "@mui/material";
 import { Close } from "@mui/icons-material";
 
 import TitleDialog from '../TitleDialog';
