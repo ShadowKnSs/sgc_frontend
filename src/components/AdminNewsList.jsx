@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import {
   Box, Grid, Card, CardContent, CardActions, Typography,
@@ -45,12 +45,12 @@ const AdminNewsList = () => {
     title: '',
     message: '',
   });
-  const showFeedback = (type, title, message) =>
+  const showFeedback = useCallback((type, title, message) => {
     setFeedback({ open: true, type, title, message });
+  }, []);
 
-  useEffect(() => { fetchNews(); }, []);
 
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     setIsLoading(true);
     try {
       const resp = await axios.get('http://127.0.0.1:8000/api/noticias');
@@ -61,7 +61,11 @@ const AdminNewsList = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [showFeedback]);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
 
   const handleCreate = () => { setEditItem(null); setModalOpen(true); };
   const handleEditClick = (item) => { setEditItem(item); setModalOpen(true); };
@@ -139,7 +143,7 @@ const AdminNewsList = () => {
       setEditItem(null);
       setPendingChanges(null);
 
-      return resp; 
+      return resp;
     } catch (error) {
       console.error('Error al editar noticia:', error);
       showFeedback('error', 'Error', 'Error al editar noticia');

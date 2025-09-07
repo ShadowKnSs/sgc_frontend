@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid, Card, CardContent, CardActions, Typography, IconButton,
   CardMedia, Box, Tooltip, CircularProgress
@@ -48,12 +48,11 @@ const AdminEAList = ({ tipo }) => {
     message: '',
   });
 
-  const showFeedback = (type, title, message) =>
+  const showFeedback = useCallback((type, title, message) => {
     setFeedback({ open: true, type, title, message });
+  }, []);
 
-  useEffect(() => { fetchItems(); }, [tipo]);
-
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setIsLoading(true);
     try {
       const resp = await axios.get(`http://127.0.0.1:8000/api/eventos-avisos?tipo=${tipo}`);
@@ -64,7 +63,9 @@ const AdminEAList = ({ tipo }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tipo, showFeedback]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
 
   const handleCreate = () => { setEditItem(null); setModalOpen(true); };
   const handleEditClick = (item) => { setEditItem(item); setModalOpen(true); };
@@ -125,7 +126,7 @@ const AdminEAList = ({ tipo }) => {
       showFeedback('error', 'Error', `Error al crear ${tipo}`);
       throw error;
     } finally {
-      handleCloseModal(); 
+      handleCloseModal();
     }
   };
 
