@@ -9,7 +9,8 @@ const useAuditoriaForm = ({
   setEvents,
   handleCloseForm,
   setSnackbar,
-  setLoading
+  setLoading,
+  procesosCE = []
 }) => {
   const initialFormData = {
     entidad: "",
@@ -18,7 +19,7 @@ const useAuditoriaForm = ({
     fecha: "",
     hora: "",
     tipo: "",
-    estado: "Pendiente",
+    estado: "pendiente",
     descripcion: "",
     auditorLider: "",
     auditoresAdicionales: []
@@ -76,7 +77,7 @@ const useAuditoriaForm = ({
     const {
       entidad,
       proceso,
-      procesoId,    // 👈
+      procesoId,    
       fecha,
       hora,
       tipo,
@@ -139,6 +140,7 @@ const useAuditoriaForm = ({
           ev.id === selectedEvent.id
             ? {
               ...ev,
+              idProceso,
               start, end,
               descripcion,
               estado: toApiEstado(estado),
@@ -182,6 +184,7 @@ const useAuditoriaForm = ({
 
         const nuevaAuditoria = {
           id: idNueva,
+          idProceso,
           title: `${proceso} - ${toApiTipo(tipo) === "externa" ? "Externa" : "Interna"}`,
           start, end,
           descripcion,

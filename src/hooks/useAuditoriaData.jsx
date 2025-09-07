@@ -5,6 +5,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
   const [events, setEvents] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
+  const [procesosCE, setProcesosCE] = useState([]);
   const [auditores, setAuditores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
@@ -101,15 +102,23 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
   useEffect(() => {
     const cargarDatosBase = async () => {
       try {
-        const [resEntidades, resAuditores] = await Promise.all([
+        const [resEntidades, resAuditores, resProcesosCE] = await Promise.all([
           axios.get("http://localhost:8000/api/entidad-nombres"),
           axios.get("http://localhost:8000/api/auditores"),
-
+          axios.get("http://localhost:8000/api/procesos-con-entidad"),
         ]);
         setEntidades(resEntidades.data.nombres);
         setAuditores(resAuditores.data.data);
         console.log("📥 Respuesta ENTIDADES cruda:", resEntidades.data);
         console.log("📥 Respuesta AUDITORES cruda:", resAuditores.data);
+
+        const ce = (resProcesosCE.data?.procesos || []).map(p => ({
+          id: Number(p.idProceso),
+          nombre: p.nombreCompleto,         // "Entidad - Proceso"
+          nombreEntidad: p.nombreEntidad,
+          nombreProceso: p.nombreProceso,
+        }));
+        setProcesosCE(ce);
       } catch (err) {
         console.error("❌ Error al cargar datos base:", err);
       }
@@ -142,6 +151,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
     setEvents,
     entidades,
     procesos,
+    procesosCE,
     auditores,
     loading,
     setLoading,

@@ -68,7 +68,7 @@
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import BreadcrumbNav from "../components/BreadcrumbNav";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import Title from "../components/Title";
 import CircularProgress from '@mui/material/CircularProgress';
@@ -103,6 +103,7 @@ function Cronograma() {
     entidades,
     procesos,
     auditores,
+    procesosCE,
     loading,
     setLoading,
     snackbar,
@@ -117,7 +118,6 @@ function Cronograma() {
     handleChange,
     handleSubmit,
     handleEditOpen,
-    resetForm
   } = useAuditoriaForm({
     isEditing,
     selectedEvent,
@@ -125,7 +125,8 @@ function Cronograma() {
     setEvents,
     handleCloseForm,
     setSnackbar,
-    setLoading
+    setLoading,
+    procesosCE
   });
 
   const permiteAcciones = () => {
@@ -150,7 +151,7 @@ function Cronograma() {
       fecha: "",
       hora: "",
       tipo: "",
-      estado: "Pendiente",
+      estado: "pendiente",
       descripcion: "",
       auditorLider: "",
     });
@@ -202,10 +203,25 @@ function Cronograma() {
       <Title text="Cronograma de Auditorías" mode="sticky" />
 
       {loading && (
-        <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
-          <CircularProgress />
+        <Box sx={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: "rgba(255,255,255,0.6)",
+          zIndex: 10,
+        }}
+        >
+          <Box role="status" aria-live="polite" sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5 }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary">
+              Cargando auditorías…
+            </Typography>
+          </Box>
         </Box>
-      )}
+      )
+      }
 
       <AuditoriaCalendar
         events={events}
@@ -217,13 +233,15 @@ function Cronograma() {
       />
 
       {/* Se muestra el botón "Crear Auditoría" si el usuario tiene el permiso "Cronograma" */}
-      {permiteAcciones() && (
-        <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
-          <CustomButton type="generar" onClick={handleOpenForm}>
-            Crear Auditoría
-          </CustomButton>
-        </Box>
-      )}
+      {
+        permiteAcciones() && (
+          <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
+            <CustomButton type="generar" onClick={handleOpenForm}>
+              Crear Auditoría
+            </CustomButton>
+          </Box>
+        )
+      }
 
       <AuditoriaForm
         open={openForm}
@@ -237,6 +255,7 @@ function Cronograma() {
         isEditing={isEditing}
         loading={loading}
         onEntidadChange={handleEntidadChange}
+        procesosCE={procesosCE}
       />
 
 
@@ -256,7 +275,7 @@ function Cronograma() {
         message={snackbar.message}
         autoHideDuration={3000}
       />
-    </Box>
+    </Box >
   );
 }
 
