@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Typography,
-  IconButton,
-  CardMedia,
-  Box,
-  Snackbar,
-  Alert,
+  Grid, Card, CardContent, CardActions, Typography, IconButton,
+  CardMedia, Box, Tooltip, CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import CampaignIcon from '@mui/icons-material/Campaign';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
@@ -21,11 +15,13 @@ import ConfirmDelete from '../components/confirmDelete';
 import ConfirmEdit from '../components/confirmEdit';
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
+import FeedbackSnackbar from '../components/Feedback';
 
 function formatDate(dateString) {
   if (!dateString) return '';
   return dayjs(dateString).format('DD-MM-YYYY HH:mm');
 }
+
 const AdminEAList = ({ tipo }) => {
   const [items, setItems] = useState([]);
 
@@ -41,109 +37,80 @@ const AdminEAList = ({ tipo }) => {
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(null);
 
-  // Snackbar
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 1) Cargar lista de eventos o avisos al montar o cuando cambie `tipo`
-  useEffect(() => {
-    fetchItems();
-  }, [tipo]);
 
-  // GET /api/eventos-avisos?tipo=Evento o Aviso
+  // FeedbackSnackbar
+  const [feedback, setFeedback] = useState({
+    open: false,
+    type: 'info', // success | error | info | warning
+    title: '',
+    message: '',
+  });
+
+  const showFeedback = (type, title, message) =>
+    setFeedback({ open: true, type, title, message });
+
+  useEffect(() => { fetchItems(); }, [tipo]);
+
   const fetchItems = async () => {
+    setIsLoading(true);
     try {
       const resp = await axios.get(`http://127.0.0.1:8000/api/eventos-avisos?tipo=${tipo}`);
-      setItems(resp.data); // array devuelto por el backend
+      setItems(resp.data);
     } catch (error) {
       console.error('Error al cargar items:', error);
-      setSnackbarMessage(`Error al cargar ${tipo}s`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      showFeedback('error', 'Error', `Error al cargar ${tipo}s`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Crear
-  const handleCreate = () => {
-    setEditItem(null);
-    setModalOpen(true);
-  };
+  const handleCreate = () => { setEditItem(null); setModalOpen(true); };
+  const handleEditClick = (item) => { setEditItem(item); setModalOpen(true); };
+  const handleDeleteClick = (item) => { setDeleteItem(item); setConfirmDeleteOpen(true); };
 
-  // Editar
-  const handleEditClick = (item) => {
-    setEditItem(item);
-    setModalOpen(true);
-  };
-
-  // Eliminar
-  const handleDeleteClick = (item) => {
-    setDeleteItem(item);
-    setConfirmDeleteOpen(true);
-  };
-
-  // Confirmar eliminación => DELETE /api/eventos-avisos/{id}
   const handleConfirmDelete = async () => {
     if (!deleteItem) return;
     try {
       await axios.delete(`http://127.0.0.1:8000/api/eventos-avisos/${deleteItem.idEventosAvisos}`);
-      // Filtrar local
       setItems(items.filter(x => x.idEventosAvisos !== deleteItem.idEventosAvisos));
-
-      setSnackbarMessage(`${tipo} #${deleteItem.idEventosAvisos} eliminado con éxito`);
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      showFeedback('success', 'Eliminado', `${tipo} #${deleteItem.idEventosAvisos} eliminado con éxito`);
     } catch (error) {
       console.error('Error al eliminar:', error);
-      setSnackbarMessage(`Error al eliminar ${tipo}`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      showFeedback('error', 'Error', `Error al eliminar ${tipo}`);
     }
     setDeleteItem(null);
     setConfirmDeleteOpen(false);
   };
+  const handleCloseDeleteDialog = () => { setDeleteItem(null); setConfirmDeleteOpen(false); };
 
-  const handleCloseDeleteDialog = () => {
-    setDeleteItem(null);
-    setConfirmDeleteOpen(false);
-  };
-
-  // Cerrar modal de crear/editar
   const handleCloseModal = () => {
     setModalOpen(false);
     setEditItem(null);
+    setPendingChanges(null);
+    setConfirmEditOpen(false);
   };
-
-  /**
-   * Se llama cuando el modal da "Guardar".
-   * - Si editItem existe => confirmamos edición
-   * - Si no => creamos
-   */
-  const handleRequestEdit = (formData) => {
+  const handleRequestEdit = async (formData) => {
     if (editItem) {
-      // Editar => confirmamos
       setPendingChanges(formData);
-      setConfirmEditOpen(true);
-    } else {
-      // Crear => no confirmamos
-      createItem(formData);
+      setConfirmEditOpen(true);   // aquí no hay request; el loading puede terminar
+      return;                      // nada que esperar
     }
+    // Importante: DEVOLVER la promesa para que el modal espere
+    return createItem(formData);
   };
-
-  // Crear => POST /api/eventos-avisos
   const createItem = async (formData) => {
     try {
       const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
       const idUsuario = usuario?.idUsuario;
-
       if (!idUsuario) {
-        handleApiError({ response: { data: { message: 'Sesión inválida: no hay idUsuario en localStorage' } } }, 'Error');
+        showFeedback('error', 'Sesión inválida', 'No hay idUsuario en localStorage');
         return;
       }
-
       const data = new FormData();
-      data.append('idUsuario', idUsuario);  
-      data.append('tipo', tipo);            // 'Evento' o 'Aviso'
+      data.append('idUsuario', idUsuario);
+      data.append('tipo', tipo);
       if (formData.file) data.append('imagen', formData.file);
 
       const resp = await axios.post('http://127.0.0.1:8000/api/eventos-avisos', data, {
@@ -151,120 +118,116 @@ const AdminEAList = ({ tipo }) => {
       });
 
       setItems([...items, resp.data]);
-      showSuccessSnackbar(`${tipo} creado con éxito`);
+      showFeedback('success', 'Creado', `${tipo} creado con éxito`);
+      return resp;
     } catch (error) {
-      handleApiError(error, `Error al crear ${tipo}`);
+      console.error(error);
+      showFeedback('error', 'Error', `Error al crear ${tipo}`);
+      throw error;
+    } finally {
+      handleCloseModal(); 
     }
-    handleCloseModal();
   };
 
-
-  const showSuccessSnackbar = (message) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-  };
-
-  const handleApiError = (error, defaultMessage) => {
-    const message = error.response?.data?.message || defaultMessage;
-    setSnackbarMessage(message);
-    setSnackbarSeverity('error');
-    setSnackbarOpen(true);
-  };
   const handleConfirmEdit = async () => {
     if (!pendingChanges || !editItem) return;
+    let resp;
     try {
       const data = new FormData();
       data.append('tipo', tipo);
-      if (pendingChanges.file) {
-        data.append('imagen', pendingChanges.file);
-      }
+      if (pendingChanges.file) data.append('imagen', pendingChanges.file);
       data.append('_method', 'PUT');
 
-      const resp = await axios.post(
+      resp = await axios.post(
         `http://127.0.0.1:8000/api/eventos-avisos/${editItem.idEventosAvisos}`,
         data,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
 
-      const updated = items.map(x => x.idEventosAvisos === editItem.idEventosAvisos ? resp.data : x);
+      const updated = items.map(x =>
+        x.idEventosAvisos === editItem.idEventosAvisos ? resp.data : x
+      );
       setItems(updated);
-      showSuccessSnackbar(`${tipo} #${editItem.idEventosAvisos} editado con éxito`);
+      showFeedback('success', 'Editado', `${tipo} #${editItem.idEventosAvisos} editado con éxito`);
     } catch (error) {
-      handleApiError(error, `Error al editar ${tipo}`);
+      console.error(error);
+      showFeedback('error', 'Error', `Error al editar ${tipo}`);
+      throw error; // opcional: permite manejar el error arriba si lo necesitas
+    } finally {
+      // se ejecuta pase lo que pase (éxito, error o excepción)
+      setConfirmEditOpen(false);
+      setPendingChanges(null);
+      setEditItem(null);
+      setModalOpen(false);
     }
-    setModalOpen(false);
-    setEditItem(null);
-    setPendingChanges(null);
-    setConfirmEditOpen(false);
-
+    return resp; // si necesitas la respuesta, devuélvela después del finally
   };
 
-  // Confirmar edición => PUT /api/eventos-avisos/{id}
-
-  const handleCloseEditDialog = () => {
-    setConfirmEditOpen(false);
-    setPendingChanges(null);
-  };
-
-  // Cerrar Snackbar
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
+  const handleCloseEditDialog = () => { setConfirmEditOpen(false); setPendingChanges(null); };
 
   return (
     <Box sx={{ position: 'relative', minHeight: '400px' }}>
-      <Grid container spacing={2}>
-        {items.map(item => (
-          <Grid item xs={12} sm={6} md={4} key={item.idEventosAvisos}>
-            <Card sx={{
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.05)',
-                boxShadow: '0 4px 12px #2dc1df',
-              },
-            }}
-            >
-              {/* Mostrar la imagen devuelta por el backend */}
-              {item.rutaImg && (
-                <CardMedia
-                  component="img"
-                  height="150"
-                  image={item.rutaImg}
-                  alt={`${tipo} #${item.idEventosAvisos}`}
-                />
-              )}
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {tipo} #{item.idEventosAvisos}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Fecha: {formatDate(item.fechaPublicacion)}
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'flex-end' }}>
-                <IconButton sx={{ color: 'primary.main' }} onClick={() => handleEditClick(item)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton sx={{ color: '#f9b800' }} onClick={() => handleDeleteClick(item)}>
-                  <DeleteIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {isLoading ? (
+        <Box sx={{ minHeight: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+          <CircularProgress size={42} />
+          <Typography variant="body2" color="text.secondary">
+            Cargando {tipo.toLowerCase()}s…
+          </Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={2}>
+          {items.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center', width: '100%' }}>
+              {(tipo === 'Evento' ? (
+                <EventAvailableIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+              ) : (
+                <CampaignIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+              ))}
+              <Typography variant="body1" color="text.secondary">
+                No se han creado aún {tipo === 'Evento' ? 'eventos' : 'avisos'}
+              </Typography>
+            </Box>
+          ) : (items.map(item => (
+            <Grid item xs={12} sm={6} md={4} key={item.idEventosAvisos}>
+              <Card
+                sx={{
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': { transform: 'scale(1.05)', boxShadow: '0 4px 12px #2dc1df' },
+                }}
+              >
+                {item.rutaImg && (
+                  <CardMedia component="img" height="150" image={item.rutaImg} alt={`${tipo} #${item.idEventosAvisos}`} />
+                )}
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>{tipo} #{item.idEventosAvisos}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Fecha: {formatDate(item.fechaPublicacion)}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'flex-end' }}>
+                  <Tooltip title="Editar">
+                    <IconButton sx={{ color: 'primary.main' }} onClick={() => handleEditClick(item)}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Eliminar">
+                    <IconButton sx={{ color: 'error.main' }} onClick={() => handleDeleteClick(item)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </CardActions>
+              </Card>
+            </Grid>
+          )))}
+        </Grid>
+      )}
 
-      {/* Botón Crear */}
+      {/* FAB Crear */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
-        <FabCustom
-          onClick={handleCreate}
-          title="Agregar Evento/Aviso"
-          icon={<Add />}
-        />
+        <FabCustom onClick={handleCreate} title="Agregar Evento/Aviso" icon={<Add />} />
       </Box>
 
-      {/* Modal de Crear/Editar */}
+      {/* Modal Crear/Editar */}
       {modalOpen && (
         <AdminEAModal
           open={modalOpen}
@@ -275,7 +238,7 @@ const AdminEAList = ({ tipo }) => {
         />
       )}
 
-      {/* Confirmar Eliminación */}
+      {/* Confirmaciones */}
       <ConfirmDelete
         open={confirmDeleteOpen}
         onClose={handleCloseDeleteDialog}
@@ -283,9 +246,6 @@ const AdminEAList = ({ tipo }) => {
         entityType="noticia"
         entityName={`${tipo} #${deleteItem ? deleteItem.idEventosAvisos : ''}`}
       />
-
-
-      {/* Confirmar Edición */}
       <ConfirmEdit
         open={confirmEditOpen}
         onClose={handleCloseEditDialog}
@@ -294,17 +254,14 @@ const AdminEAList = ({ tipo }) => {
         entityName={editItem ? `${tipo} #${editItem.idEventosAvisos}` : `Nuevo ${tipo}`}
       />
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      {/* Feedback global */}
+      <FeedbackSnackbar
+        open={feedback.open}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onClose={() => setFeedback(f => ({ ...f, open: false }))}
+      />
     </Box>
   );
 };
