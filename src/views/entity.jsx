@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Box, CircularProgress, Stack, TextField, MenuItem } from "@mui/material";
+import { Box, CircularProgress, Stack, TextField, MenuItem, Typography } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -195,21 +195,19 @@ const Entity = () => {
           entidades={entidades}
           onFiltrar={setEntidadesFiltradas}
         />
-
         <TextField
           select
           size="small"
           label="Tipo"
           value={tipoFilter}
           onChange={(e) => setTipoFilter(e.target.value)}
-          sx={{ minWidth: 160, maxWidth: 200 }} // ✅ evita que crezca demasiado
+          sx={{ minWidth: 160, maxWidth: 200 }} 
         >
           <MenuItem value="">Todos</MenuItem>
           <MenuItem value="Entidad">Entidad</MenuItem>
           <MenuItem value="Dependencia">Dependencia</MenuItem>
         </TextField>
       </Stack>
-
 
       {/* Grid de tarjetas */}
       <Box
@@ -226,19 +224,28 @@ const Entity = () => {
         }}
       >
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          entidadesMostradas.map((entidad) => (
-            <MenuCard
-              key={entidad.idEntidadDependencia}
-              icon={entidad.icono}
-              title={entidad.nombreEntidad}
-              onClick={() => navigate(`/procesos/${entidad.idEntidadDependencia}`)}
-            />
-          ))
-        )}
+  <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+    <CircularProgress />
+  </Box>
+) : entidadesMostradas.length === 0 ? (
+  <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+    <Typography variant="h6" color="text.secondary">
+      No se encontraron resultados
+    </Typography>
+  </Box>
+) : (
+  entidadesMostradas.map((entidad) => (
+    <MenuCard
+      key={entidad.idEntidadDependencia}
+      icon={entidad.icono}
+      title={entidad.nombreEntidad}
+      onClick={() =>
+        navigate(`/procesos/${entidad.idEntidadDependencia}`)
+      }
+    />
+  ))
+)}
+
       </Box>
     </Box>
   );

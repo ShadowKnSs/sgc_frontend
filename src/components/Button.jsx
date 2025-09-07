@@ -208,4 +208,83 @@ export default function CustomButton({
       {children}
     </StyledButton>
   );
+}*/
+export default function CustomButton({
+  type = "guardar",
+  children,
+  onClick,
+  loading = false,
+  debounceTime = 600,
+  disabled = false,
+  ...props
+}) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const timerRef = useRef(null);
+
+  // normalizamos el type
+  const normalizedType = type.toLowerCase();
+  const config = buttonConfigs[normalizedType] || buttonConfigs.guardar;
+
+  const handleClick = useCallback(
+    async (event) => {
+      if (isProcessing || disabled) return;
+
+      setIsProcessing(true);
+
+      try {
+        if (onClick) {
+          const result = onClick(event);
+          // 👇 Si el onClick devuelve una promesa, esperamos a que termine
+          if (result instanceof Promise) {
+            await result;
+          }
+        }
+      } finally {
+        // desbloquear después de debounceTime
+        timerRef.current = setTimeout(() => {
+          setIsProcessing(false);
+          timerRef.current = null;
+        }, debounceTime);
+      }
+    },
+    [onClick, isProcessing, disabled, debounceTime]
+  );
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const isDisabled = disabled || isProcessing || loading;
+
+  let startIcon = props.startIcon;
+  if (loading || isProcessing) {
+    startIcon = <CircularProgress size={20} color="inherit" />;
+  }
+
+  return (
+    <StyledButton
+      {...config}
+      {...props}
+      onClick={handleClick}
+      disabled={isDisabled}
+      startIcon={startIcon}
+      variant={normalizedType === "cancelar" ? "outlined" : "contained"}
+      sx={{
+        ...props.sx,
+        ...(normalizedType === "cancelar" && {
+          border: `2px solid ${colorPalette.azulOscuro}`,
+          "&:hover": {
+            border: `2px solid ${colorPalette.azulOscuro}`,
+            backgroundColor: `${colorPalette.grisClaro} !important`,
+          },
+        }),
+      }}
+    >
+      {children}
+    </StyledButton>
+  );
 }

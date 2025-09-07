@@ -101,9 +101,9 @@ const ProcessForm = ({
         formData.estado,
         formData.idEntidad,
         formData.anioCertificado,
-      ].every(val => String(val).trim() !== "");
-      
-      
+    ].every(val => String(val).trim() !== "");
+
+
 
     const handleSelectIcon = (iconName) => {
         setSelectedIcon(iconName);
@@ -111,7 +111,7 @@ const ProcessForm = ({
 
     useEffect(() => {
         setFormData(initialValues);
-        setSelectedIcon(initialValues.icono || iconOptions[0].name); 
+        setSelectedIcon(initialValues.icono || iconOptions[0].name);
     }, [initialValues]);
 
     const handleChange = (field) => (e) => {
@@ -122,8 +122,10 @@ const ProcessForm = ({
     };
 
     const handleSubmit = () => {
-        onSubmit({ ...formData, icono: selectedIcon });
+        // Si onSubmit devuelve una promesa (async), la regresamos
+        return onSubmit({ ...formData, icono: selectedIcon });
     };
+
 
     const commonStyles = {
         "& .MuiOutlinedInput-root": { borderRadius: "12px" },
@@ -282,20 +284,22 @@ const ProcessForm = ({
                     </Grid>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}>
-    <CustomButton
-        type="cancelar"
-        onClick={onCancel}
-    >
-        {"Cancelar"}
-    </CustomButton>
-    <CustomButton
-        type="Guardar"
-        onClick={handleSubmit}
-        disabled={!isFormValid}
-    >
-        {"Guardar"}
-    </CustomButton>
-</Box>
+                    <CustomButton
+                        type="cancelar"
+                        onClick={onCancel}
+                    >
+                        {"Cancelar"}
+                    </CustomButton>
+                    <CustomButton
+                        type="guardar"
+                        onClick={handleSubmit}
+                        disabled={!isFormValid}
+                    >
+                        Guardar
+                    </CustomButton>
+
+
+                </Box>
 
             </CardContent>
         </Card>
