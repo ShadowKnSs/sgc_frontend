@@ -61,6 +61,7 @@ import { useNavigate } from "react-router-dom";
 import MensajeAlert from '../components/MensajeAlert';
 import ErrorAlert from '../components/ErrorAlert';
 
+
 function InformeAud() {
   // Estado para los criterios
   const [criterios, setCriterios] = useState([""]);
