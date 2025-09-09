@@ -60,25 +60,25 @@ const useEntidadProceso = (idProceso) => {
     const fetchData = async (retryCount = 0) => {
       try {
         const res = await axios.get(`http://localhost:8000/api/proceso-entidad/${idProceso}`);
-        
+
         // Almacenar con timestamp
         const dataToCache = {
           data: res.data,
           timestamp: Date.now()
         };
-        
+
         sessionStorage.setItem(cacheKey, JSON.stringify(dataToCache));
         setData(res.data);
         setError("");
       } catch (err) {
         console.error("Error cargando entidad y proceso", err);
-        
+
         // Reintentar hasta 3 veces con delay exponencial
         if (retryCount < 3) {
           setTimeout(() => fetchData(retryCount + 1), 1000 * Math.pow(2, retryCount));
           return;
         }
-        
+
         setError("No se pudo cargar la información del proceso. Por favor, intente nuevamente.");
       } finally {
         setLoading(false);
@@ -95,7 +95,6 @@ const ProcessView = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { soloLectura, puedeEditar } = Permiso("Manual Operativo");
-  console.log('[ProcessView] soloLectura:', soloLectura, 'puedeEditar:', puedeEditar);
   const [selectedTab, setSelectedTab] = useState(0);
   const [isFixed] = useState(false);
   const { idProceso } = useParams();
@@ -105,15 +104,16 @@ const ProcessView = () => {
   const nombreEntidad = data?.entidad || "";
   const nombreProceso = data?.proceso || "";
 
-  const sectionMap = {
+  const sectionMap = useMemo(() => ({
     "Carátula": Caratula,
     "Control de Cambios": ControlCambios,
     "Mapa de Proceso": MapaProceso,
     "Diagrama de Flujo": DiagramaFlujo,
     "Plan de Control": PlanControl,
     "Control de documentos": ControlDocuments,
-  };
+  }), [])
 
+  const currentKey = sections[selectedTab];
   // Precarga estratégica de componentes
   useEffect(() => {
     if (selectedTab === 0) {
@@ -126,23 +126,23 @@ const ProcessView = () => {
   }, [selectedTab]);
 
   const MemoizedSection = useMemo(() => {
-    const Component = sectionMap[sections[selectedTab]];
+    const Component = sectionMap[currentKey];
     return Component ? (
-      <Component 
-        idProceso={idProceso} 
-        soloLectura={soloLectura} 
-        puedeEditar={puedeEditar} 
-        key={selectedTab} // Forzar recreación al cambiar pestaña
+      <Component
+        idProceso={idProceso}
+        soloLectura={soloLectura}
+        puedeEditar={puedeEditar}
+        key={currentKey} // Forzar recreación al cambiar pestaña
       />
     ) : null;
-  }, [selectedTab, idProceso, soloLectura, puedeEditar]);
+  }, [currentKey, idProceso, soloLectura, puedeEditar, sectionMap]);
 
   // Efecto para cambiar el título de la página
   useEffect(() => {
     if (nombreEntidad && nombreProceso) {
       document.title = `${nombreEntidad} - ${nombreProceso} | Manual Operativo`;
     }
-    
+
     return () => {
       document.title = "Sistema de Gestión"; // Título por defecto
     };
@@ -182,7 +182,7 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: isMobile ? 1 : 0 }}>
-     
+
       <MenuNavegacionProceso items={menuItems} />
 
       <Box
@@ -197,17 +197,17 @@ const ProcessView = () => {
         }}
       >
         <Box sx={{ mt: 2, mb: 1.5, display: "flex", justifyContent: "center", px: isMobile ? 1 : 0 }}>
-          <Title 
-            text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} 
+          <Title
+            text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`}
             variant={isMobile ? "h5" : "h4"}
           />
         </Box>
       </Box>
 
-      <Box sx={{ 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center", 
+      <Box sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}>
         <SectionTabs
           sections={sections}
@@ -218,8 +218,8 @@ const ProcessView = () => {
       </Box>
 
       <Suspense fallback={
-        <Box sx={{ 
-          textAlign: "center", 
+        <Box sx={{
+          textAlign: "center",
           py: 5,
           minHeight: "400px",
           display: "flex",

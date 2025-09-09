@@ -34,17 +34,8 @@
  * - Los botones cambian de color en hover para mejorar UX.
  * - La imagen se presenta redondeada y escalada al 100% del contenedor para buena visualización.
  *
- * Consideraciones técnicas:
- * - La imagen se envía como `multipart/form-data` usando `FormData`.
- * - `useEffect` está condicionado al `idProceso` para evitar llamadas innecesarias.
- * - `alert()` se utiliza como feedback básico; puede mejorarse usando `Snackbar` o `FeedbackSnackbar`.
  *
- * Mejoras recomendadas:
- * - Añadir validación de tamaño (ej. máximo 2MB) y dimensiones.
- * - Reemplazar `alert` por un sistema visual de notificaciones.
- * - Agregar loader o indicador de subida en curso.
- * - Permitir eliminar permanentemente el diagrama guardado.
- */
+ **/
 
 import React, { useState, useEffect } from "react";
 import {
@@ -64,18 +55,26 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
   const [preview, setPreview] = useState(null);
   const [imageURL, setImageURL] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [isFetching, setIsFetching] = useState(true);
+  const [imgLoading, setImgLoading] = useState(false);
   const [alerta, setAlerta] = useState({ tipo: "", texto: "" });
 
   useEffect(() => {
     const fetchDiagrama = async () => {
       try {
+        setIsFetching(true);
         const response = await axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`);
         if (response.data?.diagramaFlujo) {
+          setImgLoading(false);
           setImageURL(response.data.diagramaFlujo);
+        } else {
+          setImageURL(null);
         }
       } catch (error) {
         console.error("❌ Error al obtener el diagrama:", error);
+
+      } finally {
+        setIsFetching(false);
       }
     };
 
@@ -112,6 +111,7 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
       );
 
       if (response.data?.url) {
+        setImgLoading(true);
         setImageURL(response.data.url);
         setImage(null);
         setPreview(null);
@@ -156,9 +156,46 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
       ) : imageURL ? (
         <Card sx={{ width: "50%", boxShadow: 3 }}>
           <CardContent>
-            <img src={imageURL} alt="Diagrama de Flujo" style={{ width: "100%", borderRadius: "10px" }} />
+            <Box sx={{ position: "relative" }}>
+              <img
+                key={imageURL}
+                src={imageURL}
+                alt="Diagrama de Flujo"
+                style={{ width: "100%", borderRadius: "10px", display: "block" }}
+                onLoad={() => setImgLoading(false)}
+                onError={() => {
+                  setImgLoading(false);
+                }}
+              />
+              {(isFetching || imgLoading) && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "rgba(255,255,255,0.7)",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <CircularProgress />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Cargando diagrama de flujo…
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           </CardContent>
         </Card>
+      ) : isFetching ? (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, mt: 2 }}>
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary">
+            Cargando diagrama de flujo…
+          </Typography>
+        </Box>
       ) : (
         <Typography variant="body1" color="text.secondary">
           No hay Diagrama de Flujo registrado aún.

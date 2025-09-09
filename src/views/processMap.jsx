@@ -230,7 +230,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
         alignItems: "center",
         flexDirection: "column"
       }}>
-        <CircularProgress size={60} thickness={5} sx={{ color: "#1976d2", mb: 2 }} />
+        <CircularProgress size={60} thickness={5} sx={{ color: "#458cd4", mb: 2 }} />
         <Typography variant="subtitle1" color="text.secondary">
           Cargando información del proceso...
         </Typography>

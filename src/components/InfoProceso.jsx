@@ -47,7 +47,7 @@ const InfoProceso = ({ proceso }) => {
                                 sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
                                 aria-label={`${labelMap[key]}: ${proceso[key] || "No disponible"}`}
                             >
-                                <Box sx={{ color: "#004A98", pt: "2px" }}>{iconMap[key]}</Box>
+                                <Box sx={{ color: "#458cd4", pt: "2px" }}>{iconMap[key]}</Box>
                                 <Box>
                                     <Typography fontWeight="bold" color="#333" textAlign="left">
                                         {labelMap[key]}:

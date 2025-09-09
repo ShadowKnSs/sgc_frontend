@@ -19,13 +19,13 @@ import CustomButton from "./Button";
 import FeedbackSnackbar from "./Feedback"; // tu componente de feedback
 
 const icons = {
-    documentos: <DescriptionIcon sx={{ color: "#004A98", fontSize: 28 }} />,
-    fuente: <SourceIcon sx={{ color: "#004A98", fontSize: 28 }} />,
-    material: <InventoryIcon sx={{ color: "#004A98", fontSize: 28 }} />,
-    requisitos: <AssignmentIcon sx={{ color: "#004A98", fontSize: 28 }} />,
-    salidas: <OutboxIcon sx={{ color: "#004A98", fontSize: 28 }} />,
-    receptores: <GroupsIcon sx={{ color: "#004A98", fontSize: 28 }} />,
-    puestosInvolucrados: <GroupWorkIcon sx={{ color: "#004A98", fontSize: 28 }} />,
+    documentos: <DescriptionIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
+    fuente: <SourceIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
+    material: <InventoryIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
+    requisitos: <AssignmentIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
+    salidas: <OutboxIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
+    receptores: <GroupsIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
+    puestosInvolucrados: <GroupWorkIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
 };
 
 // Campos y límites
@@ -50,6 +50,10 @@ const InfoMapaProceso = ({
     const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    const [backup, setBackup] = useState(null); // ← snapshot para cancelar
+
+
 
     // Snackbar de error de validación
     const [snackbar, setSnackbar] = useState({
@@ -81,6 +85,13 @@ const InfoMapaProceso = ({
         return newErrors;
     };
 
+
+    const handleCancel = () => {
+        setEditMode(false);
+        setSubmitted(false);
+        setErrors({});
+        setSnackbar(s => ({ ...s, open: false }));
+    };
     const onSubmit = async () => {
         setSubmitted(true);
         const newErrors = validateAll();
@@ -202,7 +213,7 @@ const InfoMapaProceso = ({
                                             >
                                                 {label}
                                                 <Typography component="span" color="error" >
-                                                *
+                                                    *
                                                 </Typography>
                                                 :
                                             </Typography>
@@ -255,20 +266,31 @@ const InfoMapaProceso = ({
             {!soloLectura && (
                 <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
                     {editMode ? (
-                        <CustomButton
-                            type="guardar"
-                            onClick={onSubmit}
-                            loading={saving}           // ← spinner + disabled integrados
-                        >
-                            Guardar Información
-                        </CustomButton>
+                        <>
+                            <CustomButton
+                                type="cancelar"
+                                onClick={handleCancel}
+                            >
+                                Cancelar
+                            </CustomButton>
+                            <CustomButton
+                                type="guardar"
+                                onClick={onSubmit}
+                                loading={saving}
+                            >
+                                Guardar Información
+                            </CustomButton>
+
+                        </>
+
                     ) : (
-                        <CustomButton type="cancelar" onClick={() => setEditMode(true)}>
-                            Editar Información
+                        <CustomButton type="cancelar" onClick={() => setEditMode(true)}>                            Editar Información
                         </CustomButton>
-                    )}
-                </Box>
-            )}
+                    )
+                    }
+                </Box >
+            )
+            }
 
             {/* Snackbar solo para error */}
             <FeedbackSnackbar
@@ -279,7 +301,7 @@ const InfoMapaProceso = ({
                 message={snackbar.message}
                 autoHideDuration={5000}
             />
-        </Box>
+        </Box >
     );
 };
 
