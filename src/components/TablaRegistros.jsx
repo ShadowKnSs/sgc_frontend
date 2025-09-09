@@ -59,7 +59,7 @@ const ELLIPSIS_STYLE = {
 };
 
 
-const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
+const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord, soloLectura }) => {
   const headers = [
     "No. Actividad",
     "Fuente",
@@ -72,6 +72,8 @@ const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
     "Estado",
     "Acciones"
   ];
+
+  const displayedHeaders = soloLectura ? headers.filter(h => h !== "Acciones") : headers;
 
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
@@ -90,18 +92,17 @@ const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {headers.map((header) => (
-                <TableCell
-                  key={header}
-                  sx={{
-                    backgroundColor: "#1976d2",
-                    color: "white",
-                    fontWeight: "bold",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  {header}
-                </TableCell>
+              {displayedHeaders.map((header) => (<TableCell
+                key={header}
+                sx={{
+                  backgroundColor: "#1976d2",
+                  color: "white",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {header}
+              </TableCell>
               ))}
             </TableRow>
           </TableHead>
@@ -142,18 +143,20 @@ const TablaRegistros = ({ records, handleOpenModal, handleDeleteRecord }) => {
                 <TableCell>{record.fechaTermino}</TableCell>
                 <TableCell>{record.estado}</TableCell>
 
-                <TableCell>
-                  <Tooltip title="Editar">
-                    <IconButton sx={{ color: "warning.main" }} onClick={() => handleOpenModal(index)}>
-                      <Edit />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Eliminar">
-                    <IconButton sx={{ color: "error.main" }} onClick={() => handleDeleteRecord(index)}>
-                      <Delete />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
+                {!soloLectura && (
+                  <TableCell>
+                    <Tooltip title="Editar">
+                      <IconButton sx={{ color: "warning.main" }} onClick={() => handleOpenModal(index)}>
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Eliminar">
+                      <IconButton sx={{ color: "error.main" }} onClick={() => handleDeleteRecord(index)}>
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
