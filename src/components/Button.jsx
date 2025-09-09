@@ -128,7 +128,7 @@ const buttonConfigs = {
   },
 };
 
-export default function CustomButton({
+/*export default function CustomButton({
   type = "guardar",
   children,
   onClick,
@@ -209,6 +209,7 @@ export default function CustomButton({
     </StyledButton>
   );
 }*/
+
 export default function CustomButton({
   type = "guardar",
   children,
