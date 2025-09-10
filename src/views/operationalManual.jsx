@@ -144,7 +144,7 @@ const ProcessView = () => {
     }
     
     return () => {
-      document.title = "Sistema de Gestión"; // Título por defecto
+      document.title = "Sistema de Gestión";
     };
   }, [nombreEntidad, nombreProceso]);
 
@@ -182,27 +182,15 @@ const ProcessView = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: isMobile ? 1 : 0 }}>
-     
-      <MenuNavegacionProceso items={menuItems} />
-
-      <Box
-        sx={{
-          mt: 1.3,
-          width: "100%",
-          maxWidth: "100vw",
-          zIndex: 30,
-          backgroundColor: "#fff",
-          borderRadius: 2,
-          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
-        }}
-      >
-        <Box sx={{ mt: 2, mb: 1.5, display: "flex", justifyContent: "center", px: isMobile ? 1 : 0 }}>
-          <Title 
-            text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} 
-            variant={isMobile ? "h5" : "h4"}
-          />
-        </Box>
+           
+      <Box sx={{ mt: 2, position: "sticky", top: 0, zIndex: 10 }}>
+        <Title 
+          text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`} 
+          mode="sticky" 
+        />
       </Box>
+
+      <MenuNavegacionProceso items={menuItems} />
 
       <Box sx={{ 
         display: "flex", 
