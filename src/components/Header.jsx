@@ -70,7 +70,7 @@ if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
   // Siempre agregar "Cronograma"
   itemsFiltrados.push({
     title: "Cronograma",
-    path: `/cronograma/${procesoLider.idProceso}`
+    path: `/cronograma`
   });
 
   // Solo agregar "Mi Proceso" si el estado es "Activo"

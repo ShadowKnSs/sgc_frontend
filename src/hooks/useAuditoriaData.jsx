@@ -11,7 +11,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const nombreCompleto = (p) =>
-    +[p?.nombre, p?.apellidoPat, p?.apellidoMat].filter(Boolean).join(" ");
+    [p?.nombre, p?.apellidoPat, p?.apellidoMat].filter(Boolean).join(" ");
 
   const auditoresMap = useMemo(() => {
     return new Map(auditores.map(a => [a.idUsuario, a]));
@@ -28,12 +28,17 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
         response = await axios.get("http://localhost:8000/api/auditorias/todas", {
           params: { rol: rolActivo.nombreRol }
         });
-      } else if (rolActivo.nombreRol === 'Supervisor') {
+      } else if (["Lider", "Líder"].includes(rolActivo.nombreRol)) {
+        // ⬇️ NUEVO: auditorías de todos los procesos del líder (dueño)
+        response = await axios.get(`http://localhost:8000/api/auditorias/lider/${usuario.idUsuario}`);
+      } else if (rolActivo.nombreRol === "Auditor") {
+        // ⬇️ NUEVO: auditorías donde el usuario está asignado
+        response = await axios.get(`http://localhost:8000/api/auditorias/auditor/${usuario.idUsuario}`);
+      } else if (rolActivo.nombreRol === "Supervisor") {
         response = await axios.get(`http://localhost:8000/api/auditorias/supervisor/${usuario.idUsuario}`);
       } else if (idProceso) {
-        response = await axios.post("http://localhost:8000/api/cronograma/filtrar", {
-          idProceso
-        });
+        // Filtro por proceso específico (p.ej. vista /cronograma/:idProceso)
+        response = await axios.post("http://localhost:8000/api/cronograma/filtrar", { idProceso });
       } else {
         setEvents([]);
         return;
@@ -50,11 +55,9 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
           const start = new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`);
           const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-          // nombre del líder (si viene en lista de usuarios global)
           const lider = auditoresMap.get(auditoria.auditorLider);
           const nombreLider = lider ? nombreCompleto(lider) : (auditoria.nombreAuditorLider || "No asignado");
 
-          // Carga auditores asignados (ahora devuelve idAuditor y rol)
           let auditoresAdicionales = [];
           try {
             const res = await axios.get(`http://localhost:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
@@ -71,13 +74,13 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
 
           return {
             id: auditoria.idAuditoria,
-            title: `${auditoria.nombreProceso} - ${auditoria.tipoAuditoria}`, // solo para UI (en /todas ya viene por JOIN)
+            title: `${auditoria.nombreProceso ?? ''} - ${auditoria.tipoAuditoria}`,
             start, end,
             descripcion: auditoria.descripcion,
-            estado: auditoria.estado, // Pendiente|Finalizada|Cancelada (capitalizado)
+            estado: auditoria.estado,
             tipo: (auditoria.tipoAuditoria || "").toLowerCase() === "externa" ? "Externa" : "Interna",
-            proceso: auditoria.nombreProceso,     // en /todas viene por JOIN
-            entidad: auditoria.nombreEntidad,     // en /todas viene por JOIN
+            proceso: auditoria.nombreProceso ?? '',
+            entidad: auditoria.nombreEntidad ?? '',
             hora: auditoria.horaProgramada,
             auditorLider: { idAuditor: auditoria.auditorLider, nombre: nombreLider },
             auditorLiderId: auditoria.auditorLider,
