@@ -144,7 +144,7 @@ const ProcessView = () => {
     }
 
     return () => {
-      document.title = "Sistema de Gestión"; // Título por defecto
+      document.title = "Sistema de Gestión";
     };
   }, [nombreEntidad, nombreProceso]);
 
@@ -203,6 +203,8 @@ const ProcessView = () => {
           />
         </Box>
       </Box>
+
+      <MenuNavegacionProceso items={menuItems} />
 
       <Box sx={{
         display: "flex",

@@ -22,6 +22,7 @@ const useCaratulaData = (idProceso) => {
   const [loading, setLoading] = useState(true);
   const [existe, setExiste] = useState(false);
   const [version, setVersion] = useState("1.0");
+  const [macroproceso, setMacroproceso] = useState(""); 
 
   const cargar = useCallback(async () => {
     try {
@@ -61,6 +62,11 @@ const useCaratulaData = (idProceso) => {
           { nombre: "", cargo: "", fijo: "Aprobó", editando: false },
         ]);
       }
+
+    const resProceso = await axios.get(`http://localhost:8000/api/procesos/${idProceso}`);
+    const proceso = resProceso.data.proceso || resProceso.data;
+    setMacroproceso(proceso.macroproceso?.tipoMacroproceso || "");
+
     } catch (error) {
       console.error("Error cargando carátula:", error);
       setExiste(false);
@@ -87,7 +93,9 @@ const useCaratulaData = (idProceso) => {
     setCaratulaId,
     cargar,
     version,
-    setVersion
+    setVersion,
+    macroproceso,
+    setMacroproceso
   };
 };
 
@@ -246,7 +254,9 @@ const Caratula = ({ puedeEditar }) => {
     setCaratulaId,
     cargar,
     version,
-    setVersion
+    setVersion,
+    macroproceso,
+    setMacroproceso
   } = useCaratulaData(idProceso);
 
   const [alerta, setAlerta] = useState({ open: false, tipo: "", texto: "" });
@@ -282,20 +292,28 @@ const Caratula = ({ puedeEditar }) => {
 
   const validarCampos = () => {
     for (const persona of personas) {
-      if (persona.nombre.length > 125 || persona.cargo.length > 125) return false;
+      if (!persona.nombre.trim()) return false;
+      if (!persona.cargo.trim()) return false;
+      if (persona.nombre.length > 125) return false;
+      if (persona.cargo.length > 125) return false;
     }
-    // Al menos el responsable con nombre
-    if (!personas[0].nombre.trim()) return false;
     return true;
   };
 
+  const obtenerMensajeError = () => {
+    for (const persona of personas) {
+      if (!persona.nombre.trim()) return `Falta el nombre de ${persona.fijo}`;
+      if (!persona.cargo.trim()) return `Falta el cargo de ${persona.fijo}`;
+      if (persona.nombre.length > 125) return `Nombre de ${persona.fijo} excede 125 caracteres`;
+      if (persona.cargo.length > 125) return `Cargo de ${persona.fijo} excede 125 caracteres`;
+    }
+    return null;
+  };
+
   const handleSave = async () => {
-    if (!validarCampos()) {
-      setAlerta({
-        open: true,
-        tipo: "error",
-        texto: "Verifique: Responsable con nombre y campos ≤ 125 caracteres."
-      });
+    const errorMensaje = obtenerMensajeError();
+    if (errorMensaje) {
+      setAlerta({ open: true, tipo: "error", texto: errorMensaje });
       return;
     }
 
@@ -320,7 +338,6 @@ const Caratula = ({ puedeEditar }) => {
         setCaratulaId(res.data?.idCaratula || null);
         setExiste(true);
       } else {
-        // Autoincremento menor de versión
         const parts = (version || "1.0").split(".");
         const major = parseInt(parts[0] || "1", 10);
         const minor = parseInt(parts[1] || "0", 10) + 1;
@@ -337,7 +354,6 @@ const Caratula = ({ puedeEditar }) => {
         texto: `Carátula ${existe ? "actualizada" : "guardada"} correctamente. Versión ${existe ? nuevaVersion : "1.0"}`
       });
 
-      // Salir de modo edición
       setPersonas((prev) => prev.map((p) => ({ ...p, editando: false })));
     } catch (e) {
       console.error("Error guardando carátula", e);
@@ -387,7 +403,7 @@ const Caratula = ({ puedeEditar }) => {
               Manual Operativo
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Sistema Integral de Calidad
+              {macroproceso || "Sin macroproceso asignado"}
             </Typography>
             {existe && (
               <Chip
