@@ -339,6 +339,7 @@ const UnifiedIndicatorPage = () => {
             datosGraficas={datosGraficas}
             idProceso={paramProceso}
             anio={anio}
+            loading={loading}
           />
         </Box>
       </Box>

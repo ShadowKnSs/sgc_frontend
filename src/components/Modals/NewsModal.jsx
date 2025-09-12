@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import TitleDialog from '../TitleDialog';
 
@@ -34,9 +34,7 @@ const NewsModal = ({ open, newsItem, onClose }) => {
           {newsItem?.description}
         </Typography>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cerrar</Button>
-      </DialogActions>
+      <DialogActions></DialogActions>
     </Dialog>
   );
 };

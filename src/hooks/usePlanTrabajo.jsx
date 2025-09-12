@@ -106,7 +106,7 @@ export const usePlanTrabajo = (idRegistro) => {
     };
 
     try {
-      const { data } = await api.post(`/plantrabajo/${idRegistro}/fuentes`, body);
+      const { data } = await api.post(`/plantrabajo/${idPlanTrabajo}/fuentes`, body);
       return data;
     } catch (error) {
       console.error("Error creating fuentes:", error.response?.data);

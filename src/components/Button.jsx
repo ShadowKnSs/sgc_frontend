@@ -23,11 +23,14 @@ const colorPalette = {
 };
 
 // Botón base estilizado con styled API para mejor rendimiento
-const StyledButton = styled(Button)(({ 
-  buttoncolor, 
-  hovercolor, 
+const StyledButton = styled(Button, {
+  shouldForwardProp: (prop) =>
+    !['buttoncolor', 'hovercolor', 'textcolor', 'withshadow'].includes(prop),
+})(({
+  buttoncolor,
+  hovercolor,
   textcolor,
-  withshadow 
+  withshadow
 }) => ({
   textTransform: "none",
   borderRadius: "24px",
@@ -45,23 +48,23 @@ const StyledButton = styled(Button)(({
   backgroundColor: buttoncolor,
   color: textcolor,
   boxShadow: withshadow ? "0 4px 12px rgba(0, 0, 0, 0.15)" : "none",
-  
+
   "&:hover": {
     backgroundColor: hovercolor,
     transform: "translateY(-2px)",
     boxShadow: withshadow ? "0 6px 16px rgba(0, 0, 0, 0.2)" : "none",
   },
-  
+
   "&:active": {
     transform: "translateY(0)",
     boxShadow: withshadow ? "0 2px 8px rgba(0, 0, 0, 0.15)" : "none",
   },
-  
+
   "&:focus-visible": {
     outline: `2px solid ${buttoncolor}`,
     outlineOffset: "2px",
   },
-  
+
   "&:disabled": {
     backgroundColor: colorPalette.grisClaro,
     color: colorPalette.grisOscuro,
@@ -69,7 +72,7 @@ const StyledButton = styled(Button)(({
     transform: "none",
     boxShadow: "none",
   },
-  
+
   // Efecto de onda al hacer clic
   "&::after": {
     content: '""',
@@ -82,7 +85,7 @@ const StyledButton = styled(Button)(({
     height: "120%",
     opacity: 0,
   },
-  
+
   "&:active::after": {
     transform: "scale(1)",
     opacity: 1,
@@ -125,39 +128,47 @@ const buttonConfigs = {
   },
 };
 
-export default function CustomButton({ 
-  type = "guardar", 
-  children, 
+export default function CustomButton({
+  type = "guardar",
+  children,
   onClick,
   loading = false,
   debounceTime = 600,
   disabled = false,
-  ...props 
+  ...props
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const timerRef = useRef(null);
-  
-  const config = buttonConfigs[type] || buttonConfigs.guardar;
-  
-  const handleClick = useCallback((event) => {
-    if (isProcessing || disabled) return;
-    
-    setIsProcessing(true);
-    
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    
-    if (onClick) {
-      onClick(event);
-    }
-    
-    timerRef.current = setTimeout(() => {
-      setIsProcessing(false);
-      timerRef.current = null;
-    }, debounceTime);
-  }, [onClick, isProcessing, disabled, debounceTime]);
-  
+
+  // normalizamos el type
+  const normalizedType = type.toLowerCase();
+  const config = buttonConfigs[normalizedType] || buttonConfigs.guardar;
+
+  const handleClick = useCallback(
+    async (event) => {
+      if (isProcessing || disabled) return;
+
+      setIsProcessing(true);
+
+      try {
+        if (onClick) {
+          const result = onClick(event);
+          // 👇 Si el onClick devuelve una promesa, esperamos a que termine
+          if (result instanceof Promise) {
+            await result;
+          }
+        }
+      } finally {
+        // desbloquear después de debounceTime
+        timerRef.current = setTimeout(() => {
+          setIsProcessing(false);
+          timerRef.current = null;
+        }, debounceTime);
+      }
+    },
+    [onClick, isProcessing, disabled, debounceTime]
+  );
+
   React.useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -165,14 +176,14 @@ export default function CustomButton({
       }
     };
   }, []);
-  
+
   const isDisabled = disabled || isProcessing || loading;
-  
+
   let startIcon = props.startIcon;
-  if (loading) {
+  if (loading || isProcessing) {
     startIcon = <CircularProgress size={20} color="inherit" />;
   }
-  
+
   return (
     <StyledButton
       {...config}
@@ -180,12 +191,10 @@ export default function CustomButton({
       onClick={handleClick}
       disabled={isDisabled}
       startIcon={startIcon}
-      variant={type === "cancelar" ? "outlined" : "contained"}
+      variant={normalizedType === "cancelar" ? "outlined" : "contained"}
       sx={{
-        // Permitir sobrescritura de estilos desde props
         ...props.sx,
-        // Estilos específicos para el botón de cancelar
-        ...(type === "cancelar" && {
+        ...(normalizedType === "cancelar" && {
           border: `2px solid ${colorPalette.azulOscuro}`,
           "&:hover": {
             border: `2px solid ${colorPalette.azulOscuro}`,

@@ -19,14 +19,12 @@ const DetallesAuditoriaDialog = ({
   puedeEditar,
 }) => {
   const renderAuditorLider = () => {
-    if (typeof event.auditorLider === "number") {
-      const auditor = auditores.find((a) => a.idUsuario === event.auditorLider);
-      return auditor
-        ? `${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat}`
-        : "No asignado";
-    }
-    return event.auditorLider || "No asignado";
+    if (!event?.auditorLider) return "No asignado";
+    if (typeof event.auditorLider === "object") return event.auditorLider.nombre || "No asignado";
+    const a = auditores.find(x => Number(x.idUsuario) === Number(event.auditorLider));
+    return a ? [a.nombre, a.apellidoPat, a.apellidoMat].filter(Boolean).join(" ") : "No asignado";
   };
+
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -77,8 +75,8 @@ const DetallesAuditoriaDialog = ({
                   event.estado === "Finalizada"
                     ? "success.main"
                     : event.estado === "Cancelada"
-                    ? "error.main"
-                    : "info.main",
+                      ? "error.main"
+                      : "info.main",
                 fontWeight: 500,
               }}
             >
@@ -92,21 +90,19 @@ const DetallesAuditoriaDialog = ({
 
             {event.auditoresAdicionales?.length > 0 && (
               <>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: "bold", alignSelf: "start" }}
-                >
+                <Typography variant="subtitle2" sx={{ fontWeight: "bold", alignSelf: "start" }}>
                   Auditores Adicionales:
                 </Typography>
                 <Box component="ul" sx={{ pl: 2, m: 0 }}>
-                  {event.auditoresAdicionales.map((auditor, index) => (
-                    <Typography component="li" key={index}>
-                      {auditor.nombre}
+                  {event.auditoresAdicionales.map((aud, idx) => (
+                    <Typography component="li" key={idx}>
+                      {aud.nombre}
                     </Typography>
                   ))}
                 </Box>
               </>
             )}
+
 
             <Typography
               variant="subtitle2"

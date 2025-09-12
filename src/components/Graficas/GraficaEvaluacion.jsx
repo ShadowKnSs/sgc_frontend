@@ -174,7 +174,7 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
     },
     scales: {
       x: {
-        stacked: true,
+        stacked: false,
         title: {
           display: true,
           text: "Periodo",
@@ -193,7 +193,7 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         }
       },
       y: {
-        stacked: true,
+        stacked: false,
         beginAtZero: true,
         max: 100,
         title: {

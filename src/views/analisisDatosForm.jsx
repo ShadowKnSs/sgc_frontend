@@ -6,14 +6,14 @@
  * y permite registrar o actualizar la necesidad e interpretación del comportamiento del proceso.
 
  * Funcionalidades principales:
- * 1. ✅ Carga datos del proceso (entidad, macroproceso, nombre, año) a partir de un `idRegistro`.
- * 2. ✅ Carga indicadores clasificados por origen: ActividadControl, MapaProceso, Encuesta, Retroalimentación, EvaluaProveedores.
- * 3. ✅ Carga e inicializa la sección de "Necesidad e Interpretación" por cada pestaña.
- * 4. ✅ Permite modificar el periodo de evaluación y guardar los cambios si el usuario tiene permisos de edición.
- * 5. ✅ Permite actualizar de forma parcial los campos de necesidad e interpretación por sección.
- * 6. ✅ Utiliza pestañas (`Tabs`) para dividir las secciones del análisis.
- * 7. ✅ Incluye validación de carga, animaciones (`Fade`) y retroalimentación visual (`Snackbar`, `Alert`).
- * 8. ✅ Navega a la vista de indicadores del proceso mediante botón de acceso.
+ * 1.  Carga datos del proceso (entidad, macroproceso, nombre, año) a partir de un `idRegistro`.
+ * 2.  Carga indicadores clasificados por origen: ActividadControl, MapaProceso, Encuesta, Retroalimentación, EvaluaProveedores.
+ * 3.  Carga e inicializa la sección de "Necesidad e Interpretación" por cada pestaña.
+ * 4.  Permite modificar el periodo de evaluación y guardar los cambios si el usuario tiene permisos de edición.
+ * 5.  Permite actualizar de forma parcial los campos de necesidad e interpretación por sección.
+ * 6.  Utiliza pestañas (`Tabs`) para dividir las secciones del análisis.
+ * 7.  Incluye validación de carga, animaciones (`Fade`) y retroalimentación visual (`Snackbar`, `Alert`).
+ * 8.  Navega a la vista de indicadores del proceso mediante botón de acceso.
 
  * Estados:
  * - `formData`: datos generales del proceso.
@@ -56,7 +56,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { AppBar, Tabs, Tab, Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress } from "@mui/material";
+import { Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress } from "@mui/material";
 import axios from "axios";
 import ButtonInd from "../components/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -285,10 +285,11 @@ const FormularioAnalisis = () => {
     try {
       // Mapear nuestras secciones internas a las de la API
       let seccionApi = seccion;
-      if (seccion === "desempeno") seccionApi = "DesempeñoProceso";
-      if (seccion === "evaluacion") seccionApi = "Evaluacion";
-      if (seccion === "evaluacion") seccionApi = "DesempeñoProveedores";
-      // Agrega más mapeos según sea necesario
+      if (seccion === "Conformidad") seccionApi = "Conformidad";
+      if (seccion === "desempeno") seccionApi = "Desempeño";
+      if (seccion === "eficacia") seccionApi = "Eficacia";
+      if (seccion === "satisfaccion") seccionApi = "Satisfaccion";
+      if (seccion === "evaluacion") seccionApi = "Desempeño Proveedores";
 
       const response = await axios.put(
         `http://127.0.0.1:8000/api/analisisDatos/${idRegistro}/necesidad-interpretacion`,
@@ -342,9 +343,9 @@ const FormularioAnalisis = () => {
         secciones
       });
 
-      console.log("✅ Datos guardados correctamente");
+      console.log(" Datos guardados correctamente");
 
-      // ✅ Actualizar localmente sin recargar
+      //  Actualizar localmente sin recargar
       setFormData(prev => ({
         ...prev,
         periodoEvaluacion: formData.periodoEvaluacion
@@ -357,13 +358,6 @@ const FormularioAnalisis = () => {
       showSnackbar("Error al guardar", "error");
       console.error(err);
     }
-  };
-
-
-  const handleSaveNecesidadInterpretacion = async (pestana) => {
-    const { necesidad, interpretacion } = necesidadInterpretacion[pestana];
-    await updateNecesidadInterpretacion(pestana, "necesidad", necesidad);
-    await updateNecesidadInterpretacion(pestana, "interpretacion", interpretacion);
   };
 
   const getCurrentIndicators = () => {
@@ -388,7 +382,7 @@ const FormularioAnalisis = () => {
       case 3: // Satisfacción (manejo especial)
         return [];
       case 4: // Evaluación de Proveedores
-        return ["Confiable", "No Confiable", "Condicionado", "Meta Confiable", "Meta No Confiable", "Meta Condicionado"];
+        return ["Categoría", "Ene–Jun", "Ago–Dic", "Meta"];
       default:
         return [];
     }
@@ -406,16 +400,35 @@ const FormularioAnalisis = () => {
             <TableCell align="center">{indicator.periodicidad || "N/A"}</TableCell>
           </TableRow>
         );
-      case 4: // Evaluación de Proveedores
+      case 4: // Evaluación de Proveedores (3 renglones: Condicionado, Confiable, No confiable)
         return (
-          <TableRow key={index}>
-            <TableCell align="center">{indicator.confiable ?? "N/A"}</TableCell>
-            <TableCell align="center">{indicator.noConfiable ?? "N/A"}</TableCell>
-            <TableCell align="center">{indicator.condicionado ?? "N/A"}</TableCell>
-            <TableCell align="center">{indicator.metaConfiable ?? "N/A"}</TableCell>
-            <TableCell align="center">{indicator.metaNoConfiable ?? "N/A"}</TableCell>
-            <TableCell align="center">{indicator.metaCondicionado ?? "N/A"}</TableCell>
-          </TableRow>
+          <>
+
+            <TableRow key={`${index}-conf`}>
+              <TableCell>Confiable</TableCell>
+              <TableCell align="center">{indicator.resultadoConfiableSem1 ?? "N/A"}</TableCell>
+              <TableCell align="center">{indicator.resultadoConfiableSem2 ?? "N/A"}</TableCell>
+              <TableCell align="center">
+                {indicator.metaConfiable != null ? `${indicator.metaConfiable}%` : ">= 80%"}
+              </TableCell>
+            </TableRow>
+            <TableRow key={`${index}-cond`}>
+              <TableCell>Condicionado</TableCell>
+              <TableCell align="center">{indicator.resultadoCondicionadoSem1 ?? "N/A"}</TableCell>
+              <TableCell align="center">{indicator.resultadoCondicionadoSem2 ?? "N/A"}</TableCell>
+              <TableCell align="center">
+                {indicator.metaCondicionado != null ? `>= ${indicator.metaCondicionado}%` : "N/A"}
+              </TableCell>
+            </TableRow>
+            <TableRow key={`${index}-noconf`}>
+              <TableCell>No confiable</TableCell>
+              <TableCell align="center">{indicator.resultadoNoConfiableSem1 ?? "N/A"}</TableCell>
+              <TableCell align="center">{indicator.resultadoNoConfiableSem2 ?? "N/A"}</TableCell>
+              <TableCell align="center">
+                {indicator.metaNoConfiable != null ? `< ${indicator.metaNoConfiable}%` : "N/A"}
+              </TableCell>
+            </TableRow>
+          </>
         );
       default:
         return null;
@@ -495,7 +508,8 @@ const FormularioAnalisis = () => {
                   onKeyDown={(e) => {
                     if (/[0-9]/.test(e.key)) {
                       e.preventDefault();
-                    }}}
+                    }
+                  }}
                 />
               ) : (
                 <Typography sx={{ ml: 4 }}>{formData.periodoEvaluacion || "Sin definir"}</Typography>
@@ -580,20 +594,32 @@ const FormularioAnalisis = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {indicadores.satisfaccion.retroalimentacion.map((retro, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{retro.metodo || "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadFelicitacion ?? "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadSugerencia ?? "N/A"}</TableCell>
-                      <TableCell align="center">{retro.cantidadQueja ?? "N/A"}</TableCell>
-                      <TableCell align="center">{retro.total ?? "N/A"}</TableCell>
-                    </TableRow>
-                  ))}
+                  {indicadores.satisfaccion.retroalimentacion.map((retro, index) => {
+                    // Calcula total si no viene del backend
+                    const totalCalculado =
+                      (retro.cantidadFelicitacion || 0) +
+                      (retro.cantidadSugerencia || 0) +
+                      (retro.cantidadQueja || 0);
+
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>{retro.metodo || "N/A"}</TableCell>
+                        <TableCell align="center">{retro.cantidadFelicitacion ?? "N/A"}</TableCell>
+                        <TableCell align="center">{retro.cantidadSugerencia ?? "N/A"}</TableCell>
+                        <TableCell align="center">{retro.cantidadQueja ?? "N/A"}</TableCell>
+                        <TableCell align="center">
+                          {retro.total ?? totalCalculado}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
+
               </Table>
             </TableContainer>
           </>
-        ) : selectedTab !== 3 ? ( // Otras secciones (tabla normal)
+        ) : (
+          /* Pestañas 0,1,2 y 4 se renderizan con UNA SOLA tabla */
           <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3 }}>
             <Table>
               <TableHead>
@@ -606,11 +632,61 @@ const FormularioAnalisis = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {getCurrentIndicators().map((indicator, index) => renderTableRow(indicator, index))}
+                {selectedTab === 4 ? (
+                  <>
+                    {indicadores.evaluacion.map((indicator, index) => renderTableRow(indicator, index))}
+                    {(() => {
+                      const sum = indicadores.evaluacion.reduce(
+                        (acc, i) => ({
+                          s1: acc.s1
+                            + (i.resultadoCondicionadoSem1 ?? 0)
+                            + (i.resultadoConfiableSem1 ?? 0)
+                            + (i.resultadoNoConfiableSem1 ?? 0),
+                          s2: acc.s2
+                            + (i.resultadoCondicionadoSem2 ?? 0)
+                            + (i.resultadoConfiableSem2 ?? 0)
+                            + (i.resultadoNoConfiableSem2 ?? 0),
+                          n1: acc.n1
+                            + ((i.resultadoCondicionadoSem1 != null) ? 1 : 0)
+                            + ((i.resultadoConfiableSem1 != null) ? 1 : 0)
+                            + ((i.resultadoNoConfiableSem1 != null) ? 1 : 0),
+                          n2: acc.n2
+                            + ((i.resultadoCondicionadoSem2 != null) ? 1 : 0)
+                            + ((i.resultadoConfiableSem2 != null) ? 1 : 0)
+                            + ((i.resultadoNoConfiableSem2 != null) ? 1 : 0),
+                        }),
+                        { s1: 0, s2: 0, n1: 0, n2: 0 }
+                      );
+                      const totalSem1 = sum.n1 ? (sum.s1).toFixed(2) : "N/A";
+                      const totalSem2 = sum.n2 ? (sum.s2).toFixed(2) : "N/A";
+                      const totalAnual = (sum.n1 && sum.n2)
+                        ? (((sum.s1 ?? 0) + (sum.s2 ?? 0)) / 2).toFixed(2)
+                        : (sum.n1 ? totalSem1 : (sum.n2 ? totalSem2 : "N/A"));
+                      return (
+                        <>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: "bold" }}>TOTAL</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: "bold" }}>{totalSem1}</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: "bold" }}>{totalSem2}</TableCell>
+                            <TableCell />
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: "bold" }}>TOTAL (Ene–Dic)</TableCell>
+                            <TableCell align="center" colSpan={2} sx={{ fontWeight: "bold" }}>
+                              {totalAnual}
+                            </TableCell>
+                            <TableCell />
+                          </TableRow>
+                        </>
+                      );
+                    })()}
+                  </>
+                ) : (
+                  getCurrentIndicators().map((indicator, index) => renderTableRow(indicator, index)))}
               </TableBody>
             </Table>
           </TableContainer>
-        ) : null}
+        )}
       </Box>
 
       <Box sx={{ mt: 3 }}>
@@ -630,7 +706,7 @@ const FormularioAnalisis = () => {
               }
               variant="outlined"
               disabled={soloLectura}
-              
+
             />
           </Grid>
           <Grid item xs={6}>
@@ -643,6 +719,8 @@ const FormularioAnalisis = () => {
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "interpretacion", e.target.value)
               }
+              variant="outlined"
+              disabled={soloLectura}
             />
           </Grid>
         </Grid>
