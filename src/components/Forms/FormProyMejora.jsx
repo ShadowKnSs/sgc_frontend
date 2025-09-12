@@ -47,9 +47,19 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
       case 0:
         return (
           <Box>
-            <TextField fullWidth label="División" name="division" value={formData.division} onChange={handleChange} margin="normal" disabled={disabled} error={getError("division")} helperText={getHelper("division")} />
-            <TextField fullWidth label="Departamento" name="departamento" value={formData.departamento} onChange={handleChange} margin="normal" disabled={disabled} error={getError("departamento")} helperText={getHelper("departamento")} />
-            <TextField fullWidth label="Fecha" name="fecha" type="date" value={formData.fecha} onChange={handleChange} margin="normal" InputLabelProps={{ shrink: true }} disabled={disabled} error={getError("fecha")} helperText={getHelper("fecha")} />
+            <Typography
+              variant="caption"
+              sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+            >
+            </Typography>
+            <TextField fullWidth label="División" name="division" value={formData.division} onChange={handleChange} margin="normal" inputProps={{ maxLength: 255 }} disabled={disabled} error={getError("division")} helperText={`${formData.division?.length || 0}/255`} />
+            <Typography
+              variant="caption"
+              sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+            >
+            </Typography>
+            <TextField fullWidth label="Departamento" name="departamento" value={formData.departamento} onChange={handleChange} margin="normal" inputProps={{ maxLength: 255 }} disabled={disabled} error={getError("departamento")} helperText={`${formData.departamento?.length || 0}/255`} />
+            <TextField fullWidth label="Fecha" name="fecha" type="date" value={formData.fecha} onChange={handleChange} margin="normal" disabled={disabled} error={getError("fecha")} helperText={getHelper("fecha")} />
             <TextField
               fullWidth
               label="Número de Mejora"
@@ -63,7 +73,12 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
               helperText={getHelper("noMejora")}
               inputProps={{ min: 0 }}
             />
-            <TextField fullWidth label="Responsable" name="responsable" value={formData.responsable} onChange={handleChange} margin="normal" disabled={disabled} error={getError("responsable")} helperText={getHelper("responsable")} />
+            <Typography
+              variant="caption"
+              sx={{ display: "block", textAlign: "right", color: "text.secondary" }}
+            >
+            </Typography>
+            <TextField fullWidth label="Responsable" name="responsable" value={formData.responsable} onChange={handleChange} margin="normal" inputProps={{ maxLength: 255 }} disabled={disabled} error={getError("responsable")} helperText={`${formData.responsable?.length || 0}/255`} />
           </Box>
         );
       case 1:
@@ -92,7 +107,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   margin="normal"
                   disabled={disabled}
                   error={getError(`objetivos.${index}.descripcion`)}
-                  helperText={getHelper(`objetivos.${index}.descripcion`)}
+                  helperText={`${obj.descripcion?.length || 0}/255`}
+                  inputProps={{ maxLength: 255 }}
                 />
                 {!soloLectura && puedeEditar && (
                   <CustomButton
@@ -127,12 +143,12 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
             <TextField fullWidth label="Área de Impacto" name="areaImpacto" value={formData.areaImpacto} onChange={handleChange} margin="normal" multiline rows={6} inputProps={{ maxLength: maxChars }} disabled={disabled} error={getError("areaImpacto")} helperText={getHelper("areaImpacto")} />
             </Box>
 
-              <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("personalBeneficiado")} helperText={getHelper("personalBeneficiado")} />
+              <TextField fullWidth label="Personal Beneficiado" name="personalBeneficiado" type="number" value={formData.personalBeneficiado} onChange={handleChange} margin="normal" multiline rows={6} disabled={disabled} error={getError("personalBeneficiado")} helperText={`${formData.personalBeneficiado?.length || 0}/512`} inputProps={{ maxLength: 512 }} />
 
             {formData.responsables.map((resp, index) => (
               <Box key={index} display="flex" alignItems="center">
-                <TextField fullWidth label={`Responsable ${index + 1}`} value={resp.nombre} onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} margin="normal" disabled={disabled} error={getError(`responsables.${index}.nombre`)}
-                  helperText={getHelper(`responsables.${index}.nombre`)} />
+                <TextField fullWidth label={`Responsable ${index + 1}`} value={resp.nombre} onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} margin="normal" disabled={disabled} error={getError(`responsables.${index}.nombre`) }
+                  helperText={`${resp.nombre?.length || 0}/255`} inputProps={{ maxLength: 255 }} />
                 {!soloLectura && puedeEditar && (
                   <CustomButton
                     type="cancelar"
@@ -156,7 +172,6 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
               </Typography>
               <TextField fullWidth label="Situación Actual" name="situacionActual" value={formData.situacionActual} onChange={handleChange} margin="normal" multiline rows={6} inputProps={{ maxLength: maxChars }} disabled={disabled} error={getError("situacionActual")} helperText={getHelper("situacionActual")} />
             </Box>
-            
           </Box>
         );
       case 4:
@@ -182,7 +197,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   sx={{ flex: 1 }}
                   disabled={disabled}
                   error={getError(`indicadoresExito.${index}.nombre`)}
-                  helperText={getHelper(`indicadoresExito.${index}.nombre`)}
+                  helperText={`${ind.nombre?.length || 0}/255`}
+                  inputProps={{ maxLength: 255 }}
                 />
                 <TextField
                   label="Meta"
@@ -219,7 +235,6 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
             )}
           </Box>
         );
-
       case 5:
         return (
           <Box>
@@ -243,7 +258,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   sx={{ flex: 1 }}
                   disabled={disabled}
                   error={getError(`recursos.${index}.tiempoEstimado`)}
-                  helperText={getHelper(`recursos.${index}.tiempoEstimado`)}
+                  helperText={`${rec.tiempoEstimado?.length || 0}/100`}
+                  inputProps={{ maxLength: 100 }}
                 />
                 <TextField
                   fullWidth
@@ -256,7 +272,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   sx={{ flex: 1 }}
                   disabled={disabled}
                   error={getError(`recursos.${index}.recursosMatHum`)}
-                  helperText={getHelper(`recursos.${index}.recursosMatHum`)}
+                  helperText={`${rec.recursosMatHum?.length || 0}/255`}
+                  inputProps={{ maxLength: 255 }}
                 />
               </Box>
             ))}
@@ -275,7 +292,6 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
             />
           </Box>
         );
-
       case 6:
         return (
           <Box>
@@ -299,7 +315,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   sx={{ flex: 1 }}
                   disabled={disabled}
                   error={getError(`actividadesPM.${index}.actividad`)}
-                  helperText={getHelper(`actividadesPM.${index}.actividad`)}
+                  helperText={`${act.actividad?.length || 0}/255`}
+                  inputProps={{ maxLength: 255 }}
                 />
                 <TextField
                   fullWidth
@@ -312,7 +329,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
                   sx={{ flex: 1 }}
                   disabled={disabled}
                   error={getError(`actividadesPM.${index}.responsable`)}
-                  helperText={getHelper(`actividadesPM.${index}.responsable`)}
+                  helperText={`${act.responsable?.length || 0}/100`}
+                  inputProps={{ maxLength: 100 }}
                 />
                 <TextField
                   fullWidth
@@ -353,7 +371,6 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
             )}
           </Box>
         );
-
       case 7:
         return (
           <Box>
@@ -366,7 +383,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
               margin="normal"
               disabled={disabled}
               error={getError("aprobacionNombre")}
-              helperText={getHelper("aprobacionNombre")}
+              helperText={`${formData.aprobacionNombre?.length || 0}/255`}
+              inputProps={{ maxLength: 255 }}
             />
             <TextField
               fullWidth
@@ -377,7 +395,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar }) {
               margin="normal"
               disabled={disabled}
               error={getError("aprobacionPuesto")}
-              helperText={getHelper("aprobacionPuesto")}
+              helperText={`${formData.aprobacionPuesto?.length || 0}/255`}
+              inputProps={{ maxLength: 255 }}
             />
           </Box>
         );
