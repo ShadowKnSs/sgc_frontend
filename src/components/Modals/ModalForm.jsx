@@ -8,6 +8,9 @@ import {
   Snackbar,
   Slide,
   Alert,
+  CircularProgress,
+  Box,
+  Typography
 } from "@mui/material";
 import DialogTitleCustom from "../TitleDialog";
 import CustomButton from "../Button";
@@ -30,7 +33,6 @@ const ModalForm = ({
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [fechaError, setFechaError] = useState("");
   const [errores, setErrores] = useState({});
-
   const fieldRefs = useRef({});
 
   const camposObligatorios = [
@@ -105,7 +107,17 @@ const ModalForm = ({
   const handleSaveClick = () => {
     if (!validarCampos()) return;
     setErrores({});
-    handleAddOrUpdateRecord();
+
+    // 🔄 Normalizar datos antes de enviar al backend
+    const dataToSend = {
+      ...additionalFormData,
+      revisadoPor: additionalFormData.revisadoPor || "",
+      fechaRevision: additionalFormData.fechaRevision
+        ? new Date(additionalFormData.fechaRevision).toISOString().split("T")[0]
+        : null,
+    };
+
+    handleAddOrUpdateRecord(dataToSend);
   };
 
   const handleSnackbarClose = (_, reason) => {
@@ -114,14 +126,41 @@ const ModalForm = ({
   };
 
   const fields = [
-    { key: "nombreFuente", label: "Nombre de la Fuente", type: "text" },
+    { key: "nombreFuente", label: "Nombre de la Fuente", type: "textarea", rows: 2, maxLength: 255 },
     { key: "elementoEntrada", label: "Elemento de Entrada", type: "textarea", rows: 5 },
     { key: "descripcion", label: "Descripción", type: "textarea", rows: 4 },
     { key: "entregable", label: "Entregable", type: "textarea", rows: 3 },
-    { key: "responsable", label: "Responsable", type: "text" },
+    { key: "responsable", label: "Responsable", type: "textarea", rows: 2, maxLength: 512 },
     { key: "fechaInicio", label: "Fecha de Inicio", type: "date" },
     { key: "fechaTermino", label: "Fecha de Término", type: "date" },
   ];
+
+  const isLoading = !additionalFormData || !additionalFormData.numero;
+
+  if (isLoading) {
+    return (
+      <Dialog
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        TransitionComponent={Transition}
+        fullWidth
+        maxWidth="sm"
+      >
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height={250}
+          flexDirection="column"
+        >
+          <CircularProgress />
+          <Typography variant="body1" sx={{ mt: 2 }}>
+            Cargando datos...
+          </Typography>
+        </Box>
+      </Dialog>
+    );
+  }
 
   return (
     <>
@@ -152,6 +191,7 @@ const ModalForm = ({
             {fields.map((field) => {
               const value = additionalFormData[field.key] || "";
               const isFecha = field.type === "date";
+              const isTextarea = field.type === "textarea";
 
               return (
                 <Grid item xs={12} key={field.key} ref={(el) => (fieldRefs.current[field.key] = el)}>
@@ -164,10 +204,19 @@ const ModalForm = ({
                     fullWidth
                     margin="dense"
                     InputLabelProps={isFecha ? { shrink: true } : {}}
-                    multiline={field.type === "textarea"}
+                    multiline={isTextarea}
                     rows={field.rows || 1}
+                    inputProps={field.maxLength && !isFecha ? { maxLength: field.maxLength } : {}}
                     error={Boolean(errores[field.key])}
-                    helperText={errores[field.key] || ""}
+                    helperText={
+                      errores[field.key]
+                        ? errores[field.key]
+                        : field.maxLength && !isFecha
+                        ? `${value.length}/${field.maxLength}`
+                        : isTextarea && !isFecha
+                        ? `${value.length} caracteres`
+                        : ""
+                    }
                   />
                 </Grid>
               );

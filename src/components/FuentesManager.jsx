@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  Box,
-  Typography,
-  Divider
-} from "@mui/material";
+import {Box, Typography, Divider} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import TablaRegistros from "../components/TablaRegistros";
 import ModalForm from "../components/Modals/ModalForm";
