@@ -123,6 +123,9 @@ const AppRoutes = () => {
          
           <Route path="/reporteSemestral" element={<ReporteSemestral />} />
           
+
+
+          
          
           <Route path="buscar" element={<BuscaReportes />} />
       

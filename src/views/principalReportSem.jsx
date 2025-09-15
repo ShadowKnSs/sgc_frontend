@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip, Typography, CircularProgress } from "@mui/material";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -54,12 +54,20 @@ const PrincipalReportSem = () => {
     const [reportes, setReportes] = useState([]);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(false);
 
     // Snackbar
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [messageSnackbar, setMessageSnackbar] = useState("");
 
     const navigate = useNavigate();
+
+   
+
+const handleReporteEliminado = (idEliminado) => {
+  // Filtramos el reporte eliminado de la lista
+  setReportes((prev) => prev.filter((r) => r.idReporteSemestral !== idEliminado));
+};
 
     useEffect(() => {
         fetchReportes();
@@ -93,8 +101,12 @@ const PrincipalReportSem = () => {
             return;
         }
 
+        setLoading(true); // 🔵 Inicia cargando
+
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/verificar-reporte?anio=${year}&periodo=${period}`);
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/verificar-reporte?anio=${year}&periodo=${period}`
+            );
             const data = await response.json();
 
             if (data.exists) {
@@ -106,9 +118,10 @@ const PrincipalReportSem = () => {
             await fetchData(year, period);
         } catch (error) {
             console.error("🚨 Error en la verificación del reporte:", error);
+        } finally {
+            setLoading(false); // 🔵 Finaliza cargando
+            handleCloseForm();
         }
-
-        handleCloseForm();
     };
 
     const fetchData = async (anio, periodo) => {
@@ -140,12 +153,14 @@ const PrincipalReportSem = () => {
                 return;
             }
 
+            console.log("✅ Resultados finales para navegar:", results);
+
             navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
 
         } catch (error) {
             console.error("Error al obtener los datos:", error);
         }
-    };
+    }; 
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -168,25 +183,27 @@ const PrincipalReportSem = () => {
                 </Box>
 
                 {/* Grid de cards o mensaje si no hay reportes */}
-    {reportes.length === 0 ? (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-        <Typography variant="h6" color="text.secondary" textAlign="center">
-          No hay reportes semestrales generados
-        </Typography>
-      </Box>
-    ) : (
-      <Grid container spacing={3} justifyContent="center">
-        {reportes.map((reporte) => (
-          <Grid item key={reporte.idReporteSemestral}>
-            <ReporteSemCard
-              anio={reporte.anio}
-              periodo={reporte.periodo}
-              fechaGeneracion={reporte.fechaGeneracion}
-              ubicacion={reporte.ubicacion}
-            />
-          </Grid>
-        ))}
-      </Grid>)}
+                {reportes.length === 0 ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
+                        <Typography variant="h6" color="text.secondary" textAlign="center">
+                            No hay reportes semestrales generados
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Grid container spacing={3} justifyContent="center">
+                        {reportes.map((reporte) => (
+                            <Grid item key={reporte.idReporteSemestral}>
+                                <ReporteSemCard
+          id={reporte.idReporteSemestral} // importante para eliminar
+          anio={reporte.anio}
+          periodo={reporte.periodo}
+          fechaGeneracion={reporte.fechaGeneracion}
+          ubicacion={reporte.ubicacion}
+          onDeleted={handleReporteEliminado} // <-- aquí pasamos el callback
+        />
+                            </Grid>
+                        ))}
+                    </Grid>)}
 
                 {/* Botón flotante de búsqueda */}
                 <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
@@ -266,11 +283,23 @@ const PrincipalReportSem = () => {
                             </Button>
                             <Button
                                 onClick={handleClick}
-                                sx={{ backgroundColor: "#F9B800", color: "white", "&:hover": { backgroundColor: "#D99400" }, borderRadius: "30px", padding: "8px 16px" }}
-                                disabled={!year || !period}
+                                sx={{
+                                    backgroundColor: "#F9B800",
+                                    color: "white",
+                                    "&:hover": { backgroundColor: "#D99400" },
+                                    borderRadius: "30px",
+                                    padding: "8px 16px",
+                                    minWidth: "120px", // 👈 para que no se encoja cuando aparezca el loader
+                                }}
+                                disabled={!year || !period || loading} // 👈 deshabilitado también cuando carga
                             >
-                                Generar
+                                {loading ? (
+                                    <CircularProgress size={24} sx={{ color: "white" }} />
+                                ) : (
+                                    "Generar"
+                                )}
                             </Button>
+
                         </Box>
                     </Box>
                 </Modal>
