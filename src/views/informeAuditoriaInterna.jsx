@@ -255,10 +255,15 @@ function InformeAud() {
     }
   };
 
-  const [puntosMejora, setPuntosMejora] = useState([{ id: 1 }]);
+  const [puntosMejora, setPuntosMejora] = useState([
+    { reqISO: "", descripcion: "", evidencia: "" }
+  ]);
 
   const agregarPuntoMejora = () => {
-    setPuntosMejora([...puntosMejora, { numero: "", reqISO: "", descripcion: "", evidencia: "" }]);
+    setPuntosMejora([
+      ...puntosMejora,
+      { reqISO: "", descripcion: "", evidencia: "" }
+    ]);
   };
 
   const eliminarPuntoMejora = (index) => {
@@ -303,7 +308,10 @@ function InformeAud() {
   // Función para guardar con validación previa
   const handleGuardar = async () => {
     let errores = false;
-
+  if (!fecha || fecha.trim() === "") {
+    showSnackbar("error", "Error de validación", "La fecha de la auditoría es obligatoria.");
+    return;
+  }
     // Validar criterios
     criterios.forEach((c, i) => {
       if (!c.trim()) errores = true;

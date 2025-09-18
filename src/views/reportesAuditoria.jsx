@@ -33,9 +33,10 @@ import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import FiltroAuditoria from "../components/buscadorAuditoria"
 import Title from "../components/Title";
-import { CircularProgress } from "@mui/material";
-import MensajeAlert from "../components/MensajeAlert";
+import { CircularProgress, Grid } from "@mui/material";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
+import ReportView from "../components/ReportView";
+import FeedbackSnackbar from "../components/Feedback";
 
 const ReportesAuditoria = () => {
     const [reports, setReports] = useState([]);
@@ -60,7 +61,6 @@ const ReportesAuditoria = () => {
         setIdAEliminar(id);
         setOpenConfirm(true);
     };
-    
 
     const fetchAuditorias = async () => {
         try {
@@ -124,7 +124,6 @@ const ReportesAuditoria = () => {
 
             const res = await axios.post("http://localhost:8000/api/reportesauditoria", payload);
 
-            // Opcional: actualizar lista de reportes
             setReports([...reports, {
                 id: res.data.idReporte,
                 idAuditorialInterna: auditoria.idAuditorialInterna,
@@ -133,6 +132,8 @@ const ReportesAuditoria = () => {
                 lider: auditoria.auditorLider || "Sin líder",
                 date: new Date(auditoria.fecha).toLocaleDateString()
             }]);
+
+            setAlerta({ tipo: "success", mensaje: "Reporte generado correctamente" });
 
             setOpenModal(false);
         } catch (err) {
@@ -217,23 +218,34 @@ const ReportesAuditoria = () => {
             />
 
             <Box sx={{ flex: 1, p: 4 }}>
-                <Title text="Reportes Auditoría" />
-                {alerta.mensaje && (
-                    <MensajeAlert tipo={alerta.tipo} mensaje={alerta.mensaje} />
-                )}
-                <Box
-                    display="grid"
-                    gridTemplateColumns="repeat(3, 1fr)"
-                    gap={10}
-                    justifyContent="center"
-                    maxWidth={1000}
-                    margin="auto"
-                >
-                    {reports.map((report) => (
-                        <ReportCard key={report.id} report={report} onDelete={confirmarEliminacion} />
-                    ))}
-                </Box>
+            <Title text="Reportes de Auditoría" />
 
+                <FeedbackSnackbar
+                  open={!!alerta.mensaje}
+                  onClose={() => setAlerta({ tipo: "", mensaje: "" })}
+                  type={alerta.tipo}
+                  title={alerta.tipo ? alerta.tipo.charAt(0).toUpperCase() + alerta.tipo.slice(1) : ""}
+                  message={alerta.mensaje}
+                />
+
+                <Box sx={{ p: 3 }}>
+                  <Grid container spacing={5} justifyContent="center">
+                    {reports.map((report) => (
+                      <Grid
+                        item
+                        key={report.id}
+                        xs={12}
+                        sm={6}
+                        md={3}
+                      >
+                        <ReportView
+                          report={report}
+                          onDelete={confirmarEliminacion}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
                 <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
                     <Tooltip title="Buscar Reportes">
                         <IconButton
@@ -384,80 +396,6 @@ const ReportesAuditoria = () => {
     );
 };
 
-const ReportCard = ({ report, onDelete }) => {
-  return (
-    <Box
-      sx={{
-        backgroundColor: "#fff",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        borderRadius: "8px",
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        width: 320,
-        minHeight: 160,
-        borderLeft: "6px solid #004A98",
-        transition: "transform 0.2s",
-        "&:hover": {
-          transform: "translateY(-4px)"
-        }
-      }}
-    >
-      <Box sx={{ mb: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
-          {report.titulo || "Auditoría Interna"}
-        </Typography>
-        <Typography variant="body2">
-        <b>Entidad:</b> {report.entidad}
-        </Typography>
-        <Typography variant="body2">
-        <b>Proceso:</b> {report.proceso}
-        </Typography>
-        <Typography variant="body2">
-        <b>Auditor líder:</b> {report.lider}
-        </Typography>
-        <Typography variant="body2">
-        <b>Fecha:</b> {report.date}
-        </Typography>
-      </Box>
 
-            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                <Button
-                    variant="contained"
-                    sx={{
-                        backgroundColor: "#004A98",
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontWeight: "bold",
-                        "&:hover": {
-                            backgroundColor: "#00336b"
-                        }
-                    }}
-                    onClick={() => window.open(`http://localhost:8000/api/reporte-pdf/${report.idAuditorialInterna}`, '_blank')}
-                >
-                    Descargar
-                </Button>
-
-                <Button
-                    variant="outlined"
-                    sx={{
-                        color: "#B00020",
-                        borderColor: "#B00020",
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontWeight: "bold",
-                        "&:hover": {
-                            backgroundColor: "#fbe9e7"
-                        }
-                    }}
-                    onClick={() => onDelete(report.id)}
-                >
-                    Eliminar
-                </Button>
-            </Box>
-        </Box>
-    );
-};
 
 export default ReportesAuditoria;
