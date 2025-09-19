@@ -31,7 +31,6 @@ export const ALLOWED_BY_ROLE = {
     "/listado-reportes-proceso",
     "/reportes-auditoria",
     "/formatos",
-    "/reporteSemestral"
   ],
   "Líder": [
     "/manual-calidad",
