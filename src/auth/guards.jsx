@@ -54,6 +54,7 @@ export const ALLOWED_BY_ROLE = {
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
     "/seguimientoPrincipal/:idRegistro/:idProceso",
+    "/reporteSemestral"
   ],
   "Auditor": [
     "/manualDelSitio",
