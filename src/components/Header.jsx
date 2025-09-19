@@ -64,24 +64,16 @@ function Header() {
 
   // Ajustes específicos para líderes
 if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
-  // Remover item "Cronograma" si ya existe
-  itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
-
-  // Siempre agregar "Cronograma"
-  itemsFiltrados.push({
-    title: "Cronograma",
-    path: `/cronograma`
-  });
-
-  // Solo agregar "Mi Proceso" si el estado es "Activo"
-  if (procesoLider.estado === "Activo") {
-    itemsFiltrados.push({
-      title: "Mi Proceso",
-      path: `/estructura-procesos/${procesoLider.idProceso}`
-    });
+  // Respeta viaToken igual que en Welcome
+  if (!viaToken && !itemsFiltrados.some(i => i.title === "Cronograma")) {
+    itemsFiltrados.push({ title: "Cronograma", path: "/cronograma" });
   }
+  // Misma condición que Welcome (sin validar estado)
+  itemsFiltrados.push({
+    title: "Mi Proceso",
+    path: `/estructura-procesos/${procesoLider.idProceso}`
+  });
 }
-
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
