@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaBell, FaSignOutAlt, FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import {
   IconButton,
   Badge,
-  Tooltip
+  Tooltip, Snackbar, Alert
 } from '@mui/material';
 import "../css/Header.css";
 import image from "../assests/UASLP_Logo.png";
@@ -21,7 +21,7 @@ function Header() {
   const [openDialog, setOpenDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [procesoLider, setProcesoLider] = useState(null);
-  
+  const [toast, setToast] = useState({ open: false, text: "", type: "warning" });
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
   const isLoggedIn = usuario !== null;
@@ -36,7 +36,7 @@ function Header() {
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || JSON.stringify(defaultRol));
   const viaToken = localStorage.getItem("viaToken") === "true";
   const permisos = rolActivo?.permisos?.map(p => p.modulo || p) || [];
-  
+
   const nombreCompleto = useUserData(idUsuario);
   const notificationCount = useNotifications(idUsuario, rolActivo);
   const navigate = useNavigate();
@@ -56,31 +56,25 @@ function Header() {
   }, [rolActivo?.nombreRol]);
 
   // Filtrar items del menú
-  let itemsFiltrados = menuItems.filter(item => permisos.includes(item.title));
-  
-  if (viaToken) {
-    itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
-  }
-
-  // Ajustes específicos para líderes
-if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
-  // Remover item "Cronograma" si ya existe
-  itemsFiltrados = itemsFiltrados.filter(item => item.title !== "Cronograma");
-
-  // Siempre agregar "Cronograma"
-  itemsFiltrados.push({
-    title: "Cronograma",
-    path: `/cronograma`
-  });
-
-  // Solo agregar "Mi Proceso" si el estado es "Activo"
-  if (procesoLider.estado === "Activo") {
-    itemsFiltrados.push({
-      title: "Mi Proceso",
-      path: `/estructura-procesos/${procesoLider.idProceso}`
-    });
-  }
-}
+  const itemsFiltrados = useMemo(() => {
+    let items = menuItems.filter(item => permisos.includes(item.title));
+    if (viaToken) {
+      items = items.filter(item => item.title !== "Cronograma");
+    }
+    if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
+      if (!viaToken && !items.some(i => i.title === "Cronograma")) {
+        items.push({ title: "Cronograma", path: "/cronograma" });
+      }
+      const disabled = procesoLider?.estado !== "Activo";
+      items.push({
+        title: "Mi Proceso",
+        path: disabled ? null : `/estructura-procesos/${procesoLider.idProceso}`,
+        disabled,
+        hint: disabled ? "Tu proceso está deshabilitado. Contacta al supervisor." : null
+      });
+    }
+    return items;
+  }, [permisos, viaToken, rolActivo?.nombreRol, procesoLider]);
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -94,6 +88,7 @@ if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
     localStorage.removeItem("usuario");
     localStorage.removeItem("roles");
     localStorage.removeItem("rolActivo");
+    localStorage.removeItem("viaToken");
     navigate("/login");
   };
 
@@ -118,9 +113,9 @@ if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
                 badgeContent={notificationCount}
                 color="error"
                 sx={{
-                  '& .MuiBadge-badge': { 
-                    right: 22, 
-                    top: 2, 
+                  '& .MuiBadge-badge': {
+                    right: 22,
+                    top: 2,
                     fontSize: '0.75rem',
                     fontWeight: 'bold'
                   }
@@ -145,7 +140,7 @@ if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
             </IconButton>
           </Tooltip>
         )}
-        
+
         {rolActivo && rolActivo.nombreRol !== "Invitado" && (
           <Tooltip title="Menú de navegación" arrow>
             <IconButton onClick={() => setMenuOpen(true)} className="header-link">
@@ -154,13 +149,13 @@ if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
           </Tooltip>
         )}
       </div>
-      
-      <DialogNotifications 
-        open={openDialog} 
-        onClose={handleCloseDialog} 
-        idUsuario={idUsuario} 
+
+      <DialogNotifications
+        open={openDialog}
+        onClose={handleCloseDialog}
+        idUsuario={idUsuario}
       />
-      
+
       <MenuDrawer
         open={menuOpen}
         onClose={setMenuOpen}
@@ -170,7 +165,16 @@ if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
         rolActivo={rolActivo}
         colorPalette={colorPalette}
         navigate={navigate}
+        onDisabledClick={(item) =>
+         setToast({ open: true, text: item.hint || "El proceso está deshabilitado.", type: "warning" })
+       }
       />
+
+      <Snackbar open={toast.open} autoHideDuration={3000} onClose={() => setToast({ ...toast, open: false })}>
+        <Alert severity={toast.type} onClose={() => setToast({ ...toast, open: false })}>
+          {toast.text}
+        </Alert>
+      </Snackbar>
     </header>
   );
 }

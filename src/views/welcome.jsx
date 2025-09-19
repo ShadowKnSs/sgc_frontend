@@ -16,7 +16,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Snackbar, Alert } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -56,6 +56,8 @@ const Welcome = () => {
 
   const [procesoLider, setProcesoLider] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState({ open: false, text: "", type: "warning" });
+
 
   // Lista de tarjetas de menú disponibles
   const menuItems = [
@@ -72,7 +74,7 @@ const Welcome = () => {
     { icon: <DocumentScannerIcon />, title: "Formatos", path: "/formatos" },
     { icon: <PersonSearchIcon />, title: "Supervisor", path: "/busca_supervisor" },
     { icon: <PersonSearchIcon />, title: "Auditores", path: "/auditores" },
-   
+
   ];
 
   const getTituloPanel = () => {
@@ -97,10 +99,13 @@ const Welcome = () => {
 
   // Si el rol es "Líder", añade su proceso
   if (rolActivo?.nombreRol === "Líder" && procesoLider?.idProceso) {
+    const disabled = procesoLider?.estado !== "Activo";
     itemsFiltrados.push({
       icon: <AddHomeWorkOutlinedIcon />,
       title: "Mi Proceso",
-      path: `/estructura-procesos/${procesoLider.idProceso}`
+      path: disabled ? null : `/estructura-procesos/${procesoLider.idProceso}`,
+      disabled,
+      hint: disabled ? "Tu proceso está deshabilitado. Contacta al supervisor." : null
     });
   }
 
@@ -170,7 +175,7 @@ const Welcome = () => {
       }}
     >
       {/* Aquí agregamos el título */}
-      <Box sx={{ gridColumn: "1 / -1", marginBottom: "0px",}}>
+      <Box sx={{ gridColumn: "1 / -1", marginBottom: "0px", }}>
         <Title text={getTituloPanel()} />
       </Box>
       {itemsFiltrados.map((item, index) => (
@@ -178,9 +183,25 @@ const Welcome = () => {
           key={index}
           icon={item.icon}
           title={item.title}
-          onClick={() => navigate(item.path)}
-        />
+          onClick={() => {
+            if (item.disabled) {
+              setToast({ open: true, text: item.hint || "El proceso está deshabilitado.", type: "warning" });
+            } else {
+              navigate(item.path);
+            }
+          }}
+          disabled={item.disabled} />
       ))}
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}  >
+        <Alert severity={toast.type} onClose={() => setToast({ ...toast, open: false })}>
+          {toast.text}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
