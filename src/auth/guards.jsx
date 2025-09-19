@@ -59,14 +59,7 @@ export const ALLOWED_BY_ROLE = {
   "Auditor": [
     "/manualDelSitio",
     "/manual-calidad",
-    "/estructura-procesos/:idProceso",
-    "/manual-operativo",
     "/carpetas/:idProceso/:title",
-    "/gestion-riesgos",
-    "/analisis-datos",
-    "/indicadores",
-    "/graficas",
-    "/actividad-mejora",
     "/seguimientoPrincipal/:idRegistro/:idProceso",
     "/user-eventos",
     "/cronograma",
@@ -76,10 +69,9 @@ export const ALLOWED_BY_ROLE = {
     "/informe-auditoria",
     "/auditorias/:id",               // si usas esta ruta
     "/vista-previa/:idAuditorialInterna",
-     "/estructura-procesos/:idProceso",
+    "/estructura-procesos/:idProceso",
     "/manual-operativo",
     "/manual-operativo/:idProceso",
-    "/carpetas/:idProceso/:title",
     "/gestion-riesgos",
     "/gestion-riesgos/:idRegistro",
     "/analisis-datos",
@@ -98,7 +90,7 @@ export const ALLOWED_BY_ROLE = {
     "/cronograma",
     "/entidades",
     "/auditores",
-     "/estructura-procesos/:idProceso",
+    "/estructura-procesos/:idProceso",
     "/manual-operativo",
     "/manual-operativo/:idProceso",
     "/carpetas/:idProceso/:title",
@@ -112,6 +104,8 @@ export const ALLOWED_BY_ROLE = {
     "/graficas/:idRegistro",
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
+    "/seguimientoPrincipal/:idRegistro/:idProceso",
+
   ],
   "Supervisor": [
     "/manual-calidad",
@@ -120,7 +114,7 @@ export const ALLOWED_BY_ROLE = {
     "/cronograma",
     "/entidades",
     "/auditores",
-     "/estructura-procesos/:idProceso",
+    "/estructura-procesos/:idProceso",
     "/manual-operativo",
     "/manual-operativo/:idProceso",
     "/carpetas/:idProceso/:title",
@@ -134,6 +128,8 @@ export const ALLOWED_BY_ROLE = {
     "/graficas/:idRegistro",
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
+    "/seguimientoPrincipal/:idRegistro/:idProceso",
+
   ],
   // Invitado (sin credenciales) se controla con PUBLIC_PATHS
 };
