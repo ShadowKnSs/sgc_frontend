@@ -54,18 +54,22 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         {/* Rutas principales bajo Layout */}
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-
-         {/* Públicas (también pasan por ProtectedRoute pero están en PUBLIC_PATHS) */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Públicas (también pasan por ProtectedRoute pero están en PUBLIC_PATHS) */}
           <Route index element={<HomePage />} />
           <Route path="login" element={<Login />} />
           <Route path="manual-calidad" element={<ManualCalidad />} />
           <Route path="user-eventos" element={<UserEvent />} />
           <Route path="seleccionarRol" element={<SeleccionarRol />} />
-         
 
-         {/* Privadas (el guard valida por rol) */}
-         {/* ---------------------- */}
+          {/* Privadas (el guard valida por rol) */}
+          {/* ---------------------- */}
           {/* Gestión de Procesos y Entidades */}
           {/* ---------------------- */}
           <Route path="procesos" element={<ProcessPage />} />
@@ -75,57 +79,83 @@ const AppRoutes = () => {
           <Route path="gestion-entidades" element={<GestionEntidades />} />
           <Route path="entidades" element={<Entity />} />
 
-{/* ---------------------- */}
+          {/* ---------------------- */}
           {/* Administrador */}
           {/* ---------------------- */}
-                    <Route path="manualDelSitio" element={<ManualDelSitio />} />
+          <Route path="manualDelSitio" element={<ManualDelSitio />} />
 
           <Route path="usuarios" element={<UserManagement />} />
           <Route path="admin-eventos" element={<AdminEventos />} />
           <Route path="cronograma" element={<Cronograma />} />
           <Route path="typesReports" element={<TypesReports />} />
           <Route path="principalReportSem" element={<PrincipalReportSem />} />
-          <Route path="listado-reportes-proceso" element={<ListaReportesProceso />} />
+          <Route
+            path="listado-reportes-proceso"
+            element={<ListaReportesProceso />}
+          />
           <Route path="reportes-auditoria" element={<ReportesAuditoria />} />
           <Route path="formatos" element={<Formatos />} />
           <Route path="busca_supervisor" element={<BuscaSupervisor />} />
-{/* ---------------------- */}
+          {/* ---------------------- */}
           {/* Estructura del proceso*/}
           {/* ---------------------- */}
-                    <Route path="estructura-procesos/:idProceso" element={<EstructuraProcesos />} />
+          <Route
+            path="estructura-procesos/:idProceso"
+            element={<EstructuraProcesos />}
+          />
 
           <Route path="manual-operativo" element={<ManualOperativo />} />
-          <Route path="manual-operativo/:idProceso" element={<ManualOperativo />} />
+          <Route
+            path="manual-operativo/:idProceso"
+            element={<ManualOperativo />}
+          />
 
           <Route path="carpetas/:idProceso/:title" element={<Carpetas />} />
           <Route path="gestion-riesgos" element={<GestionRiesgosForm />} />
-          <Route path="gestion-riesgos/:idRegistro" element={<GestionRiesgosForm />} />
+          <Route
+            path="gestion-riesgos/:idRegistro"
+            element={<GestionRiesgosForm />}
+          />
           <Route path="analisis-datos" element={<FormularioAnalisis />} />
-          <Route path="analisis-datos/:idRegistro" element={<FormularioAnalisis />} />
+          <Route
+            path="analisis-datos/:idRegistro"
+            element={<FormularioAnalisis />}
+          />
           <Route path="indicadores" element={<UnifiedIndicatorPage />} />
-          <Route path="indicadores/:idProceso/:anio" element={<UnifiedIndicatorPage />} />
+          <Route
+            path="indicadores/:idProceso/:anio"
+            element={<UnifiedIndicatorPage />}
+          />
           <Route path="graficas" element={<GraficasPage />} />
           <Route path="graficas/:idRegistro" element={<GraficasPage />} />
           <Route path="actividad-mejora" element={<ActividadMejora />} />
-          <Route path="actividad-mejora/:idRegistro" element={<ActividadMejora />} />
-          <Route path="seguimientoPrincipal/:idRegistro/:idProceso" element={<SeguimientoPrincipal />} />
+          <Route
+            path="actividad-mejora/:idRegistro"
+            element={<ActividadMejora />}
+          />
+          <Route
+            path="seguimientoPrincipal/:idRegistro/:idProceso"
+            element={<SeguimientoPrincipal />}
+          />
 
-{/* ---------------------- */}
+          {/* ---------------------- */}
           {/* Auditorías */}
           {/* ---------------------- */}
           <Route path="auditores" element={<Auditores />} />
           <Route path="auditoria/:idRegistro" element={<AuditoriaProceso />} />
           <Route path="informe-auditoria" element={<InformeAuditoria />} />
           <Route path="auditorias/:id" element={<InformeAuditoriaInterna />} />
-          <Route path="vista-previa/:idAuditorialInterna" element={<VistaPreviaAud />} />
-          
+          <Route
+            path="vista-previa/:idAuditorialInterna"
+            element={<VistaPreviaAud />}
+          />
+
           <Route path="plan-trabajoForm" element={<PlanTrabajoForm />} />
-         
+
           <Route path="/reporteSemestral" element={<ReporteSemestral />} />
-          
-         
+
           <Route path="buscar" element={<BuscaReportes />} />
-      
+
           <Route path="formatos" element={<Formatos />} />
           <Route path="cronograma" element={<Cronograma />} />
           <Route path="cronograma/:idProceso" element={<Cronograma />} />
