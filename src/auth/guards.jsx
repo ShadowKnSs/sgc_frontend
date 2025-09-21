@@ -67,7 +67,7 @@ export const ALLOWED_BY_ROLE = {
     "/procesos/:idEntidad",          // Nota: solo con :id para auditor
     "/auditoria/:idRegistro",
     "/informe-auditoria",
-    "/auditorias/:id",               // si usas esta ruta
+    "/auditorias/:id",               
     "/vista-previa/:idAuditorialInterna",
     "/estructura-procesos/:idProceso",
     "/manual-operativo",
@@ -90,6 +90,7 @@ export const ALLOWED_BY_ROLE = {
     "/cronograma",
     "/entidades",
     "/auditores",
+    "/procesos/:idEntidad",
     "/estructura-procesos/:idProceso",
     "/manual-operativo",
     "/manual-operativo/:idProceso",
@@ -114,6 +115,7 @@ export const ALLOWED_BY_ROLE = {
     "/cronograma",
     "/entidades",
     "/auditores",
+    "/procesos/:idEntidad",
     "/estructura-procesos/:idProceso",
     "/manual-operativo",
     "/manual-operativo/:idProceso",
