@@ -184,7 +184,6 @@ const Entity = () => {
       {/* Breadcrumb arriba, semántico y accesible */}
       <BreadcrumbNav
         items={[
-          { label: "Inicio", to: "/" },
           { label: "Entidades" }, // último sin 'to'
         ]}
       />

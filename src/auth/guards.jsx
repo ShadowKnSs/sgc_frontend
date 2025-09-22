@@ -83,7 +83,7 @@ export const ALLOWED_BY_ROLE = {
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
   ],
-  "Coordinador": [
+  "Coordinador de Calidad": [
     "/manual-calidad",
     "/manualDelSitio",
     "/user-eventos",
