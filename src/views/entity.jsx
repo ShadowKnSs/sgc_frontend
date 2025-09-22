@@ -43,6 +43,8 @@ import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Buscador from "../components/BuscadorEntidades";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+
 
 // Iconos
 import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
@@ -78,7 +80,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
-
+import Title from "../components/Title";
 const iconMap = {
   Business: <BusinessIcon />,
   School: <SchoolIcon />,
@@ -112,69 +114,85 @@ const iconMap = {
   Campaign: <CampaignOutlinedIcon />,
   LaptopChromebook: <LaptopChromebookOutlinedIcon />
 }
-
 const Entity = () => {
   const navigate = useNavigate();
   const [entidades, setEntidades] = useState([]);
-  const [entidadesFiltradas, setEntidadesFiltradas] = useState([]); // <- la salida del Buscador
+  const [entidadesFiltradas, setEntidadesFiltradas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tipoFilter, setTipoFilter] = useState(""); // "", "Entidad", "Dependencia"
+  const [tipoFilter, setTipoFilter] = useState("");
 
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
-
-    if (!usuario || !rolActivo) {
-      console.error("No se encontró información del usuario o rol.");
-      setLoading(false);
-      return;
-    }
+    if (!usuario || !rolActivo) { setLoading(false); return; }
 
     const permisos = rolActivo.permisos || [];
-    const puedeVerProcesos = permisos.some(
+    const puedeVerEntidades = permisos.some(
       (permiso) =>
         permiso.modulo === "Entidades" &&
         ["Lectura", "Edición", "Administración"].includes(permiso.tipoAcceso)
     );
+    if (!puedeVerEntidades) { setLoading(false); return; }
 
-    if (!puedeVerProcesos) {
-      console.warn("🚫 Este rol no tiene acceso al módulo de Procesos.");
-      setLoading(false);
-      return;
-    }
-
-    axios
-      .post("http://127.0.0.1:8000/api/entidades-por-usuario", {
-        idUsuario: usuario.idUsuario,
-        rolActivo: rolActivo.nombreRol,
-      })
-      .then((response) => {
-        const entidadesCrudas = response.data.entidades || [];
-        const entidadesConIcono = entidadesCrudas.map((entidad) => ({
-          ...entidad,
-          icono: (typeof iconMap !== "undefined" && iconMap?.[entidad.icono]) || <BusinessIcon />,
-        }));
-
-        setEntidades(entidadesConIcono);
-        // Inicialmente, mostrar todas
-        setEntidadesFiltradas(entidadesConIcono);
-      })
-      .catch((error) => console.error("❌ Error al obtener entidades:", error))
-      .finally(() => setLoading(false));
+    axios.post("http://127.0.0.1:8000/api/entidades-por-usuario", {
+      idUsuario: usuario.idUsuario,
+      rolActivo: rolActivo.nombreRol,
+    })
+    .then(({ data }) => {
+      const entidadesCrudas = data.entidades || [];
+      const entidadesConIcono = entidadesCrudas.map((entidad) => ({
+        ...entidad,
+        icono:
+          (typeof iconMap !== "undefined" && iconMap?.[entidad.icono]) ||
+          <BusinessIcon />,
+      }));
+      setEntidades(entidadesConIcono);
+      setEntidadesFiltradas(entidadesConIcono);
+    })
+    .catch((e) => console.error("❌ Error al obtener entidades:", e))
+    .finally(() => setLoading(false));
   }, []);
 
   const entidadesMostradas = useMemo(() => {
-
-    return (entidadesFiltradas || []).filter((ent) => {
-      console.log("Comparando:", ent);
-      if (tipoFilter === "") return true;
-      return ent.tipo === tipoFilter;
-    });
+    return (entidadesFiltradas || []).filter((ent) =>
+      tipoFilter === "" ? true : ent.tipo === tipoFilter
+    );
   }, [entidadesFiltradas, tipoFilter]);
 
+  // ---- Layout responsivo inteligente (1 y 2 cards centradas) ----
+  const count = entidadesMostradas.length;
+  const gridSx =
+    count <= 1
+      ? {
+          gridTemplateColumns: "minmax(260px, 380px)",
+          justifyContent: "center",
+        }
+      : count === 2
+      ? {
+          gridTemplateColumns: {
+            xs: "repeat(1, minmax(260px, 1fr))",
+            sm: "repeat(2, minmax(260px, 1fr))",
+          },
+          justifyContent: "center",
+        }
+      : {
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        };
+
   return (
-    <Box sx={{ width: "100%", px: 2, mt: 4 }}>
-      {/* Toolbar: Buscador + MenuItem por tipo */}
+    <Box sx={{ width: "100%", px: { xs: 1.5, sm: 2 }, mt: 2 }}>
+      {/* Breadcrumb arriba, semántico y accesible */}
+      <BreadcrumbNav
+        items={[
+          { label: "Inicio", to: "/" },
+          { label: "Entidades" }, // último sin 'to'
+        ]}
+      />
+
+      {/* Título sticky para contexto persistente */}
+      <Title text="Entidades" mode="sticky" />
+
+      {/* Toolbar */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={1.5}
@@ -187,21 +205,18 @@ const Entity = () => {
           py: 1.5,
           borderBottom: 1,
           borderColor: "divider",
-          flexWrap: "wrap", 
-          gap: 2,           
+          flexWrap: "wrap",
+          gap: 2,
         }}
       >
-        <Buscador
-          entidades={entidades}
-          onFiltrar={setEntidadesFiltradas}
-        />
+        <Buscador entidades={entidades} onFiltrar={setEntidadesFiltradas} />
         <TextField
           select
           size="small"
           label="Tipo"
           value={tipoFilter}
           onChange={(e) => setTipoFilter(e.target.value)}
-          sx={{ minWidth: 160, maxWidth: 200 }} 
+          sx={{ minWidth: 160, maxWidth: 200 }}
         >
           <MenuItem value="">Todos</MenuItem>
           <MenuItem value="Entidad">Entidad</MenuItem>
@@ -209,43 +224,43 @@ const Entity = () => {
         </TextField>
       </Stack>
 
-      {/* Grid de tarjetas */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: 4,
-          justifyContent: "center",
-          alignItems: "start",
-          textAlign: "center",
-          mt: 4,
-          px: 2,
-          width: "100%",
-        }}
-      >
-        {loading ? (
-  <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-    <CircularProgress />
-  </Box>
-) : entidadesMostradas.length === 0 ? (
-  <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-    <Typography variant="h6" color="text.secondary">
-      No se encontraron resultados
-    </Typography>
-  </Box>
-) : (
-  entidadesMostradas.map((entidad) => (
-    <MenuCard
-      key={entidad.idEntidadDependencia}
-      icon={entidad.icono}
-      title={entidad.nombreEntidad}
-      onClick={() =>
-        navigate(`/procesos/${entidad.idEntidadDependencia}`)
-      }
-    />
-  ))
-)}
-
+      {/* Grid de tarjetas: contenedor centrado y ancho máximo */}
+      <Box sx={{ maxWidth: 1400, mx: "auto", width: "100%" }}>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 4,
+            alignItems: "start",
+            textAlign: "center",
+            mt: 3,
+            px: { xs: 0.5, sm: 2 },
+            width: "100%",
+            ...gridSx,
+          }}
+        >
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+              <CircularProgress />
+            </Box>
+          ) : count === 0 ? (
+            <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+              <Typography variant="h6" color="text.secondary">
+                No se encontraron resultados
+              </Typography>
+            </Box>
+          ) : (
+            entidadesMostradas.map((entidad) => (
+              <MenuCard
+                key={entidad.idEntidadDependencia}
+                icon={entidad.icono}
+                title={entidad.nombreEntidad}
+                onClick={() =>
+                  navigate(`/procesos/${entidad.idEntidadDependencia}`)
+                }
+              />
+            ))
+          )}
+        </Box>
       </Box>
     </Box>
   );
