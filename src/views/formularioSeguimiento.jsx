@@ -46,145 +46,165 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Box, IconButton, Typography, Stepper, Step, StepLabel, Snackbar, Alert } from "@mui/material";
+import { TextField, Button, Box, IconButton, Typography, Stepper, Step, StepLabel } from "@mui/material";
 import { Remove } from "@mui/icons-material";
 import axios from "axios";
 import CustomButton from "../components/Button";
 import FeedbackSnackbar from "../components/Feedback";
 
-const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
+const FormularioSeguimiento = ({ idRegistro, initialData, onClose, modoEdicion = false }) => {
   const [step, setStep] = useState(1);
-  const [lugar, setLugar] = useState(initialData?.lugar || "");
-  const [fecha, setFecha] = useState(initialData?.fecha || "");
-  const [duracion, setDuracion] = useState(initialData?.duracion || "");
-  const [asistentes, setAsistentes] = useState(initialData?.asistentes?.map(b => b.nombre) || []);
-  const [actividades, setActividades] = useState(initialData?.actividades?.map(a => a.descripcion) || []);
-  const [compromisos, setCompromisos] = useState(initialData?.compromisos || [{ descripcion: "", responsables: "", fecha: "" }]);
+  const [lugar, setLugar] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [duracion, setDuracion] = useState("");
+  const [asistentes, setAsistentes] = useState([""]);
+  const [actividades, setActividades] = useState([""]);
+  const [compromisos, setCompromisos] = useState([{ descripcion: "", responsable: "", fechaCompromiso: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const steps = ["Datos Generales", "Asistentes", "Actividades", "Compromisos"];
 
   const [openInfo, setOpenInfo] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarType, setSnackbarType] = useState('info');  // Puedes usar 'success', 'error', etc.
-
-
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarType, setSnackbarType] = useState("info");
 
   useEffect(() => {
     if (initialData) {
+      console.log("Datos iniciales recibidos:", initialData);
+      console.log("Compromisos recibidos:", initialData.compromisos);
+      
       setLugar(initialData.lugar || "");
       setFecha(initialData.fecha || "");
       setDuracion(initialData.duracion || "");
-      setAsistentes(initialData.asistentes?.map(b => b.nombre) || []);
-      setActividades(initialData.actividades?.map(a => a.descripcion) || []);
-      setCompromisos(initialData.compromisos || [{ descripcion: "", responsables: "", fecha: "" }]);
-
+      setAsistentes(initialData.asistentes?.map(b => b.nombre) || [""]);
+      setActividades(initialData.actividades?.map(a => a.descripcion) || [""]);
+      
+      setCompromisos(
+        initialData.compromisos?.length > 0
+          ? initialData.compromisos.map(c => ({
+              descripcion: c.descripcion || "",
+              responsable: c.responsable || c.responsables || "",
+              fechaCompromiso: c.fechaCompromiso || c.fecha || ""
+            }))
+          : [{ descripcion: "", responsable: "", fechaCompromiso: "" }]
+      );
+    } else {
+      setLugar("");
+      setFecha("");
+      setDuracion("");
+      setAsistentes([""]);
+      setActividades([""]);
+      setCompromisos([{ descripcion: "", responsable: "", fechaCompromiso: "" }]);
     }
   }, [initialData]);
 
-  
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    const isEditing = !!initialData; // Determina si es edición o creación
+    const data = {
+      idRegistro: Number(idRegistro),
+      lugar,
+      fecha,
+      duracion,
+      actividades: actividades
+        .filter(actividad => actividad.trim() !== "")
+        .map(desc => ({ descripcion: desc })),
+      asistentes: asistentes.filter(asistente => asistente.trim() !== ""),
+      compromisos: compromisos
+        .filter(c => c.descripcion.trim() !== "")
+        .map(c => ({
+          descripcion: c.descripcion,
+          responsables: c.responsable,
+          fecha: c.fechaCompromiso
+        }))
+    };
 
-    let data;
+    if (modoEdicion && initialData) {
+      data.idSeguimiento = initialData.idSeguimiento;
 
-    if (isEditing) {
-      // Datos para cuando está en modo edición
-      data = {
-        idSeguimiento: initialData.idSeguimiento,
-        idRegistro: Number(idRegistro),
-        lugar,
-        fecha,
-        duracion,
-        actividades: actividades
-          .filter(actividad => actividad.trim() !== "")
-          .map((desc, index) => ({
-            idActividadMin: initialData.actividades[index]?.idActividadMin || null,
-            idSeguimiento: initialData.idSeguimiento,
-            descripcion: desc
-          })),
-        asistentes: asistentes
-          .filter(asistente => asistente.trim() !== "")
-          .map((asistente, index) => ({
-            idAsistente: initialData.asistentes[index]?.idAsistente || null,
-            idSeguimiento: initialData.idSeguimiento,
-            nombre: asistente
-          })),
-        compromisos: compromisos
-          .filter(c => c.descripcion.trim() !== "")
-          .map((c, index) => ({
-            idCompromiso: initialData.compromisos[index]?.idCompromiso || null,
-            idSeguimiento: initialData.idSeguimiento,
-            descripcion: c.descripcion,
-            responsables: c.responsables,
-            fecha: c.fecha
-          }))
-      };
-    } else {
-      // Datos para cuando está en modo creación
-      data = {
-        idRegistro: Number(idRegistro),
-        lugar,
-        fecha,
-        duracion,
-        actividades: actividades
-          .filter(actividad => actividad.trim() !== "")
-          .map((desc) => ({
-            descripcion: desc
-          })),
-        asistentes: asistentes
-          .filter(asistente => asistente.trim() !== ""),
-        compromisos: compromisos
-          .filter(c => c.descripcion.trim() !== "")
-          .map((c) => ({
-            descripcion: c.descripcion,
-            responsable: c.responsables,
-            fechaCompromiso: c.fecha
-          }))
-      };
+      data.actividades = actividades
+        .filter(actividad => actividad.trim() !== "")
+        .map((desc, index) => ({
+          idActividadMin: initialData.actividades[index]?.idActividadMin || null,
+          idSeguimiento: initialData.idSeguimiento,
+          descripcion: desc
+        }));
+
+      data.asistentes = asistentes
+        .filter(asistente => asistente.trim() !== "")
+        .map((nombre, index) => ({
+          idAsistente: initialData.asistentes[index]?.idAsistente || null,
+          idSeguimiento: initialData.idSeguimiento,
+          nombre
+        }));
+
+      data.compromisos = compromisos
+        .filter(c => c.descripcion.trim() !== "")
+        .map((c, index) => ({
+          idCompromiso: initialData.compromisos[index]?.idCompromiso || null,
+          idSeguimiento: initialData.idSeguimiento,
+          descripcion: c.descripcion,
+          responsables: c.responsable,
+          fecha: c.fechaCompromiso
+        }));
     }
 
     console.log("Enviando datos:", data);
 
     try {
       let response;
-      if (isEditing) {
-        response = await axios.put(`http://localhost:8000/api/minutas/${initialData.idSeguimiento}`, data, {
-          headers: { "Content-Type": "application/json" },
-        });
-        setSnackbarMessage('Minuta actualizada exitosamente');
-        setSnackbarType('success');
-        setOpenInfo(true);
-        console.log('Snackbar debería abrirse con error');
+      let minutaCreada;
+
+      if (modoEdicion) {
+        response = await axios.put(
+          `http://localhost:8000/api/minutas/${initialData.idSeguimiento}`,
+          data,
+          { headers: { "Content-Type": "application/json" } }
+        );
+        minutaCreada = response.data;
+        setSnackbarMessage("Minuta actualizada exitosamente");
+        setSnackbarType("success");
       } else {
         response = await axios.post("http://localhost:8000/api/minutasAdd", data, {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         });
-        setSnackbarMessage('Minuta creada exitosamente');
-        setSnackbarType('success');
-        setOpenInfo(true);
+        minutaCreada = response.data;
+        setSnackbarMessage("Minuta creada exitosamente");
+        setSnackbarType("success");
       }
-      console.log(response.data);
+
+      setOpenInfo(true);
+      console.log("Respuesta del servidor:", response.data);
+
       setTimeout(() => {
-        onClose(); // cerrar el formulario después de mostrar el snackbar
+        onClose();
       }, 1200);
     } catch (error) {
       console.error("Error al guardar la minuta:", error);
-      setSnackbarMessage('Hubo un error al guardar la minuta');
-      setSnackbarType('error');
+      setSnackbarMessage("Hubo un error al guardar la minuta");
+      setSnackbarType("error");
       setOpenInfo(true);
-    } finally {
       setIsSubmitting(false);
     }
-    
   };
-  return (
-    <Box component="form" sx={{ padding: 4, maxWidth: 600, margin: "auto", backgroundColor: "#f5f5f5", borderRadius: 2, boxShadow: 3 }}>
 
-      <Typography variant="h4" textAlign="center" color="#004A98" mb={2}>Registro de Minuta</Typography>
+  return (
+    <Box
+      component="form"
+      sx={{
+        padding: 4,
+        maxWidth: 600,
+        margin: "auto",
+        backgroundColor: "#f5f5f5",
+        borderRadius: 2,
+        boxShadow: 3
+      }}
+    >
+      <Typography variant="h4" textAlign="center" color="#004A98" mb={2}>
+        {modoEdicion ? "Editar Minuta" : "Registro de Minuta"}
+      </Typography>
+
       <Stepper activeStep={step - 1} alternativeLabel>
         {steps.map((label, index) => (
           <Step key={index}>
@@ -194,43 +214,49 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
       </Stepper>
 
       <Box mt={4}>
-        <Typography variant="h6" color="#004A98" mb={2}>{steps[step - 1]}</Typography>
+        <Typography variant="h6" color="#004A98" mb={2}>
+          {steps[step - 1]}
+        </Typography>
 
+        {/* Paso 1: Datos Generales */}
         {step === 1 && (
           <>
             <TextField
               fullWidth
               label="Lugar"
               value={lugar}
-              onChange={(e) => setLugar(e.target.value)}
+              onChange={e => setLugar(e.target.value)}
               sx={{ mb: 2 }}
+              required
             />
             <TextField
               fullWidth
               label="Fecha"
               type="date"
               value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
+              onChange={e => setFecha(e.target.value)}
               InputLabelProps={{ shrink: true }}
               sx={{ mb: 2 }}
+              required
             />
             <TextField
               fullWidth
               label="Duración en minutos"
               type="number"
               value={duracion}
-              onChange={(e) => {
-                // Aseguramos que solo se permita la entrada de números enteros
+              onChange={e => {
                 const value = e.target.value;
                 if (/^\d+$/.test(value) || value === "") {
                   setDuracion(value);
                 }
               }}
-              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }} // Asegura que solo números sean aceptados
+              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+              required
             />
           </>
         )}
 
+        {/* Paso 2: Asistentes */}
         {step === 2 && (
           <>
             {asistentes.map((asistente, index) => (
@@ -239,21 +265,26 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
                   fullWidth
                   label="Nombre del asistente"
                   value={asistente}
-                  onChange={(e) => {
+                  onChange={e => {
                     const updated = [...asistentes];
                     updated[index] = e.target.value;
                     setAsistentes(updated);
                   }}
                 />
-                <IconButton onClick={() => setAsistentes(asistentes.filter((_, idx) => idx !== index))}>
-                  <Remove />
-                </IconButton>
+                {asistentes.length > 1 && (
+                  <IconButton onClick={() => setAsistentes(asistentes.filter((_, idx) => idx !== index))}>
+                    <Remove />
+                  </IconButton>
+                )}
               </Box>
             ))}
-            <Button onClick={() => setAsistentes([...asistentes, ""])} variant="outlined" color="primary">Agregar asistente</Button>
+            <Button onClick={() => setAsistentes([...asistentes, ""])} variant="outlined" color="primary">
+              Agregar asistente
+            </Button>
           </>
         )}
 
+        {/* Paso 3: Actividades */}
         {step === 3 && (
           <>
             {actividades.map((actividad, index) => (
@@ -262,31 +293,35 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
                   fullWidth
                   label="Descripción de la actividad"
                   value={actividad}
-                  onChange={(e) => {
+                  onChange={e => {
                     const updated = [...actividades];
                     updated[index] = e.target.value;
                     setActividades(updated);
                   }}
                 />
-                <IconButton onClick={() => setActividades(actividades.filter((_, idx) => idx !== index))}>
-                  <Remove />
-                </IconButton>
+                {actividades.length > 1 && (
+                  <IconButton onClick={() => setActividades(actividades.filter((_, idx) => idx !== index))}>
+                    <Remove />
+                  </IconButton>
+                )}
               </Box>
             ))}
-            <Button onClick={() => setActividades([...actividades, ""])} variant="outlined" color="primary">Agregar actividad</Button>
+            <Button onClick={() => setActividades([...actividades, ""])} variant="outlined" color="primary">
+              Agregar actividad
+            </Button>
           </>
         )}
 
+        {/* Paso 4: Compromisos */}
         {step === 4 && (
           <>
             {compromisos.map((compromiso, index) => (
               <Box key={index} display="flex" flexDirection="column" gap={1} mb={2}>
-                
                 <TextField
                   fullWidth
                   label="Descripción"
                   value={compromiso.descripcion}
-                  onChange={(e) => {
+                  onChange={e => {
                     const updated = [...compromisos];
                     updated[index].descripcion = e.target.value;
                     setCompromisos(updated);
@@ -295,10 +330,10 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
                 <TextField
                   fullWidth
                   label="Responsable"
-                  value={compromiso.responsables}
-                  onChange={(e) => {
+                  value={compromiso.responsable}
+                  onChange={e => {
                     const updated = [...compromisos];
-                    updated[index].responsables = e.target.value;
+                    updated[index].responsable = e.target.value;
                     setCompromisos(updated);
                   }}
                 />
@@ -307,64 +342,70 @@ const FormularioSeguimiento = ({ idRegistro, initialData, onClose }) => {
                   type="date"
                   label="Fecha de entrega"
                   InputLabelProps={{ shrink: true }}
-                  value={compromiso.fecha}
-                  onChange={(e) => {
+                  value={compromiso.fechaCompromiso}
+                  onChange={e => {
                     const updated = [...compromisos];
-                    updated[index].fecha = e.target.value;
+                    updated[index].fechaCompromiso = e.target.value;
                     setCompromisos(updated);
                   }}
                 />
-                <IconButton onClick={() => setCompromisos(compromisos.filter((_, idx) => idx !== index))}>
-                  <Remove />
-                </IconButton>
+                {compromisos.length > 1 && (
+                  <IconButton onClick={() => setCompromisos(compromisos.filter((_, idx) => idx !== index))}>
+                    <Remove />
+                  </IconButton>
+                )}
               </Box>
             ))}
-            <Button onClick={() => setCompromisos([...compromisos, { descripcion: "", responsable: "", fechaCompromiso: "" }])} variant="outlined" color="primary">Agregar compromiso</Button>
+            <Button
+              onClick={() => setCompromisos([...compromisos, { descripcion: "", responsable: "", fechaCompromiso: "" }])}
+              variant="outlined"
+              color="primary"
+            >
+              Agregar compromiso
+            </Button>
           </>
         )}
       </Box>
 
       <Box display="flex" justifyContent="space-between" mt={4}>
-        {step > 1 && <Button onClick={() => setStep(step - 1)} variant="contained" color="secondary">Atrás</Button>}
+        {step > 1 && (
+          <Button onClick={() => setStep(step - 1)} variant="contained" color="secondary">
+            Atrás
+          </Button>
+        )}
+
         {step < 4 ? (
           <Button
             onClick={() => setStep(step + 1)}
             variant="contained"
             color="primary"
             disabled={
-              step === 1 && (!lugar || !fecha || !duracion || !/^\d+$/.test(duracion)) || // Validación de duración (solo números enteros)
-              step === 2 && (asistentes.length === 0 || asistentes.some(asistente => !asistente)) || // Validación de asistentes
-              step === 3 && (actividades.length === 0 || actividades.some(actividad => !actividad)) || // Validación de actividades
-              step === 4 && (compromisos.length === 0 || compromisos.some(compromiso => !compromiso.descripcion || !compromiso.responsables || !compromiso.fecha))
+              (step === 1 && (!lugar || !fecha || !duracion || !/^\d+$/.test(duracion))) ||
+              (step === 2 && asistentes.some(asistente => !asistente.trim())) ||
+              (step === 3 && actividades.some(actividad => !actividad.trim())) ||
+              (step === 4 &&
+                compromisos.some(compromiso => !compromiso.descripcion.trim() || !compromiso.responsable.trim() || !compromiso.fechaCompromiso))
             }
           >
             Siguiente
           </Button>
         ) : (
-          <CustomButton
-            type="Guardar"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            
-          >
-            {initialData ? "Actualizar Minuta" : "Guardar"}
-            
+          <CustomButton type="Guardar" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Guardando..." : modoEdicion ? "Actualizar Minuta" : "Guardar Minuta"}
           </CustomButton>
         )}
       </Box>
+
       <FeedbackSnackbar
         open={openInfo}
         onClose={() => setOpenInfo(false)}
         type={snackbarType}
-        title={snackbarType === 'success' ? 'info' : 'error'}
+        title={snackbarType === "success" ? "Éxito" : "Error"}
         message={snackbarMessage}
         autoHideDuration={5000}
-        
       />
     </Box>
-    
   );
-  
-}
-export default FormularioSeguimiento;
+};
 
+export default FormularioSeguimiento;

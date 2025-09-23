@@ -16,7 +16,7 @@ const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
     records,
     setRecords,
     isFormValid,
-    guardarTodo, // nuevo método único
+    guardarTodo,
   } = usePlanTrabajo(idRegistro);
 
   const [feedback, setFeedback] = useState({
@@ -25,6 +25,31 @@ const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
     title: "",
     message: "",
   });
+
+  // 🔹 Manejador de cambios mejorado
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    let cleanedValue = value;
+    
+    // Prevenir null/undefined
+    if (value === null || value === undefined) {
+      cleanedValue = "";
+    }
+    
+    // Validar fechas
+    if (name.includes("fecha")) {
+      if (value) {
+        const date = new Date(value);
+        cleanedValue = isNaN(date.getTime()) ? "" : value;
+      }
+    }
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: cleanedValue 
+    }));
+  };
 
   const handleSubmit = async () => {
     if (!isFormValid() && records.length === 0) {
@@ -38,7 +63,27 @@ const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
     }
 
     try {
-      const msg = await guardarTodo();
+      // 🔹 Preparar datos para el backend
+      const datosParaEnviar = {
+        ...formData,
+        revisadoPor: formData.revisadoPor || "",
+        elaboradoPor: formData.elaboradoPor || "",
+        fechaElaboracion: formData.fechaElaboracion 
+          ? new Date(formData.fechaElaboracion).toISOString().split('T')[0]
+          : "",
+        fechaRevision: formData.fechaRevision 
+          ? new Date(formData.fechaRevision).toISOString().split('T')[0]
+          : "",
+      };
+
+      // 🔹 Limpieza final
+      Object.keys(datosParaEnviar).forEach(key => {
+        if (datosParaEnviar[key] === undefined || datosParaEnviar[key] === null) {
+          datosParaEnviar[key] = "";
+        }
+      });
+
+      const msg = await guardarTodo(datosParaEnviar);
       setFeedback({
         open: true,
         type: "success",
@@ -47,11 +92,25 @@ const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
       });
     } catch (error) {
       console.error("Error en el proceso de guardado:", error);
+      
+      // 🔹 Mostrar errores específicos del backend
+      let errorMessage = "No se pudo guardar el plan de trabajo. Intenta nuevamente.";
+      
+      if (error.response?.status === 422) {
+        errorMessage = "Errores de validación: ";
+        const errors = error.response.data.errors || {};
+        Object.values(errors).forEach(err => {
+          errorMessage += Array.isArray(err) ? err.join(', ') : err;
+        });
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       setFeedback({
         open: true,
         type: "error",
         title: "Error al guardar",
-        message: "No se pudo guardar el plan de trabajo. Intenta nuevamente.",
+        message: errorMessage,
       });
     }
   };
@@ -60,7 +119,7 @@ const PlanTrabajoFormV = ({ soloLectura, puedeEditar, rolActivo }) => {
     <Box sx={{ px: 2 }}>
       <PTForm
         formData={formData}
-        handleChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })}
+        handleChange={handleChange} // 🔹 Usar el manejador mejorado
         soloLectura={soloLectura}
         puedeEditar={puedeEditar}
         rolActivo={rolActivo}

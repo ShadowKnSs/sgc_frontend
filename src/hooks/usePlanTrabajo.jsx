@@ -68,9 +68,9 @@ export const usePlanTrabajo = (idRegistro) => {
         planTrabajo: {
           fechaElaboracion: formData.fechaElaboracion,
           objetivo: formData.objetivo,
-          revisadoPor: formData.revisadoPor || null,
-          fechaRevision: formData.fechaRevision || null,
-          elaboradoPor: formData.elaboradoPor || null,
+          revisadoPor: formData.revisadoPor || "",
+          fechaRevision: formData.fechaRevision || "",
+          elaboradoPor: formData.elaboradoPor || "",
         },
       };
       const { data } = await api.post(`/plantrabajo`, payload);
@@ -82,9 +82,9 @@ export const usePlanTrabajo = (idRegistro) => {
     const payload = {
       fechaElaboracion: formData.fechaElaboracion,
       objetivo: formData.objetivo,
-      revisadoPor: formData.revisadoPor || null,
-      fechaRevision: formData.fechaRevision || null,
-      elaboradoPor: formData.elaboradoPor || null,
+      revisadoPor: formData.revisadoPor || "",
+      fechaRevision: formData.fechaRevision || "",
+      elaboradoPor: formData.elaboradoPor || "",
     };
     const { data } = await api.put(`/plantrabajo/${idPlanTrabajo}`, payload);
     return data;
