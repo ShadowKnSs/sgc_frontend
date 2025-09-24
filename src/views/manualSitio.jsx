@@ -84,7 +84,7 @@ const ManualDelSitio = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 6, mb: 4, marginTop: 3 }}>
+    <Container maxWidth={false} sx={{ minHeight: "100vh", py: 2}}>
       <BreadcrumbNav items={[{ label: "Manual del Sitio", icon: Article }]} />
 
       <Box
@@ -93,7 +93,7 @@ const ManualDelSitio = () => {
           top: 0,
           backgroundColor: '#fff',
           zIndex: 1200,
-          py: 2,
+          py: 0,
           borderBottom: '2px solid',
           borderColor: 'divider',
         }}

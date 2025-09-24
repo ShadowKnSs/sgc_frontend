@@ -44,7 +44,7 @@ export default function Login() {
         localStorage.setItem("usuario", JSON.stringify(dummyUser));
         localStorage.setItem("viaToken", "true");
 
-        showModal("success", "¡Token válido!", "Accediendo al sistema...");
+        // showModal("success", "¡Token válido!", "Accediendo al sistema...");
         setTimeout(() => navigate("/user-eventos"), 1500);
       } else {
         const msg = data.message.includes("expirado")
@@ -72,7 +72,6 @@ export default function Login() {
       if (roles.length === 1) {
         const rol = roles[0];
         localStorage.setItem("rolActivo", JSON.stringify(rol));
-        //showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema");
         setTimeout(() => {
           rol.nombreRol === "Administrador" ? navigate("/") : navigate("/user-eventos");
         }, 1500);
@@ -125,10 +124,9 @@ export default function Login() {
       if (roles.length === 1) {
         const rol = roles[0];
         localStorage.setItem("rolActivo", JSON.stringify(rol));
-        showModal("success", "¡Inicio exitoso!", "Redirigiendo al sistema");
         setTimeout(() => {
           rol.nombreRol === "Administrador" ? navigate("/") : navigate("/user-eventos");
-        }, 1500);
+        });
       } else if (roles.length > 1) {
         navigate("/seleccionarRol");
       } else {

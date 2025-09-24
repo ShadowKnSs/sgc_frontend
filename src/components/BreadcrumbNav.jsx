@@ -36,7 +36,7 @@ const BreadcrumbNav = ({ items }) => {
             <Link
               key={i}
               component={RouterLink}
-              to={item.to}                 // ← usa 'to' en vez de 'href'
+              to={item.to}                
               color="inherit"
               underline="hover"
               sx={{ display: "flex", alignItems: "center" }}

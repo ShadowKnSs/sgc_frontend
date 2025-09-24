@@ -23,12 +23,14 @@
  * - Íconos de Material UI (ej. `BookIcon`, `WarningIcon`, etc.)
  */
 import React, { useMemo } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import MenuCard from "../components/menuCard";
 import BookIcon from "@mui/icons-material/Book";
 import WarningIcon from "@mui/icons-material/Warning";
-import AssessmentIcon from '@mui/icons-material/Assessment'; import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import DescriptionIcon from "@mui/icons-material/Description";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import LinkIcon from "@mui/icons-material/Link";
 import { useNavigate, useParams } from "react-router-dom";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
@@ -39,22 +41,40 @@ import { motion } from "framer-motion";
 const ProcessStructure = () => {
   const navigate = useNavigate();
   const { idProceso } = useParams();
-  const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
+
+  const rolActivo = useMemo(() => {
+    try {
+      const rol = localStorage.getItem("rolActivo");
+      return rol ? JSON.parse(rol) : null;
+    } catch (error) {
+      console.error("Error al parsear rolActivo:", error);
+      return null;
+    }
+  }, []);
+
   const permisos = rolActivo?.permisos?.map((p) => p.modulo) || [];
 
-  const breadcrumbItems = useMemo(() => [
-    { label: "Estructura", href: `/estructura-procesos/${idProceso}` },
-  ], [idProceso]);
-  const menuItems = useMemo(() => [
-    { icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
-    { icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/Gestión de Riesgo` },
-    { icon: <AssessmentIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/Análisis de Datos` },
-    { icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/Acciones de Mejora` },
-    { icon: <DescriptionIcon />, title: "Auditoría", path: `/carpetas/${idProceso}/Auditoria` },
-    { icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/Seguimiento` },
-  ], [idProceso]);
+  const breadcrumbItems = useMemo(
+    () => [{ label: "Estructura del proceso", icon: AccountTreeIcon }],
+    []
+  );
 
-  const itemsFiltrados = useMemo(() => menuItems.filter((item) => permisos.includes(item.title)), [menuItems, permisos]);
+  const menuItems = useMemo(
+    () => [
+      { key: "manual_operativo", icon: <BookIcon />, title: "Manual Operativo", path: `/manual-operativo/${idProceso}` },
+      { key: "gestion_riesgo", icon: <WarningIcon />, title: "Gestión de Riesgo", path: `/carpetas/${idProceso}/${encodeURIComponent("Gestión de Riesgo")}` },
+      { key: "analisis_datos", icon: <AssessmentIcon />, title: "Análisis de Datos", path: `/carpetas/${idProceso}/${encodeURIComponent("Análisis de Datos")}` },
+      { key: "acciones_mejora", icon: <TrendingUpIcon />, title: "Acciones de Mejora", path: `/carpetas/${idProceso}/${encodeURIComponent("Acciones de Mejora")}` },
+      { key: "auditoria", icon: <DescriptionIcon />, title: "Auditoría", path: `/carpetas/${idProceso}/${encodeURIComponent("Auditoria")}` },
+      { key: "seguimiento", icon: <LinkIcon />, title: "Seguimiento", path: `/carpetas/${idProceso}/${encodeURIComponent("Seguimiento")}` },
+    ],
+    [idProceso]
+  );
+
+  const itemsFiltrados = useMemo(
+    () => menuItems.filter((item) => permisos.includes(item.title)),
+    [menuItems, permisos]
+  );
 
   return (
     <Box
@@ -65,45 +85,54 @@ const ProcessStructure = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: "stretch",
         justifyContent: "flex-start",
-        minHeight: '100vh',
-        paddingTop: 3,
+        minHeight: "100vh",
+        pt: 1.5,
+        overflowX: "hidden",
+        width: "100%",
+        maxWidth: "100vw",
+        boxSizing: "border-box",
       }}
     >
-      {/* Breadcrumb alineado a la izquierda */}
-      <Box sx={{ width: '100%', maxWidth: 900, mx: 'auto', alignSelf: 'stretch' }}>
-        <BreadcrumbNav items={breadcrumbItems}/>
+      <Box sx={{ width: "100%", px: { xs: 1, sm: 2 }, boxSizing: "border-box" }}>
+        <BreadcrumbNav items={breadcrumbItems} />
       </Box>
 
-      <Title text="Estructura del Proceso" />
-      <ContextoProcesoEntidad idProceso={idProceso} />
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "repeat(1, 1fr)",
-            sm: "repeat(2, 1fr)",
-            md: "repeat(3, 1fr)",
-            lg: "repeat(4, 1fr)"
-          },
-          gap: 4,
-          textAlign: "center",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-          maxWidth: "900px",
-        }}
-      >
-        {itemsFiltrados.map((item, index) => (
-          <MenuCard
-            key={index}
-            icon={item.icon}
-            title={item.title}
-            sx={{ textAlign: "center" }}
-            onClick={() => navigate(item.path)}
-          />
-        ))}
+      <Box sx={{ width: "100%", mx: "auto", px: { xs: 2, sm: 3 }, boxSizing: "border-box", maxWidth: 1200 }}>
+        <Title text="Estructura del Proceso" />
+        <ContextoProcesoEntidad idProceso={idProceso} />
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 220px)", // Ajustado al ancho fijo de las cards
+            gap: { xs: 1, sm: 1.5, md: 5 },
+            justifyContent: "center", 
+            width: "100%",
+            boxSizing: "border-box",
+            mt: 3,
+          }}
+        >
+          {itemsFiltrados.length === 0 ? (
+            <Typography
+              variant="body1"
+              sx={{ gridColumn: "1 / -1", opacity: 0.7, textAlign: "center", width: "100%" }}
+            >
+              No tienes acceso a módulos de este proceso con el rol actual.
+            </Typography>
+          ) : (
+            itemsFiltrados.map((item) => (
+              <MenuCard
+                key={item.key}
+                icon={item.icon}
+                title={item.title}
+                aria-label={item.title}
+                onClick={() => navigate(item.path)}
+              />
+            ))
+          )}
+        </Box>
       </Box>
     </Box>
   );

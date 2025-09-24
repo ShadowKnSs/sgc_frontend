@@ -39,10 +39,11 @@
  */
 
 import React, { useRef, useState } from "react";
-import { Typography, CircularProgress, Box, SpeedDial, SpeedDialAction, Container } from "@mui/material";
+import { CircularProgress, Box, SpeedDial, SpeedDialAction, Container } from "@mui/material";
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import BreadcrumbNav from "../components/BreadcrumbNav";
+import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 
 const ManualCalidad = () => {
@@ -75,20 +76,13 @@ const ManualCalidad = () => {
   };
 
   return (
-      <Container sx={{ minHeight: "100vh", py: 3 }}>
+
+    <Container maxWidth={false} sx={{ minHeight: "100vh", py: 2 }}>
       {/* Breadcrumb pegado a la izquierda */}
-      <Box sx={{ width: "100%", mb: 2 }}>
+      
         <BreadcrumbNav items={breadcrumbItems} />
-      </Box>
-      <Typography
-        variant="h4"
-        align="center"
-        padding={4}
-        gutterBottom
-        sx={{ fontWeight: "bold", color: "#0056b3" }}
-      >
-        Manual de Calidad
-      </Typography>
+      
+      <Title text="Manual de Calidad" mode="normal" />
 
       {!isLoaded && (
         <Box sx={{ minHeight: 600, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
