@@ -41,6 +41,8 @@ import ProcessForm from "../components/Forms/ProcesoForm";
 import axios from "axios";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 const NewProcess = () => {
   const navigate = useNavigate();
@@ -52,10 +54,16 @@ const NewProcess = () => {
   const [macroprocesos, setMacroprocesos] = useState([]);
   const [entidades, setEntidades] = useState([]);
 
+  // Estado para feedback
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // success | error | warning | info
+
+
   useEffect(() => {
     // Obtener líderes
     axios
-      .get("http://127.0.0.1:8000/api/lideres")
+      .get("http://127.0.0.1:8000/api/lideres-2")
       .then((response) => {
         setLeaders(response.data.leaders || []);
       })
@@ -87,38 +95,77 @@ const NewProcess = () => {
   const handleSubmit = async (formData) => {
     try {
       await axios.post("http://127.0.0.1:8000/api/procesos", formData);
-      navigate("/procesos");
+      
+      setSnackbarMessage("Proceso creado correctamente ✅");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+
+      // Redirigir después de un pequeño delay
+      setTimeout(() => {
+        navigate("/procesos");
+      }, 1500);
+
     } catch (error) {
       console.error("Error al crear el proceso:", error);
-      alert("Error al crear el proceso.");
+
+      // Si el backend mandó error 422
+      if (error.response && error.response.status === 422) {
+        setSnackbarMessage(error.response.data.error);
+      } else {
+        setSnackbarMessage("Error al crear el proceso. Intente nuevamente.");
+      }
+
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   return (
-    <Box sx={{ p: 4 }}>
-      <BreadcrumbNav items={[{ label: "Nuevo Proceso", icon: AccountTreeIcon }]} />
-      <ProcessForm
-        initialValues={{
-          nombreProceso: "",
-          idUsuario: "",
-          objetivo: "",
-          alcance: "",
-          norma: "",
-          idMacroproceso: "",
-          estado: "",
-          idEntidad: "",
-          anioCertificado: "",
-          icono: "",
-        }}
-        leaders={leaders}
-        macroprocesos={macroprocesos}
-        entidades={entidades}
-        years={years}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate("/procesos")}
-        title="Nuevo Proceso"
-      />
-    </Box>
+    <>
+      <Box sx={{ p: 4 }}>
+        <BreadcrumbNav
+          items={[{ label: "Nuevo Proceso", icon: AccountTreeIcon }]}
+        />
+        <ProcessForm
+          initialValues={{
+            nombreProceso: "",
+            idUsuario: "",
+            objetivo: "",
+            alcance: "",
+            norma: "",
+            idMacroproceso: "",
+            estado: "",
+            idEntidad: "",
+            anioCertificado: "",
+            icono: "",
+          }}
+          leaders={leaders}
+          macroprocesos={macroprocesos}
+          entidades={entidades}
+          years={years}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate("/procesos")}
+          title="Nuevo Proceso"
+        />
+      </Box>
+
+      {/* Snackbar de feedback */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

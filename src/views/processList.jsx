@@ -239,18 +239,33 @@ function ProcessList() {
 
       </Stack>
 
-      {/* Grid de procesos filtrados */}
-      <Grid container spacing={2}>
-        {filteredProcesses.map((process) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
-            <ProcessCard
-              process={process}
-              onEdit={() => confirmEdit(process)}
-              onDelete={() => confirmDelete(process)}
-            />
-          </Grid>
-        ))}
-      </Grid>
+      {/* Grid de procesos filtrados o mensaje si no hay registros */}
+      {filteredProcesses.length === 0 ? (
+        <Box
+          sx={{
+            mt: 4,
+            textAlign: "center",
+            color: "text.secondary",
+            fontStyle: "italic",
+            fontSize: 16,
+          }}
+        >
+          No hay registros
+        </Box>
+      ) : (
+        <Grid container spacing={2}>
+          {filteredProcesses.map((process) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={process.id}>
+              <ProcessCard
+                process={process}
+                onEdit={() => confirmEdit(process)}
+                onDelete={() => confirmDelete(process)}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
 
       {/* Botón agregar */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
