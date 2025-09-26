@@ -203,7 +203,7 @@ async function preSaveGraphs(idProceso, anio, setProgress) {
       const encuesta = items.find(i => i.origen === "Encuesta");
       const retro = items.filter(i => i.origen === "Retroalimentacion");
 
-      // ✅ Encuesta (pie) con % impresos en cada porción
+      // Encuesta (pie) con % impresos en cada porción
       if (encuesta?.noEncuestas > 0) {
         const total = encuesta.noEncuestas || 1;
         const malo = ((encuesta.malo || 0) * 100) / total;
@@ -235,7 +235,7 @@ async function preSaveGraphs(idProceso, anio, setProgress) {
         await saveGraphBase64(imgPie, `encuesta_${pid}_${year}`);
       }
 
-      // ✅ Retroalimentación: barras HORIZONTALES (no apiladas)
+      // Retroalimentación: barras HORIZONTALES (no apiladas)
       if (retro.length) {
         const labels = retro.map(x => x.nombreIndicador);
         const F = retro.map(x => x.felicitaciones ?? x.cantidadFelicitacion ?? 0);
@@ -491,7 +491,7 @@ export default function ReportProgressDialog({
       setPhase("error");
       const msg =
         e?.response?.data?.error ||
-        (e?.message?.includes("Network") ? "No se pudo conectar con el servidor." : "No se pudo generar/descargar el PDF.");
+        (e?.message?.includes("Network") ? "No se pudo generar/descargar el PDF." : "No se pudo generar/descargar el PDF.");
       showFb("error", "Error", msg);
     }
   };
