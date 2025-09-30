@@ -31,6 +31,7 @@ export const ALLOWED_BY_ROLE = {
     "/listado-reportes-proceso",
     "/reportes-auditoria",
     "/formatos",
+    "/reporteSemestral"
   ],
   "Líder": [
     "/manual-calidad",
@@ -54,7 +55,7 @@ export const ALLOWED_BY_ROLE = {
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
     "/seguimientoPrincipal/:idRegistro/:idProceso",
-    "/reporteSemestral"
+
   ],
   "Auditor": [
     "/manualDelSitio",
@@ -83,7 +84,7 @@ export const ALLOWED_BY_ROLE = {
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
   ],
-  "Coordinador": [
+  "Coordinador de Calidad": [
     "/manual-calidad",
     "/manualDelSitio",
     "/user-eventos",

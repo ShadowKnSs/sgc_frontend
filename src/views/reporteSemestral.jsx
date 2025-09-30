@@ -25,7 +25,7 @@
  */
 
 import html2canvas from "html2canvas";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";
 import RiesgosChart from "../components/componentsReportSem/gestionRiesgos";
 import IndicadoresReport from "../components/componentsReportSem/indicadoresRS";
@@ -36,6 +36,8 @@ import RiesgosTable from "../components/componentsReportSem/riesgosTable";
 import IndicadoresTable from "../components/componentsReportSem/indiTableRS";
 import IndicadoresPastel from "../components/componentsReportSem/indiPastelRS";
 import { useLocation } from "react-router-dom";
+import CustomButton from "../components/Button";
+import { useNavigate } from "react-router-dom";
 
 
 const ReporteSemestral = () => {
@@ -43,12 +45,59 @@ const ReporteSemestral = () => {
     const [fortalezas, setFortalezas] = useState("");
     const [debilidades, setDebilidades] = useState("");
     const reporteRef = useRef(null);
+
     const location = useLocation();
     const { data, anio, periodo } = location.state || {};
 
-    const [datosRiesgos, datosIndicadores, datosAccionesMejora, datosAuditorias, datosSeguimiento] = data;
-    console.log("datos de ",datosRiesgos, datosIndicadores, datosAccionesMejora, datosAuditorias, datosSeguimiento );
+    const navigate = useNavigate();
 
+    console.log("👀 ReporteSemestral montado");
+
+    // ✅ Proteger la desestructuración
+
+    const handleCancel = () => {
+        navigate(-1); // 👈 regresa a la vista anterior
+    };
+
+    // Validación para habilitar botón Descargar
+    const canDownload = () => {
+        if (!conclusion || conclusion.trim() === "") {
+            return false; // siempre debe tener conclusión
+        }
+
+        if (datosAuditorias && datosAuditorias.length > 0) {
+            return (
+                fortalezas.trim() !== "" &&
+                debilidades.trim() !== "" &&
+                conclusion.trim() !== ""
+            );
+        }
+
+        // Si no hay auditorías, solo validar conclusión
+        return conclusion.trim() !== "";
+    };
+    const [
+        datosRiesgos = [],
+        datosIndicadores = [],
+        datosAccionesMejora = [],
+        datosAuditorias = [],
+        datosSeguimiento = []
+    ] = data || [];
+
+    useEffect(() => {
+        console.log("📍 location.state recibido:", location.state);
+        console.log("📊 Datos recibidos en ReporteSemestral:", data, anio, periodo);
+
+    }, [data, anio, periodo]);
+
+    // ✅ Fallback si no hay datos (por ejemplo, usuario recargó la página)
+    if (!data) {
+        return (
+            <p style={{ textAlign: "center", marginTop: "2rem" }}>
+                ⚠️ No se recibieron datos para generar el reporte.
+            </p>
+        );
+    }
 
     const handleDownloadPDF = async () => {
         try {
@@ -59,7 +108,7 @@ const ReporteSemestral = () => {
             const indicadoresRef = document.getElementById("indicadores-report");
             const indicadoresPRef = document.getElementById("indicadores-report-pastel");
 
-            // Función para capturar una imagen de un componente
+            // Función para capturar imagen de un componente
             const captureImage = async (element, name) => {
                 if (!element) {
                     console.warn(`El elemento ${name} no fue encontrado.`);
@@ -74,7 +123,7 @@ const ReporteSemestral = () => {
                 }
             };
 
-            // Capturar las imágenes de cada componente
+            // Capturar imágenes
             const riesgosImage = await captureImage(riesgosRef, "riesgos-chart");
             const indicadoresImage = await captureImage(indicadoresRef, "indicadores-report");
             const indicadoresPImage = await captureImage(indicadoresPRef, "indicadores-report-pastel");
@@ -96,74 +145,39 @@ const ReporteSemestral = () => {
                     datosIndicadores,
                     datosAccionesMejora,
                     datosAuditorias,
-                   datosSeguimiento,
+                    datosSeguimiento,
                 },
             };
 
             console.log("Datos enviados al backend:", JSON.stringify(payload, null, 2));
 
-            // Enviar los datos al backend para generar el PDF
+            // Enviar al backend para generar y registrar PDF
             const response = await fetch("http://127.0.0.1:8000/api/generar-pdf", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
-            if (!response.ok) {
-                throw new Error(`Error en la respuesta del servidor: ${response.status}`);
-            }
-
-            console.log("PDF generado correctamente, iniciando descarga...");
-
-            const blob = await response.blob();
-            if (blob.size === 0) {
-                throw new Error("El archivo PDF generado está vacío.");
-            }
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "reporte-semestral.pdf";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            console.log("Descarga completada.");
-
-            // **Registrar en la base de datos que se generó el reporte**
-            const registroPayload = {
-                anio,
-                periodo,
-                fortalezas: fortalezas || null,
-                debilidades: debilidades || null,
-                conclusion,
-                fechaGeneracion: new Date().toISOString().slice(0, 19).replace("T", " "),
-                ubicacion: "ruta/del/reporte-semestral.pdf"
-            };
-
-            const registroResponse = await fetch("http://127.0.0.1:8000/api/reporte-semestral", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(registroPayload),
-            });
-
-            if (!registroResponse.ok) {
-                throw new Error("Error al registrar el reporte en la base de datos.");
-            }
-
-            console.log("Registro de reporte semestral guardado en la base de datos.");
-
-            // **Redirigir a la vista anterior**
-            window.location.href = "/principalReportSem";
-
-        } catch (error) {
-            console.error("Error en el proceso:", error);
+        if (!response.ok) {
+            throw new Error("Error al generar el PDF");
         }
-    };
 
+        const data = await response.json();
+        console.log("Respuesta del backend:", data);
+
+        // 👉 Abrir PDF en otra pestaña
+        window.open(data.url, "_blank");
+
+        // 👉 Regresar a la vista anterior después de 1.5s
+        setTimeout(() => {
+            window.history.back();
+        }, 1500);
+
+    } catch (error) {
+        console.error("Error al abrir el PDF:", error);
+    }
+    
+};
 
     return (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 5 }}>
@@ -214,13 +228,17 @@ const ReporteSemestral = () => {
                     )}
                     {datosAuditorias && datosAuditorias.length > 0 && (
                         <Box sx={{ mt: 6, mb: 3 }}>
-                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
+                            <Typography
+                                sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}
+                            >
                                 Auditorías Internas
                             </Typography>
                             <AuditoriasInternas data={datosAuditorias} />
 
+                            {/* Campo Fortalezas */}
                             <TextField
                                 fullWidth
+                                required
                                 multiline
                                 rows={3}
                                 placeholder="Escribe las fortalezas identificadas..."
@@ -228,15 +246,19 @@ const ReporteSemestral = () => {
                                 inputProps={{ maxLength: 500 }}
                                 value={fortalezas}
                                 onChange={(e) => setFortalezas(e.target.value)}
+                                helperText={`${fortalezas.length}/500 caracteres`}
                                 sx={{
                                     mt: 3,
-                                    mb: 3,
+                                    mb: 1,
                                     backgroundColor: "#F5F5F5",
                                     borderRadius: "8px",
                                     "& .MuiOutlinedInput-root": {
-                                        "& fieldset": { borderColor: "#B0BEC5" }, // Color del borde normal
-                                        "&:hover fieldset": { borderColor: "#1976D2" }, // Color del borde al pasar el mouse
-                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" }, // Color y grosor del borde al hacer foco
+                                        "& fieldset": { borderColor: "#B0BEC5" },
+                                        "&:hover fieldset": { borderColor: "#1976D2" },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "#004A98",
+                                            borderWidth: "2px",
+                                        },
                                     },
                                     "& .MuiInputBase-input": {
                                         fontSize: "16px",
@@ -245,8 +267,10 @@ const ReporteSemestral = () => {
                                 }}
                             />
 
+                            {/* Campo Debilidades */}
                             <TextField
                                 fullWidth
+                                required
                                 multiline
                                 rows={3}
                                 placeholder="Escribe las debilidades identificadas..."
@@ -254,13 +278,17 @@ const ReporteSemestral = () => {
                                 inputProps={{ maxLength: 500 }}
                                 value={debilidades}
                                 onChange={(e) => setDebilidades(e.target.value)}
+                                helperText={`${debilidades.length}/500 caracteres`}
                                 sx={{
                                     backgroundColor: "#F5F5F5",
                                     borderRadius: "8px",
                                     "& .MuiOutlinedInput-root": {
                                         "& fieldset": { borderColor: "#B0BEC5" },
                                         "&:hover fieldset": { borderColor: "#1976D2" },
-                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "#004A98",
+                                            borderWidth: "2px",
+                                        },
                                     },
                                     "& .MuiInputBase-input": {
                                         fontSize: "16px",
@@ -269,8 +297,8 @@ const ReporteSemestral = () => {
                                 }}
                             />
                         </Box>
-
                     )}
+
                     {datosSeguimiento && datosSeguimiento.length > 0 && (
                         <Box sx={{ mt: 6, mb: 3 }}>
                             <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
@@ -290,12 +318,14 @@ const ReporteSemestral = () => {
                         <TextField
                             fullWidth
                             multiline
+                            required
                             rows={3}
                             placeholder="Escribe la conclusión del reporte..."
                             variant="outlined"
                             inputProps={{ maxLength: 600 }}
                             value={conclusion}
                             onChange={(e) => setConclusion(e.target.value)}
+                            helperText={`${conclusion.length}/600 caracteres`}
                             sx={{
                                 backgroundColor: "#F5F5F5",
                                 borderRadius: "8px",
@@ -314,19 +344,21 @@ const ReporteSemestral = () => {
                 </div>
 
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 4, gap: 2 }}>
-                    <Button
-                        variant="contained"
-                        sx={{ bgcolor: "#004A98", color: "white", "&:hover": { bgcolor: "#003974" } }}
+
+                    <CustomButton
+                        type="cancelar"
+                        onClick={handleCancel}
                     >
                         Cancelar
-                    </Button>
-                    <Button
-                        variant="contained"
-                        sx={{ bgcolor: "#F9B800", color: "white", "&:hover": { bgcolor: "#D99A00" } }}
+                    </CustomButton>
+                    <CustomButton
+                        type="descargar"
                         onClick={handleDownloadPDF}
+                        disabled={!canDownload()}
+
                     >
-                        Descargar PDF
-                    </Button>
+                        Descagar
+                    </CustomButton>
                 </Box>
             </Paper>
         </Box>
@@ -335,113 +367,3 @@ const ReporteSemestral = () => {
 
 export default ReporteSemestral;
 
-/*{datosAccionesMejora && datosAccionesMejora.length > 0 && (
-                        <Box sx={{ mt: 6, mb: 3 }}>
-                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
-                                Acciones de Mejora
-                            </Typography>
-                            <AccionesMejora data={datosAccionesMejora} />
-                        </Box>
-
-                    )}*/
-
-/*{datosAuditorias && datosAuditorias.length > 0 && (
-                        <Box sx={{ mt: 6, mb: 3 }}>
-                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
-                                Auditorías Internas
-                            </Typography>
-                            <AuditoriasInternas data={datosAuditorias} />
-
-                            <TextField
-                                fullWidth
-                                multiline
-                                rows={3}
-                                placeholder="Escribe las fortalezas identificadas..."
-                                variant="outlined"
-                                inputProps={{ maxLength: 500 }}
-                                value={fortalezas}
-                                onChange={(e) => setFortalezas(e.target.value)}
-                                sx={{
-                                    mt: 3,
-                                    mb: 3,
-                                    backgroundColor: "#F5F5F5",
-                                    borderRadius: "8px",
-                                    "& .MuiOutlinedInput-root": {
-                                        "& fieldset": { borderColor: "#B0BEC5" }, // Color del borde normal
-                                        "&:hover fieldset": { borderColor: "#1976D2" }, // Color del borde al pasar el mouse
-                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" }, // Color y grosor del borde al hacer foco
-                                    },
-                                    "& .MuiInputBase-input": {
-                                        fontSize: "16px",
-                                        padding: "12px",
-                                    },
-                                }}
-                            />
-
-                            <TextField
-                                fullWidth
-                                multiline
-                                rows={3}
-                                placeholder="Escribe las debilidades identificadas..."
-                                variant="outlined"
-                                inputProps={{ maxLength: 500 }}
-                                value={debilidades}
-                                onChange={(e) => setDebilidades(e.target.value)}
-                                sx={{
-                                    backgroundColor: "#F5F5F5",
-                                    borderRadius: "8px",
-                                    "& .MuiOutlinedInput-root": {
-                                        "& fieldset": { borderColor: "#B0BEC5" },
-                                        "&:hover fieldset": { borderColor: "#1976D2" },
-                                        "&.Mui-focused fieldset": { borderColor: "#004A98", borderWidth: "2px" },
-                                    },
-                                    "& .MuiInputBase-input": {
-                                        fontSize: "16px",
-                                        padding: "12px",
-                                    },
-                                }}
-                            />
-                        </Box>
-
-                    )}*/
-
-/*{datosSeguimiento && datosSeguimiento.length > 0 && (
-                        <Box sx={{ mt: 6, mb: 3 }}>
-                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
-                                Seguimiento
-                            </Typography>
-                            <Seguimiento data={datosSeguimiento} />
-                        </Box>
-
-                    )}*/
-
-/*{datosRiesgos && datosRiesgos.length > 0 && (
-                        <Box sx={{ mt: 5, mb: 5 }}>
-                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
-                                Gestión de Riesgos
-                            </Typography>
-                            <Box id="riesgos-chart" >
-                                <RiesgosChart data={datosRiesgos} />
-                            </Box>
-                            <RiesgosTable data={datosRiesgos} />
-                        </Box>
-                    )}
-
-                    {datosIndicadores && datosIndicadores.length > 0 && (
-                        <Box sx={{ mt: 6, mb: 5 }}>
-                            <Typography sx={{ fontWeight: "bold", mb: 3, color: "#000", fontSize: "24px" }}>
-                                Indicadores
-                            </Typography>
-                            <Box id="indicadores-report">
-                                <IndicadoresReport data={datosIndicadores} />
-                            </Box>
-                            <IndicadoresTable data={datosIndicadores} />
-                            <Typography sx={{ mt: 4, mb: 2, fontWeight: "bold", fontSize: "24px", color: "#004A98" }}>
-                                Porcentaje de Cumplimiento e Incumplimiento Semestral
-                            </Typography>
-                            <Box id="indicadores-report-pastel">
-                                <IndicadoresPastel data={datosIndicadores} />
-                            </Box>
-                        </Box>
-                    )}
-*/

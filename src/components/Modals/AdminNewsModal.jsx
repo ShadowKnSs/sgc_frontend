@@ -94,8 +94,8 @@ const AdminNewsModal = ({ open, onClose, onSave, editItem }) => {
       showFeedback('error', 'Archivo inválido', 'Solo se permiten archivos de imagen');
       return;
     }
-    if (selectedFile.size > 2 * 1024 * 1024) {
-      showFeedback('error', 'Archivo demasiado grande', 'El tamaño máximo permitido es 2 MB');
+    if (selectedFile.size > 2 * 2048 * 2048) {
+      showFeedback('error', 'Archivo demasiado grande', 'El tamaño máximo permitido es 5 MB');
       return;
     }
 

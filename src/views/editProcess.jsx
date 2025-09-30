@@ -93,7 +93,7 @@ const EditProcess = () => {
       .catch(error => console.error("Error al cargar el proceso:", error));
       
     // Consulta datos para selects (leaders, macroprocesos, entidades)
-    axios.get("http://127.0.0.1:8000/api/lideres")
+    axios.get("http://127.0.0.1:8000/api/lideres-2")
       .then(response => setLeaders(response.data.leaders || []))
       .catch(error => console.error("Error al obtener líderes:", error));
 

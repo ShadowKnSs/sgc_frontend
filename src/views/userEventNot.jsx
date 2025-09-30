@@ -15,7 +15,7 @@
  * - `NewsCarousel`, `DualCarousel`, `ImageModal`, `NewsModal`, `Title`, `SpeedDial`
  */
 import React, { useState, useEffect } from 'react';
-import { Box} from '@mui/material';
+import { Box } from '@mui/material';
 import axios from 'axios';
 
 
@@ -53,7 +53,7 @@ const UserHome = () => {
   const [newsData, setNewsData] = useState([]);
   const [eventsData, setEventsData] = useState([]);
   const [announcementsData, setAnnouncementsData] = useState([]);
-  
+
   // Estados para control de modales
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
@@ -126,13 +126,12 @@ const UserHome = () => {
   const handleCloseNewsModal = () => setSelectedNews(null);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       <style>{arrowOverride}</style>
 
-{/* Breadcrumb pegado a la izquierda */}
-      <Box sx={{ mb: 2 }}>
+      {/* Breadcrumb pegado a la izquierda */}
         <BreadcrumbNav items={breadcrumbItems} />
-      </Box>
+      
       {esInvitado && (
         <SpeedDial
           ariaLabel="Accesos rápidos"
@@ -148,7 +147,7 @@ const UserHome = () => {
       )}
 
       {/* Noticias */}
-      <Title text="Noticias" ></Title>     
+      <Title text="Noticias" ></Title>
       <NewsCarousel newsData={newsData} onViewMore={handleViewMoreNews} loading={loading} />
 
       {/* Eventos y Avisos */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import Title from "../components/Title";
 import ReportCard from "../components/CardReport";
 import GenerateReportModal from "../components/Modals/GenerarReporteModal";
@@ -170,9 +171,44 @@ const ReportesDeProceso = () => {
                 ))}
               </Box>
             ) : (
-              <Typography variant="body1" sx={{ textAlign: "center", mt: 2 }}>
-                No hay reportes registrados.
-              </Typography>
+              // MEJORA VISUAL: Contenedor con icono y texto gris
+              <Box 
+                sx={{ 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  mt: 8,
+                  color: "text.secondary" // Color gris del tema
+                }}
+              >
+                <FolderOpenIcon 
+                  sx={{ 
+                    fontSize: 64, 
+                    mb: 2,
+                    opacity: 0.5 
+                  }} 
+                />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontWeight: 400,
+                    color: "text.secondary"
+                  }}
+                >
+                  No hay reportes registrados
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mt: 1,
+                    color: "text.secondary",
+                    opacity: 0.8
+                  }}
+                >
+                  Comienza creando tu primer reporte
+                </Typography>
+              </Box>
             )}
           </>
         )}

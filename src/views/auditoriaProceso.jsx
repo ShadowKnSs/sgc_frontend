@@ -69,6 +69,7 @@ import ErrorAlert from '../components/ErrorAlert';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import axios from "axios";
 import { CircularProgress } from '@mui/material';
+import AuditoriaCard from "../components/AuditoriaView";
 
 const AuditoriaProceso = () => {
   const { idRegistro } = useParams(); // ID de la carpeta (representa el año)
@@ -217,41 +218,28 @@ const AuditoriaProceso = () => {
       <Title text={`Auditorías del Proceso de ${nombreProceso} de la ${nombreEntidad}`} />
       <Grid container spacing={3}>
         {auditorias.length === 0 ? (
-          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '30vh' }}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "30vh",
+            }}
+          >
             <Typography variant="body1" color="text.secondary" align="center">
               No se han registrado auditorías en el año {anioRegistro}.
             </Typography>
           </Grid>
         ) : (
           auditorias.map((auditoria, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Paper elevation={3} sx={{ p: 3, borderLeft: "5px solid #004A98", position: 'relative' }}>
-                <Typography variant="h6" fontWeight="bold">
-                  {auditoria?.registro?.proceso?.nombreProceso || "Proceso desconocido"}
-                </Typography>
-                <Typography variant="body2"><strong>Entidad:</strong> {auditoria?.registro?.proceso?.entidad?.nombreEntidad || "Entidad desconocida"}</Typography>
-                <Typography variant="body2"><strong>Auditor líder:</strong> {auditoria.auditorLider || "No asignado"}</Typography>
-                <Typography variant="body2"><strong>Fecha:</strong> {new Date(auditoria.fecha).toLocaleDateString()}</Typography>
-
-                {/* Botones */}
-                <Box mt={2} display="flex" gap={1}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleEditar(auditoria)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => confirmarEliminar(auditoria)}
-                  >
-                    Eliminar
-                  </Button>
-                </Box>
-              </Paper>
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <AuditoriaCard
+                auditoria={auditoria}
+                onEditar={handleEditar}
+                onEliminar={confirmarEliminar}
+              />
             </Grid>
           ))
         )}

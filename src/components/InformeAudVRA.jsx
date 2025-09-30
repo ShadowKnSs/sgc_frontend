@@ -28,15 +28,22 @@ const InformeAudVRA = ({ verificaciones, setVerificaciones }) => {
   const agregarVerificacion = () => {
     const ultima = verificaciones[verificaciones.length - 1];
     // Validar que todos los campos de la última verificación estén completos
-    const campos = ["criterio", "reqAsociado", "observaciones", "evidencia", "hallazgo"];
+    const campos = ["criterio", "reqAsociado", "observaciones", "evidencia", "tipoHallazgo"];
     const hayError = campos.some(c => !ultima[c]?.trim());
 
     if (hayError) {
-      showSnackbar("error", "Error de validación", "Debe completar todos los campos de la última verificación antes de agregar una nueva");
+      showSnackbar(
+        "error",
+        "Error de validación",
+        "Debe completar todos los campos de la última verificación antes de agregar una nueva"
+      );
       return;
     }
 
-    setVerificaciones([...verificaciones, { criterio: "", reqAsociado: "", observaciones: "", evidencia: "", tipoHallazgo: "" }]);
+    setVerificaciones([
+      ...verificaciones,
+      { criterio: "", reqAsociado: "", observaciones: "", evidencia: "", tipoHallazgo: "" }
+    ]);
   };
 
   const eliminarVerificacion = (index) => {
@@ -54,7 +61,7 @@ const InformeAudVRA = ({ verificaciones, setVerificaciones }) => {
       </Typography>
 
       {verificaciones.map((v, index) => {
-        const campos = ["criterio", "reqAsociado", "observaciones", "evidencia", "hallazgo"];
+        const campos = ["criterio", "reqAsociado", "observaciones", "evidencia", "tipoHallazgo"];
         const errores = {};
         campos.forEach(c => {
           errores[c] = touched[`${index}-${c}`] && !v[c]?.trim() ? "Campo obligatorio" : "";
@@ -122,8 +129,8 @@ const InformeAudVRA = ({ verificaciones, setVerificaciones }) => {
                   label="Tipo de Hallazgo"
                   value={v.tipoHallazgo}
                   onChange={(e) => handleChange(index, "tipoHallazgo", e.target.value)}
-                  error={Boolean(errores.hallazgo)}
-                  helperText={errores.hallazgo}
+                  error={Boolean(errores.tipoHallazgo)}
+                  helperText={errores.tipoHallazgo}
                 >
                   <MenuItem value="NC">NC</MenuItem>
                   <MenuItem value="PM">PM</MenuItem>

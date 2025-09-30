@@ -50,7 +50,6 @@ export default function GenerarReporteModal({
         setYears(arr);
         // Elegir año por defecto:
         if (arr.length > 0) {
-          // Preferimos el defaultAnio si existe; si no, el último (mayor)
           const next = arr.includes(Number(defaultAnio)) ? Number(defaultAnio) : Number(arr[arr.length - 1]);
           setAnio(next);
         } else {

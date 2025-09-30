@@ -153,17 +153,25 @@ const ProcessForm = ({
                         select
                         fullWidth
                         label="Líder del Proceso"
-                        value={formData.idUsuario}
+                        value={leaders.length === 0 ? "" : formData.idUsuario} // si no hay líderes, vacía
                         onChange={handleChange("idUsuario")}
                         sx={commonStyles}
                     >
-                        <MenuItem value=""></MenuItem>
-                        {leaders.map((l) => (
-                            <MenuItem key={l.idUsuario} value={l.idUsuario}>
-                                {l.nombre} {l.apellidoPat} {l.apellidoMat}
-                            </MenuItem>
-                        ))}
+                        {leaders.length === 0 ? (
+                            <MenuItem disabled>🚫 No hay líderes disponibles</MenuItem>
+                        ) : (
+                            <>
+                                <MenuItem value=""></MenuItem>
+                                {leaders.map((l) => (
+                                    <MenuItem key={l.idUsuario} value={l.idUsuario}>
+                                        {l.nombre} {l.apellidoPat} {l.apellidoMat}
+                                    </MenuItem>
+                                ))}
+                            </>
+                        )}
                     </TextField>
+
+
                     <TextField
                         required
                         fullWidth

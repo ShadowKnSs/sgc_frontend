@@ -127,15 +127,15 @@ const BuscaSupervisor = () => {
   return (
     <Box
       sx={{
-        p: 4,
+        p: 2,
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: "stretch",
       }}
     >
       {/* Breadcrumb alineado a la izquierda */}
-      <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto", mb: 1 }}>
+      <Box sx={{ width: "100%", mb: 1, px: 0 }}>
         <BreadcrumbNav items={breadcrumbItems} />
       </Box>
       <Title text="Supervisor" />
@@ -155,11 +155,12 @@ const BuscaSupervisor = () => {
               alignItems: "center",
               gap: 2,
               width: "100%",
-              maxWidth: 700,
-              backgroundColor: "#ffffff",
-              p: 3,
+              maxWidth: 700,   // tu card sigue centrada
+              bgcolor: "#ffffff",
+              p: 2,
               borderRadius: 2,
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+              mx: "auto",      // centrada sin tocar el breadcrumb
             }}
           >
             <Avatar
@@ -208,27 +209,23 @@ const BuscaSupervisor = () => {
                 </Box>
               </Tooltip>
 
-              <Tooltip title="Número de contacto del supervisor">
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <PhoneIcon sx={{ color: "#004A98" }} />
-                  <Typography variant="body1" fontWeight="bold">
-                    Teléfono:
-                  </Typography>
-                  <Typography variant="body1">{supervisor.telefono}</Typography>
-                </Box>
-              </Tooltip>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <PhoneIcon sx={{ color: "#004A98" }} />
+                <Typography variant="body1" fontWeight="bold">
+                  Teléfono:
+                </Typography>
+                <Typography variant="body1">{supervisor.telefono}</Typography>
+              </Box>
 
-              <Tooltip title="Grado académico del supervisor">
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <SchoolIcon sx={{ color: "#004A98" }} />
-                  <Typography variant="body1" fontWeight="bold">
-                    Grado Académico:
-                  </Typography>
-                  <Typography variant="body1">
-                    {supervisor.gradoAcademico}
-                  </Typography>
-                </Box>
-              </Tooltip>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SchoolIcon sx={{ color: "#004A98" }} />
+                <Typography variant="body1" fontWeight="bold">
+                  Grado Académico:
+                </Typography>
+                <Typography variant="body1">
+                  {supervisor.gradoAcademico}
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </motion.div>
