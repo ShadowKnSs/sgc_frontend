@@ -29,10 +29,10 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
           params: { rol: rolActivo.nombreRol }
         });
       } else if (["Lider", "Líder"].includes(rolActivo.nombreRol)) {
-        // ⬇️ NUEVO: auditorías de todos los procesos del líder (dueño)
+        // auditorías de todos los procesos del líder (dueño)
         response = await axios.get(`http://localhost:8000/api/auditorias/lider/${usuario.idUsuario}`);
       } else if (rolActivo.nombreRol === "Auditor") {
-        // ⬇️ NUEVO: auditorías donde el usuario está asignado
+        // auditorías donde el usuario está asignado
         response = await axios.get(`http://localhost:8000/api/auditorias/auditor/${usuario.idUsuario}`);
       } else if (rolActivo.nombreRol === "Supervisor") {
         response = await axios.get(`http://localhost:8000/api/auditorias/supervisor/${usuario.idUsuario}`);
@@ -112,8 +112,6 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
         ]);
         setEntidades(resEntidades.data.nombres);
         setAuditores(resAuditores.data.data);
-        console.log("📥 Respuesta ENTIDADES cruda:", resEntidades.data);
-        console.log("📥 Respuesta AUDITORES cruda:", resAuditores.data);
 
         const ce = (resProcesosCE.data?.procesos || []).map(p => ({
           id: Number(p.idProceso),
@@ -123,7 +121,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
         }));
         setProcesosCE(ce);
       } catch (err) {
-        console.error("❌ Error al cargar datos base:", err);
+        console.error(" Error al cargar datos base:", err);
       }
     };
     cargarDatosBase();
@@ -134,14 +132,13 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       const res = await axios.get("http://localhost:8000/api/procesos-por-nombre-entidad", {
         params: { nombre: entidadNombre }
       });
-      // ✅ ahora mantenemos id + nombre
       const opts = (res.data.procesos || []).map(p => ({
         id: Number(p.idProceso),
         nombre: p.nombreProceso
       }));
       setProcesos(opts);
     } catch (err) {
-      console.error("❌ Error al obtener procesos:", err);
+      console.error("Error al obtener procesos:", err);
       setProcesos([]);
     }
   };
