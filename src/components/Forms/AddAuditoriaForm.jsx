@@ -12,7 +12,6 @@ import {
   Chip,
   Checkbox,
   ListItemText,
-  CircularProgress,
   Typography,
   Grid,
 } from "@mui/material";
@@ -29,7 +28,7 @@ const AuditoriaForm = ({
   procesos = [],
   auditores = [],
   isEditing = false,
-  loading = false,
+  saving = false,
   onEntidadChange,
   procesosCE = []
 }) => {
@@ -353,11 +352,17 @@ const AuditoriaForm = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <CustomButton type="cancelar" onClick={onClose} disabled={loading}>
+        <CustomButton type="cancelar" onClick={onClose} disabled={saving}>
           Cancelar
         </CustomButton>
-        <CustomButton type="guardar" onClick={onSubmit} disabled={loading}>
-          {loading ? <CircularProgress size={24} color="inherit" /> : isEditing ? "Guardar Cambios" : "Agregar"}
+        <CustomButton
+          type="guardar"
+          onClick={onSubmit}
+          disabled={saving}
+          loading={saving}
+        >
+          {isEditing ? (saving ? "Guardando…" : "Guardar Cambios")
+            : (saving ? "Guardando…" : "Agregar")}
         </CustomButton>
       </DialogActions>
     </Dialog >

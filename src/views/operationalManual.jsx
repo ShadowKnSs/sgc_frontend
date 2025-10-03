@@ -71,8 +71,6 @@ const useEntidadProceso = (idProceso) => {
         setData(res.data);
         setError("");
       } catch (err) {
-        console.error("Error cargando entidad y proceso", err);
-
         // Reintentar hasta 3 veces con delay exponencial
         if (retryCount < 3) {
           setTimeout(() => fetchData(retryCount + 1), 1000 * Math.pow(2, retryCount));

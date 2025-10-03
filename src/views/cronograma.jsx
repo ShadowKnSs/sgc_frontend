@@ -65,7 +65,7 @@
  * - Modo solo lectura para usuarios sin permisos sin mostrar botón "Crear".
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import { Box, Typography } from "@mui/material";
@@ -104,12 +104,12 @@ function Cronograma() {
     procesos,
     auditores,
     procesosCE,
-    loading,
-    setLoading,
+    loadingList,
     snackbar,
     setSnackbar,
     handleCloseSnackbar,
-    obtenerProcesosPorEntidad
+    obtenerProcesosPorEntidad,
+    fetchAuditorias
   } = useAuditoriaData(usuario, rolActivo, idProceso);
 
   const {
@@ -118,6 +118,7 @@ function Cronograma() {
     handleChange,
     handleSubmit,
     handleEditOpen,
+    saving
   } = useAuditoriaForm({
     isEditing,
     selectedEvent,
@@ -125,10 +126,36 @@ function Cronograma() {
     setEvents,
     handleCloseForm,
     setSnackbar,
-    setLoading,
     procesosCE
   });
 
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const startOfWeek = (d) => {
+    const sd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dow = sd.getDay(); // 0=Dom
+    sd.setDate(sd.getDate() - dow);
+    sd.setHours(0, 0, 0, 0);
+    return sd;
+  };
+  const endOfWeek = (d) => {
+    const s = startOfWeek(d);
+    const e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    e.setHours(23, 59, 59, 999);
+    return e;
+  };
+  const monthRange = (d) => {
+    const first = new Date(d.getFullYear(), d.getMonth(), 1);
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    // Rango visible completo (semanas completas)
+    const from = startOfWeek(first);
+    const to = endOfWeek(last);
+    return { from: fmt(from), to: fmt(to) };
+  };
+  const weekRange = (d) => ({ from: fmt(startOfWeek(d)), to: fmt(endOfWeek(d)) });
+  const dayRange = (d) => ({ from: fmt(d), to: fmt(d) });
   const permiteAcciones = () => {
     if (rolActivo?.permisos) {
       // Filtra todos los permisos asignados al módulo "Cronograma"
@@ -154,6 +181,7 @@ function Cronograma() {
       estado: "pendiente",
       descripcion: "",
       auditorLider: "",
+      auditoresAdicionales: []
     });
     setOpenForm(true);
   };
@@ -187,6 +215,15 @@ function Cronograma() {
   const [view, setView] = useState("month");
   const [date, setDate] = useState(new Date());
 
+  useEffect(() => {
+    if (!usuario || !rolActivo?.nombreRol || auditores.length === 0) return;
+    const r =
+      view === 'month' ? monthRange(date) :
+        view === 'week' ? weekRange(date) :
+          dayRange(date);
+    fetchAuditorias(r);
+  }, [view, date, usuario, rolActivo, auditores, fetchAuditorias]);
+
   return (
     <Box
       sx={{
@@ -202,7 +239,7 @@ function Cronograma() {
       <BreadcrumbNav items={[{ label: "Cronograma", icon: CalendarMonthIcon }]} />
       <Title text="Cronograma de Auditorías" mode="sticky" />
 
-      {loading && (
+      {loadingList && (
         <Box sx={{
           position: "absolute",
           inset: 0,
@@ -253,9 +290,9 @@ function Cronograma() {
         procesos={procesos}
         auditores={auditores}
         isEditing={isEditing}
-        loading={loading}
         onEntidadChange={handleEntidadChange}
         procesosCE={procesosCE}
+        saving={saving}
       />
 
 

@@ -19,10 +19,10 @@ const DetallesAuditoriaDialog = ({
   puedeEditar,
 }) => {
   const renderAuditorLider = () => {
-    if (!event?.auditorLider) return "No asignado";
-    if (typeof event.auditorLider === "object") return event.auditorLider.nombre || "No asignado";
+    if (!event?.auditorLider) return "Auditor Externo";
+    if (typeof event.auditorLider === "object") return event.auditorLider.nombre || "Auditor Externo";
     const a = auditores.find(x => Number(x.idUsuario) === Number(event.auditorLider));
-    return a ? [a.nombre, a.apellidoPat, a.apellidoMat].filter(Boolean).join(" ") : "No asignado";
+    return a ? [a.nombre, a.apellidoPat, a.apellidoMat].filter(Boolean).join(" ") : "Auditor Externo";
   };
 
 

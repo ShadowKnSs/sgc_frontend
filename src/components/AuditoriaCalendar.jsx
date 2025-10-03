@@ -62,7 +62,7 @@ const AuditoriaCalendar = ({
 
     const renderEvent = ({ event }) => {
         const leaderName = typeof event.auditorLider === 'object'
-            ? (event.auditorLider?.nombre || 'No asignado')
+            ? (event.auditorLider?.nombre || 'Auditor Externo')
             : (event.auditorLider || 'No asignado');
 
         return (

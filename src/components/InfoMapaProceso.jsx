@@ -53,8 +53,6 @@ const InfoMapaProceso = ({
 
     const [backup, setBackup] = useState(null); // ← snapshot para cancelar
 
-
-
     // Snackbar de error de validación
     const [snackbar, setSnackbar] = useState({
         open: false,

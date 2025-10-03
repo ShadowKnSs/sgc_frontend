@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useDeferredValue } from 'react';
 import {
   Box,
   Dialog,
@@ -13,7 +13,7 @@ import {
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
-import AddEntidad from '../components/Modals/AddEntidad';
+import { lazy, Suspense } from 'react';
 import CardEntidad from '../components/CardGesEntidad';
 import ConfirmEdit from '../components/confirmEdit';
 import DialogTitleCustom from '../components/TitleDialog';
@@ -22,13 +22,26 @@ import BreadcrumbNav from "../components/BreadcrumbNav";
 import FeedbackSnackbar from '../components/Feedback';
 import EmptyStateEnty from '../components/EmptyStateEnty';
 import ConfirmToggle from '../components/confirmToogle';
+import SectionTabs from "../components/SectionTabs";
 import { useEntidades } from '../hooks/useEntidades';
 import { Stack, TextField, InputAdornment, IconButton, MenuItem } from "@mui/material";
 import { Search as SearchIcon, Clear as ClearIcon } from "@mui/icons-material";
 
+// Función para normalizar texto (quitar acentos y convertir a minúsculas)
+const AddEntidad = lazy(() => import('../components/Modals/AddEntidad'));
+
+const normalizeText = (text) => {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+};
+
 const GestionEntidades = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [statusFilter, setStatusFilter] = useState(0); // 0: Todos, 1: Activos, 2: Inactivos
+
 
   const {
     entidades,
@@ -44,13 +57,32 @@ const GestionEntidades = () => {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [showConfirmToggle, setShowConfirmToggle] = useState(false);
-  const [entidadSeleccionada, setEntidadSeleccionada] = useState(null);
+  const [entidadSeleccionadaId, setEntidadSeleccionadaId] = useState(null); 
   const [modoEdicion, setModoEdicion] = useState(false);
   const [entidadAEditar, setEntidadAEditar] = useState(null);
   const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [entidadEditada, setEntidadEditada] = useState(null);
-  const [q, setQ] = useState(""); // buscador
+  const [q, setQ] = useState("");
+  const dq = useDeferredValue(q); // evita bloqueos al tipear // buscador
   const [tipoFilter, setTipoFilter] = useState("");
+
+  const [togglingId, setTogglingId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+
+  const entidadSeleccionadaObj = useMemo(
+    () => entidades.find(e => e.idEntidadDependencia === entidadSeleccionadaId) || null,
+    [entidades, entidadSeleccionadaId]
+  );
+
+
+  const filteredEntidades = useMemo(() => {
+    const normalizedSearch = normalizeText(dq);
+    const byText = (ent) => normalizeText(ent.nombreEntidad).includes(normalizedSearch);
+    const byTipo = (ent) => (tipoFilter === "" ? true : ent.tipo === tipoFilter);
+    const byStatus = (ent) => (statusFilter === 0 ? ent.activo === 1 : ent.activo === 0);
+    return entidades.filter(ent => byText(ent) && byTipo(ent) && byStatus(ent));
+  }, [entidades, dq, tipoFilter, statusFilter]);
+
 
   useEffect(() => {
     obtenerEntidades();
@@ -66,30 +98,37 @@ const GestionEntidades = () => {
     setOpenDialog(false);
   }, []);
 
-  const handleShowConfirmToggle = useCallback((index) => {
-    setEntidadSeleccionada(index);
+  const handleShowConfirmToggle = useCallback((id) => {
+    if (togglingId) return;
+    setEntidadSeleccionadaId(id);
     setShowConfirmToggle(true);
-  }, []);
+  }, [togglingId]);
 
   const handleConfirmToggle = useCallback(async () => {
-    if (entidadSeleccionada !== null) {
+    if (entidadSeleccionadaId != null) {
       try {
-        const entidad = entidades[entidadSeleccionada];
+        const entidad = entidades.find(e => e.idEntidadDependencia === entidadSeleccionadaId);
+        if (!entidad) return;
+        setTogglingId(entidad.idEntidadDependencia);
         await toggleEntidad(entidad.idEntidadDependencia, entidad.activo);
+        setTogglingId(null);
         setShowConfirmToggle(false);
-        setEntidadSeleccionada(null);
+        setEntidadSeleccionadaId(null);
       } catch (error) {
         console.error('Error al cambiar estado:', error);
       }
     }
-  }, [entidadSeleccionada, entidades, toggleEntidad]);
+  }, [entidadSeleccionadaId, entidades, toggleEntidad]);
 
-  const handleEditar = useCallback((index) => {
-    const entidad = entidades[index];
-    setEntidadAEditar({ ...entidad, index });
+  const handleEditar = useCallback((id) => {
+    if (editingId) return;
+    setEditingId(id);
+    const entidad = entidades.find(e => e.idEntidadDependencia === id);
+    if (!entidad) return;
+    setEntidadAEditar({ ...entidad });
     setModoEdicion(true);
     setOpenDialog(true);
-  }, [entidades]);
+  }, [entidades, editingId]);
 
   const handleSubmitEntidad = useCallback(async (data) => {
     if (modoEdicion) {
@@ -110,11 +149,9 @@ const GestionEntidades = () => {
 
   const handleConfirmEdit = useCallback(async () => {
     try {
-      const index = entidadAEditar.index;
-      const entidadId = entidades[index].idEntidadDependencia;
-
+      const entidadId = entidadAEditar.idEntidadDependencia;
       await actualizarEntidad(entidadId, entidadEditada);
-
+      setEditingId(null);
       setShowConfirmEdit(false);
       setOpenDialog(false);
       setModoEdicion(false);
@@ -123,13 +160,20 @@ const GestionEntidades = () => {
     } catch (error) {
       console.error('Error al editar:', error);
     }
-  }, [entidadAEditar, entidades, entidadEditada, actualizarEntidad]);
+  }, [entidadAEditar, entidadEditada, actualizarEntidad]);
 
   const entidadesList = useMemo(() => {
     if (loading) {
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', py: 4 }}>
-          <CircularProgress />
+        <Box
+          role="status"
+          aria-live="polite"
+          sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', py: 4 }}
+        >
+          <CircularProgress sx={{ mb: 1.5 }} />
+          <Typography variant="body2" color="text.secondary">
+            Cargando Entidades/Dependencia...
+          </Typography>
         </Box>
       );
     }
@@ -155,35 +199,67 @@ const GestionEntidades = () => {
         />
       );
     }
-    const filteredEntidades = entidades.filter((ent) => {
-      const matchesSearch = ent.nombreEntidad.toLowerCase().includes(q.toLowerCase());
-      const matchesTipo = tipoFilter === "" || ent.tipo === tipoFilter;
-      return matchesSearch && matchesTipo;
-    });
 
+
+    if (filteredEntidades.length === 0) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>
+          <Typography variant="h6" color="text.secondary">
+            No se encontraron entidades que coincidan con la búsqueda
+          </Typography>
+        </Box>
+      );
+    }
 
     return (
-      <Grid container spacing={3}>
-        {filteredEntidades.map((entidad, index) => (
-          <Grid item xs={12} sm={6} md={4} key={entidad.idEntidadDependencia}>
+      <Grid
+        container
+        spacing={4}
+        sx={{
+          width: '100%',
+          margin: '0 auto'
+        }}
+      >
+        {filteredEntidades.map((entidad) => (
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={3}
+            lg={2.4}
+            key={entidad.idEntidadDependencia}
+          >
             <CardEntidad
               title={entidad.nombreEntidad}
               icon={entidad.icono}
               subtitle={`${entidad.tipo} - ${entidad.ubicacion}`}
               isActive={entidad.activo === 1}
-              handleClick={() => console.log("Ver entidad", entidad)}
-              handleEdit={() => handleEditar(index)}
-              handleToggle={() => handleShowConfirmToggle(index)}
+              handleEdit={() => handleEditar(entidad.idEntidadDependencia)}
+              handleToggle={() => handleShowConfirmToggle(entidad.idEntidadDependencia)}
+              disabled={togglingId === entidad.idEntidadDependencia || editingId === entidad.idEntidadDependencia}
+              sx={{
+                width: '100%',
+                height: '100%'
+              }}
             />
           </Grid>
         ))}
-
       </Grid>
     );
-  }, [entidades, loading, error, q, tipoFilter, handleOpenDialog, handleEditar, handleShowConfirmToggle]);
+  }, [
+    loading,
+    error,
+    entidades,
+    filteredEntidades,
+    handleOpenDialog,
+    handleEditar,
+    handleShowConfirmToggle,
+    togglingId,
+    editingId,
+  ]);
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 2 }, minHeight: "100vh" }}>
       <BreadcrumbNav items={[{ label: "Gestión de Entidades", icon: LocationCityIcon }]} />
 
       {/* Contenedor del título */}
@@ -197,6 +273,7 @@ const GestionEntidades = () => {
         </Typography>
       </Box>
 
+
       {/* Toolbar de filtros */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
@@ -204,10 +281,10 @@ const GestionEntidades = () => {
         alignItems={{ xs: "stretch", sm: "center" }}
         justifyContent="space-between"
         sx={{
-          mb: 3,
+          mb: 2,
           zIndex: 1,
           bgcolor: "background.paper",
-          py: 1.5,
+          py: 1,
           borderBottom: 1,
           borderColor: "divider",
         }}
@@ -236,6 +313,16 @@ const GestionEntidades = () => {
             ) : null,
           }}
         />
+        {/* Tabs de estado */}
+        <Box sx={{ mx: { xs: 0, sm: 1 } }}>
+          {/* SectionTabs para filtrar por estado */}
+          <SectionTabs
+            sections={['Activos', 'Inactivos']}
+            selectedTab={statusFilter}
+            onTabChange={setStatusFilter}
+          />
+        </Box>
+
 
         {/* Filtro por tipo */}
         <TextField
@@ -252,8 +339,30 @@ const GestionEntidades = () => {
         </TextField>
       </Stack>
 
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="body2" color="text.secondary">
+          {filteredEntidades.length} resultados · {entidades.length} totales
+        </Typography>
+        {(q || tipoFilter || statusFilter !== 0) && (
+          <IconButton size="small" onClick={() => { setQ(""); setTipoFilter(""); setStatusFilter(0); }} aria-label="Limpiar filtros">
+            <ClearIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
 
-      {entidadesList}
+      {/* Contenedor principal que centra el contenido */}
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        width: '100%'
+      }}>
+        <Box sx={{
+          width: '100%',
+          maxWidth: '1400px' // Ajusta este valor según necesites
+        }}>
+          {entidadesList}
+        </Box>
+      </Box>
 
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1000 }}>
         <FabCustom
@@ -270,14 +379,16 @@ const GestionEntidades = () => {
         maxWidth="sm"
         fullScreen={isMobile}
       >
-        <DialogTitleCustom title={modoEdicion ? 'Editar Entidad' : 'Nueva Entidad'} />
+        <DialogTitleCustom title={modoEdicion ? 'Editar Entidad/Dependencia' : 'Nueva Entidad/Dependencia'} />
         <DialogContent>
-          <AddEntidad
-            onClose={handleCloseDialog}
-            onSubmit={handleSubmitEntidad}
-            initialData={entidadAEditar}
-            isEditing={modoEdicion}
-          />
+          <Suspense fallback={<Box sx={{ p: 2 }}><CircularProgress size={20} /></Box>}>
+            <AddEntidad
+              onClose={handleCloseDialog}
+              onSubmit={handleSubmitEntidad}
+              initialData={entidadAEditar}
+              isEditing={modoEdicion}
+            />
+          </Suspense>
         </DialogContent>
       </Dialog>
 
@@ -285,11 +396,11 @@ const GestionEntidades = () => {
         open={showConfirmToggle}
         onClose={() => {
           setShowConfirmToggle(false);
-          setEntidadSeleccionada(null);
+          setEntidadSeleccionadaId(null);
         }}
         entityType="entidad"
-        entityName={entidadSeleccionada !== null ? entidades[entidadSeleccionada]?.nombreEntidad : ''}
-        isActive={entidadSeleccionada !== null ? entidades[entidadSeleccionada]?.activo === 1 : false}
+        entityName={entidadSeleccionadaObj?.nombreEntidad || ''}
+        isActive={entidadSeleccionadaObj ? entidadSeleccionadaObj.activo === 1 : false}
         onConfirm={handleConfirmToggle}
       />
 
@@ -307,7 +418,7 @@ const GestionEntidades = () => {
         title={snackbar.title}
         message={snackbar.message}
       />
-    </Box>
+    </Box >
   );
 };
 

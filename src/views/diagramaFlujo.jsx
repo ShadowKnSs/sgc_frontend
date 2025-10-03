@@ -120,7 +120,6 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
         setAlerta({ tipo: "warning", texto: "No se recibió la URL de la imagen" });
       }
     } catch (error) {
-      console.error("❌ Error al subir imagen:", error);
       setAlerta({ tipo: "error", texto: "Error al subir la imagen" });
     } finally {
       setIsSaving(false);
