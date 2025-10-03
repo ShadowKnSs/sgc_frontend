@@ -74,7 +74,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
   const handleAddActividad = async () => {
     if (!validateFields()) return;
 
-    setSaving(true); // ← Activar loading
+    setSaving(true); //  Activar loading
     const payload = { ...formData, idProceso, año: new Date().getFullYear() };
 
     try {
@@ -119,7 +119,6 @@ function ProcessMapView({ idProceso, soloLectura }) {
           showFeedback("Error al procesar la actividad actualizada", "error");
           return;
         }
-
         setActividades((prev) =>
           prev.map((a) =>
             a.idActividad === updated.idActividad ? updated : a
@@ -138,7 +137,6 @@ function ProcessMapView({ idProceso, soloLectura }) {
         setEditMode(false);
         showFeedback("Actividad actualizada correctamente", "success");
       })
-
       .catch((err) => console.error("Error al actualizar actividad:", err));
   };
 

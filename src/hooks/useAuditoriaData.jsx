@@ -7,7 +7,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
   const [procesos, setProcesos] = useState([]);
   const [procesosCE, setProcesosCE] = useState([]);
   const [auditores, setAuditores] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingList, setLoadingList] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const nombreCompleto = (p) =>
@@ -17,16 +17,16 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
     return new Map(auditores.map(a => [a.idUsuario, a]));
   }, [auditores]);
 
-  const fetchAuditorias = useCallback(async () => {
+  const fetchAuditorias = useCallback(async ({ from, to }) => {
     if (!usuario || !rolActivo?.nombreRol) return;
 
     try {
-      setLoading(true);
+      setLoadingList(true);
       let response;
 
       if (["Administrador", "Coordinador"].includes(rolActivo.nombreRol)) {
         response = await axios.get("http://localhost:8000/api/auditorias/todas", {
-          params: { rol: rolActivo.nombreRol }
+          params: { rol: rolActivo.nombreRol, from, to }
         });
       } else if (["Lider", "Líder"].includes(rolActivo.nombreRol)) {
         // auditorías de todos los procesos del líder (dueño)
@@ -38,16 +38,22 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
         response = await axios.get(`http://localhost:8000/api/auditorias/supervisor/${usuario.idUsuario}`);
       } else if (idProceso) {
         // Filtro por proceso específico (p.ej. vista /cronograma/:idProceso)
-        response = await axios.post("http://localhost:8000/api/cronograma/filtrar", { idProceso });
+        response = await axios.post("http://localhost:8000/api/cronograma/filtrar", { idProceso, from, to });
       } else {
         setEvents([]);
         return;
       }
 
-      const auditoriasRaw = response.data;
+      let auditoriasRaw = response.data;
       if (!Array.isArray(auditoriasRaw) || auditoriasRaw.length === 0) {
         setEvents([]);
         return;
+      }
+
+      // Filtrado client-side si el endpoint no soporta rango (roles ≠ Admin/Coord)
+      const between = (d, a, b) => d >= a && d <= b;
+      if (!["Administrador", "Coordinador"].includes(rolActivo.nombreRol)) {
+        auditoriasRaw = auditoriasRaw.filter(r => between(String(r.fechaProgramada), from, to));
       }
 
       const auditorias = await Promise.all(
@@ -82,6 +88,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
             proceso: auditoria.nombreProceso ?? '',
             entidad: auditoria.nombreEntidad ?? '',
             hora: auditoria.horaProgramada,
+            idProceso: Number(auditoria.idProceso) || undefined,
             auditorLider: { idAuditor: auditoria.auditorLider, nombre: nombreLider },
             auditorLiderId: auditoria.auditorLider,
             auditoresAdicionales
@@ -91,16 +98,14 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
 
       setEvents(auditorias);
     } catch (error) {
-      console.error("❌ Error al obtener auditorías", error);
+      console.error("Error al obtener auditorías", error);
       setSnackbar({ open: true, message: "Error al cargar auditorías", severity: "error" });
     } finally {
-      setLoading(false);
+      setLoadingList(false);
     }
   }, [usuario, rolActivo, idProceso, auditoresMap]);
 
-  useEffect(() => {
-    if (auditores.length > 0) fetchAuditorias();
-  }, [fetchAuditorias, auditores]);
+
 
   useEffect(() => {
     const cargarDatosBase = async () => {
@@ -153,12 +158,12 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
     procesos,
     procesosCE,
     auditores,
-    loading,
-    setLoading,
+    loadingList,
     snackbar,
     setSnackbar,
     handleCloseSnackbar,
-    obtenerProcesosPorEntidad
+    obtenerProcesosPorEntidad,
+    fetchAuditorias
   };
 };
 
