@@ -55,6 +55,19 @@ const ReportesAuditoria = () => {
     const [procesoSeleccionado, setProcesoSeleccionado] = useState("");
     const [auditoriaSeleccionada, setAuditoriaSeleccionada] = useState("");
     const [loadingModal, setLoadingModal] = useState(false);
+    const reporteExistente = reports.find(
+      r => r.idAuditorialInterna === Number(fechaSeleccionada)
+    );
+
+    useEffect(() => {
+      if (!fechaSeleccionada) return;
+
+      if (reporteExistente) {
+        setAlerta({ tipo: "warning", mensaje: "Ya existe un reporte para esta auditoría" });
+      } else {
+        setAlerta({ tipo: "", mensaje: "" });
+      }
+    }, [fechaSeleccionada, reports]);
 
     const navigate = useNavigate();
 
@@ -161,7 +174,6 @@ const ReportesAuditoria = () => {
         const cargarAuditorias = async () => {
             try {
                 const res = await axios.get("http://localhost:8000/api/auditorias");
-                console.log(res.data);
                 setAuditorias(res.data);
             } catch (err) {
                 console.error("Error al cargar auditorías:", err);
@@ -417,13 +429,13 @@ const ReportesAuditoria = () => {
                         <Button
                           variant="contained"
                           sx={{ backgroundColor: "#FFC107", borderRadius: "50px" }}
-                          disabled={!fechaSeleccionada}
+                          disabled={!fechaSeleccionada || reporteExistente} // deshabilita si ya existe
                           onClick={() => {
                             setOpenModal(false);
                             navigate(`/vista-previa/${fechaSeleccionada}`);
                           }}
                         >
-                          Generar
+                          {reporteExistente ? "Reporte ya generado" : "Generar"}
                         </Button>
                       </Box>
                       </>
