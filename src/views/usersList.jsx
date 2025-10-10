@@ -236,10 +236,11 @@ function UserManagement() {
     }, [fetchUsuariosTemporales]);
 
     // Guardar usuario creado o editado
-    const handleAddUser = useCallback((usuarioGuardado) => {
+    const handleAddUser = useCallback(async (usuarioGuardado) => { 
         if (editingUser) {
             setUsers((prev) => prev.map((u) => (u.id === editingUser.id ? transformUserData(usuarioGuardado) : u)));
             showFeedback("success", "Usuario actualizado", "El usuario fue actualizado correctamente");
+            await fetchUsers(); 
         } else {
             setUsers((prev) => [...prev, transformUserData(usuarioGuardado)]);
             showFeedback("success", "Usuario creado", "El usuario fue creado correctamente");
@@ -598,7 +599,9 @@ return (
                                     justifyContent="center"
                                     sx={{ width: "100%" }}
                                 >
-                                    {users.map((user) => {
+                                {users
+                                    .filter(user => user != null) 
+                                    .map((user) => { 
                                         const canDelete = user.id !== currentUserId;
                                         return (
                                             <Suspense key={user.id} fallback={<UserCardSkeleton />}>
