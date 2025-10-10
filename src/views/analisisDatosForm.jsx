@@ -54,15 +54,13 @@
  * - Agregar versión o historial de análisis.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress } from "@mui/material";
 import axios from "axios";
 import ButtonInd from "../components/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Title from '../components/Title';
-import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
-import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
 import BusinessIcon from '@mui/icons-material/Business';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -70,14 +68,12 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import SectionTabs from "../components/SectionTabs";
 import { Fade } from '@mui/material';
-
-
-
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import FolderIcon from '@mui/icons-material/Folder';
+import AssessmentIcon from "@mui/icons-material/Assessment";
 
 const FormularioAnalisis = () => {
   const { idRegistro } = useParams();
-
-  const menuItems = useMenuProceso();
   const location = useLocation();
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso("Análisis de Datos");
@@ -91,8 +87,6 @@ const FormularioAnalisis = () => {
 
   const navigate = useNavigate();
 
-
-  console.log("AnalisisDatos - idRegistro recibido:", idRegistro);
 
   const [formData, setFormData] = useState({
     entidad: "",
@@ -120,6 +114,30 @@ const FormularioAnalisis = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [loading, setLoading] = useState(true);
+  const idProcesoFromState = location.state?.idProceso || null;
+  const [idProcesoResolved, setIdProcesoResolved] = useState(
+    () => idProcesoFromState || localStorage.getItem("idProcesoActivo") || null
+  );
+
+  useEffect(() => {
+    if (idProcesoResolved) {
+      localStorage.setItem("idProcesoActivo", String(idProcesoResolved));
+    }
+  }, [idProcesoResolved]);
+
+  const breadcrumbItems = useMemo(() => ([
+    {
+      label: 'Estructura',
+      to: idProcesoResolved ? `/estructura-procesos/${idProcesoResolved}` : '/estructura-procesos',
+      icon: AccountTreeIcon
+    },
+    {
+      label: 'Carpetas',
+      to: idProcesoResolved ? `/carpetas/${idProcesoResolved}/Análisis de Datos` : undefined,
+      icon: FolderIcon
+    },
+    { label: 'Análisis de Datos', icon: AssessmentIcon }
+  ]), [idProcesoResolved]);
 
   // Función para manejar cambios en el formulario
   const handleChange = (e) => {
@@ -299,10 +317,8 @@ const FormularioAnalisis = () => {
           valor,
         }
       );
-      console.log("Campo actualizado:", response.data);
       showSnackbar("Campo actualizado correctamente", "success");
     } catch (error) {
-      console.error("Error al actualizar el campo:", error);
       showSnackbar("Error al actualizar el campo", "error");
     }
   };
@@ -342,8 +358,6 @@ const FormularioAnalisis = () => {
         periodoEvaluacion: formData.periodoEvaluacion,
         secciones
       });
-
-      console.log(" Datos guardados correctamente");
 
       //  Actualizar localmente sin recargar
       setFormData(prev => ({
@@ -456,8 +470,10 @@ const FormularioAnalisis = () => {
 
   return (
     <Box sx={{ width: "80%", margin: "auto", mt: 5, p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
+      <Box sx={{ mb: 2 }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
       <Title text="Análisis de Datos"></Title>
-      <MenuNavegacionProceso items={menuItems} />
       <Fade in timeout={600}>
         <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>

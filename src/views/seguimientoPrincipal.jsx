@@ -14,7 +14,7 @@
  * - `MinutaCard`, `MinutaForm`, `MinutaDialog`, `ConfirmEdit`, `ConfirmDelete`, `FeedbackSnackbar`
  * - Navegación del proceso (`MenuNavegacionProceso`), contexto (`ContextoProcesoEntidad`)
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Container, Grid, Fab, Dialog, DialogActions, DialogContent, Box, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -29,14 +29,16 @@ import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import FeedbackSnackbar from "../components/Feedback";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
-import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
-import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import FolderIcon from '@mui/icons-material/Folder';
+import LinkIcon from "@mui/icons-material/Link";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+
 
 const Seguimiento = () => {
   const { idRegistro, idProceso } = useParams();
   const location = useLocation();
-  const menuItems = useMenuProceso();
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso("Seguimiento");
 
@@ -53,6 +55,31 @@ const Seguimiento = () => {
   const [openForm, setOpenForm] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const idProcesoFromState = location.state?.idProceso || null;
+  const [idProcesoResolved] = useState(
+    () => idProcesoFromState || localStorage.getItem("idProcesoActivo") || null
+  );
+
+  useEffect(() => {
+    if (idProcesoResolved) {
+      localStorage.setItem("idProcesoActivo", String(idProcesoResolved));
+    }
+  }, [idProcesoResolved]);
+
+  const breadcrumbItems = useMemo(() => ([
+    {
+      label: 'Estructura',
+      to: idProcesoResolved ? `/estructura-procesos/${idProcesoResolved}` : '/estructura-procesos',
+      icon: AccountTreeIcon
+    },
+    {
+      label: 'Carpetas',
+      to: idProcesoResolved ? `/carpetas/${idProcesoResolved}/Seguimiento` : undefined,
+      icon: FolderIcon
+    },
+    { label: 'Seguimiento', icon: LinkIcon }
+  ]), [idProcesoResolved]);
 
   const fetchMinutas = async () => {
     try {
@@ -120,21 +147,20 @@ const Seguimiento = () => {
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
-    
+
     try {
       await axios.delete(`http://localhost:8000/api/minutasDelete/${selectedMinutaId}`);
       setOpenDelete(false);
-      
+
       if (openMinutaDialog) {
         setOpenMinutaDialog(false);
       }
-      
+
       await fetchMinutas();
       setSnackbarType('success');
       setSnackbarMessage('Minuta eliminada exitosamente');
       setOpenInfo(true);
     } catch (error) {
-      console.error('Error al eliminar la minuta:', error);
       setSnackbarType('error');
       setSnackbarMessage('Hubo un error al eliminar la minuta');
       setOpenInfo(true);
@@ -144,32 +170,27 @@ const Seguimiento = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <MenuNavegacionProceso items={menuItems} />
+    <Container sx={{ mt: 2, mr: 1 , ml: 1}}>
+      <Box sx={{ mb: 2 }}>
+        <BreadcrumbNav items={breadcrumbItems} />
+      </Box>
+      
+      <Box sx={{
+        display: "flex",
+        justifyContent: "center",
+        mb: 2,
+        ml: 32
+      }}>
+        <ContextoProcesoEntidad idProceso={idProceso} />
+      </Box>
 
-      <Box sx={{ 
-      textAlign: "center", 
-      mb: 2,
-      display: { xs: "block", md: "none" } 
-    }}>
-      <Subtitle text="Minutas de Seguimiento" />
-    </Box>
-
-    <Box sx={{ 
-      display: "flex", 
-      justifyContent: "center", 
-      mb: 4 
-    }}>
-      <ContextoProcesoEntidad idProceso={idProceso} />
-    </Box>
-
-    <Box sx={{ 
-      textAlign: "center", 
-      mb: 2,
-      display: { xs: "none", md: "block" }
-    }}>
-      <Subtitle text="Minutas de Seguimiento" />
-    </Box>
+      <Box sx={{
+        textAlign: "center",
+        mb: 2,
+        display: { xs: "none", md: "block" }
+      }}>
+        <Subtitle text="Minutas de Seguimiento" />
+      </Box>
 
       <Grid container spacing={2}>
         {minutas.length === 0 ? (
@@ -247,12 +268,12 @@ const Seguimiento = () => {
         open={openDelete}
         onClose={() => {
           setOpenDelete(false);
-          setIsDeleting(false); 
+          setIsDeleting(false);
         }}
         onConfirm={handleConfirmDelete}
         entityType="minuta-delete"
         entityName={selectedMinuta ? selectedMinuta.fecha : ""}
-        isDeleting={isDeleting} 
+        isDeleting={isDeleting}
         isPermanent={true}
       />
     </Container>

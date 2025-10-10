@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import DialogTitleCustom from "../TitleDialog";
 import CustomButton from "../Button";
-import FeedbackSnackbar from "../Feedback"
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -26,15 +25,14 @@ const normalizePeriodo = (v) => {
 const IndicadorForm = ({
   open,
   onClose,
-  onSave,           // puede ser async o sync
+  onSave,
   formData,
   setFormData,
-  modo = "crear"    // "crear" | "editar"
+  modo = "crear",
+  showSnackbar
 }) => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [snack, setSnack] = useState({ open: false, type: "error", title: "", message: "" });
-  const closeSnack = () => setSnack(s => ({ ...s, open: false }));
 
   const limits = useMemo(() => ({
     descripcion: 512,
@@ -72,18 +70,24 @@ const IndicadorForm = ({
     setErrors(e);
     if (Object.keys(e).length) {
       const firstKey = Object.keys(e)[0];
-      setSnack({ open: true, type: "error", title: "Validación", message: e[firstKey] })
+      if (showSnackbar) {
+        showSnackbar(e[firstKey], "error", "Error de validación");
+      }
       return;
     }
 
     try {
       setSaving(true);
-      await onSave?.(); // el padre ahora devuelve la promesa
-      setSnack({ open: true, type: "success", title: "Listo", message: "Indicador guardado correctamente." });
+      await onSave?.();
+      if (showSnackbar) {
+        showSnackbar("Indicador guardado correctamente", "success", "Éxito");
+      }
       onClose();
-    } catch {
-      setSnack({ open: true, type: "error", title: "Error", message: "No se pudo guardar el indicador." });
-
+    } catch (error) {
+      console.error("Error guardando indicador:", error);
+      if (showSnackbar) {
+        showSnackbar("No se pudo guardar el indicador", "error", "Error");
+      }
     } finally {
       setSaving(false);
     }
@@ -96,16 +100,15 @@ const IndicadorForm = ({
     if (errors[key]) setErrors(prev => { const cp = { ...prev }; delete cp[key]; return cp; });
   };
 
-  const onChangePeriodo = (ev) => {
-    const val = ev.target.value;
-    setFormData({ ...formData, periodo: val });
-    if (errors.periodo) setErrors(prev => { const cp = { ...prev }; delete cp.periodo; return cp; });
-  };
 
   const onChangeMeta = (ev) => {
     let v = ev.target.value;
     // permitir cadena vacía mientras escribe
-    if (v === "") { setFormData({ ...formData, meta: "" }); if (errors.meta) setErrors(p => { const cp = { ...p }; delete cp.meta; return cp; }); return; }
+    if (v === "") { 
+      setFormData({ ...formData, meta: "" }); 
+      if (errors.meta) setErrors(p => { const cp = { ...p }; delete cp.meta; return cp; }); 
+      return; 
+    }
     let n = Number(v);
     if (!Number.isFinite(n)) n = 0;
     // clamp 1..100
@@ -167,7 +170,7 @@ const IndicadorForm = ({
             value={normalizePeriodo(formData.periodo ?? formData.periodoMed)}
             onChange={(e) => {
               const val = e.target.value;
-              setFormData({ ...formData, periodo: val, periodoMed: val }); // mantén ambos sincronizados
+              setFormData({ ...formData, periodo: val, periodoMed: val });
             }}
             error={!!errors.periodo}
             helperText={errors.periodo}
@@ -215,18 +218,7 @@ const IndicadorForm = ({
           Guardar Indicador
         </CustomButton>
       </DialogActions>
-
-      <FeedbackSnackbar
-        open={snack.open}
-        onClose={closeSnack}
-        type={snack.type}
-        title={snack.title}
-        message={snack.message}
-        autoHideDuration={4000}
-      />
     </Dialog>
-
-
   );
 };
 

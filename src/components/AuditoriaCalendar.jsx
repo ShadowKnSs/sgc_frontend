@@ -11,6 +11,12 @@ import CustomCalendarToolbar from "../components/BarraCalendario";
 moment.locale("es");
 const localizer = momentLocalizer(moment);
 
+const STATUS_COLOR = {
+    Pendiente: "#0288d1", // azul
+    Finalizada: "#2e7d32", // verde
+    Cancelada: "#c62828", // rojo
+};
+
 const AuditoriaCalendar = ({
     events = [],
     view,
@@ -32,26 +38,22 @@ const AuditoriaCalendar = ({
     };
 
     const customEventStyleGetter = (event) => {
-        let backgroundColor = "#0288d1";
-        if (event.estado === "Finalizada") backgroundColor = "#2e7d32";
-        if (event.estado === "Cancelada") backgroundColor = "#c62828";
-
+        const bg = STATUS_COLOR[event.estado] ?? STATUS_COLOR.Pendiente;
         return {
             style: {
-                backgroundColor,
-                borderRadius: "10px",
+                backgroundColor: bg,
                 color: "#fff",
-                padding: "6px 10px",
-                marginBottom: "6px", // <-- Espacio entre eventos
-                fontSize: "0.85rem",
-                fontWeight: 500,
-                lineHeight: 1.4,
-                minHeight: 36, // <-- Altura mínima
+                borderRadius: 8,
+                padding: "2px 6px",      // ← compacto
+                marginBottom: 3,         // ← compacto
+                fontSize: "0.78rem",     // ← compacto
+                lineHeight: 1.2,
+                minHeight: 22,           // ← compacto
                 display: "flex",
                 alignItems: "center",
                 overflow: "hidden",
-                whiteSpace: "normal",
-                wordBreak: "break-word",
+                whiteSpace: "nowrap",    // ← una línea
+                textOverflow: "ellipsis" // ← puntos suspensivos
             }
         };
     };
@@ -61,9 +63,12 @@ const AuditoriaCalendar = ({
     const handleNavigate = useCallback((newDate) => setDate(newDate), [setDate]);
 
     const renderEvent = ({ event }) => {
-        const leaderName = typeof event.auditorLider === 'object'
-            ? (event.auditorLider?.nombre || 'Auditor Externo')
-            : (event.auditorLider || 'No asignado');
+        const isExternal = String(event.tipo || '').toLowerCase() === 'externa';
+        const leaderName = isExternal
+            ? 'No líder asignado (auditoría externa)'
+            : (typeof event.auditorLider === 'object'
+                ? (event.auditorLider?.nombre || 'No asignado')
+                : (event.auditorLider || 'No asignado'));
 
         return (
             <Tooltip
@@ -82,13 +87,11 @@ const AuditoriaCalendar = ({
                         size="small"
                         label={capitalizeFirstLetter(event.estado)}
                         sx={{
-                            backgroundColor:
-                                event.estado === "Finalizada" ? "#66bb6a" :
-                                    event.estado === "Cancelada" ? "#ef5350" :
-                                        "#42a5f5",
+                            backgroundColor: STATUS_COLOR[event.estado] ?? STATUS_COLOR.Pendiente,
                             color: "white",
-                            height: 20,
-                            fontSize: "0.7rem"
+                            height: 18,
+                            fontSize: "0.68rem",
+                            ml: 0.5
                         }}
                     />
                 </Box>
@@ -104,9 +107,11 @@ const AuditoriaCalendar = ({
                 maxWidth: "1200px",            // Espacio más amplio
                 margin: "0 auto",              // Centrado horizontal
                 padding: "16px",               // Espacio interno
-                boxSizing: "border-box"
+                boxSizing: "border-box",
+                paddingBottom: "48px"          // Espacio inferior para evitar solapamiento
             }}
         >
+
             <Calendar
                 localizer={localizer}
                 events={Array.isArray(events) ? events : []}

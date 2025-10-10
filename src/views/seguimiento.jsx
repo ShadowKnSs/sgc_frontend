@@ -24,13 +24,13 @@ import CardArchivos from "../components/CardArchivos";
 import { Box, Grid, Fab, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Snackbar, Alert, CircularProgress, Typography } from "@mui/material";
 import Permiso from "../hooks/userPermiso";
 import ContextoProcesoEntidad from "../components/ProcesoEntidad";
-import Subtitle from "../components/Subtitle";
 import ConfirmEdit from "../components/confirmEdit";
 import BreadcrumbNav from "../components/BreadcrumbNav";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import FolderIcon from '@mui/icons-material/Folder';
 
 function Carpetas() {
   const { state } = useLocation();
-  const navigate = useNavigate();
   const [carpetas, setCarpetas] = useState([]);
   const [open, setOpen] = useState(false);
   const [nuevoAnio, setNuevoAnio] = useState("");
@@ -41,11 +41,9 @@ function Carpetas() {
   const [carpetaPendiente, setCarpetaPendiente] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-
-
   const rolActivo = state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const { soloLectura, puedeEditar } = Permiso(title);
-  const idProcesoActivo = idProceso || localStorage.getItem("idProcesoActvio");
+  const idProcesoActivo = idProceso || localStorage.getItem("idProcesoActivo");
 
   const rutas = {
     "Gestión de Riesgo": "gestion-riesgos",
@@ -56,10 +54,31 @@ function Carpetas() {
     "Auditoria": "auditoria"
   };
 
+
+
+  const linkState = {
+    idProceso: idProcesoActivo,      // <= clave
+    rolActivo,                       // opcional si lo necesitas en la siguiente vista
+    from: 'Carpetas',
+  };
+
+  const SECCIONES_META = {
+    "Gestión de Riesgo": { label: "Gestión de Riesgos" },
+    "Análisis de Datos": { label: "Análisis de Datos" },
+    "Acciones de Mejora": { label: "Acciones de Mejora" },
+    "Generar informe de auditoría": { label: "Informe de Auditoría" },
+    "Seguimiento": { label: "Seguimiento" },
+    "Auditoria": { label: "Auditoría" },
+  };
+
+  // Normaliza el title que viene por URL (por si trae encoding o variaciones)
+  const rawTitle = decodeURIComponent(title || "");
+  const sectionLabel = (SECCIONES_META[rawTitle]?.label || rawTitle).trim();
+
   const breadcrumbItems = [
-    { label: "Estructura", to: `/estructura-procesos/${idProcesoActivo}` },
-    { label: title } // último tramo, se muestra como texto (no link)
-  ];
+    { label: "Estructura", to: `/estructura-procesos/${idProcesoActivo}`, icon: AccountTreeIcon  },
+    { label: `Carpetas ${sectionLabel}`, icon: FolderIcon }, // <- Aquí el texto dinámico
+  ];  
   useEffect(() => {
     obtenerRegistros();
   }, []);
@@ -72,7 +91,7 @@ function Carpetas() {
 
   const obtenerRegistros = async () => {
     try {
-      setIsLoading(true); // ⬅️ empieza la carga
+      setIsLoading(true); // empieza la carga
       const response = await axios.post("http://127.0.0.1:8000/api/registros/filtrar", {
         idProceso,
         Apartado: title,
@@ -200,13 +219,13 @@ function Carpetas() {
               <Box sx={{ cursor: "pointer" }}>
                 <CardArchivos
                   nombreCarpeta={registro.año.toString()}
-                  ruta={`/${rutas[title]}/${registro.idRegistro}${title === "Seguimiento" ? `/${idProceso}` : ""
-                    }`}
+                  ruta={`/${rutas[title]}/${registro.idRegistro}${title === "Seguimiento" ? `/${idProcesoActivo}` : ""}`}
                   onEditClick={handleEditCarpeta}
                   rolActivo={rolActivo}
                   soloLectura={soloLectura}
                   puedeEditar={puedeEditar}
                   año={registro.año}
+                  linkState={linkState}
                 />
               </Box>
             </Grid>
@@ -269,7 +288,6 @@ function Carpetas() {
   );
 
 }
-
 
 
 export default Carpetas;

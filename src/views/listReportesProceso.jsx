@@ -215,7 +215,7 @@ const ReportesDeProceso = () => {
 
         {/* Botón flotante de búsqueda */}
         <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
-          <Tooltip title="Buscar Reportes">
+          <Tooltip title="Buscar Reportes" placement="left">
             <IconButton
               onClick={() => setSearchOpen(!searchOpen)}
               sx={{

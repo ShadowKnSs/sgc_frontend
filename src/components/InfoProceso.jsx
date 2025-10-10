@@ -27,7 +27,7 @@ const InfoProceso = ({ proceso }) => {
         <Box sx={{ mb: 3 }}>
             <Typography
                     variant="h5"
-                    sx={{ fontWeight: "bold", color: "#0056b3", mb: 2 }}
+                    sx={{ fontWeight: "bold", color: "#0056b3", mb: 2, textAlign: "center" }}
                   >
                     INFORMACIÓN DEL PROCESO
                   </Typography>

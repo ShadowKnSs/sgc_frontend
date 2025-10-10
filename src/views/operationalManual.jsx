@@ -13,11 +13,12 @@ import {
   Fade
 } from "@mui/material";
 
-
 import Permiso from "../hooks/userPermiso";
-import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
-import useMenuProceso from "../hooks/useMenuProceso";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 import SectionTabs from "../components/SectionTabs";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import BookIcon from "@mui/icons-material/Book";
+import FeedbackSnackbar from "../components/Feedback";
 
 // Lazy loading con preloading estratégico
 const Caratula = React.lazy(() => import("../views/caratula"));
@@ -36,7 +37,7 @@ const sections = [
   "Control de documentos",
 ];
 
-// Custom hook mejorado con reintentos y gestión de caché
+// Custom hook mejorado con reintentos, gestión de caché y manejo de errores
 const useEntidadProceso = (idProceso) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,13 @@ const useEntidadProceso = (idProceso) => {
     const fetchData = async (retryCount = 0) => {
       try {
         const res = await axios.get(`http://localhost:8000/api/proceso-entidad/${idProceso}`);
+        
+        // Verificar si la respuesta es exitosa pero no hay datos
+        if (!res.data) {
+          setError("No se encontraron datos para este proceso.");
+          setData(null);
+          return;
+        }
 
         // Almacenar con timestamp
         const dataToCache = {
@@ -71,13 +79,30 @@ const useEntidadProceso = (idProceso) => {
         setData(res.data);
         setError("");
       } catch (err) {
+        console.error("Error fetching proceso data:", err);
+        
         // Reintentar hasta 3 veces con delay exponencial
         if (retryCount < 3) {
           setTimeout(() => fetchData(retryCount + 1), 1000 * Math.pow(2, retryCount));
           return;
         }
 
-        setError("No se pudo cargar la información del proceso. Por favor, intente nuevamente.");
+        // Manejo específico de diferentes tipos de errores
+        if (err.response) {
+          // Error de respuesta del servidor
+          if (err.response.status === 404) {
+            setError("El proceso solicitado no fue encontrado.");
+          } else if (err.response.status >= 500) {
+            setError("Error del servidor. Por favor, intente más tarde.");
+          } else {
+            setError("Error al cargar la información del proceso.");
+          }
+        } else if (err.request) {
+          // Error de conexión
+          setError("Error de conexión. Verifique su conexión a internet e intente nuevamente.");
+        } else {
+          setError("Error inesperado. Por favor, intente nuevamente.");
+        }
       } finally {
         setLoading(false);
       }
@@ -97,7 +122,14 @@ const ProcessView = () => {
   const [isFixed] = useState(false);
   const { idProceso } = useParams();
   const { data, loading, error } = useEntidadProceso(idProceso);
-  const menuItems = useMenuProceso();
+  
+  // Estado para Snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    type: "success", // success, info, warning, error
+    title: "",
+    message: ""
+  });
 
   const nombreEntidad = data?.entidad || "";
   const nombreProceso = data?.proceso || "";
@@ -109,9 +141,41 @@ const ProcessView = () => {
     "Diagrama de Flujo": DiagramaFlujo,
     "Plan de Control": PlanControl,
     "Control de documentos": ControlDocuments,
-  }), [])
+  }), []);
+
+  // Función para mostrar Snackbar
+  const showSnackbar = (message, type = "success", title = "") => {
+    setSnackbar({
+      open: true,
+      message,
+      type,
+      title
+    });
+  };
+
+  // Función para cerrar Snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+  const breadcrumbItems = [
+    {
+      label: 'Estructura',
+      to: idProceso ? `/estructura-procesos/${idProceso}` : '/estructura-procesos',   
+      icon: AccountTreeIcon
+    },
+    {
+      label: 'Manual Operativo',
+      to: idProceso ? `/manual-operativo/${idProceso}` : '/manual-operativo',
+      icon: BookIcon
+    }
+  ];
 
   const currentKey = sections[selectedTab];
+  
   // Precarga estratégica de componentes
   useEffect(() => {
     if (selectedTab === 0) {
@@ -130,7 +194,8 @@ const ProcessView = () => {
         idProceso={idProceso}
         soloLectura={soloLectura}
         puedeEditar={puedeEditar}
-        key={currentKey} // Forzar recreación al cambiar pestaña
+        key={currentKey}
+        showSnackbar={showSnackbar} // Pasar función a componentes hijos
       />
     ) : null;
   }, [currentKey, idProceso, soloLectura, puedeEditar, sectionMap]);
@@ -145,6 +210,9 @@ const ProcessView = () => {
       document.title = "Sistema de Gestión";
     };
   }, [nombreEntidad, nombreProceso]);
+
+  // Verificar si no hay datos después de cargar
+  const hasData = data && data.entidad && data.proceso;
 
   if (loading) {
     return (
@@ -178,11 +246,26 @@ const ProcessView = () => {
     );
   }
 
+  if (!hasData) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 2 }}>
+        <Box sx={{ mt: 2 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            No hay registros disponibles para este proceso
+          </Alert>
+          <Box sx={{ textAlign: "center", py: 5 }}>
+            <Typography variant="h6" color="text.secondary">
+              No se encontraron datos para mostrar
+            </Typography>
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="xl" sx={{ py: isMobile ? 1 : 0 }}>
-
-      <MenuNavegacionProceso items={menuItems} />
-
+      
       <Box
         sx={{
           mt: 1.3,
@@ -194,6 +277,7 @@ const ProcessView = () => {
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
         }}
       >
+        <BreadcrumbNav items={breadcrumbItems} />
         <Box sx={{ mt: 2, mb: 1.5, display: "flex", justifyContent: "center", px: isMobile ? 1 : 0 }}>
           <Title
             text={`Manual Operativo de ${nombreEntidad}: ${nombreProceso}`}
@@ -201,8 +285,6 @@ const ProcessView = () => {
           />
         </Box>
       </Box>
-
-      <MenuNavegacionProceso items={menuItems} />
 
       <Box sx={{
         display: "flex",
@@ -258,6 +340,16 @@ const ProcessView = () => {
           </Box>
         </Fade>
       </Suspense>
+
+      {/* FeedbackSnackbar personalizado */}
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={handleCloseSnackbar}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
+        autoHideDuration={6000}
+      />
     </Container>
   );
 };

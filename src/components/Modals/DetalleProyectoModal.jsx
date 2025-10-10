@@ -28,11 +28,8 @@ import CustomButton from "../Button";
 
 const DetalleProyectoModal = ({ open, onClose, proyecto }) => {
   if (!proyecto) return null;
-  console.log(proyecto);
-
-
  const renderSeccion = (titulo, contenido, Icono) => {
-    const bgColor = "#fff"; // color marfil
+    const bgColor = "#fff";
     return (
       <Box sx={{ mb: 3, borderRadius: 2, backgroundColor: bgColor, px: 2, py: 2 }}>
         <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: "#185FA4" }}>
@@ -55,7 +52,7 @@ const DetalleProyectoModal = ({ open, onClose, proyecto }) => {
   );
 
   const handleDescargarPDF = () => {
-    const url = `http://localhost:8000/api/reporte-proyecto-mejora/${proyecto.idProyectoMejora}`;
+    const url = `http://localhost:8000/ap/reporte-proyecto-mejora/${proyecto.idProyectoMejora}`;
     window.open(url, "_blank");
   };
 

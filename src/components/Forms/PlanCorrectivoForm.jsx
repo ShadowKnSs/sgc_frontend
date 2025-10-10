@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import {Box, Stepper, Step, StepLabel, Button, TextField, Checkbox, FormControlLabel, FormControl, IconButton, Radio, RadioGroup, FormLabel, FormHelperText, Typography} from "@mui/material";
+import {
+  Box, Stepper, Step, StepLabel, Button, TextField, Checkbox,
+  FormControlLabel, FormControl, IconButton, Radio, RadioGroup,
+  FormLabel, FormHelperText, Typography, Alert, CircularProgress
+} from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import axios from "axios";
 
@@ -13,12 +17,11 @@ const steps = [
 
 const initialDynamicEntry = { actividad: "", responsable: "", fechaProgramada: "" };
 
-function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence, }) {
-  // Objeto por defecto que contiene todas las propiedades esperadas
+function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence, showSnackbar, disabled }) {
   const defaultForm = {
     entidad: "",
     noConformidad: false,
-    codigo: "", // Se generará automáticamente si es nuevo
+    codigo: "",
     coordinadorPlan: "",
     fechaInicio: "",
     origenConformidad: "",
@@ -29,41 +32,46 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     reaccion: [{ ...initialDynamicEntry }],
     revisionAnalisis: "",
     causaRaiz: "",
-    estadoSimilares: "", // Ej: "Si" o "No"
+    estadoSimilares: "",
     planAccion: [{ ...initialDynamicEntry }],
     estadoConformidad: "Activo"
   };
 
   const [saving, setSaving] = useState(false);
+  const [loadingEntidad, setLoadingEntidad] = useState(false);
+  const [errorEntidad, setErrorEntidad] = useState("");
 
-
-  // Fusionamos initialData con defaultForm para que no falten propiedades al editar
   const mergedData = useMemo(() => (
     initialData ? { ...defaultForm, ...initialData } : defaultForm
   ), [initialData]);
+
   const [formData, setFormData] = useState(mergedData);
   const [activeStep, setActiveStep] = useState(0);
   const [errors, setErrors] = useState({});
 
-  // Simulación de carga para Dependencia/Entidad
   useEffect(() => {
     if (!idProceso) return;
-    axios.get(`http://127.0.0.1:8000/api/proceso-entidad/${idProceso}`)
-      .then(res => {
-        const { entidad } = res.data;
+
+    const fetchEntidad = async () => {
+      setLoadingEntidad(true);
+      setErrorEntidad("");
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/api/proceso-entidad/${idProceso}`);
+        const { entidad } = response.data;
         setFormData(prev => ({ ...prev, entidad: entidad || "" }));
-      })
-      .catch(err => console.error("❌ Error al obtener entidad:", err));
-  }, [idProceso]);
+      } catch (err) {
+        console.error("Error al obtener entidad:", err);
+        setErrorEntidad("No se pudo cargar la entidad del proceso");
+        if (showSnackbar) {
+          showSnackbar("Error al cargar la entidad del proceso", "error", "Error");
+        }
+      } finally {
+        setLoadingEntidad(false);
+      }
+    };
 
-  // useEffect(() => {
-  //   if (!initialData && idProceso) {
-  //     const year = new Date().getFullYear().toString().slice(-2);
-  //     const seqStr = sequence.toString().padStart(2, "0");
-  //     setFormData(prev => ({ ...prev, codigo: `PAC-${seqStr}${year}` }));
-  //   }
-  // }, [initialData, idProceso, sequence]);
-
+    fetchEntidad();
+  }, [idProceso, showSnackbar]);
 
   const validateForm = () => {
     let formErrors = {};
@@ -95,7 +103,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     // Sección 4 - Validación dinámica de planAccion
     (formData.planAccion || []).forEach((item, index) => {
       const anyFilled = item.actividad || item.responsable || item.fechaProgramada;
-      if (!anyFilled) return; // todo vacío es válido
+      if (!anyFilled) return;
       if (!item.actividad) formErrors[`planAccion.${index}.actividad`] = "Actividad requerida";
       if (!item.responsable) formErrors[`planAccion.${index}.responsable`] = "Responsable requerido";
       if (!item.fechaProgramada) formErrors[`planAccion.${index}.fechaProgramada`] = "Fecha requerida";
@@ -105,39 +113,14 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     return Object.keys(formErrors).length === 0;
   };
 
+  // ✅ Resto de funciones permanecen igual pero mejoradas...
   const getStepsCompleted = () => {
     const completed = [];
-
-    // Paso 0: Datos del Proceso
-    if (
-      formData.entidad &&
-      formData.coordinadorPlan &&
-      formData.fechaInicio &&
-      formData.origenConformidad &&
-      formData.equipoMejora
-    ) completed.push(0);
-
-    // Paso 1: No Conformidad
-    if (
-      formData.requisito &&
-      formData.incumplimiento &&
-      formData.evidencia
-    ) completed.push(1);
-
-    // Paso 2: Reacción
-    const validReaccion = (formData.reaccion || []).every(
-      item => item.actividad && item.responsable && item.fechaProgramada
-    );
+    if (formData.entidad && formData.coordinadorPlan && formData.fechaInicio && formData.origenConformidad && formData.equipoMejora) completed.push(0);
+    if (formData.requisito && formData.incumplimiento && formData.evidencia) completed.push(1);
+    const validReaccion = (formData.reaccion || []).every(item => item.actividad && item.responsable && item.fechaProgramada);
     if (formData.reaccion?.length > 0 && validReaccion) completed.push(2);
-
-    // Paso 3: Consecuencias
-    if (
-      formData.revisionAnalisis &&
-      formData.causaRaiz &&
-      formData.estadoSimilares
-    ) completed.push(3);
-
-    // Paso 4: Plan de Acción
+    if (formData.revisionAnalisis && formData.causaRaiz && formData.estadoSimilares) completed.push(3);
     const acciones = formData.planAccion || [];
     const vacio = acciones.length === 0;
     const completo = acciones.length > 0 && acciones.every(item => item.actividad && item.responsable && item.fechaProgramada);
@@ -145,45 +128,16 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
     return completed;
   };
 
-
   const sectionHasErrors = (prefix) => Object.keys(errors).some(key => key.startsWith(prefix));
 
   const getStepsWithErrors = () => {
     const stepsError = [];
-
-    if (
-      errors.entidad ||
-      errors.coordinadorPlan ||
-      errors.fechaInicio ||
-      errors.origenConformidad ||
-      errors.equipoMejora
-    ) {
-      stepsError.push(0);
-    }
-
-    if (
-      errors.requisito ||
-      errors.incumplimiento ||
-      errors.evidencia
-    ) {
-      stepsError.push(1);
-    }
-
-    if (sectionHasErrors("reaccion.")) {
-      stepsError.push(2);
-    }
-
-    if (
-      errors.revisionAnalisis ||
-      errors.causaRaiz ||
-      errors.estadoSimilares
-    ) {
-      stepsError.push(3);
-    }
-
+    if (errors.entidad || errors.coordinadorPlan || errors.fechaInicio || errors.origenConformidad || errors.equipoMejora) stepsError.push(0);
+    if (errors.requisito || errors.incumplimiento || errors.evidencia) stepsError.push(1);
+    if (sectionHasErrors("reaccion.")) stepsError.push(2);
+    if (errors.revisionAnalisis || errors.causaRaiz || errors.estadoSimilares) stepsError.push(3);
     return stepsError;
   };
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -234,34 +188,48 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
   };
 
   const handleSubmit = async () => {
-    if (validateForm()) {
-      console.log("Datos a enviar:", formData);
-      onSave(formData);
-    } else {
-      console.log("Errores en el formulario", errors);
+    if (!validateForm()) {
+      if (showSnackbar) {
+        showSnackbar("Por favor, corrija los errores en el formulario", "error", "Error de validación");
+      }
+      return;
     }
 
     try {
-      setSaving(true); 
-      await onSave(formData); 
+      setSaving(true);
+      await onSave(formData);
+    } catch (error) {
+      // El error ya se maneja en el contenedor
     } finally {
-      setSaving(false); 
+      setSaving(false);
     }
   };
-
 
   const handleStepClick = (step) => {
     setActiveStep(step);
   };
 
-  const stepsWithErrors = getStepsWithErrors();
-  const maxChars = 255;
+  const stepsWithErrors = getStepsWithErrors()
 
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
         return (
           <Box>
+            {loadingEntidad && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={20} />
+                  Cargando información de la entidad...
+                </Box>
+              </Alert>
+            )}
+            {errorEntidad && !loadingEntidad && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                {errorEntidad}
+              </Alert>
+            )}
+
             {/* Primera fila: Entidad, No conformidad y Código */}
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
               <FormControl sx={{ flex: 1 }} error={!!errors.entidad}>
@@ -272,8 +240,8 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   fullWidth
                   margin="normal"
                   InputProps={{ readOnly: true }}
+                  helperText={errors.entidad}
                 />
-                {errors.entidad && <FormHelperText>{errors.entidad}</FormHelperText>}
               </FormControl>
               <FormControlLabel
                 sx={{ flex: 0.5, alignSelf: "center" }}
@@ -282,6 +250,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                     name="noConformidad"
                     checked={formData.noConformidad}
                     onChange={handleChange}
+                    disabled={disabled || saving}
                   />
                 }
                 label="No conformidad"
@@ -294,7 +263,6 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 InputProps={{ readOnly: true }}
                 fullWidth
                 helperText="El código se genera automáticamente al guardar"
-                inputProps={{ maxLength: 255 }}
               />
             </Box>
             {/* Segunda fila: Coordinador y Fecha de Inicio */}
@@ -309,6 +277,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 error={!!errors.coordinadorPlan}
                 helperText={errors.coordinadorPlan || `${formData.coordinadorPlan.length}/255`}
                 inputProps={{ maxLength: 255 }}
+                disabled={disabled || saving}
               />
               <TextField
                 sx={{ flex: 1 }}
@@ -321,6 +290,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 InputLabelProps={{ shrink: true }}
                 error={!!errors.fechaInicio}
                 helperText={errors.fechaInicio}
+                disabled={disabled || saving}
               />
             </Box>
             {/* Tercera fila: Origen de la no conformidad */}
@@ -337,6 +307,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 multiline
                 minRows={2}
                 maxRows={6}
+                disabled={disabled || saving}
               />
             </Box>
             {/* Cuarta fila: Equipo de Mejora */}
@@ -351,8 +322,9 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 helperText={errors.equipoMejora || `${formData.equipoMejora.length}/255`}
                 inputProps={{ maxLength: 255 }}
                 multiline
-                minRows={2}   
-                maxRows={4} 
+                minRows={2}
+                maxRows={4}
+                disabled={disabled || saving}
               />
             </Box>
           </Box>
@@ -379,6 +351,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 maxRows={10}
                 error={!!errors.requisito}
                 helperText={errors.requisito || "Especifica los requisitos relacionados."}
+                disabled={disabled || saving}
               />
             </Box>
             {/* Incumplimiento */}
@@ -400,6 +373,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 maxRows={10}
                 error={!!errors.incumplimiento}
                 helperText={errors.incumplimiento || "Describe el incumplimiento detectado."}
+                disabled={disabled || saving}
               />
             </Box>
             {/* Evidencia */}
@@ -422,6 +396,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 inputProps={{ maxLength: 510 }}
                 error={!!errors.evidencia}
                 helperText={errors.evidencia || "Adjunta o describe la evidencia recopilada."}
+                disabled={disabled || saving}
               />
             </Box>
           </Box>
@@ -445,6 +420,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   maxRows={1}
                   error={!!errors[`reaccion.${index}.actividad`]}
                   helperText={errors[`reaccion.${index}.actividad`] || "Describa la actividad."}
+                  disabled={disabled || saving}
                 />
                 <TextField
                   label="Responsable"
@@ -458,6 +434,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   inputProps={{ maxLength: 255 }}
                   error={!!errors[`reaccion.${index}.responsable`]}
                   helperText={errors[`reaccion.${index}.responsable`] || `${item.responsable?.length || 0}/255`}
+                  disabled={disabled || saving}
                 />
                 <TextField
                   label="Fecha Programada"
@@ -470,6 +447,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                   InputLabelProps={{ shrink: true }}
                   error={!!errors[`reaccion.${index}.fechaProgramada`]}
                   helperText={errors[`reaccion.${index}.fechaProgramada`]}
+                  disabled={disabled || saving}
                 />
                 <IconButton onClick={() => removeDynamicEntry("reaccion", index)}>
                   <Remove />
@@ -506,6 +484,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 multiline
                 minRows={4}
                 maxRows={8}
+                disabled={disabled || saving}
               />
             </Box>
             <Box>
@@ -527,6 +506,7 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
                 minRows={4}
                 maxRows={8}
                 inputProps={{ maxLength: 510 }}
+                disabled={disabled || saving}
               />
             </Box>
             <FormControl component="fieldset" error={!!errors.estadoSimilares}>

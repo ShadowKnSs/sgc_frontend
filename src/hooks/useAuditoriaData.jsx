@@ -1,27 +1,46 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import axios from "axios";
 
 const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState(null);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
   const [procesosCE, setProcesosCE] = useState([]);
   const [auditores, setAuditores] = useState([]);
-  const [loadingList, setLoadingList] = useState(false);
+  const [loadingList, setLoadingList] = useState(true);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [hasError, setHasError] = useState(false);
+  const [lastFetchParams, setLastFetchParams] = useState(null)
+  const emptySnackShown = useRef(false);
+
 
   const nombreCompleto = (p) =>
     [p?.nombre, p?.apellidoPat, p?.apellidoMat].filter(Boolean).join(" ");
 
-  const auditoresMap = useMemo(() => {
-    return new Map(auditores.map(a => [a.idUsuario, a]));
+  const auditoresIndex = useMemo(() => {
+    const byUsuario = new Map();
+    const byAuditor = new Map();
+    for (const a of auditores) {
+      if (a?.idUsuario != null) byUsuario.set(Number(a.idUsuario), a);
+      if (a?.idAuditor != null) byAuditor.set(Number(a.idAuditor), a);
+      // compat: algunos endpoints usan "id" para el registro en tabla auditores
+      if (a?.id != null && !byAuditor.has(Number(a.id))) byAuditor.set(Number(a.id), a);
+    }
+    return { byUsuario, byAuditor };
   }, [auditores]);
 
   const fetchAuditorias = useCallback(async ({ from, to }) => {
     if (!usuario || !rolActivo?.nombreRol) return;
 
+    setLastFetchParams({ from, to, view: 'auto' });
+
     try {
       setLoadingList(true);
+      setHasError(false);
+      setEvents(null);
+      emptySnackShown.current = false;
+      //cerrar un snackbar informativo previo
+      setSnackbar(prev => (prev.open && prev.severity === 'info' ? { ...prev, open: false } : prev))
       let response;
 
       if (["Administrador", "Coordinador"].includes(rolActivo.nombreRol)) {
@@ -29,15 +48,12 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
           params: { rol: rolActivo.nombreRol, from, to }
         });
       } else if (["Lider", "Líder"].includes(rolActivo.nombreRol)) {
-        // auditorías de todos los procesos del líder (dueño)
         response = await axios.get(`http://localhost:8000/api/auditorias/lider/${usuario.idUsuario}`);
       } else if (rolActivo.nombreRol === "Auditor") {
-        // auditorías donde el usuario está asignado
         response = await axios.get(`http://localhost:8000/api/auditorias/auditor/${usuario.idUsuario}`);
       } else if (rolActivo.nombreRol === "Supervisor") {
         response = await axios.get(`http://localhost:8000/api/auditorias/supervisor/${usuario.idUsuario}`);
       } else if (idProceso) {
-        // Filtro por proceso específico (p.ej. vista /cronograma/:idProceso)
         response = await axios.post("http://localhost:8000/api/cronograma/filtrar", { idProceso, from, to });
       } else {
         setEvents([]);
@@ -45,8 +61,27 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       }
 
       let auditoriasRaw = response.data;
-      if (!Array.isArray(auditoriasRaw) || auditoriasRaw.length === 0) {
+
+      // Validar que la respuesta sea un array
+      if (!Array.isArray(auditoriasRaw)) {
+        auditoriasRaw = [];
+      }
+
+      // Si no hay auditorías, establecer array vacío y continuar
+      if (auditoriasRaw.length === 0) {
         setEvents([]);
+        if (!emptySnackShown.current) {
+          emptySnackShown.current = true;
+          setTimeout(() => {
+            setSnackbar({
+              open: true,
+              message: "No se encontraron auditorías para este mes/semana/día.",
+              severity: "info",
+              autoHideDuration: 3500,
+            });
+          }, 0);
+        }
+        setLoadingList(false);
         return;
       }
 
@@ -58,54 +93,104 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
 
       const auditorias = await Promise.all(
         auditoriasRaw.map(async (auditoria) => {
-          const start = new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`);
-          const end = new Date(start.getTime() + 60 * 60 * 1000);
-
-          const lider = auditoresMap.get(auditoria.auditorLider);
-          const nombreLider = lider ? nombreCompleto(lider) : (auditoria.nombreAuditorLider || "No asignado");
-
-          let auditoresAdicionales = [];
           try {
-            const res = await axios.get(`http://localhost:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
-            auditoresAdicionales = (Array.isArray(res.data) ? res.data : [])
-              .filter(a => Number(a.idAuditor) !== Number(auditoria.auditorLider))
-              .map(a => ({
-                idAuditor: Number(a.idAuditor),
-                nombre: a.nombreCompleto,
-                rol: a.rol || "Auditor"
-              }));
-          } catch (err) {
-            console.warn(`No se pudieron cargar auditores adicionales para auditoría ${auditoria.idAuditoria}`);
-          }
+            const start = new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`);
+            const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-          return {
-            id: auditoria.idAuditoria,
-            title: `${auditoria.nombreProceso ?? ''} - ${auditoria.tipoAuditoria}`,
-            start, end,
-            descripcion: auditoria.descripcion,
-            estado: auditoria.estado,
-            tipo: (auditoria.tipoAuditoria || "").toLowerCase() === "externa" ? "Externa" : "Interna",
-            proceso: auditoria.nombreProceso ?? '',
-            entidad: auditoria.nombreEntidad ?? '',
-            hora: auditoria.horaProgramada,
-            idProceso: Number(auditoria.idProceso) || undefined,
-            auditorLider: { idAuditor: auditoria.auditorLider, nombre: nombreLider },
-            auditorLiderId: auditoria.auditorLider,
-            auditoresAdicionales
-          };
+            const rawLiderId = Number(auditoria.auditorLider);
+            const liderRec =
+              auditoresIndex.byUsuario.get(rawLiderId) ||
+              auditoresIndex.byAuditor.get(rawLiderId);
+            const nombreLider =
+              liderRec ? nombreCompleto(liderRec) : (auditoria.nombreAuditorLider || "No asignado");
+            let auditoresAdicionales = [];
+            try {
+              const res = await axios.get(`http://localhost:8000/api/auditores-asignados/${auditoria.idAuditoria}`);
+              const rows = Array.isArray(res.data) ? res.data : [];
+
+              auditoresAdicionales = rows
+                // 1) Descarta explícitamente la fila de líder si viene marcada como tal
+                .filter(r => String(r.rol || '').toLowerCase() !== 'lider')
+                .map(a => {
+                  // 2) Normaliza SIEMPRE ambos IDs; en tu esquema actual idAuditor ≡ idUsuario
+                  const idU = Number(a.idUsuario ?? a.idAuditor ?? a.id);
+                  const meta =
+                    auditoresIndex.byUsuario.get(idU) ||
+                    auditoresIndex.byAuditor.get(idU);
+                  return {
+                    idUsuario: idU,
+                    idAuditor: idU, // espejo; evita divergencias posteriores
+                    nombre: a.nombreCompleto || (meta ? nombreCompleto(meta) : "Desconocido"),
+                    rol: a.rol || "Auditor",
+                  };
+                })
+                // 3) Redundancia de seguridad: excluye contra el líder por cualquiera de los dos campos
+                .filter(a => Number(a.idUsuario) !== Number(rawLiderId) && Number(a.idAuditor) !== Number(rawLiderId));
+            } catch (err) {
+              console.warn(`No se pudieron cargar auditores adicionales para auditoría ${auditoria.idAuditoria}`);
+            }
+
+            return {
+              id: auditoria.idAuditoria,
+              title: `${auditoria.nombreProceso ?? ''} - ${auditoria.tipoAuditoria}`,
+              start,
+              end,
+              descripcion: auditoria.descripcion,
+              estado: auditoria.estado,
+              tipo: (auditoria.tipoAuditoria || "").toLowerCase() === "externa" ? "Externa" : "Interna",
+              proceso: auditoria.nombreProceso ?? '',
+              entidad: auditoria.nombreEntidad ?? '',
+              hora: auditoria.horaProgramada,
+              idProceso: Number(auditoria.idProceso) || undefined,
+              auditorLider: { idUsuario: Number(auditoria.auditorLider), idAuditor: Number(auditoria.auditorLider), nombre: nombreLider },
+              auditorLiderId: Number(auditoria.auditorLider),
+              auditoresAdicionales
+            };
+          } catch (error) {
+            return null; // Retornar null para filtrar después
+          }
         })
       );
 
-      setEvents(auditorias);
+      // Filtrar auditorías nulas (que fallaron en el procesamiento)
+      const auditoriasFiltradas = auditorias.filter(a => a !== null);
+      setEvents(auditoriasFiltradas);
+      setLoadingList(false);
+
     } catch (error) {
-      console.error("Error al obtener auditorías", error);
-      setSnackbar({ open: true, message: "Error al cargar auditorías", severity: "error" });
+      setHasError(true);
+
+      // Mensaje más específico según el tipo de error
+      let errorMessage = "Error al cargar auditorías";
+
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        errorMessage = "Error de conexión. Verifique su internet e intente nuevamente.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "No se pudo encontrar el recurso solicitado.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Error del servidor. Por favor, intente más tarde.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: "error"
+      });
+      setEvents([]); // Limpiar eventos en caso de error
+      setLoadingList(false);
     } finally {
       setLoadingList(false);
     }
-  }, [usuario, rolActivo, idProceso, auditoresMap]);
+  }, [usuario, rolActivo, idProceso, auditoresIndex]);
 
-
+  // Función para recargar con los mismos parámetros
+  const refetch = useCallback(() => {
+    if (lastFetchParams) {
+      fetchAuditorias(lastFetchParams);
+    }
+  }, [lastFetchParams, fetchAuditorias]);
 
   useEffect(() => {
     const cargarDatosBase = async () => {
@@ -126,7 +211,6 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
         }));
         setProcesosCE(ce);
       } catch (err) {
-        console.error(" Error al cargar datos base:", err);
       }
     };
     cargarDatosBase();
@@ -143,7 +227,6 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       }));
       setProcesos(opts);
     } catch (err) {
-      console.error("Error al obtener procesos:", err);
       setProcesos([]);
     }
   };
@@ -163,7 +246,9 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
     setSnackbar,
     handleCloseSnackbar,
     obtenerProcesosPorEntidad,
-    fetchAuditorias
+    fetchAuditorias,
+    hasError,
+    refetch,
   };
 };
 

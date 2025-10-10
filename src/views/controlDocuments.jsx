@@ -20,187 +20,251 @@
  * 8.  Gestión visual de errores, alertas (`MensajeAlert`) y diálogos de confirmación (`ConfirmDeleteDialog`).
 
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
-  Box, Typography
+  Box, Typography, Alert, CircularProgress
 } from "@mui/material";
 import ConfirmDelete from "../components/confirmDelete";
-import ConfirmEdit from "../components/confirmEdit";
 import DocumentListView from "../components/DocumentListView";
 import DocumentFormDialog from "../components/Forms/DocumentFormDialog";
-import FeedbackSnackbar from "../components/Feedback";
 import useDocumentForm from "../hooks/useDocumenForm";
 import CustomButton from "../components/Button";
 
-function ProcessMapView({ soloLectura, idProceso }) {
+function ProcessMapView({ soloLectura, idProceso, showSnackbar }) {
   const [users, setUsers] = useState([]);
-  const [openForm, setOpenForm] = useState(false);
-  const [editDoc, setEditDoc] = useState(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [docAEliminar, setDocAEliminar] = useState(null);
-  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
-  const [pendingEditDoc, setPendingEditDoc] = useState(null);
-  const [savingCreate, setSavingCreate] = useState(false);
-  const [savingEdit, setSavingEdit] = useState(false)
-  const [alerta, setAlerta] = useState({
-    open: false,
-    type: "",     // "success", "error", etc.
-    title: "",
-    message: ""
-  });
-  const showFeedback = (type, title, message) => {
-    setAlerta({ open: true, type, title, message });
-  };
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const {
-    data: newUser,
+    data: formData,
     errors,
-    setData: setNewUser,
-    setErrors,
+    setData: setFormData,
     handleChange,
     validate,
     resetForm
   } = useDocumentForm();
 
+  // Función para cargar documentos
+  const cargarDocumentos = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
 
+      const response = await axios.get(`http://localhost:8000/api/documentos?proceso=${idProceso}`);
+
+      if (!response.data || response.data.length === 0) {
+        setUsers([]);
+      } else {
+        setUsers(response.data);
+      }
+    } catch (error) {
+      console.error("Error al obtener documentos:", error);
+      let errorMessage = "Error al cargar los documentos";
+
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = "No se encontraron documentos";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Error del servidor al cargar documentos";
+        }
+      } else if (error.request) {
+        errorMessage = "Error de conexión. Verifique su internet";
+      }
+
+      setError(errorMessage);
+      setUsers([]);
+      showSnackbar?.(errorMessage, "error", "Error");
+    } finally {
+      setLoading(false);
+    }
+  }, [idProceso, showSnackbar]);
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/api/documentos?proceso=${idProceso}`)
-      .then((resp) => {
-        setUsers(resp.data);
-      })
-      .catch((error) => {
-        console.error("Error al obtener documentos:", error);
-      });
-  }, [idProceso]);
+    if (!idProceso) {
+      setLoading(false);
+      return;
+    }
+    cargarDocumentos();
+  }, [idProceso, cargarDocumentos]);
 
-  const confirmarEliminacion = () => {
-    axios.delete(`http://localhost:8000/api/documentos/${docAEliminar.idDocumento}`)
-      .then(() => {
-        setUsers(prev => prev.filter(u => u.idDocumento !== docAEliminar.idDocumento));
-        showFeedback("success", "Eliminado", "Documento eliminado correctamente.");
-      })
-      .catch(() => {
-        showFeedback("error", "Error", "No se pudo eliminar el documento.");
-      })
-      .finally(() => {
-        setConfirmDialogOpen(false);
-        setDocAEliminar(null);
-      });
+  const confirmarEliminacion = async () => {
+    if (!docAEliminar) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/api/documentos/${docAEliminar.idDocumento}`);
+      setUsers(prev => prev.filter(u => u.idDocumento !== docAEliminar.idDocumento));
+      showSnackbar?.("Documento eliminado correctamente", "success", "Éxito");
+    } catch (error) {
+      console.error("Error al eliminar documento:", error);
+      let errorMessage = "Error al eliminar el documento";
+      if (error.response?.status === 404) {
+        errorMessage = "El documento no fue encontrado";
+      }
+      showSnackbar?.(errorMessage, "error", "Error");
+    } finally {
+      setConfirmDialogOpen(false);
+      setDocAEliminar(null);
+    }
   };
 
-  const handleAddUser = () => {
-    if (!validate()) return;
-    setSavingCreate(true);
-    const payload = {
-      ...newUser,
-      idProceso,
-      responsable: newUser.usuarios.join(", "),
-      // Asegurar que los campos null/0 se envíen correctamente
-      noRevision: newUser.noRevision || 0,
-      noCopias: newUser.noCopias || 0,
-      tiempoRetencion: newUser.tiempoRetencion || 0,
-      disposicion: newUser.disposicion || null
-    };
+  const handleOpenCreateDialog = () => {
+    resetForm();
+    setCurrentDoc(null);
+    setDialogOpen(true);
+  };
 
-    if (payload.tipoDocumento !== "externo") {
-      delete payload.fechaVersion;
+ const handleOpenEditDialog = (doc) => {
+  const formData = {
+    ...doc,
+    usuarios: doc.responsable ? doc.responsable.split(',').map(r => r.trim()) : [],
+    noRevision: String(doc.noRevision ?? ""),  // String, no number
+    noCopias: String(doc.noCopias ?? ""),
+    tiempoRetencion: String(doc.tiempoRetencion ?? ""),
+    disposicion: doc.disposicion ?? ""  // String vacío, no null
+  };
+  
+  setFormData(formData);
+  setCurrentDoc(doc);
+  setDialogOpen(true);
+};
+
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setCurrentDoc(null);
+    resetForm();
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) {
+      showSnackbar?.("Por favor complete todos los campos obligatorios", "error", "Error de validación");
+      return;
     }
 
-    const formData = new FormData();
-    Object.entries(payload).forEach(([key, value]) => {
-      if (key === "archivo" && value instanceof File) {
-        formData.append("archivo", value);
-      } else if (value !== null && value !== undefined) {
-        formData.append(key, value);
-      }
-    });
-
-    axios.post("http://localhost:8000/api/documentos", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    })
-      .then((res) => {
-        setUsers(prev => [...prev, res.data]);
-        setOpenForm(false);
-        resetForm();
-        showFeedback("success", "Creado", "Documento creado correctamente.");
-      })
-      .catch((error) => {
-        console.error("Error al crear documento:", error.response?.data);
-        showFeedback("error", "Error", "No se pudo agregar el documento.");
-      })
-      .finally(() => {
-        setSavingCreate(false);
-      });
-  };
-
-
-  const handleEditDocument = (doc) => {
-    setPendingEditDoc(doc);
-    setConfirmEditOpen(true);
-  };
-
-
-  const confirmarEdicionDocumento = () => {
-    setEditDoc({
-      ...pendingEditDoc,
-      usuarios: pendingEditDoc.responsable
-        ? pendingEditDoc.responsable.split(',').map(r => r.trim())
-        : [],
-    });
-    setEditDialogOpen(true);
-    setPendingEditDoc(null);
-  };
-  const handleSaveEditDocument = () => {
-    if (!editDoc) return;
-    setSavingEdit(true);
+    setSaving(true);
+    
+    // Preparar payload común
     const payload = {
-      ...editDoc,
-      responsable: editDoc.usuarios?.join(", ") || "",
-      // Asegurar valores por defecto
-      noRevision: editDoc.noRevision || 0,
-      noCopias: editDoc.noCopias || 0,
-      tiempoRetencion: editDoc.tiempoRetencion || 0,
-      disposicion: editDoc.disposicion || null
+      ...formData,
+      idProceso,
+      responsable: Array.isArray(formData.usuarios) ? formData.usuarios.join(", ") : formData.usuarios,
+      noRevision: formData.noRevision || 0,
+      noCopias: formData.noCopias || 0,
+      tiempoRetencion: formData.tiempoRetencion || 0,
+      disposicion: formData.disposicion || null
     };
 
+    // Limpiar campos según tipo de documento
     if (payload.tipoDocumento !== "externo") {
       delete payload.fechaVersion;
     } else {
       delete payload.fechaRevision;
     }
 
-    const formData = new FormData();
+    const formDataToSend = new FormData();
     Object.entries(payload).forEach(([key, value]) => {
       if (key === "archivo" && value instanceof File) {
-        formData.append("archivo", value);
+        formDataToSend.append("archivo", value);
       } else if (value !== null && value !== undefined) {
-        formData.append(key, value);
+        formDataToSend.append(key, value.toString());
       }
     });
 
-    axios
-      .post(`http://localhost:8000/api/documentos/${editDoc.idDocumento}?_method=PUT`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((res) => {
-        setUsers((prev) =>
-          prev.map((u) => (u.idDocumento === res.data.idDocumento ? res.data : u))
+    try {
+      let response;
+      
+      if (currentDoc) {
+        // Modo edición
+        response = await axios.post(
+          `http://localhost:8000/api/documentos/${currentDoc.idDocumento}?_method=PUT`,
+          formDataToSend,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
-        setEditDoc(null);
-        setEditDialogOpen(false);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        showFeedback("success", "Editado", "Documento editado exitosamente.");
-      })
-      .catch(() => {
-        showFeedback("error", "Error", "No se pudo editar el documento.");
-      })
-      .finally(() =>{
-        setSavingEdit(false);
-      });
+        setUsers(prev => prev.map(u => u.idDocumento === response.data.idDocumento ? response.data : u));
+        showSnackbar?.("Documento actualizado correctamente", "success", "Éxito");
+      } else {
+        // Modo creación
+        response = await axios.post("http://localhost:8000/api/documentos", formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        setUsers(prev => [...prev, response.data]);
+        showSnackbar?.("Documento creado correctamente", "success", "Éxito");
+      }
+
+      setDialogOpen(false);
+      resetForm();
+      setCurrentDoc(null);
+
+    } catch (error) {
+      console.error("Error al guardar documento:", error);
+      
+      let errorMessage = currentDoc ? "Error al actualizar el documento" : "Error al crear el documento";
+      if (error.response?.status === 400) {
+        errorMessage = "Datos inválidos";
+      } else if (error.response?.status === 404) {
+        errorMessage = "El documento no fue encontrado";
+      } else if (error.response?.status === 413) {
+        errorMessage = "El archivo es demasiado grande";
+      }
+
+      showSnackbar?.(errorMessage, "error", "Error");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // Estados de carga y error (mantener igual)
+  if (loading) {
+    return (
+      <Box sx={{
+        p: 4,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "50vh",
+        flexDirection: "column",
+        gap: 2
+      }}>
+        <CircularProgress size={60} thickness={4} />
+        <Typography variant="h6" color="text.secondary">
+          Cargando documentos...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{
+        p: 4,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "50vh",
+        flexDirection: "column",
+        gap: 3
+      }}>
+        <Alert severity="error" sx={{ mb: 2, maxWidth: 500 }}>
+          {error}
+        </Alert>
+        <CustomButton
+          type="guardar"
+          onClick={cargarDocumentos}
+          variant="outlined"
+        >
+          Reintentar
+        </CustomButton>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 4, display: "flex", minHeight: "100vh", flexDirection: "column", paddingTop: 1 }}>
@@ -213,7 +277,7 @@ function ProcessMapView({ soloLectura, idProceso }) {
           px: 1,
         }}
       >
-        <Box sx={{ flex: 1 }} /> {/* Espacio izquierdo */}
+        <Box sx={{ flex: 1 }} />
 
         <Typography
           variant="h5"
@@ -224,48 +288,52 @@ function ProcessMapView({ soloLectura, idProceso }) {
 
         {!soloLectura && (
           <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-            <CustomButton type="guardar" onClick={() => setOpenForm(true)}>
+            <CustomButton type="guardar" onClick={handleOpenCreateDialog}>
               Agregar Documento
             </CustomButton>
           </Box>
         )}
       </Box>
 
-      <DocumentListView
-        documentos={users}
-        onEdit={handleEditDocument}
-        onDelete={(doc) => {
-          setDocAEliminar(doc);
-          setConfirmDialogOpen(true);
-        }}
-        soloLectura={soloLectura}
-      />
+      {users.length === 0 && !loading && !error && (
+        <Box sx={{ my: 4, textAlign: "center" }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            No hay documentos registrados
+          </Alert>
+          <Typography variant="body1" color="text.secondary">
+            {soloLectura
+              ? "No hay documentos disponibles para mostrar."
+              : "Puede agregar documentos usando el botón 'Agregar Documento'."
+            }
+          </Typography>
+        </Box>
+      )}
 
+      {users.length > 0 && (
+        <DocumentListView
+          documentos={users}
+          onEdit={handleOpenEditDialog}
+          onDelete={(doc) => {
+            setDocAEliminar(doc);
+            setConfirmDialogOpen(true);
+          }}
+          soloLectura={soloLectura}
+        />
+      )}
+
+      {/* Modal unificado para crear/editar */}
       <DocumentFormDialog
-        open={openForm}
-        modo="crear"
-        data={newUser}
+        open={dialogOpen}
+        modo={currentDoc ? "editar" : "crear"}
+        data={formData}
         errors={errors}
         onChange={handleChange}
-        onClose={() => {
-          setOpenForm(false);
-          resetForm();
-        }}
-        onSubmit={handleAddUser}
-        submitting={savingCreate}
+        onClose={handleCloseDialog}
+        onSubmit={handleSubmit}
+        submitting={saving}
       />
 
-      <DocumentFormDialog
-        open={editDialogOpen}
-        modo="editar"
-        data={{ usuarios: [], ...editDoc }} errors={{}}
-        onChange={(field, value) => setEditDoc(prev => ({ ...prev, [field]: value }))}
-        onClose={() => setEditDialogOpen(false)}
-        onSubmit={handleSaveEditDocument}
-        submitting={savingEdit}
-      />
-
-
+      {/* Confirmación de eliminación */}
       <ConfirmDelete
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
@@ -273,22 +341,6 @@ function ProcessMapView({ soloLectura, idProceso }) {
         entityName={docAEliminar?.nombreDocumento || "este documento"}
         onConfirm={confirmarEliminacion}
       />
-      <ConfirmEdit
-        open={confirmEditOpen}
-        onClose={() => setConfirmEditOpen(false)}
-        entityType="documento"
-        entityName={pendingEditDoc?.nombreDocumento || "este documento"}
-        onConfirm={confirmarEdicionDocumento}
-      />
-
-      <FeedbackSnackbar
-        open={alerta.open}
-        onClose={() => setAlerta(prev => ({ ...prev, open: false }))}
-        type={alerta.type}
-        title={alerta.title}
-        message={alerta.message}
-      />
-
     </Box>
   );
 }

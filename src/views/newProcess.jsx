@@ -96,7 +96,7 @@ const NewProcess = () => {
     try {
       await axios.post("http://127.0.0.1:8000/api/procesos", formData);
       
-      setSnackbarMessage("Proceso creado correctamente ✅");
+      setSnackbarMessage("Proceso creado correctamente ");
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
 

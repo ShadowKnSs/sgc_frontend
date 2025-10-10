@@ -36,46 +36,39 @@ const useAuditoriaForm = ({
   const isoFrom = (fecha, hora) => new Date(`${fecha}T${hora}:00`);
   const add1h = (date) => new Date(date.getTime() + 60 * 60 * 1000);
 
-  /**
-   * Cambio controlado de inputs
-   * - Normaliza auditoresAdicionales a array
-   * - Si cambia a "externa", limpia líder y adicionales
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Cambio de tipo: si pasa a "externa", limpiar líder y adicionales
-    if (name === "tipo") {
-      const isExterna = String(value).toLowerCase() === "externa";
-      setFormData((prev) => ({
-        ...prev,
-        tipo: value,
-        ...(isExterna ? { auditorLider: "", auditoresAdicionales: [] } : {})
-      }));
-      return;
-    }
-
     // Forzar array en auditoresAdicionales
-    if (name === "auditoresAdicionales") {
-      setFormData((prev) => ({
-        ...prev,
-        auditoresAdicionales: Array.isArray(value) ? value : [value]
-      }));
-      return;
-    }
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === "auditoresAdicionales"
+          ? Array.isArray(value)
+            ? value
+            : [value]
+          : value,
+    }));
   };
 
-  /**
-   * Carga en modo edición
-   * - Si el evento es externa, fuerza líder="" y adicionales=[]
-   */
   const handleEditOpen = () => {
     if (!selectedEvent) return;
 
-    const tipoUI = (selectedEvent.tipo || "").toLowerCase(); // "interna"|"externa" o ya mapeado en UI
+    const tipoUI = (selectedEvent.tipo || "").toLowerCase();
     const isExterna = tipoUI === "externa";
+
+    // 1) Toma SIEMPRE el idUsuario del líder (o su fallback llano)
+    const leaderIdUsuario = Number(
+      selectedEvent.auditorLider?.idUsuario ??
+      selectedEvent.auditorLider ??
+      selectedEvent.auditorLiderId ??
+      NaN
+    );
+
+    // 2) Normaliza IDs de adicionales y quita al líder si por error viene adentro
+    const adicionalesIds = (selectedEvent.auditoresAdicionales || [])
+      .map(a => Number(a.idUsuario ?? a.idAuditor ?? a.id))
+      .filter(v => !Number.isNaN(v))
+      .filter(v => v !== leaderIdUsuario);
 
     setFormData({
       entidad: selectedEvent.entidad || "",
@@ -86,28 +79,26 @@ const useAuditoriaForm = ({
       tipo: tipoUI,
       estado: (selectedEvent.estado || "Pendiente").toLowerCase(),
       descripcion: selectedEvent.descripcion || "",
-      auditoresAdicionales: isExterna
-        ? []
-        : (selectedEvent.auditoresAdicionales || [])
-            .map(a => Number(a.idAuditor ?? a.idUsuario ?? a.id))
-            .filter(v => !Number.isNaN(v)),
-      auditorLider: isExterna
-        ? ""
-        : (typeof selectedEvent.auditorLider === "object"
-            ? Number(selectedEvent.auditorLider.idAuditor)
-            : Number(selectedEvent.auditorLider ?? selectedEvent.auditorLiderId ?? NaN)) || "",
+      auditoresAdicionales: isExterna ? [] : adicionalesIds,
+      auditorLider: isExterna ? "" : (Number.isNaN(leaderIdUsuario) ? "" : leaderIdUsuario),
       idAuditoria: selectedEvent.id
     });
   };
 
   const resetForm = () => setFormData(initialFormData);
 
-  /**
-   * Guardado
-   * - Si es "externa": no envía líder, no envía adicionales, no llama /auditores-asignados
-   * - Render optimista consistente con lo anterior
-   */
-  const handleSubmit = async () => {
+  const handleSubmit = async (hasErrors = false) => {
+    // Si el componente reporta errores, mostrar SnackBar general y salir
+    if (hasErrors) {
+      setSnackbar({
+        open: true,
+        message: "Se deben completar todos los campos obligatorios.",
+        severity: "error"
+      });
+      return;
+    }
+
+    // Si llegamos aquí, no hay errores del componente, proceder con el envío
     const {
       entidad,
       proceso,
@@ -121,14 +112,29 @@ const useAuditoriaForm = ({
       auditoresAdicionales,
     } = formData;
 
+
     const idProceso = Number(procesoId);
     const audAdic = Array.isArray(auditoresAdicionales) ? auditoresAdicionales : [];
     const tipoApi = toApiTipo(tipo);
     const isExterna = tipoApi === "externa";
 
-    // Validación mínima
+    // Validación mínima (defensiva del servidor)
     if (!entidad || !procesoId || !fecha || !hora || !tipo || !estado || !descripcion) {
       setSnackbar({ open: true, message: "Todos los campos son obligatorios.", severity: "error" });
+      return;
+    }
+
+    // Validación horario SGC: entre 08:00 y 17:00 (inclusive)
+    const horaParts = String(hora).split(':').map(Number);
+    if (horaParts.length < 2 || isNaN(horaParts[0]) || isNaN(horaParts[1])) {
+      setSnackbar({ open: true, message: "Formato de hora inválido.", severity: "error" });
+      return;
+    }
+    const minutesOfDay = horaParts[0] * 60 + horaParts[1];
+    const minAllowed = 8 * 60;   // 08:00
+    const maxAllowed = 17 * 60;  // 17:00
+    if (minutesOfDay < minAllowed || minutesOfDay > maxAllowed) {
+      setSnackbar({ open: true, message: "La hora debe estar entre 08:00 y 17:00.", severity: "error" });
       return;
     }
 
@@ -136,6 +142,7 @@ const useAuditoriaForm = ({
 
     try {
       if (isEditing && selectedEvent) {
+
         // UPDATE
         await axios.put(`http://127.0.0.1:8000/api/cronograma/${selectedEvent.id}`, {
           idProceso,
@@ -145,12 +152,14 @@ const useAuditoriaForm = ({
           estado: toApiEstado(estado),
           descripcion,
           auditorLider: isExterna ? null : (auditorLider || null),
-          // No enviar auditoresAdicionales aquí para externa; el backend ya tiene la invariante
         });
 
-        // Asignación de adicionales: SOLO si no es externa
         if (!isExterna) {
-          const ids = (audAdic || []).map(Number).filter(v => !Number.isNaN(v));
+          const leaderId = isExterna ? null : Number(auditorLider);
+          const ids = (audAdic || [])
+            .map(Number)
+            .filter((v) => !Number.isNaN(v))
+            .filter((v) => leaderId == null || v !== leaderId);
           await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
             idAuditoria: selectedEvent.id,
             auditores: ids,
@@ -158,7 +167,6 @@ const useAuditoriaForm = ({
           });
         }
 
-        // Render optimista
         const start = isoFrom(fecha, hora);
         const end = add1h(start);
 
@@ -171,7 +179,9 @@ const useAuditoriaForm = ({
           : (isExterna ? "No aplica" : "Auditor Externo");
 
         const nuevosAuditores = !isExterna
-          ? (audAdic || []).map((id) => {
+          ? (audAdic || [])
+            .filter((id) => Number(id) !== Number(auditorLider))
+            .map((id) => {
               const a = auditores.find((x) => Number(x.idUsuario) === Number(id));
               return {
                 idAuditor: id,
@@ -185,21 +195,22 @@ const useAuditoriaForm = ({
         setEvents(prev => prev.map(ev =>
           ev.id === selectedEvent.id
             ? {
-                ...ev,
-                idProceso,
-                start,
-                end,
-                descripcion,
-                estado: toApiEstado(estado),
-                tipo: isExterna ? "Externa" : "Interna",
-                proceso,        // UI
-                entidad,        // UI
-                hora,
-                auditorLider: isExterna
-                  ? null
-                  : { idAuditor: auditorLider, nombre: nombreLider },
-                auditoresAdicionales: nuevosAuditores
-              }
+              ...ev,
+              idProceso,
+              start,
+              end,
+              descripcion,
+              estado: toApiEstado(estado),
+              tipo: isExterna ? "Externa" : "Interna",
+              proceso,
+              entidad,
+              hora,
+              auditorLider: isExterna
+                ? null
+                : { idUsuario: Number(auditorLider || 0), idAuditor: Number(auditorLider || 0), nombre: nombreLider },
+
+              auditoresAdicionales: nuevosAuditores
+            }
             : ev
         ));
 
@@ -214,23 +225,24 @@ const useAuditoriaForm = ({
           estado: toApiEstado(estado),
           descripcion,
           auditorLider: isExterna ? null : (auditorLider || null),
-          // Para no externas podrías seguir enviando auditoresAdicionales si tu back lo procesa en store.
           ...(isExterna ? {} : { auditoresAdicionales: (audAdic || []).map(Number).filter(v => !Number.isNaN(v)) })
         });
 
         const auditoriaResp = res?.data?.auditoria ?? res?.data ?? {};
         const idNueva = auditoriaResp.idAuditoria ?? auditoriaResp.id ?? undefined;
 
-        // Para externas NO llamar /auditores-asignados
         if (!isExterna && idNueva) {
-          const ids = (audAdic || []).map(Number).filter(v => !Number.isNaN(v));
-          if (ids.length > 0) {
-            await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
-              idAuditoria: idNueva,
-              auditores: ids,
-              auditorLider: auditorLider || null
-            });
-          }
+          const leaderId = isExterna ? null : Number(auditorLider);
+          const ids = (audAdic || [])
+            .map(Number)
+            .filter((v) => !Number.isNaN(v))
+            .filter((v) => leaderId == null || v !== leaderId); if (ids.length > 0) {
+              await axios.post("http://127.0.0.1:8000/api/auditores-asignados", {
+                idAuditoria: idNueva,
+                auditores: ids,
+                auditorLider: leaderId || null
+              });
+            }
         }
 
         const start = isoFrom(auditoriaResp.fechaProgramada || fecha, auditoriaResp.horaProgramada || hora);
@@ -253,23 +265,19 @@ const useAuditoriaForm = ({
           descripcion,
           estado: auditoriaResp.estado || toApiEstado(estado),
           tipo: isExterna ? "Externa" : "Interna",
-          proceso,   // UI
-          entidad,   // UI
+          proceso,
+          entidad,
           hora,
           auditorLider: isExterna
             ? null
             : { idAuditor: auditorLider || null, nombre: nombreLider },
           auditoresAdicionales: isExterna
             ? []
-            : (audAdic || []).map((id) => {
-                const a = auditores.find((x) => Number(x.idUsuario) === Number(id));
-                return {
-                  idAuditor: id,
-                  nombre: a
-                    ? [a.nombre, a.apellidoPat, a.apellidoMat].filter(Boolean).join(" ")
-                    : "Desconocido"
-                };
-              }),
+            : (audAdic || []).filter(x => Number(x) !== Number(auditorLider)).map((id) => {
+              const a = auditores.find((x) => Number(x.idUsuario) === Number(id));
+              const nombre = a ? [a.nombre, a.apellidoPat, a.apellidoMat].filter(Boolean).join(" ") : "Desconocido";
+              return { idUsuario: Number(id), idAuditor: Number(id), nombre };
+            }),
         };
 
         setEvents(prev => [...prev, nuevaAuditoria]);
