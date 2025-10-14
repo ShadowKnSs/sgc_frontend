@@ -51,7 +51,6 @@
 
 import React, { useEffect, useState } from "react";
 import Permiso from "../hooks/userPermiso";
-import { Button } from "@mui/material";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Title from "../components/Title";
@@ -60,7 +59,6 @@ import {
   Box,
   Typography,
   Grid,
-  Paper,
   Fab,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -70,6 +68,11 @@ import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import axios from "axios";
 import { CircularProgress } from '@mui/material';
 import AuditoriaCard from "../components/AuditoriaView";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import FolderIcon from '@mui/icons-material/Folder';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import DescriptionIcon from "@mui/icons-material/Description";
+
 
 const AuditoriaProceso = () => {
   const { idRegistro } = useParams(); // ID de la carpeta (representa el año)
@@ -132,13 +135,12 @@ const AuditoriaProceso = () => {
       setAuditoriaAEliminar(null);
     }
   };
-  
+
   const fetchAnioRegistro = async () => {
-  try {
+    try {
       const res = await axios.get(`http://localhost:8000/api/registros/${idRegistro}`);
       setAnioRegistro(res.data.año);
     } catch (error) {
-      console.error("Error al obtener el año del registro:", error);
     }
   };
 
@@ -150,7 +152,6 @@ const AuditoriaProceso = () => {
         const res = await axios.get(`http://localhost:8000/api/auditorias/registro-anio/${idRegistro}`);
         setAuditorias(res.data);
       } catch (error) {
-        console.error("Error al cargar auditorías:", error);
         setErrorCarga("Error al cargar las auditorías del proceso.");
       } finally {
         setCargando(false);
@@ -160,7 +161,6 @@ const AuditoriaProceso = () => {
     const fetchNombreProcesoYEntidad = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/procesos/${idProceso}`);
-        console.log("Respuesta del proceso:", res.data);
         const proceso = res.data.proceso;
 
         setNombreProceso(proceso.nombreProceso);
@@ -202,7 +202,7 @@ const AuditoriaProceso = () => {
   }
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 2 }}>
       {mensaje && (
         <MensajeAlert tipo={mensaje.tipo} texto={mensaje.texto} onClose={() => setMensaje(null)} />
       )}
@@ -215,6 +215,18 @@ const AuditoriaProceso = () => {
         onConfirm={handleEliminar}
         itemName={`la auditoría del ${new Date(auditoriaAEliminar?.fecha || '').toLocaleDateString()}`}
       />
+      <BreadcrumbNav items={[{
+        label: 'Estructura',
+        to: idProceso ? `/estructura-procesos/${idProceso}` : '/estructura-procesos',
+        icon: AccountTreeIcon
+      },
+      {
+        label: 'Carpetas Auditoría',
+        to: idProceso ? `/carpetas/${idProceso}/Auditoria` : undefined,
+        icon: FolderIcon
+      },
+      { label: 'Auditorías', icon: DescriptionIcon }]} />
+
       <Title text={`Auditorías del Proceso de ${nombreProceso} de la ${nombreEntidad}`} />
       <Grid container spacing={3}>
         {auditorias.length === 0 ? (
@@ -254,7 +266,7 @@ const AuditoriaProceso = () => {
           <AddIcon />
         </Fab>
       )}
-      { ( //incluir el permiso de editar o leer
+      {( //incluir el permiso de editar o leer
         <>
           <Fab
             color="primary"

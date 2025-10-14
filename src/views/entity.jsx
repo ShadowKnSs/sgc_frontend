@@ -44,6 +44,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Buscador from "../components/BuscadorEntidades";
 import BreadcrumbNav from "../components/BreadcrumbNav";
+import FeedbackSnackbar from "../components/Feedback";
 
 
 // Iconos
@@ -80,6 +81,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
 import Title from "../components/Title";
 const iconMap = {
   Business: <BusinessIcon />,
@@ -114,53 +116,75 @@ const iconMap = {
   Campaign: <CampaignOutlinedIcon />,
   LaptopChromebook: <LaptopChromebookOutlinedIcon />
 }
+
 const Entity = () => {
   const navigate = useNavigate();
   const [entidades, setEntidades] = useState([]);
   const [entidadesFiltradas, setEntidadesFiltradas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tipoFilter, setTipoFilter] = useState("");
+  const [snack, setSnack] = useState({ open: false, type: "error", msg: "" });
 
   useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    const rolActivo = JSON.parse(localStorage.getItem("rolActivo"));
-    if (!usuario || !rolActivo) { setLoading(false); return; }
+    const usuarioRaw = localStorage.getItem("usuario");
+    const rolRaw = localStorage.getItem("rolActivo");
 
-    const permisos = rolActivo.permisos || [];
+    if (!usuarioRaw || !rolRaw) {
+      setLoading(false);
+      setSnack({ open: true, type: "error", msg: "Sesión no válida. Inicia sesión nuevamente." });
+      return;
+    }
+
+    let usuario, rolActivo;
+    try {
+      usuario = JSON.parse(usuarioRaw);
+      rolActivo = JSON.parse(rolRaw);
+    } catch {
+      setLoading(false);
+      setSnack({ open: true, type: "error", msg: "Error al leer datos locales de sesión." });
+      return;
+    }
+
+    const permisos = rolActivo?.permisos || [];
     const puedeVerEntidades = permisos.some(
-      (permiso) =>
-        permiso.modulo === "Entidades" &&
-        ["Lectura", "Edición", "Administración"].includes(permiso.tipoAcceso)
+      (p) => p.modulo === "Entidades" && ["Lectura", "Edición", "Administración"].includes(p.tipoAcceso)
     );
-    if (!puedeVerEntidades) { setLoading(false); return; }
 
-    axios.post("http://127.0.0.1:8000/api/entidades-por-usuario", {
-      idUsuario: usuario.idUsuario,
-      rolActivo: rolActivo.nombreRol,
-    })
-    .then(({ data }) => {
-      const entidadesCrudas = data.entidades || [];
-      const entidadesConIcono = entidadesCrudas.map((entidad) => ({
-        ...entidad,
-        icono:
-          (typeof iconMap !== "undefined" && iconMap?.[entidad.icono]) ||
-          <BusinessIcon />,
-      }));
-      setEntidades(entidadesConIcono);
-      setEntidadesFiltradas(entidadesConIcono);
-    })
-    .catch((e) => console.error("❌ Error al obtener entidades:", e))
-    .finally(() => setLoading(false));
+    if (!puedeVerEntidades) {
+      setLoading(false);
+      setSnack({ open: true, type: "warning", msg: "No cuentas con permisos para ver Entidades." });
+      return;
+    }
+
+    axios
+      .post("http://127.0.0.1:8000/api/entidades-por-usuario", {
+        idUsuario: usuario.idUsuario,
+        rolActivo: rolActivo.nombreRol,
+      })
+      .then(({ data }) => {
+        const entidadesCrudas = data?.entidades || [];
+        const entidadesConIcono = entidadesCrudas.map((entidad) => ({
+          ...entidad,
+          icono: (typeof iconMap !== "undefined" && iconMap?.[entidad.icono]) || <BusinessIcon />,
+        }));
+        setEntidades(entidadesConIcono);
+        setEntidadesFiltradas(entidadesConIcono);
+      })
+      .catch(() => {
+        // Sin console.error: mostramos feedback
+        setSnack({ open: true, type: "error", msg: "Error al obtener las entidades." });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const entidadesMostradas = useMemo(() => {
-    return (entidadesFiltradas || []).filter((ent) =>
-      tipoFilter === "" ? true : ent.tipo === tipoFilter
-    );
+    return (entidadesFiltradas || []).filter((ent) => (tipoFilter === "" ? true : ent.tipo === tipoFilter));
   }, [entidadesFiltradas, tipoFilter]);
 
-  // ---- Layout responsivo inteligente (1 y 2 cards centradas) ----
+  // ---- Layout responsivo SIN overflow horizontal ----
+
   const count = entidadesMostradas.length;
+
   const gridSx =
     count <= 1
       ? {
@@ -170,25 +194,33 @@ const Entity = () => {
       : count === 2
       ? {
           gridTemplateColumns: {
-            xs: "repeat(1, minmax(260px, 1fr))",
-            sm: "repeat(2, minmax(260px, 1fr))",
+            xs: "minmax(260px, 1fr)",
+            sm: "repeat(2, minmax(0, 1fr))",
           },
           justifyContent: "center",
         }
       : {
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gridTemplateColumns: {
+            xs: "repeat(1, minmax(0, 1fr))",
+            sm: "repeat(2, minmax(0, 1fr))",
+            md: "repeat(3, minmax(0, 1fr))",
+            lg: "repeat(4, minmax(0, 1fr))",
+          },
         };
 
   return (
-    <Box sx={{ width: "100%", px: { xs: 1.5, sm: 2 }, mt: 2 }}>
-      {/* Breadcrumb arriba, semántico y accesible */}
-      <BreadcrumbNav
-        items={[
-          { label: "Entidades" }, // último sin 'to'
-        ]}
-      />
-
-      {/* Título sticky para contexto persistente */}
+    <Box
+      sx={{
+        width: "100%",
+        overflowX: "hidden",          // <- evita desbordamiento horizontal
+        boxSizing: "border-box",
+        px: { xs: 1.5, sm: 2 },
+        mt: 2,
+        pb: 2,
+        mb: 4
+      }}
+    >
+      <BreadcrumbNav items={[{ label: "Entidades", icon: LocationCityIcon }]} />
       <Title text="Entidades" mode="sticky" />
 
       {/* Toolbar */}
@@ -198,14 +230,16 @@ const Entity = () => {
         alignItems={{ xs: "stretch", sm: "center" }}
         justifyContent="center"
         sx={{
-          mb: 3,
           zIndex: 1,
           bgcolor: "background.paper",
-          py: 1.5,
+          py: 1,
           borderBottom: 1,
           borderColor: "divider",
           flexWrap: "wrap",
           gap: 2,
+          maxWidth: 1400,
+          mx: "auto",
+          width: "100%",
         }}
       >
         <Buscador entidades={entidades} onFiltrar={setEntidadesFiltradas} />
@@ -215,7 +249,7 @@ const Entity = () => {
           label="Tipo"
           value={tipoFilter}
           onChange={(e) => setTipoFilter(e.target.value)}
-          sx={{ minWidth: 160, maxWidth: 200 }}
+          sx={{ minWidth: 160, maxWidth: 200, alignSelf: "center" }}
         >
           <MenuItem value="">Todos</MenuItem>
           <MenuItem value="Entidad">Entidad</MenuItem>
@@ -223,15 +257,15 @@ const Entity = () => {
         </TextField>
       </Stack>
 
-      {/* Grid de tarjetas: contenedor centrado y ancho máximo */}
+      {/* Grid de tarjetas */}
       <Box sx={{ maxWidth: 1400, mx: "auto", width: "100%" }}>
         <Box
           sx={{
             display: "grid",
-            gap: 4,
+            gap: 3,
             alignItems: "start",
             textAlign: "center",
-            mt: 3,
+            mt: 1,
             px: { xs: 0.5, sm: 2 },
             width: "100%",
             ...gridSx,
@@ -242,25 +276,51 @@ const Entity = () => {
               <CircularProgress />
             </Box>
           ) : count === 0 ? (
-            <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            // Empty state con icono y texto
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: 520,
+                mx: "auto",
+                my: 4,
+                py: 4,
+                px: 3,
+                borderRadius: 2,
+                border: "1px dashed",
+                borderColor: "divider",
+              }}
+              role="status"
+              aria-live="polite"
+            >
+              <LocationCityIcon sx={{ fontSize: 56, color: "text.secondary", mb: 1 }} />
               <Typography variant="h6" color="text.secondary">
-                No se encontraron resultados
+                No hay entidades registradas
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Ajusta los filtros o intenta más tarde.
               </Typography>
             </Box>
           ) : (
             entidadesMostradas.map((entidad) => (
-              <MenuCard
-                key={entidad.idEntidadDependencia}
-                icon={entidad.icono}
-                title={entidad.nombreEntidad}
-                onClick={() =>
-                  navigate(`/procesos/${entidad.idEntidadDependencia}`)
-                }
-              />
+              <Box key={entidad.idEntidadDependencia} sx={{ minWidth: 0 /* evita overflow por contenido interno */ }}>
+                <MenuCard
+                  icon={entidad.icono}
+                  title={entidad.nombreEntidad}
+                  onClick={() => navigate(`/procesos/${entidad.idEntidadDependencia}`)}
+                />
+              </Box>
             ))
           )}
         </Box>
       </Box>
+
+      {/* Snackbar de feedback (errores/avisos) */}
+      <FeedbackSnackbar
+        open={snack.open}
+        type={snack.type}
+        message={snack.msg}
+        onClose={() => setSnack((s) => ({ ...s, open: false }))}
+      />
     </Box>
   );
 };

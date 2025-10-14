@@ -46,6 +46,11 @@ import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
 import SearchFilter from "../components/SearchFilter";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+
+
 
 const PrincipalReportSem = () => {
     const [open, setOpen] = useState(false);
@@ -62,12 +67,12 @@ const PrincipalReportSem = () => {
 
     const navigate = useNavigate();
 
-   
 
-const handleReporteEliminado = (idEliminado) => {
-  // Filtramos el reporte eliminado de la lista
-  setReportes((prev) => prev.filter((r) => r.idReporteSemestral !== idEliminado));
-};
+
+    const handleReporteEliminado = (idEliminado) => {
+        // Filtramos el reporte eliminado de la lista
+        setReportes((prev) => prev.filter((r) => r.idReporteSemestral !== idEliminado));
+    };
 
     useEffect(() => {
         fetchReportes();
@@ -80,7 +85,7 @@ const handleReporteEliminado = (idEliminado) => {
             const data = await response.json();
             setReportes(data);
         } catch (error) {
-            console.error("❌ Error al cargar reportes:", error);
+            console.error(" Error al cargar reportes:", error);
         }
     };
 
@@ -97,7 +102,6 @@ const handleReporteEliminado = (idEliminado) => {
 
     const handleClick = async () => {
         if (!year || !period) {
-            console.warn("⚠️ Por favor ingresa el año y el periodo.");
             return;
         }
 
@@ -110,16 +114,15 @@ const handleReporteEliminado = (idEliminado) => {
             const data = await response.json();
 
             if (data.exists) {
-                setMessageSnackbar("❌ Error: El reporte ya existe.");
+                setMessageSnackbar(" Error: El reporte ya existe.");
                 setOpenSnackbar(true);
                 return;
             }
 
             await fetchData(year, period);
         } catch (error) {
-            console.error("🚨 Error en la verificación del reporte:", error);
         } finally {
-            setLoading(false); // 🔵 Finaliza cargando
+            setLoading(false);
             handleCloseForm();
         }
     };
@@ -142,25 +145,24 @@ const handleReporteEliminado = (idEliminado) => {
             let hayDatos = false;
             results.forEach((lista, index) => {
                 if (lista.length > 0) {
-                    console.log(`📌 Hay datos en la lista: ${nombresListas[index]}`);
                     hayDatos = true;
                 }
             });
 
             if (!hayDatos) {
-                setMessageSnackbar("⚠️ No hay datos para ese año y periodo.");
+                setMessageSnackbar(" No hay datos para ese año y periodo.");
                 setOpenSnackbar(true);
                 return;
             }
 
-            console.log("✅ Resultados finales para navegar:", results);
+            console.log("Resultados finales para navegar:", results);
 
             navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
 
         } catch (error) {
             console.error("Error al obtener los datos:", error);
         }
-    }; 
+    };
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -168,6 +170,7 @@ const handleReporteEliminado = (idEliminado) => {
 
     return (
         <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+
             {/* Componente SearchFilter */}
             <SearchFilter
                 open={searchOpen}
@@ -176,11 +179,30 @@ const handleReporteEliminado = (idEliminado) => {
                 setSearchTerm={setSearchTerm}
             />
 
+
             <Box sx={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                {/* Título */}
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 5, mb: 5 }}>
-                    <Title text="Reportes Semestrales" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
+
+
+                <Box
+                    sx={{
+                        width: "100%",
+                        maxWidth: 1550,   
+                        mx: "auto",
+                        px: { xs: 1.5, sm: 2 },
+                        alignSelf: "stretch",
+                        pt: 1.5,
+                    }}
+                >
+                    <BreadcrumbNav
+                        items={[
+                            { label: "Reportes", to: "/typesReports", icon: AssignmentIcon },
+                            { label: "Reportes Semestrales", icon: AnalyticsOutlinedIcon },
+                        ]}
+                    />
                 </Box>
+                {/* Título */}
+                <Title text="Reportes Semestrales" />
+
 
                 {/* Grid de cards o mensaje si no hay reportes */}
                 {reportes.length === 0 ? (
@@ -194,13 +216,13 @@ const handleReporteEliminado = (idEliminado) => {
                         {reportes.map((reporte) => (
                             <Grid item key={reporte.idReporteSemestral}>
                                 <ReporteSemCard
-          id={reporte.idReporteSemestral} // importante para eliminar
-          anio={reporte.anio}
-          periodo={reporte.periodo}
-          fechaGeneracion={reporte.fechaGeneracion}
-          ubicacion={reporte.ubicacion}
-          onDeleted={handleReporteEliminado} // <-- aquí pasamos el callback
-        />
+                                    id={reporte.idReporteSemestral} // importante para eliminar
+                                    anio={reporte.anio}
+                                    periodo={reporte.periodo}
+                                    fechaGeneracion={reporte.fechaGeneracion}
+                                    ubicacion={reporte.ubicacion}
+                                    onDeleted={handleReporteEliminado} // <-- aquí pasamos el callback
+                                />
                             </Grid>
                         ))}
                     </Grid>)}
@@ -289,9 +311,9 @@ const handleReporteEliminado = (idEliminado) => {
                                     "&:hover": { backgroundColor: "#D99400" },
                                     borderRadius: "30px",
                                     padding: "8px 16px",
-                                    minWidth: "120px", // 👈 para que no se encoja cuando aparezca el loader
+                                    minWidth: "120px",
                                 }}
-                                disabled={!year || !period || loading} // 👈 deshabilitado también cuando carga
+                                disabled={!year || !period || loading}
                             >
                                 {loading ? (
                                     <CircularProgress size={24} sx={{ color: "white" }} />

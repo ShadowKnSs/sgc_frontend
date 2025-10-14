@@ -7,7 +7,8 @@ import SchoolIcon from "@mui/icons-material/School";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import { motion } from "framer-motion";
 import axios from "axios";
-import Title from "../components/Title"; // tu componente sticky
+import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 const DetalleAuditor = ({ auditor, onBack }) => {
   const [auditorias, setAuditorias] = useState([]);
@@ -33,7 +34,15 @@ const DetalleAuditor = ({ auditor, onBack }) => {
   }, []);
 
   return (
-    <Box sx={{ p: 4, minHeight: "100vh" }}>
+    <Box sx={{ p: 2, minHeight: "100vh" }}>
+      <BreadcrumbNav items={[{
+        label: 'Auditores',
+        to: '/auditores',
+        icon: PersonIcon
+      },{
+        label: 'Información del Auditor',
+        icon: AssignmentTurnedInIcon
+      }]} />
       {/* Sticky Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -49,24 +58,7 @@ const DetalleAuditor = ({ auditor, onBack }) => {
       >
         {showStickyTitle && <Title text={`${auditor.nombre} ${auditor.apellidoPat} ${auditor.apellidoMat || ""}`} />}
       </motion.div>
-
-      {/* Botón de regreso */}
-      <button
-        onClick={onBack}
-        style={{
-          backgroundColor: "#004A98",
-          color: "white",
-          padding: "8px 16px",
-          borderRadius: "8px",
-          border: "none",
-          fontWeight: "bold",
-          cursor: "pointer",
-          marginBottom: "20px"
-        }}
-      >
-        ⬅ Volver
-      </button>
-
+      
       {/* Contenedor principal */}
       <Box
         sx={{

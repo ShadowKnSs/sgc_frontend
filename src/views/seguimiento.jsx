@@ -192,8 +192,8 @@ function Carpetas() {
     }
   };
   return (
-    <Box sx={{ p: 4 }}>
-      <Box sx={{ width: '100%', alignSelf: 'stretch', mb: 2 }}>
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ width: '100%', alignSelf: 'stretch', mb: 1 }}>
         <BreadcrumbNav items={breadcrumbItems} />
       </Box>
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>

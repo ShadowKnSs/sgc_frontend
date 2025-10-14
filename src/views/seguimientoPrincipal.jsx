@@ -74,7 +74,7 @@ const Seguimiento = () => {
       icon: AccountTreeIcon
     },
     {
-      label: 'Carpetas',
+      label: 'Carpetas Seguimiento',
       to: idProcesoResolved ? `/carpetas/${idProcesoResolved}/Seguimiento` : undefined,
       icon: FolderIcon
     },
