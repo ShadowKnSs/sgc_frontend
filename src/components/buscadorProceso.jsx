@@ -199,7 +199,6 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
     setFilteredResults([]);
     setHasSearched(false);
     setInputError(false);
-    showFb("info", "Filtros limpiados", "Todos los filtros han sido restablecidos");
   };
 
   return (
@@ -298,11 +297,7 @@ const BuscadorProceso = ({ open, onClose, searchTerm, setSearchTerm }) => {
               '&:hover': { backgroundColor: '#1565c0' } 
             }}
           >
-            {loadingResults ? (
-              <CircularProgress size={24} sx={{ color: 'white' }} />
-            ) : (
-              'Buscar Reportes'
-            )}
+              Buscar Reportes
           </Button>
           
           <Button 

@@ -92,7 +92,7 @@ const GraficasPage = () => {
 
         <Grid item xs={12} md={6}>
           <Typography variant="h5" sx={{ color: "#185FA4" }} gutterBottom>Evaluación de Proveedores</Typography>
-          {datosGraficas.evaluacion ? (
+          {datosGraficas.evaluacion && Object.values(datosGraficas.evaluacion || {}).some(v => v != null) ? (
             <GraficaEvaluacionProveedores
               data={datosGraficas.evaluacion}
               onImageReady={handleImageReady}

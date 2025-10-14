@@ -106,8 +106,6 @@ const NewProcess = () => {
       }, 1500);
 
     } catch (error) {
-      console.error("Error al crear el proceso:", error);
-
       // Si el backend mandó error 422
       if (error.response && error.response.status === 422) {
         setSnackbarMessage(error.response.data.error);
@@ -124,7 +122,7 @@ const NewProcess = () => {
     <>
       <Box sx={{ p: 4 }}>
         <BreadcrumbNav
-          items={[{ label: "Nuevo Proceso", icon: AccountTreeIcon }]}
+          items={[ { label: "Procesos", to: "/procesos", icon: AccountTreeIcon }, { label: "Nuevo Proceso", icon: AccountTreeIcon }]}
         />
         <ProcessForm
           initialValues={{
