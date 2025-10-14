@@ -50,18 +50,14 @@
  */
 
 import React, { useEffect, useState } from "react";
-import Permiso from "../hooks/userPermiso";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import usePermiso from "../hooks/userPermiso";
 import Title from "../components/Title";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
   Grid,
-  Fab,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import MensajeAlert from '../components/MensajeAlert';
 import ErrorAlert from '../components/ErrorAlert';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
@@ -72,6 +68,7 @@ import BreadcrumbNav from "../components/BreadcrumbNav";
 import FolderIcon from '@mui/icons-material/Folder';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import DescriptionIcon from "@mui/icons-material/Description";
+import FabCustom from "../components/FabCustom";
 
 
 const AuditoriaProceso = () => {
@@ -79,8 +76,7 @@ const AuditoriaProceso = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const idProceso = location.state?.idProceso || localStorage.getItem("idProcesoActivo");
-  const soloLectura = location.state?.soloLectura ?? true;
-  const puedeEditar = location.state?.puedeEditar ?? false;
+  const { soloLectura, puedeEditar } = usePermiso("Auditoría");
   const [nombreProceso, setNombreProceso] = useState("");
   const [nombreEntidad, setNombreEntidad] = useState("");
   const [auditorias, setAuditorias] = useState([]);
@@ -94,16 +90,7 @@ const AuditoriaProceso = () => {
   const [errorCarga, setErrorCarga] = useState(null);
   const [cargando, setCargando] = useState(true);
 
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
-
-  const handleGenerarInforme = () => {
-    handleMenuClose();
-    navigate("/informe-auditoria", {
-      state: { idProceso, idRegistro, nombreProceso, nombreEntidad },
-    });
-  };
-
+ 
   const handleEditar = (auditoria) => {
     navigate("/informe-auditoria", {
       state: {
@@ -168,7 +155,6 @@ const AuditoriaProceso = () => {
         const entidadRes = await axios.get(`http://localhost:8000/api/entidades/${proceso.idEntidad}`);
         setNombreEntidad(entidadRes.data.nombreEntidad);
       } catch (error) {
-        console.error("Error al obtener proceso o entidad:", error);
         setErrorCarga("No se pudo obtener la información del proceso o entidad.");
       }
     };
@@ -256,31 +242,12 @@ const AuditoriaProceso = () => {
           ))
         )}
       </Grid>
-
       {!soloLectura && puedeEditar && (
-        <Fab
-          color="primary"
+        <FabCustom
+          title="Generar informe"
+          onClick={() => navigate("/informe-auditoria", { state: { idProceso, idRegistro, nombreProceso, nombreEntidad } })}
           sx={{ position: "fixed", bottom: 20, right: 20 }}
-          onClick={() => navigate("/informe-auditoria-interna", { state: { idProceso } })}
-        >
-          <AddIcon />
-        </Fab>
-      )}
-      {( //incluir el permiso de editar o leer
-        <>
-          <Fab
-            color="primary"
-            aria-label="more"
-            sx={{ position: "fixed", bottom: 20, right: 20 }}
-            onClick={handleMenuOpen}
-          >
-            <AddIcon />
-          </Fab>
-
-          <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
-            <MenuItem onClick={handleGenerarInforme}>Generar nuevo informe</MenuItem>
-          </Menu>
-        </>
+        />
       )}
     </Box>
   );

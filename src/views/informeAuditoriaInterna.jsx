@@ -63,7 +63,7 @@ import FeedbackSnackbar from "../components/Feedback";
 import FolderIcon from '@mui/icons-material/Folder';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import DescriptionIcon from "@mui/icons-material/Description";
-
+import PostAddIcon from '@mui/icons-material/PostAdd';
 import InformeAudText from '../components/InformeAudText';
 import InformeAudCriterios from '../components/InformeAudCriterios';
 import InformeAudEquipo from '../components/InformeAudEquipo';
@@ -73,7 +73,6 @@ import InformeAudConclusiones from '../components/InformeAudConclusiones';
 import InformeAudPlazos from "../components/InformeAudPlazos";
 import Title from "../components/Title";
 import BreadcrumbNav from "../components/BreadcrumbNav";
-import EditDocumentIcon from '@mui/icons-material/EditDocument';
 
 function InformeAud() {
   // Estado para los criterios
@@ -420,7 +419,7 @@ function InformeAud() {
         icon: FolderIcon
       },
       { label: 'Auditorías', icon: DescriptionIcon, to: `/auditoria/${idRegistro}` },
-      { label: 'Informe de Auditoría', icon: EditDocumentIcon } ]} />
+      { label: 'Informe de Auditoría', icon: PostAddIcon } ]} />
       {/* Contenedor principal del formulario */}
       <Box
         id="formulario-auditoria"
