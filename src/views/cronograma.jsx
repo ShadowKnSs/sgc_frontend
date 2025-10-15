@@ -222,7 +222,7 @@ function Cronograma() {
   const [date, setDate] = useState(new Date());
 
   useEffect(() => {
-    if (!usuario || !rolActivo?.nombreRol || auditores.length === 0) return;
+    if (!usuario || !rolActivo?.nombreRol) return;
 
     const r =
       view === 'month' ? monthRange(date) :
@@ -235,7 +235,7 @@ function Cronograma() {
         setInitialLoadComplete(true);
       }
     });
-  }, [view, date, usuario, rolActivo, auditores, fetchAuditorias]);
+  }, [view, date, usuario, rolActivo, fetchAuditorias]);
 
 
 

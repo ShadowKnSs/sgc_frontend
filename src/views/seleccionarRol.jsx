@@ -27,12 +27,10 @@ const SeleccionarRol = () => {
     const rolesGuardados = JSON.parse(localStorage.getItem("roles")) || [];
 
     if (rolesGuardados.length === 0) {
-          // 🔴 Caso cuando no hay roles disponibles en el localStorage
 
       setMensaje({ tipo: 'error', texto: 'No se encontraron roles disponibles' });
       navigate("/login");
     } else {
-          // 🎨 Asigna un ícono representativo según el tipo de rol
 
       const rolesConIcono = rolesGuardados.map(rol => {
         let icono = "AdminPanelSettings";
@@ -52,7 +50,6 @@ const SeleccionarRol = () => {
 
   const handleSeleccion = (rol) => {
     localStorage.setItem("rolActivo", JSON.stringify(rol));
-    setMensaje({ tipo: 'success', texto: `Rol seleccionado: ${rol.nombreRol}` });
     setTimeout(() => navigate("/user-eventos"), 1000);
   };
 

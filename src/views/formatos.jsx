@@ -1,8 +1,8 @@
 // src/views/Formatos.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import {Box, Modal, Typography, TextField, Card, CardContent, CardActions, CircularProgress, Grid, Chip, IconButton, InputAdornment, Avatar, alpha, Dialog, DialogTitle, DialogContent, DialogActions, Button} from '@mui/material';
-import {Search, PictureAsPdf, Description, Image as ImageIcon, InsertDriveFile, Close, CloudUpload, Download, Article, Delete} from '@mui/icons-material';
+import { Box, Modal, Typography, TextField, Card, CardContent, CardActions, CircularProgress, Grid, Chip, IconButton, InputAdornment, Avatar, alpha, Dialog, DialogTitle, DialogContent, DialogActions, Button, Tooltip } from '@mui/material';
+import { Search, PictureAsPdf, Description, Image as ImageIcon, InsertDriveFile, Close, CloudUpload, Download, Article, Delete } from '@mui/icons-material';
 import Title from '../components/Title';
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
@@ -340,7 +340,7 @@ const Formatos = () => {
   const [uploading, setUploading] = useState(false);
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const idUsuario = usuario?.idUsuario || 0;
-  
+
 
   // Snackbar
   const [snackbar, setSnackbar] = useState({
@@ -457,7 +457,7 @@ const Formatos = () => {
     open: false,
     formato: null,
   });
-  
+
   const [loading, setLoading] = useState(false);
 
   const handleOpenDeleteModal = (formato) => {
@@ -473,7 +473,7 @@ const Formatos = () => {
 
     try {
       await axios.delete(`http://127.0.0.1:8000/api/formatos/${confirmDelete.formato.idFormato}`);
-      
+
       setFormatos(prev => prev.filter(f => f.idFormato !== confirmDelete.formato.idFormato));
       showSnackbar('success', 'Formato eliminado', 'El formato se ha eliminado correctamente.');
     } catch (error) {
@@ -486,10 +486,10 @@ const Formatos = () => {
 
   return (
     <Box sx={{ p: 2, minHeight: '100vh', position: 'relative' }}>
-      <BreadcrumbNav items={[{ label: "Formatos", icon: Article  }]} />
+      <BreadcrumbNav items={[{ label: "Formatos", icon: Article }]} />
 
       <Box sx={{ textAlign: "center", py: 1 }}>
-        <Title text="Formatos" mode="sticky"/>
+        <Title text="Formatos" mode="sticky" />
         {!puedeEditar && (
           <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
             Aquí puedes revisar los formatos del sistema.
@@ -624,12 +624,14 @@ const Formatos = () => {
 
                   {/* Botón de eliminar - Solo para usuarios con permiso */}
                   {puedeEditar && (
-                    <IconButton 
-                      color="error" 
-                      onClick={() => handleOpenDeleteModal(formato)}
-                    >
-                      <Delete />
-                    </IconButton>
+                    <Tooltip title="Eliminar Formato" >
+                      <IconButton
+                        color="error"
+                        onClick={() => handleOpenDeleteModal(formato)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
                   )}
                 </CardActions>
               </Card>
@@ -648,12 +650,12 @@ const Formatos = () => {
 
       {/* Modal de confirmación de eliminación */}
       <Dialog open={confirmDelete.open} onClose={handleCloseDeleteModal}>
-        <DialogTitle 
-          sx={{ 
-            textAlign: "center", 
-            paddingBottom: 2, 
-            color: "primary.main", 
-            fontWeight: "bold" 
+        <DialogTitle
+          sx={{
+            textAlign: "center",
+            paddingBottom: 2,
+            color: "primary.main",
+            fontWeight: "bold"
           }}
         >
           Confirmar eliminación
@@ -668,20 +670,20 @@ const Formatos = () => {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center" }}>
-          <Button 
-            onClick={handleCloseDeleteModal} 
-            color="primary" 
-            disabled={loading} 
+          <Button
+            onClick={handleCloseDeleteModal}
+            color="primary"
+            disabled={loading}
           >
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={async () => {
-              setLoading(true); 
-              await handleDeleteFormato(); 
-              setLoading(false); 
-            }} 
-            color="error" 
+              setLoading(true);
+              await handleDeleteFormato();
+              setLoading(false);
+            }}
+            color="error"
             variant="contained"
             disabled={loading}
           >

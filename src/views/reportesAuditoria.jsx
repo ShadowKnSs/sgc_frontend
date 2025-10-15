@@ -56,7 +56,6 @@ const ReportesAuditoria = () => {
   const [procesos, setProcesos] = useState([]);
   const [entidadSeleccionada, setEntidadSeleccionada] = useState("");
   const [procesoSeleccionado, setProcesoSeleccionado] = useState("");
-  const [auditoriaSeleccionada, setAuditoriaSeleccionada] = useState("");
   const [loadingModal, setLoadingModal] = useState(false);
   const reporteExistente = reports.find(
     r => r.idAuditorialInterna === Number(fechaSeleccionada)
@@ -82,7 +81,6 @@ const ReportesAuditoria = () => {
       const resAuditorias = await axios.get("http://localhost:8000/api/auditorias");
       setAuditorias(resAuditorias.data);
     } catch (err) {
-      console.error("Error al cargar datos del modal:", err);
     } finally {
       setLoadingModal(false); // cuando termina la carga se apaga el loader
     }
@@ -98,7 +96,6 @@ const ReportesAuditoria = () => {
       const res = await axios.get("http://localhost:8000/api/auditorias");
       setAuditorias(res.data);
     } catch (err) {
-      console.error("Error al obtener auditorías:", err);
     }
   };
 
@@ -117,7 +114,6 @@ const ReportesAuditoria = () => {
       }));
       setReports(datos);
     } catch (err) {
-      console.error("Error al obtener reportes:", err);
     } finally {
       setLoading(false);
     }
@@ -250,7 +246,7 @@ const ReportesAuditoria = () => {
         <BreadcrumbNav
           items={[
             { label: "Reportes", to: "/typesReports", icon: AssignmentIcon },
-            { label: "Reportes Semestrales", icon: DescriptionIcon },
+            { label: "Reportes de Auditoría", icon: DescriptionIcon },
           ]}
         />
         <Title text="Reportes de Auditoría" />

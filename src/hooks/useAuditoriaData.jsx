@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import axios from "axios";
 
 const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
-  const [events, setEvents] = useState(null);
+  const [events, setEvents] = useState([]);
   const [entidades, setEntidades] = useState([]);
   const [procesos, setProcesos] = useState([]);
   const [procesosCE, setProcesosCE] = useState([]);
@@ -127,7 +127,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
                 // 3) Redundancia de seguridad: excluye contra el líder por cualquiera de los dos campos
                 .filter(a => Number(a.idUsuario) !== Number(rawLiderId) && Number(a.idAuditor) !== Number(rawLiderId));
             } catch (err) {
-              console.warn(`No se pudieron cargar auditores adicionales para auditoría ${auditoria.idAuditoria}`);
+              auditoresAdicionales = [];
             }
 
             return {
@@ -211,6 +211,16 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
         }));
         setProcesosCE(ce);
       } catch (err) {
+
+        setHasError(true);
+        setSnackbar({
+          open: true,
+          severity: "error",
+          message: "No se pudo cargar la configuración base (entidades/auditores/procesos).",
+        });
+      } finally {
+        // evita loader infinito si nunca llegaste a fetchAuditorias
+        setLoadingList(false);
       }
     };
     cargarDatosBase();
