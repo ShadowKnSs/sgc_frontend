@@ -200,29 +200,41 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
           axios.get("http://localhost:8000/api/auditores"),
           axios.get("http://localhost:8000/api/procesos-con-entidad"),
         ]);
-        setEntidades(resEntidades.data.nombres);
-        setAuditores(resAuditores.data.data);
 
-        const ce = (resProcesosCE.data?.procesos || []).map(p => ({
-          id: Number(p.idProceso),
-          nombre: p.nombreCompleto,         // "Entidad - Proceso"
-          nombreEntidad: p.nombreEntidad,
-          nombreProceso: p.nombreProceso,
-        }));
-        setProcesosCE(ce);
+        if (resEntidades.status === "fulfilled") {
+          setEntidades(resEntidades.value.data?.nombres || []);
+        } else {
+          setEntidades([]); // falla silenciosa
+        }
+
+        if (resAuditores.status === "fulfilled") {
+          setAuditores(resAuditores.value.data?.data || []);
+        } else {
+          setAuditores([]);
+        }
+
+        if (resProcesosCE.status === "fulfilled") {
+          const ce = (resProcesosCE.value.data?.procesos || []).map(p => ({
+            id: Number(p.idProceso),
+            nombre: p.nombreCompleto,
+            nombreEntidad: p.nombreEntidad,
+            nombreProceso: p.nombreProceso,
+          }));
+          setProcesosCE(ce);
+        } else {
+          setProcesosCE([]);
+        }
       } catch (err) {
-
-        setHasError(true);
-        setSnackbar({
-          open: true,
-          severity: "error",
-          message: "No se pudo cargar la configuración base (entidades/auditores/procesos).",
-        });
+        // Nunca bloquear pantalla
+        setEntidades([]);
+        setAuditores([]);
+        setProcesosCE([]);
       } finally {
-        // evita loader infinito si nunca llegaste a fetchAuditorias
+        // Cierra loader SIEMPRE
         setLoadingList(false);
       }
     };
+
     cargarDatosBase();
   }, []);
 
