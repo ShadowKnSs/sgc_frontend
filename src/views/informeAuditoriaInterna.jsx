@@ -54,13 +54,16 @@
  */
 
 import axios from "axios";
-import { Box, Grid, Typography, Button, TextField, MenuItem, Card, CardContent} from "@mui/material";
+import { Box, Grid, Typography,TextField, Card, CardContent} from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import CustomButton from "../components/Button";
 import FeedbackSnackbar from "../components/Feedback";
-
+import FolderIcon from '@mui/icons-material/Folder';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import DescriptionIcon from "@mui/icons-material/Description";
+import PostAddIcon from '@mui/icons-material/PostAdd';
 import InformeAudText from '../components/InformeAudText';
 import InformeAudCriterios from '../components/InformeAudCriterios';
 import InformeAudEquipo from '../components/InformeAudEquipo';
@@ -69,6 +72,7 @@ import InformeAudPM from '../components/InformeAudPM';
 import InformeAudConclusiones from '../components/InformeAudConclusiones';
 import InformeAudPlazos from "../components/InformeAudPlazos";
 import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 function InformeAud() {
   // Estado para los criterios
@@ -212,7 +216,6 @@ function InformeAud() {
         setPlazos((data.plazos || []).map(item => item.descripcion || ""));
 
       } catch (err) {
-        console.error("Error al cargar auditoría para edición:", err);
       }
     };
 
@@ -404,8 +407,19 @@ function InformeAud() {
   };
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh" }}>
-
+    <Box sx={{ p: 2, backgroundColor: "#f7f7f7", minHeight: "100vh" }}>
+      <BreadcrumbNav items={[{
+        label: 'Estructura',
+        to: idProceso ? `/estructura-procesos/${idProceso}` : '/estructura-procesos',
+        icon: AccountTreeIcon
+      },
+      {
+        label: 'Carpetas Auditoría',
+        to: idProceso ? `/carpetas/${idProceso}/Auditoria` : undefined,
+        icon: FolderIcon
+      },
+      { label: 'Auditorías', icon: DescriptionIcon, to: `/auditoria/${idRegistro}` },
+      { label: 'Informe de Auditoría', icon: PostAddIcon } ]} />
       {/* Contenedor principal del formulario */}
       <Box
         id="formulario-auditoria"

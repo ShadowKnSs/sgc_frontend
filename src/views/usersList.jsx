@@ -68,11 +68,9 @@ function UserManagement() {
     const [userToDelete, setUserToDelete] = useState(null);
     const [assignOpen, setAssignOpen] = useState(false);
     const [supervisorToAssign, setSupervisorToAssign] = useState(null);
-    const [allUsers, setAllUsers] = useState([]); // ← NUEVO: almacenar todos los usuarios
+    const [allUsers, setAllUsers] = useState([]); 
     const [selectedTab, setSelectedTab] = useState(0);
     const [reactivatingUser, setReactivatingUser] = useState(null);
-
-
 
     // Filtros
     const [q, setQ] = useState("");
@@ -125,7 +123,7 @@ function UserManagement() {
                     secondLastName: user.supervisor.apellidoMat,
                 }
                 : null,
-            activo: Boolean(user.activo), // ← Conversión explícita a boolean
+            activo: Boolean(user.activo), 
         };
     };
     // Mapear el tab seleccionado al valor de estado
@@ -134,7 +132,7 @@ function UserManagement() {
         setEstado(statusMap[selectedTab]);
     }, [selectedTab])
 
-    // Cargar roles (para combo)
+    // Cargar roles 
     useEffect(() => {
         (async () => {
             try {
@@ -142,13 +140,13 @@ function UserManagement() {
                 const list = Array.isArray(data?.data) ? data.data : [];
                 setRolesOptions(list);
             } catch {
-                // sin roles no se rompe, solo combo vacío
+                // sin roles, solo vacío
             }
         })();
     }, []);
 
     // Cargar usuarios normales con filtros
-    // Cargar usuarios normales con filtros - MODIFICADO
+  
     // Modificar la función fetchUsers para incluir el parámetro de estado
     const fetchUsers = useCallback(async () => {
         try {
@@ -156,7 +154,7 @@ function UserManagement() {
             const params = {
                 exclude_me: true,
                 per_page: 200,
-                estado: estado // ← Incluir el estado en la petición
+                estado: estado 
             };
 
             const response = await axios.get(`${API_URL}/usuarios`, { params });
@@ -172,7 +170,7 @@ function UserManagement() {
         } finally {
             setInitialLoading(false);
         }
-    }, [showFeedback, estado]); // ← Agregar estado como dependencia
+    }, [showFeedback, estado]); 
 
     // Modificar applyFilters para manejar correctamente el estado
     const applyFilters = useCallback(() => {
@@ -230,16 +228,17 @@ function UserManagement() {
     }, [showFeedback]);
 
 
-    // Efecto inicial - MODIFICADO
+    // Efecto inicial
     useEffect(() => {
         fetchUsuariosTemporales();
     }, [fetchUsuariosTemporales]);
 
     // Guardar usuario creado o editado
-    const handleAddUser = useCallback((usuarioGuardado) => {
+    const handleAddUser = useCallback(async (usuarioGuardado) => { 
         if (editingUser) {
             setUsers((prev) => prev.map((u) => (u.id === editingUser.id ? transformUserData(usuarioGuardado) : u)));
             showFeedback("success", "Usuario actualizado", "El usuario fue actualizado correctamente");
+            await fetchUsers(); 
         } else {
             setUsers((prev) => [...prev, transformUserData(usuarioGuardado)]);
             showFeedback("success", "Usuario creado", "El usuario fue creado correctamente");
@@ -598,7 +597,9 @@ return (
                                     justifyContent="center"
                                     sx={{ width: "100%" }}
                                 >
-                                    {users.map((user) => {
+                                {users
+                                    .filter(user => user != null) 
+                                    .map((user) => { 
                                         const canDelete = user.id !== currentUserId;
                                         return (
                                             <Suspense key={user.id} fallback={<UserCardSkeleton />}>

@@ -65,7 +65,7 @@
  * - Modo solo lectura para usuarios sin permisos sin mostrar botón "Crear".
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import { Box, Typography } from "@mui/material";
@@ -80,7 +80,6 @@ import DetallesAuditoriaDialog from "../components/Modals/DetallesAuditoriaDialo
 import useAuditoriaData from "../hooks/useAuditoriaData";
 import useAuditoriaForm from "../hooks/useAuditoriaForm";
 
-
 function Cronograma() {
   // Se obtiene el usuario y el rol activo desde el localStorage.
   // Se asume que "usuario" posee la propiedad "idUsuario" y
@@ -88,6 +87,7 @@ function Cronograma() {
   const usuario = useMemo(() => JSON.parse(localStorage.getItem("usuario") || "null"), []);
   const rolActivo = useMemo(() => JSON.parse(localStorage.getItem("rolActivo") || "null"), []);
 
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const { idProceso } = useParams();
   const [openForm, setOpenForm] = useState(false);
@@ -104,12 +104,13 @@ function Cronograma() {
     procesos,
     auditores,
     procesosCE,
-    loading,
-    setLoading,
+    loadingList,
     snackbar,
     setSnackbar,
     handleCloseSnackbar,
-    obtenerProcesosPorEntidad
+    obtenerProcesosPorEntidad,
+    fetchAuditorias,
+    hasError
   } = useAuditoriaData(usuario, rolActivo, idProceso);
 
   const {
@@ -118,6 +119,7 @@ function Cronograma() {
     handleChange,
     handleSubmit,
     handleEditOpen,
+    saving
   } = useAuditoriaForm({
     isEditing,
     selectedEvent,
@@ -125,10 +127,41 @@ function Cronograma() {
     setEvents,
     handleCloseForm,
     setSnackbar,
-    setLoading,
     procesosCE
   });
 
+  const LegendItem = ({ color, label }) => (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: color }} />
+      <Typography variant="caption">{label}</Typography>
+    </Box>
+  );
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const startOfWeek = (d) => {
+    const sd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dow = sd.getDay(); // 0=Dom
+    sd.setDate(sd.getDate() - dow);
+    sd.setHours(0, 0, 0, 0);
+    return sd;
+  };
+  const endOfWeek = (d) => {
+    const s = startOfWeek(d);
+    const e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    e.setHours(23, 59, 59, 999);
+    return e;
+  };
+  const monthRange = (d) => {
+    const first = new Date(d.getFullYear(), d.getMonth(), 1);
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    // Rango visible completo (semanas completas)
+    const from = startOfWeek(first);
+    const to = endOfWeek(last);
+    return { from: fmt(from), to: fmt(to) };
+  };
+  const weekRange = (d) => ({ from: fmt(startOfWeek(d)), to: fmt(endOfWeek(d)) });
+  const dayRange = (d) => ({ from: fmt(d), to: fmt(d) });
   const permiteAcciones = () => {
     if (rolActivo?.permisos) {
       // Filtra todos los permisos asignados al módulo "Cronograma"
@@ -154,6 +187,7 @@ function Cronograma() {
       estado: "pendiente",
       descripcion: "",
       auditorLider: "",
+      auditoresAdicionales: []
     });
     setOpenForm(true);
   };
@@ -187,6 +221,24 @@ function Cronograma() {
   const [view, setView] = useState("month");
   const [date, setDate] = useState(new Date());
 
+  useEffect(() => {
+    if (!usuario || !rolActivo?.nombreRol) return;
+
+    const r =
+      view === 'month' ? monthRange(date) :
+        view === 'week' ? weekRange(date) :
+          dayRange(date);
+
+    fetchAuditorias(r).then(() => {
+      // Marcar que la carga inicial está completa
+      if (!initialLoadComplete) {
+        setInitialLoadComplete(true);
+      }
+    });
+  }, [view, date, usuario, rolActivo, fetchAuditorias]);
+
+
+
   return (
     <Box
       sx={{
@@ -202,7 +254,7 @@ function Cronograma() {
       <BreadcrumbNav items={[{ label: "Cronograma", icon: CalendarMonthIcon }]} />
       <Title text="Cronograma de Auditorías" mode="sticky" />
 
-      {loading && (
+      {loadingList && (
         <Box sx={{
           position: "absolute",
           inset: 0,
@@ -220,28 +272,110 @@ function Cronograma() {
             </Typography>
           </Box>
         </Box>
-      )
-      }
+      )}
 
-      <AuditoriaCalendar
-        events={events}
-        view={view}
-        date={date}
-        setView={setView}
-        setDate={setDate}
-        onSelectEvent={handleOpenDetails}
-      />
+      {/* Estado de error - solo mostrar cuando hay error de conexión */}
+      {hasError && !loadingList && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+            flexDirection: "column",
+            gap: 2,
+            mb: 2
+          }}
+        >
+          <Typography variant="h6" color="error" textAlign="center">
+            Error al cargar auditorías
+          </Typography>
+          <Typography variant="body2" color="text.secondary" textAlign="center">
+            No se pudieron cargar las auditorías. Por favor, intente nuevamente.
+          </Typography>
+          <CustomButton
+            type="generar"
+            onClick={() => {
+              const r = view === 'month' ? monthRange(date) :
+                view === 'week' ? weekRange(date) : dayRange(date);
+              fetchAuditorias(r);
+            }}
+          >
+            Reintentar
+          </CustomButton>
+        </Box>
+      )}
+      {/* Estado sin datos */}
+      {!loadingList && !hasError && events.length === 0 && (
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 2, gap: 1.5 }}>
+          <Typography variant="body2" color="text.secondary">
+            No se encontraron auditorías para este mes.
+          </Typography>
+        </Box>
+      )}
+
+
+      {/* EL CALENDARIO SIEMPRE SE MUESTRA - incluso si no hay eventos o hay error */}
+      {/* Solo ocultar si está cargando por primera vez y hay error */}
+      {!(loadingList && hasError) && (
+        <AuditoriaCalendar
+          events={events}
+          view={view}
+          date={date}
+          setView={setView}
+          setDate={setDate}
+          onSelectEvent={handleOpenDetails}
+          // Prop adicional para mostrar estado vacío dentro del calendario
+          isEmpty={!loadingList && events.length === 0}
+        />
+      )}
 
       {/* Se muestra el botón "Crear Auditoría" si el usuario tiene el permiso "Cronograma" */}
-      {
-        permiteAcciones() && (
-          <Box sx={{ position: "absolute", bottom: "40px", right: "40px" }}>
-            <CustomButton type="generar" onClick={handleOpenForm}>
-              Crear Auditoría
-            </CustomButton>
+      {permiteAcciones() && (
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 460,             
+            right: "40px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 1.25,               // espacio entre botón y leyenda
+            zIndex: 20,
+          }}
+        >
+          <CustomButton type="generar" onClick={handleOpenForm}>
+            Crear Auditoría
+          </CustomButton>
+
+          {/* Leyenda compacta en columna */}
+          <Box
+            component="aside"
+            aria-label="Leyenda de estados"
+            sx={{
+              p: 1,
+              marginTop: 2,
+              borderRadius: 1,
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: 1,
+              minWidth: 125,
+            }}
+          >
+            <Typography variant="overline" sx={{ color: "text.secondary" }}>
+              Estados
+            </Typography>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.5 }}>
+              <LegendItem color="#0288d1" label="Pendiente" />
+              <LegendItem color="#2e7d32" label="Finalizada" />
+              <LegendItem color="#c62828" label="Cancelada" />
+            </Box>
           </Box>
-        )
-      }
+        </Box>
+      )}
+
 
       <AuditoriaForm
         open={openForm}
@@ -253,9 +387,9 @@ function Cronograma() {
         procesos={procesos}
         auditores={auditores}
         isEditing={isEditing}
-        loading={loading}
         onEntidadChange={handleEntidadChange}
         procesosCE={procesosCE}
+        saving={saving}
       />
 
 

@@ -48,6 +48,8 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import ProcessForm from "../components/Forms/ProcesoForm";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import axios from "axios";
 
 const EditProcess = () => {
@@ -55,7 +57,7 @@ const EditProcess = () => {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 2002 }, (_, i) => 2003 + i);
-  
+
   const [initialValues, setInitialValues] = useState({
     nombreProceso: "",
     idUsuario: "",
@@ -66,34 +68,39 @@ const EditProcess = () => {
     estado: "",
     idEntidad: "",
     anioCertificado: "",
-    icono:'',
+    icono: '',
   });
   const [leaders, setLeaders] = useState([]);
   const [macroprocesos, setMacroprocesos] = useState([]);
   const [entidades, setEntidades] = useState([]);
+  const [currentLeader, setCurrentLeader] = useState(null);
+
 
   useEffect(() => {
     // Consulta el proceso a editar
     axios.get(`http://127.0.0.1:8000/api/procesos/${idProceso}`)
       .then(response => {
         const proc = response.data.proceso || response.data;
+        if (proc.usuario) {
+          setCurrentLeader(proc.usuario);
+        }
         setInitialValues({
           nombreProceso: proc.nombreProceso,
-          idUsuario: proc.idUsuario, // Si es numérico, asegúrate de que coincida con el select
+          idUsuario: proc.idUsuario,
           objetivo: proc.objetivo,
           alcance: proc.alcance,
           norma: proc.norma,
           idMacroproceso: proc.idMacroproceso,
           estado: proc.estado,
           idEntidad: proc.idEntidad,
-          anioCertificado: proc.anioCertificado.toString(),
+          anioCertificado: proc.anioCertificado ? proc.anioCertificado.toString() : "",
           icono: proc.icono
         });
       })
       .catch(error => console.error("Error al cargar el proceso:", error));
-      
+
     // Consulta datos para selects (leaders, macroprocesos, entidades)
-    axios.get("http://127.0.0.1:8000/api/lideres-2")
+    axios.get(`http://127.0.0.1:8000/api/lideres-2`)
       .then(response => setLeaders(response.data.leaders || []))
       .catch(error => console.error("Error al obtener líderes:", error));
 
@@ -106,21 +113,37 @@ const EditProcess = () => {
       .catch(error => console.error("Error al obtener entidades:", error));
   }, [idProceso]);
 
+    const combinedLeaders = React.useMemo(() => {
+    if (!currentLeader) return leaders;
+    
+    const leaderExists = leaders.some(leader => 
+      leader.idUsuario === currentLeader.idUsuario
+    );
+    
+    if (!leaderExists) {
+      return [currentLeader, ...leaders];
+    }
+    
+    return leaders;
+  }, [leaders, currentLeader]);
+
   const handleSubmit = async (formData) => {
     try {
       await axios.put(`http://127.0.0.1:8000/api/procesos/${idProceso}`, formData);
       navigate("/procesos");
     } catch (error) {
-      console.error("Error al actualizar el proceso:", error);
       alert("Error al actualizar el proceso.");
     }
   };
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 2 }}>
+      <BreadcrumbNav
+        items={[{ label: "Procesos", to: "/procesos", icon: AccountTreeIcon }, { label: "Editar Proceso", icon: AccountTreeIcon }]}
+      />
       <ProcessForm
         initialValues={initialValues}
-        leaders={leaders}
+        leaders={combinedLeaders}
         macroprocesos={macroprocesos}
         entidades={entidades}
         years={years}

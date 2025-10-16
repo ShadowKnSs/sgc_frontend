@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-export const useProyectoMejoraForm = () => {
+const api = axios.create({
+  baseURL: "http://127.0.0.1:8000/api",
+  headers: { "Content-Type": "application/json" },
+});
+
+export const useProyectoMejoraForm = (showSnackbar) => {
     const { idRegistro } = useParams();
     const navigate = useNavigate();
 
@@ -29,12 +34,16 @@ export const useProyectoMejoraForm = () => {
     });
 
     const [validando, setValidando] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [saving, setSaving] = useState(false);
 
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: "",
-        severity: "success"
-    });
+    // ✅ Función para manejar mensajes
+    const handleMessage = (message, type = "info", title = "") => {
+        if (showSnackbar) {
+            showSnackbar(message, type, title);
+        }
+    };
 
     useEffect(() => {
         if (idRegistro) {
@@ -131,34 +140,38 @@ export const useProyectoMejoraForm = () => {
 
     const handleSubmit = async () => {
         setValidando(true);
+        setSaving(true);
 
         const hayErrores = Object.values(erroresCampos).some((v) => v === true);
         if (hayErrores) {
-            setSnackbar({
-                open: true,
-                message: "Hay campos obligatorios sin completar.",
-                severity: "error",
-            });
+            handleMessage("Hay campos obligatorios sin completar.", "error", "Error de validación");
+            setSaving(false);
             return;
         }
 
         try {
-            await axios.post("http://127.0.0.1:8000/api/proyecto-mejora", formData);
-            setSnackbar({
-                open: true,
-                message: "Proyecto guardado correctamente!",
-                severity: "success"
-            });
+            await api.post("/proyecto-mejora", formData);
+            handleMessage("Proyecto guardado correctamente!", "success", "Éxito");
             setTimeout(() => {
                 navigate(-1);
             }, 1000);
         } catch (error) {
             console.error("Error al guardar:", error);
-            setSnackbar({
-                open: true,
-                message: "Error al guardar el proyecto.",
-                severity: "error"
-            });
+            let errorMessage = "Error al guardar el proyecto";
+            
+            if (error.response) {
+                if (error.response.status === 422) {
+                    errorMessage = "Errores de validación en los datos enviados";
+                } else if (error.response.status >= 500) {
+                    errorMessage = "Error del servidor al guardar";
+                }
+            } else if (error.request) {
+                errorMessage = "Error de conexión. Verifique su internet";
+            }
+            
+            handleMessage(errorMessage, "error", "Error");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -175,8 +188,9 @@ export const useProyectoMejoraForm = () => {
         addDynamicField,
         removeDynamicField,
         handleSubmit,
-        snackbar,
-        setSnackbar,
-        erroresCampos
+        erroresCampos,
+        loading,
+        error,
+        saving
     };
 };

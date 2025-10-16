@@ -153,7 +153,7 @@ export default function CustomButton({
       try {
         if (onClick) {
           const result = onClick(event);
-          // 👇 Si el onClick devuelve una promesa, esperamos a que termine
+          // Si el onClick devuelve una promesa, esperamos a que termine
           if (result instanceof Promise) {
             await result;
           }

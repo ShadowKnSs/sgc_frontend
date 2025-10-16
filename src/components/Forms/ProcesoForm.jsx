@@ -90,7 +90,10 @@ const ProcessForm = ({
     onCancel,
     title = "Nuevo Proceso",
 }) => {
-    const [formData, setFormData] = useState(initialValues);
+    const [formData, setFormData] = useState({
+        ...initialValues,
+        idUsuario: initialValues.idUsuario ? String(initialValues.idUsuario) : ""
+    });
     const [selectedIcon, setSelectedIcon] = useState(iconOptions[0].name);
     const isFormValid = [
         formData.nombreProceso,
@@ -109,21 +112,42 @@ const ProcessForm = ({
         setSelectedIcon(iconName);
     };
 
+    const shallowEqual = (a, b) => {
+        const ak = Object.keys(a || {}), bk = Object.keys(b || {});
+        if (ak.length !== bk.length) return false;
+        for (const k of ak) if (a[k] !== b[k]) return false;
+        return true;
+    };
+
+    const prevRef = React.useRef(initialValues);
+
     useEffect(() => {
-        setFormData(initialValues);
-        setSelectedIcon(initialValues.icono || iconOptions[0].name);
+        if (initialValues && initialValues.idUsuario !== undefined) {
+            setFormData({
+                ...initialValues,
+                idUsuario: initialValues.idUsuario ? String(initialValues.idUsuario) : ""
+            });
+            setSelectedIcon(initialValues.icono || iconOptions[0].name);
+            prevRef.current = initialValues;
+        }
     }, [initialValues]);
 
     const handleChange = (field) => (e) => {
-        setFormData({
-            ...formData,
-            [field]: e.target.value,
-        });
+        const val = field === "idUsuario" ? String(e.target.value) : e.target.value;
+        setFormData(prev => ({ ...prev, [field]: val }));
     };
 
     const handleSubmit = () => {
         // Si onSubmit devuelve una promesa (async), la regresamos
-        return onSubmit({ ...formData, icono: selectedIcon });
+        const payload = {
+            ...formData,
+            icono: selectedIcon,
+            idUsuario: formData.idUsuario ? Number(formData.idUsuario) : null,
+            idMacroproceso: formData.idMacroproceso ? Number(formData.idMacroproceso) : null,
+            idEntidad: formData.idEntidad ? Number(formData.idEntidad) : null,
+            anioCertificado: formData.anioCertificado ? Number(formData.anioCertificado) : null,
+        };
+        return onSubmit(payload);
     };
 
 
@@ -153,22 +177,17 @@ const ProcessForm = ({
                         select
                         fullWidth
                         label="Líder del Proceso"
-                        value={leaders.length === 0 ? "" : formData.idUsuario} // si no hay líderes, vacía
+                        value={formData.idUsuario ?? ""}
                         onChange={handleChange("idUsuario")}
                         sx={commonStyles}
+                        disabled={leaders.length === 0}
                     >
-                        {leaders.length === 0 ? (
-                            <MenuItem disabled>🚫 No hay líderes disponibles</MenuItem>
-                        ) : (
-                            <>
-                                <MenuItem value=""></MenuItem>
-                                {leaders.map((l) => (
-                                    <MenuItem key={l.idUsuario} value={l.idUsuario}>
-                                        {l.nombre} {l.apellidoPat} {l.apellidoMat}
-                                    </MenuItem>
-                                ))}
-                            </>
-                        )}
+                        <MenuItem value="">{/* opción vacía */}</MenuItem>
+                        {leaders.map((l) => (
+                            <MenuItem key={l.idUsuario} value={String(l.idUsuario)}>   {/* <- String */}
+                                {l.nombre} {l.apellidoPat} {l.apellidoMat}
+                            </MenuItem>
+                        ))}
                     </TextField>
 
 

@@ -14,22 +14,18 @@ import { Bar } from "react-chartjs-2";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
-  console.log("Datos recibidos en GraficaEvaluacion:", data); 
   const chartRef = useRef(null);
   const yaGenerada = useRef(false);
   const [chartInstance, setChartInstance] = useState(null);
   const [chartData, setChartData] = useState(null);
 
   // Verificar que los datos necesarios estén presentes
-  const hasValidData = data && (
-    data.resultadoConfiableSem1 !== undefined || 
-    data.resultadoConfiableSem2 !== undefined ||
-    data.resultadoCondicionadoSem1 !== undefined ||
-    data.resultadoCondicionadoSem2 !== undefined ||
-    data.resultadoNoConfiableSem1 !== undefined ||
-    data.resultadoNoConfiableSem2 !== undefined
-  );
-
+  const keys = [
+    'resultadoConfiableSem1', 'resultadoConfiableSem2',
+    'resultadoCondicionadoSem1', 'resultadoCondicionadoSem2',
+    'resultadoNoConfiableSem1', 'resultadoNoConfiableSem2'
+  ];
+  const hasValidData = !!data && keys.some(k => data[k] != null);
   // Preparamos los datos del gráfico
   useEffect(() => {
     if (!hasValidData) {
@@ -43,8 +39,8 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         {
           label: "Confiable",
           data: [
-            Number(data.resultadoConfiableSem1) || 0,
-            Number(data.resultadoConfiableSem2) || 0
+            data.resultadoConfiableSem1 ?? 0,
+            data.resultadoConfiableSem2 ?? 0
           ],
           backgroundColor: "#4CAF50",
           borderColor: "#388E3C",
@@ -54,8 +50,8 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         {
           label: "Condicionado",
           data: [
-            Number(data.resultadoCondicionadoSem1) || 0,
-            Number(data.resultadoCondicionadoSem2) || 0
+            data.resultadoCondicionadoSem1 ?? 0,
+            data.resultadoCondicionadoSem2 ?? 0
           ],
           backgroundColor: "#FFC107",
           borderColor: "#FFA000",
@@ -65,8 +61,8 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         {
           label: "No Confiable",
           data: [
-            Number(data.resultadoNoConfiableSem1) || 0,
-            Number(data.resultadoNoConfiableSem2) || 0
+            data.resultadoNoConfiableSem1 ?? 0,
+            data.resultadoNoConfiableSem2 ?? 0
           ],
           backgroundColor: "#F44336",
           borderColor: "#D32F2F",
@@ -75,7 +71,7 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
         }
       ]
     };
-    
+
     setChartData(newChartData);
   }, [data, hasValidData]);
 
@@ -86,26 +82,22 @@ const GraficaEvaluacionProveedores = ({ data = null, onImageReady }) => {
   // Función para generar y enviar la imagen
   const generarImagen = () => {
     if (!chartInstance || yaGenerada.current) return;
-    
+
     try {
       // Pequeña demora para asegurar que el gráfico esté renderizado
       setTimeout(() => {
         try {
           const base64 = chartInstance.toBase64Image("image/png", 1.0);
-          
+
           if (base64 && base64.startsWith("data:image/png;base64,")) {
-            console.log("Imagen de evaluación de proveedores generada correctamente");
             onImageReady(base64);
             yaGenerada.current = true;
           } else {
-            console.error("Base64 inválido generado por Chart.js");
           }
         } catch (error) {
-          console.error("Error al generar imagen:", error);
         }
       }, 1000);
     } catch (error) {
-      console.error("Error en generarImagen:", error);
     }
   };
 

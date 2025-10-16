@@ -36,66 +36,131 @@
  *
  *
  **/
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from "@mui/material";
-import { CloudUpload } from "@mui/icons-material";
+import { CloudUpload, Delete, Visibility } from "@mui/icons-material";
 import axios from "axios";
 import CustomButton from "../components/Button";
-import FeedbackSnackbar from "../components/Feedback";
 
-function DiagramaFlujo({ idProceso, soloLectura }) {
+function DiagramaFlujo({ idProceso, soloLectura, showSnackbar }) {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [imageURL, setImageURL] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [imgLoading, setImgLoading] = useState(false);
-  const [alerta, setAlerta] = useState({ tipo: "", texto: "" });
+  const [error, setError] = useState("");
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const imgRef = useRef(null);
+  const [imgVersion, setImgVersion] = useState(0);
+
+  // Función para cargar el diagrama
+  const fetchDiagrama = async () => {
+    try {
+      setIsFetching(true);
+      setError("");
+
+      const response = await axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`);
+
+      if (response.data?.diagramaFlujo) {
+        setImgLoading(true);
+        setImageURL(response.data.diagramaFlujo);
+        setImgVersion(v => v + 1)
+      } else {
+        setImageURL(null);
+      }
+    } catch (error) {
+
+      let errorMessage = "Error al cargar el diagrama de flujo";
+
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = "No se encontró un diagrama de flujo";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Error del servidor al cargar el diagrama";
+        }
+      } else if (error.request) {
+        errorMessage = "Error de conexión. Verifique su internet";
+      }
+
+      setError(errorMessage);
+      setImageURL(null);
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDiagrama = async () => {
-      try {
-        setIsFetching(true);
-        const response = await axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`);
-        if (response.data?.diagramaFlujo) {
-          setImgLoading(false);
-          setImageURL(response.data.diagramaFlujo);
-        } else {
-          setImageURL(null);
-        }
-      } catch (error) {
-        console.error("❌ Error al obtener el diagrama:", error);
-
-      } finally {
-        setIsFetching(false);
-      }
-    };
-
     if (idProceso) fetchDiagrama();
   }, [idProceso]);
+
+  useEffect(() => {
+    if (imageURL && imgRef.current) {
+
+      if (imgRef.current.complete) {
+        setImgLoading(false);
+      }
+    }
+  }, [imageURL, imgVersion]);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Validar tipo de archivo
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        if (showSnackbar) {
+          showSnackbar("Solo se permiten archivos PNG, JPEG, JPG, GIF o WEBP", "error", "Formato inválido");
+        }
+        return;
+      }
+
+      // Validar tamaño (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB en bytes
+      if (file.size > maxSize) {
+        if (showSnackbar) {
+          showSnackbar("El archivo no debe exceder los 10MB", "error", "Archivo muy grande");
+        }
+        return;
+      }
+
       setImage(file);
       setPreview(URL.createObjectURL(file));
+      setError(""); // Limpiar errores anteriores
     }
   };
 
   const handleRemoveImage = () => {
     setImage(null);
+    if (preview) {
+      URL.revokeObjectURL(preview); // Liberar memoria
+    }
     setPreview(null);
+
+    if (showSnackbar) {
+      showSnackbar("Imagen removida", "info", "Cancelado");
+    }
   };
 
   const handleSaveImage = async () => {
-    if (!image) return;
+    if (!image) {
+      if (showSnackbar) {
+        showSnackbar("No hay imagen para guardar", "warning", "Advertencia");
+      }
+      return;
+    }
+
     setIsSaving(true);
 
     const formData = new FormData();
@@ -113,61 +178,165 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
       if (response.data?.url) {
         setImgLoading(true);
         setImageURL(response.data.url);
+        setImgVersion(v => v + 1)
         setImage(null);
+        if (preview) {
+          URL.revokeObjectURL(preview); // Liberar memoria
+        }
         setPreview(null);
-        setAlerta({ tipo: "success", texto: "Imagen subida correctamente." });
+
+        if (showSnackbar) {
+          showSnackbar("Diagrama de flujo guardado correctamente", "success", "Éxito");
+        }
       } else {
-        setAlerta({ tipo: "warning", texto: "No se recibió la URL de la imagen" });
+        if (showSnackbar) {
+          showSnackbar("No se recibió la URL de la imagen del servidor", "error", "Error del servidor");
+        }
       }
     } catch (error) {
-      console.error("❌ Error al subir imagen:", error);
-      setAlerta({ tipo: "error", texto: "Error al subir la imagen" });
+      console.error("Error al subir la imagen:", error);
+
+      let errorMessage = "Error al subir el diagrama de flujo";
+
+      if (error.response) {
+        if (error.response.status === 413) {
+          errorMessage = "El archivo es demasiado grande";
+        } else if (error.response.status === 400) {
+          errorMessage = "Formato de archivo no válido";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Error del servidor al subir el archivo";
+        }
+      } else if (error.request) {
+        errorMessage = "Error de conexión al subir el archivo";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error al subir");
+      }
     } finally {
       setIsSaving(false);
     }
   };
 
-  useEffect(() => {
-    if (alerta.texto) {
-      const timeout = setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
-      return () => clearTimeout(timeout);
+  const handleDeleteDiagram = async () => {
+    if (!imageURL) return;
+
+    try {
+      setIsSaving(true);
+      await axios.delete(`http://localhost:8000/api/mapa-proceso/${idProceso}/eliminar-diagrama`);
+
+      setImageURL(null);
+      if (showSnackbar) {
+        showSnackbar("Diagrama de flujo eliminado correctamente", "success", "Éxito");
+      }
+    } catch (error) {
+      console.error("Error al eliminar el diagrama:", error);
+
+      let errorMessage = "Error al eliminar el diagrama de flujo";
+      if (error.response?.status === 404) {
+        errorMessage = "No se encontró el diagrama para eliminar";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    } finally {
+      setIsSaving(false);
     }
-  }, [alerta]);
+  };
+
+  // Función para abrir imagen en modal/pantalla completa
+  const openPreviewModal = () => {
+    setShowPreviewModal(true);
+  };
+
+  const closePreviewModal = () => {
+    setShowPreviewModal(false);
+  };
+
+  // Estado de carga mejorado
+  if (isFetching) {
+    return (
+      <Box sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "50vh",
+        gap: 2
+      }}>
+        <CircularProgress size={60} thickness={4} />
+        <Typography variant="h6" color="text.secondary">
+          Cargando diagrama de flujo...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, mt: 4 }}>
-      <FeedbackSnackbar
-        open={!!alerta.texto}
-        type={alerta.tipo}
-        message={alerta.texto}
-        onClose={() => setAlerta({ tipo: "", texto: "" })}
-      />
-
-      <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, p: 1}}>
+      <Typography variant="h4" sx={{ fontWeight: "bold", color: "primary.main" }}>
         Diagrama de Flujo
       </Typography>
 
-      {preview ? (
-        <Card sx={{ width: "50%", textAlign: "center", p: 2 }}>
+      {/* Manejo de errores */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, maxWidth: 600, width: "100%" }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Vista previa de nueva imagen */}
+      {preview && (
+        <Card sx={{ maxWidth: "800px", width: "100%", textAlign: "center", p: 3, boxShadow: 3 }}>
           <CardContent>
-            <img src={preview} alt="Vista previa" style={{ width: "100%", borderRadius: "10px" }} />
+            <Typography variant="h6" color="primary" gutterBottom>
+              Vista previa - Nueva imagen
+            </Typography>
+            <Box sx={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
+              <img
+                src={preview}
+                alt="Vista previa del diagrama"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "400px",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+                }}
+              />
+            </Box>
           </CardContent>
         </Card>
-      ) : imageURL ? (
-        <Card sx={{ width: "50%", boxShadow: 3 }}>
-          <CardContent>
-            <Box sx={{ position: "relative" }}>
+      )}
+
+      {/* Imagen guardada */}
+      {imageURL && !preview && (
+        <Card sx={{ maxWidth: "800px", width: "100%", boxShadow: 3 }}>
+          <CardContent sx={{ textAlign: "center" }}>
+            <Box sx={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
               <img
-                key={imageURL}
-                src={imageURL}
-                alt="Diagrama de Flujo"
-                style={{ width: "100%", borderRadius: "10px", display: "block" }}
+                key={`${imageURL}-${imgVersion}`}
+                ref={imgRef}
+                src={`${imageURL}${imageURL.includes('?') ? '&' : '?'}v=${imgVersion}`}
+                alt="Diagrama de Flujo del proceso"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "400px",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                  cursor: "pointer"
+                }}
+                onClick={openPreviewModal}
                 onLoad={() => setImgLoading(false)}
                 onError={() => {
                   setImgLoading(false);
+                  setError("Error al cargar la imagen del diagrama");
+                  if (showSnackbar) {
+                    showSnackbar("Error al cargar la imagen del diagrama", "error", "Error de carga");
+                  }
                 }}
               />
-              {(isFetching || imgLoading) && (
+              {imgLoading && (
                 <Box
                   sx={{
                     position: "absolute",
@@ -176,59 +345,94 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    bgcolor: "rgba(255,255,255,0.7)",
+                    bgcolor: "rgba(255,255,255,0.8)",
                     borderRadius: "10px",
+                    mt: 2
                   }}
                 >
                   <CircularProgress />
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Cargando diagrama de flujo…
+                    Cargando diagrama...
                   </Typography>
                 </Box>
               )}
             </Box>
+
+            {/* Botones para imagen existente */}
+            {!soloLectura && (
+              <Box sx={{ mt: 2, display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
+                <CustomButton
+                  type="generar"
+                  startIcon={<Visibility />}
+                  onClick={openPreviewModal}
+                >
+                  Ver en tamaño completo
+                </CustomButton>
+                <CustomButton
+                  type="cancelar"
+                  startIcon={<Delete />}
+                  onClick={handleDeleteDiagram}
+                  disabled={isSaving}
+                >
+                  Eliminar Diagrama
+                </CustomButton>
+              </Box>
+            )}
           </CardContent>
         </Card>
-      ) : isFetching ? (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, mt: 2 }}>
-          <CircularProgress />
-          <Typography variant="body2" color="text.secondary">
-            Cargando diagrama de flujo…
+      )}
+
+      {/* Estado cuando no hay diagrama */}
+      {!imageURL && !preview && !isFetching && !error && (
+        <Card sx={{ maxWidth: "600px", width: "100%", textAlign: "center", p: 4, boxShadow: 2 }}>
+          <CardContent>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              No hay diagrama de flujo registrado
+            </Alert>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              {soloLectura
+                ? "No hay diagrama de flujo disponible para este proceso."
+                : "Puede subir un diagrama de flujo usando el botón 'Seleccionar Imagen'."
+              }
+            </Typography>
+            {!soloLectura && (
+              <CloudUpload sx={{ fontSize: 64, color: "action.disabled", mb: 2 }} />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Selector de archivo - Solo para usuarios con permisos de escritura */}
+      {!soloLectura && (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+          <label htmlFor="upload-input">
+            <input
+              id="upload-input"
+              type="file"
+              hidden
+              accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
+              onChange={handleImageChange}
+            />
+            <CustomButton
+              component="span"
+              type="subir"
+              startIcon={<CloudUpload />}
+              disabled={isSaving}
+            >
+              Seleccionar Imagen
+            </CustomButton>
+          </label>
+
+          <Typography variant="caption" color="text.secondary" textAlign="center">
+            Formatos permitidos: PNG, JPEG, JPG, GIF, WEBP<br />
+            Tamaño máximo: 10MB
           </Typography>
         </Box>
-      ) : (
-        <Typography variant="body1" color="text.secondary">
-          No hay Diagrama de Flujo registrado aún.
-        </Typography>
       )}
 
-      {/* Selector de archivo SIEMPRE visible */}
-      {!soloLectura && (
-        <label htmlFor="upload-input">
-          <input
-            id="upload-input"
-            type="file"
-            hidden
-            accept="image/png, image/jpeg"
-            onChange={handleImageChange}
-          />
-          <CustomButton component="span" type="subir" startIcon={<CloudUpload />}>
-            Seleccionar Imagen
-          </CustomButton>
-        </label>
-      )}
-
-      {/* Botones: Guardar y Cancelar si hay nueva imagen */}
+      {/* Botones para guardar/cancelar cuando hay nueva imagen */}
       {!soloLectura && image && (
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <CustomButton
-            type="guardar"
-            onClick={handleSaveImage}
-            disabled={isSaving}
-          >
-            {isSaving ? <CircularProgress size={22} color="inherit" /> : "Guardar Imagen"}
-          </CustomButton>
-
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
           <CustomButton
             type="cancelar"
             onClick={handleRemoveImage}
@@ -236,6 +440,69 @@ function DiagramaFlujo({ idProceso, soloLectura }) {
           >
             Cancelar
           </CustomButton>
+          <CustomButton
+            type="guardar"
+            onClick={handleSaveImage}
+            loading={isSaving}
+            disabled={isSaving}
+          >
+            {isSaving ? "Guardando..." : "Guardar Diagrama"}
+          </CustomButton>
+        </Box>
+      )}
+
+      {/* Modal para vista en tamaño completo */}
+      {showPreviewModal && imageURL && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            p: 2
+          }}
+          onClick={closePreviewModal}
+        >
+          <Box
+            sx={{
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imageURL}
+              alt="Diagrama de Flujo - Vista completa"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '90vh',
+                borderRadius: '8px'
+              }}
+            />
+            <CustomButton
+              type="cancelar"
+              onClick={closePreviewModal}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.9)'
+                }
+              }}
+            >
+              Cerrar
+            </CustomButton>
+          </Box>
         </Box>
       )}
     </Box>

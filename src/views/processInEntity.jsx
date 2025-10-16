@@ -33,11 +33,12 @@
  */
 
 import { useEffect, useState, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom"; 
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import MenuCard from "../components/menuCard"; 
+import MenuCard from "../components/menuCard";
 import { Box, CircularProgress, Alert, Stack, TextField, MenuItem } from "@mui/material";
-import Title from "../components/Title"; 
+import Title from "../components/Title";
+import BreadcrumbNav from "../components/BreadcrumbNav";
 
 import BusinessIcon from '@mui/icons-material/Business';
 import SchoolIcon from '@mui/icons-material/School';
@@ -70,40 +71,42 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
 
 
 const iconOptions = [
-    { name: 'Business', component: <BusinessIcon /> },
-    { name: 'School', component: <SchoolIcon /> },
-    { name: 'AccountBalance', component: <AccountBalanceOutlinedIcon /> },
-    { name: 'HomeWork', component: <HomeWorkIcon /> },
-    { name: 'Yard', component: <YardOutlinedIcon /> },
-    { name: 'Science', component: <ScienceOutlinedIcon /> },
-    { name: 'Biotech', component: <BiotechOutlinedIcon /> },
-    { name: 'Psychology', component: <PsychologyOutlinedIcon /> },
-    { name: 'Medical', component: < MedicalInformationOutlinedIcon /> },
-    { name: 'Bloodtype', component: <BloodtypeOutlinedIcon /> },
-    { name: 'LocalHospital', component: <LocalHospitalOutlinedIcon /> },
-    { name: 'Topic', component: <TopicOutlinedIcon /> },
-    { name: 'Assignment', component: <AssignmentOutlinedIcon /> },
-    { name: 'Article', component: <ArticleOutlinedIcon /> },
-    { name: 'ImportContacts', component: <ImportContactsOutlinedIcon /> },
-    { name: 'AutoStories', component: <AutoStoriesOutlinedIcon /> },
-    { name: 'LocalLibrary', component: <LocalLibraryOutlinedIcon /> },
-    { name: 'Lightbulb', component: <LightbulbOutlinedIcon /> },
-    { name: 'Settings', component: <SettingsOutlinedIcon /> },
-    { name: 'PeopleOutline', component: <PeopleOutlineOutlinedIcon /> },
-    { name: 'SocialDistance', component: <SocialDistanceOutlinedIcon /> },
-    { name: 'Groups', component: <GroupsOutlinedIcon /> },
-    { name: 'Gavel', component: <GavelOutlinedIcon /> },
-    { name: 'Balance', component: <BalanceOutlinedIcon /> },
-    { name: 'Assessment', component: <AssessmentOutlinedIcon /> },
-    { name: 'Timeline', component: <TimelineOutlinedIcon /> },
-    { name: 'Paid', component: <PaidOutlinedIcon /> },
-    { name: 'RequestQuote', component: <RequestQuoteOutlinedIcon /> },
-    { name: 'Translate', component: <TranslateOutlinedIcon /> },
-    { name: 'Campaign', component: <CampaignOutlinedIcon /> },
-    { name: 'LaptopChromebook', component: <LaptopChromebookOutlinedIcon /> },
+  { name: 'Business', component: <BusinessIcon /> },
+  { name: 'School', component: <SchoolIcon /> },
+  { name: 'AccountBalance', component: <AccountBalanceOutlinedIcon /> },
+  { name: 'HomeWork', component: <HomeWorkIcon /> },
+  { name: 'Yard', component: <YardOutlinedIcon /> },
+  { name: 'Science', component: <ScienceOutlinedIcon /> },
+  { name: 'Biotech', component: <BiotechOutlinedIcon /> },
+  { name: 'Psychology', component: <PsychologyOutlinedIcon /> },
+  { name: 'Medical', component: < MedicalInformationOutlinedIcon /> },
+  { name: 'Bloodtype', component: <BloodtypeOutlinedIcon /> },
+  { name: 'LocalHospital', component: <LocalHospitalOutlinedIcon /> },
+  { name: 'Topic', component: <TopicOutlinedIcon /> },
+  { name: 'Assignment', component: <AssignmentOutlinedIcon /> },
+  { name: 'Article', component: <ArticleOutlinedIcon /> },
+  { name: 'ImportContacts', component: <ImportContactsOutlinedIcon /> },
+  { name: 'AutoStories', component: <AutoStoriesOutlinedIcon /> },
+  { name: 'LocalLibrary', component: <LocalLibraryOutlinedIcon /> },
+  { name: 'Lightbulb', component: <LightbulbOutlinedIcon /> },
+  { name: 'Settings', component: <SettingsOutlinedIcon /> },
+  { name: 'PeopleOutline', component: <PeopleOutlineOutlinedIcon /> },
+  { name: 'SocialDistance', component: <SocialDistanceOutlinedIcon /> },
+  { name: 'Groups', component: <GroupsOutlinedIcon /> },
+  { name: 'Gavel', component: <GavelOutlinedIcon /> },
+  { name: 'Balance', component: <BalanceOutlinedIcon /> },
+  { name: 'Assessment', component: <AssessmentOutlinedIcon /> },
+  { name: 'Timeline', component: <TimelineOutlinedIcon /> },
+  { name: 'Paid', component: <PaidOutlinedIcon /> },
+  { name: 'RequestQuote', component: <RequestQuoteOutlinedIcon /> },
+  { name: 'Translate', component: <TranslateOutlinedIcon /> },
+  { name: 'Campaign', component: <CampaignOutlinedIcon /> },
+  { name: 'LaptopChromebook', component: <LaptopChromebookOutlinedIcon /> },
 
 ];
 
@@ -114,11 +117,11 @@ const macroprocesoMap = {
 };
 
 const ProcessInEntity = () => {
-  const { idEntidad } = useParams(); 
-  const navigate = useNavigate(); 
+  const { idEntidad } = useParams();
+  const navigate = useNavigate();
   const [procesos, setProcesos] = useState([]);
   const [nombreEntidad, setNombreEntidad] = useState("");
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const [macroFilter, setMacroFilter] = useState("");
 
   useEffect(() => {
@@ -153,9 +156,11 @@ const ProcessInEntity = () => {
     return Array.from(setMacro); // Array de ids distintos
   }, [procesos]);
 
-  
+
   return (
-    <Box sx={{ textAlign: "center", padding: "20px" }}>
+    <Box sx={{ textAlign: "center", padding: "15px" }}>
+      <BreadcrumbNav items={[{ label: "Entidades", icon: LocationCityIcon, to: "/entidades"  }, { label: `Procesos de ${nombreEntidad}`, icon: AccountTreeIcon  }]} />
+
       <Title text={`Procesos de ${nombreEntidad}`} />
 
       {/* Mostrar filtro solo si hay más de un macroproceso */}
@@ -187,12 +192,12 @@ const ProcessInEntity = () => {
           <CircularProgress color="primary" />
         </Box>
       ) : (
-        <Box 
+        <Box
           sx={{
-            display: "flex", 
-            flexWrap: "wrap", 
-            justifyContent: "center", 
-            gap: "16px", 
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "16px",
             marginTop: "20px"
           }}
         >
@@ -204,9 +209,9 @@ const ProcessInEntity = () => {
             procesosFiltrados.map(proceso => {
               const iconObj = iconOptions.find(icon => icon.name === proceso.icono);
               const IconComponent = iconObj ? iconObj.component : null;
-        
+
               return (
-                <MenuCard 
+                <MenuCard
                   key={proceso.idProceso}
                   icon={IconComponent || null}
                   title={proceso.nombreProceso}

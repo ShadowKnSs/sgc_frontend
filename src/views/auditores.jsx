@@ -4,6 +4,7 @@ import Title from "../components/Title";
 import axios from 'axios';
 import PersonIcon from '@mui/icons-material/Person';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import BreadcrumbNav from '../components/BreadcrumbNav';
 
 const AuditoresView = () => {
   const [auditores, setAuditores] = useState([]);
@@ -32,7 +33,11 @@ const AuditoresView = () => {
   }
 
   return (
-    <Box sx={{ p: 4, minHeight: '100vh' }}>
+    <Box sx={{ p: 2, minHeight: '100vh' }}>
+      <BreadcrumbNav items={[{
+        label: 'Auditores',
+        icon: PersonIcon
+      }]} />
       <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 2 }}>
         <Title text="Auditores" />
       </Box>

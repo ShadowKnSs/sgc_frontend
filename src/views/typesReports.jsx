@@ -17,7 +17,7 @@ import MenuCard from "../components/menuCard";
 import { useNavigate } from "react-router-dom";
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
-import SummarizeIcon from '@mui/icons-material/Summarize';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import DescriptionIcon from "@mui/icons-material/Description";
 import Title from "../components/Title";
 import BreadcrumbNav from "../components/BreadcrumbNav";
@@ -33,7 +33,7 @@ const TypesReports = () => {
 
     return (
         <Box sx={{p:3}}>
-            <BreadcrumbNav items={[{ label: "Reportes", icon: SummarizeIcon }]} />
+            <BreadcrumbNav items={[{ label: "Reportes", icon: AssignmentIcon }]} />
 
             <Box
                 sx={{

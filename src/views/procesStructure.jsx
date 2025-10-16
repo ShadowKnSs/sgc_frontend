@@ -33,31 +33,45 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import LinkIcon from "@mui/icons-material/Link";
 import { useNavigate, useParams } from "react-router-dom";
-import ContextoProcesoEntidad from "../components/ProcesoEntidad";
 import Title from "../components/Title";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import { motion } from "framer-motion";
+import useProcesoEntidad from "../hooks/useProcesoEntidad";
 
 const ProcessStructure = () => {
   const navigate = useNavigate();
   const { idProceso } = useParams();
+  const { proceso, entidad, loading: loadingCtx } = useProcesoEntidad(idProceso);
 
   const rolActivo = useMemo(() => {
     try {
       const rol = localStorage.getItem("rolActivo");
       return rol ? JSON.parse(rol) : null;
     } catch (error) {
-      console.error("Error al parsear rolActivo:", error);
       return null;
     }
   }, []);
 
   const permisos = rolActivo?.permisos?.map((p) => p.modulo) || [];
 
-  const breadcrumbItems = useMemo(
-    () => [{ label: "Estructura del proceso", icon: AccountTreeIcon }],
-    []
-  );
+  const breadcrumbItems = useMemo(() => {
+    const baseLabel = "Estructura del Proceso: ";
+
+    if (loadingCtx) {
+      return [{ label: `${baseLabel} (Cargando...)`, icon: AccountTreeIcon }];
+    }
+
+    if (entidad && proceso) {
+      return [
+        {
+          label: `${baseLabel} ${entidad} - ${proceso}`,
+          icon: AccountTreeIcon,
+        },
+      ];
+    }
+
+    return [{ label: baseLabel, icon: AccountTreeIcon }];
+  }, [loadingCtx, entidad, proceso]);
 
   const menuItems = useMemo(
     () => [
@@ -101,17 +115,17 @@ const ProcessStructure = () => {
 
       <Box sx={{ width: "100%", mx: "auto", px: { xs: 2, sm: 3 }, boxSizing: "border-box", maxWidth: 1200 }}>
         <Title text="Estructura del Proceso" />
-        <ContextoProcesoEntidad idProceso={idProceso} />
+        {/* <ContextoProcesoEntidad idProceso={idProceso} /> */}
 
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 220px)", // Ajustado al ancho fijo de las cards
             gap: { xs: 1, sm: 1.5, md: 5 },
-            justifyContent: "center", 
+            justifyContent: "center",
             width: "100%",
             boxSizing: "border-box",
-            mt: 3,
+            mt: 2,
           }}
         >
           {itemsFiltrados.length === 0 ? (

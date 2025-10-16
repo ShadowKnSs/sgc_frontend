@@ -100,6 +100,7 @@ const percentLabelsPlugin = {
   },
 };
 
+const isNullish = (v) => v == null;
 // Paso 0: generar/guardar todas las gráficas necesarias ANTES de pedir el PDF
 async function preSaveGraphs(idProceso, anio, setProgress) {
   const pid = Number(idProceso);
@@ -236,7 +237,14 @@ async function preSaveGraphs(idProceso, anio, setProgress) {
       }
 
       // Retroalimentación: barras HORIZONTALES (no apiladas)
-      if (retro.length) {
+      const retroTieneDatos = retro.some(x => {
+        const F = x.felicitaciones ?? x.cantidadFelicitacion;
+        const S = x.sugerencias ?? x.cantidadSugerencia;
+        const Q = x.quejas ?? x.cantidadQueja;
+        return !isNullish(F) || !isNullish(S) || !isNullish(Q);
+      });
+
+      if (retro.length && retroTieneDatos) {
         const labels = retro.map(x => x.nombreIndicador);
         const F = retro.map(x => x.felicitaciones ?? x.cantidadFelicitacion ?? 0);
         const S = retro.map(x => x.sugerencias ?? x.cantidadSugerencia ?? 0);
@@ -335,11 +343,13 @@ async function preSaveGraphs(idProceso, anio, setProgress) {
       const colors = [];
 
       const add = (label, v, color) => {
-        const n = Number(v);
-        if (isFinite(n)) {
-          labels.push(label);
-          values.push(n);
-          colors.push(color);
+        if (!isNullish(v)) {        
+          const n = Number(v);
+          if (isFinite(n)) {
+            labels.push(label);
+            values.push(n);
+            colors.push(color);
+          }
         }
       };
 

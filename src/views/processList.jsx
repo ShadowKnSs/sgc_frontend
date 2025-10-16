@@ -167,7 +167,7 @@ function ProcessList() {
 
   return (
     <Box sx={{ p: 4 }}>
-      <BreadcrumbNav items={[{ label: "Gestión de Procesos", icon: AccountTreeIcon }]} />
+      <BreadcrumbNav items={[{ label: "Procesos", icon: AccountTreeIcon }]} />
 
       <Title text="Procesos" mode="sticky" />
 

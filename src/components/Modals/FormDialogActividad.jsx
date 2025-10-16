@@ -1,4 +1,3 @@
-// components/FormDialogActividad.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Dialog,
@@ -33,37 +32,61 @@ const campos = [
     { label: "Responsable de Liberación", key: "responsable" },
 ];
 
-const FormDialogActividad = ({ open, onClose, onSave, formData, setFormData, errors = {}, modo, saving = false }) => {
+const FormDialogActividad = ({ 
+    open, 
+    onClose, 
+    onSave, 
+    formData, 
+    setFormData, 
+    errors = {}, 
+    modo, 
+    saving = false,
+    showSnackbar 
+}) => {
     const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         if (!open) {
-            setFormData?.({});
             setSubmitted(false);
         }
-    }, [open, setFormData]);
+    }, [open]);
 
     const safeForm = useMemo(() => formData || {}, [formData]);
 
     const handleChange = (field) => (e) => {
         const raw = e.target.value ?? "";
         const max = LIMITS[field] ?? 512;
-        const clipped = raw.slice(0, max); // corte duro
+        const clipped = raw.slice(0, max);
         setFormData({ ...safeForm, [field]: clipped });
     };
 
     const getFieldError = (key, value) => {
-        // Si hay error desde el padre pero el usuario ya empezó a escribir, ocultamos el error
-        // y mostramos contador (se requested: el helper desaparece al tipear).
         const hasExternalError = Boolean(errors?.[key]);
-        if (!submitted || !hasExternalError) return "";         // no mostrar error aún
-        if ((value ?? "").trim() !== "") return "";             // usuario corrigió
-        return errors[key];                                     // sigue vacío => muestra error
+        if (!submitted || !hasExternalError) return "";
+        if ((value ?? "").trim() !== "") return "";
+        return errors[key];
     };
 
     const handleSave = async () => {
         setSubmitted(true);
-        await onSave?.(); // ← Ya no manejamos saving aquí, el padre lo hace
+        
+        // Validación básica antes de guardar
+        const camposObligatorios = Object.keys(LIMITS);
+        const camposVacios = camposObligatorios.filter(campo => !safeForm[campo]?.trim());
+        
+        if (camposVacios.length > 0) {
+            if (showSnackbar) {
+                showSnackbar("Por favor complete todos los campos obligatorios", "error", "Error de validación");
+            }
+            return;
+        }
+
+        try {
+            await onSave?.();
+        } catch (error) {
+            console.error("Error en el formulario:", error);
+            // El manejo de errores específico se hace en el componente padre
+        }
     };
 
     return (
@@ -103,6 +126,7 @@ const FormDialogActividad = ({ open, onClose, onSave, formData, setFormData, err
                                     m: 0.5,
                                 },
                             }}
+                            disabled={saving}
                         />
                     );
                 })}

@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
-import { TextField, Box, Grid, IconButton, InputAdornment, Tooltip, Typography, Stack, CircularProgress } from "@mui/material";
+import { useState, useEffect } from "react";
+import { 
+  TextField, Box, Grid, IconButton, InputAdornment, Tooltip, 
+  Typography, Stack, Alert, CircularProgress 
+} from "@mui/material";
 import { Edit, Person, CalendarMonth } from "@mui/icons-material";
 
-const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo }) => {
+const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo, showSnackbar }) => {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const fullName = [
     usuario?.nombre,
@@ -17,20 +20,9 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
 
   const [editable, setEditable] = useState({ responsable: false, objetivo: false });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // 🔹 Función para formatear fecha en formato YYYY-MM-DD (ISO) para el backend
-  const formatearFechaParaBackend = (fechaStr) => {
-    if (!fechaStr) return null;
-    try {
-      const date = new Date(fechaStr);
-      if (isNaN(date.getTime())) return null;
-      return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-    } catch (error) {
-      return null;
-    }
-  };
-
-  // 🔹 Función para mostrar fecha en formato legible
+  // ✅ Función para mostrar fecha en formato legible
   const formatearFechaDisplay = (fechaStr) => {
     if (!fechaStr) return "";
     try {
@@ -41,58 +33,61 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
       const anio = date.getFullYear();
       return `${dia}/${mes}/${anio}`;
     } catch (error) {
+      console.error("Error formateando fecha:", error);
       return fechaStr;
     }
   };
 
   const setField = (name, value) => {
-    // 🔹 Asegurar que nunca enviamos null/undefined al backend
     const safeValue = value === null || value === undefined ? "" : value;
     handleChange?.({ target: { name, value: safeValue } });
   };
 
-  // 🔹 Detectar si los datos están listos
+  // ✅ Carga mejorada de datos
   useEffect(() => {
-    if (formData && Object.keys(formData).length > 0) {
-      setLoading(false);
-      
-      if (puedeEditar && !soloLectura) {
-        if (norm(rolNombre) === "lider") {
-          // 🔹 Solo setear si el nombre completo es válido
-          if ((!formData?.elaboradoPor || formData.elaboradoPor !== fullName) && fullName) {
-            setField("elaboradoPor", fullName);
-          }
-          // 🔹 Asegurar fecha válida
-          if (!formData?.fechaElaboracion) {
-            setField("fechaElaboracion", fechaHoy);
-          }
-        }
+    try {
+      if (formData && Object.keys(formData).length > 0) {
+        setLoading(false);
         
-        if (["coordinador", "supervisor"].includes(norm(rolNombre))) {
-          // 🔹 Solo setear si el nombre completo es válido
-          if ((!formData?.revisadoPor || formData.revisadoPor !== fullName) && fullName) {
-            setField("revisadoPor", fullName);
+        if (puedeEditar && !soloLectura) {
+          if (norm(rolNombre) === "lider") {
+            if ((!formData?.elaboradoPor || formData.elaboradoPor !== fullName) && fullName) {
+              setField("elaboradoPor", fullName);
+            }
+            if (!formData?.fechaElaboracion) {
+              setField("fechaElaboracion", fechaHoy);
+            }
           }
-          // 🔹 Asegurar fecha válida
-          if (!formData?.fechaRevision) {
-            setField("fechaRevision", fechaHoy);
+          
+          if (["coordinador", "supervisor"].includes(norm(rolNombre))) {
+            if ((!formData?.revisadoPor || formData.revisadoPor !== fullName) && fullName) {
+              setField("revisadoPor", fullName);
+            }
+            if (!formData?.fechaRevision) {
+              setField("fechaRevision", fechaHoy);
+            }
           }
         }
+      } else {
+        setLoading(false);
       }
-    } else {
-      setLoading(true);
+    } catch (err) {
+      console.error("Error en useEffect de PTForm:", err);
+      setError("Error al cargar los datos del formulario");
+      if (showSnackbar) {
+        showSnackbar("Error al cargar los datos del formulario", "error", "Error");
+      }
+      setLoading(false);
     }
-  }, [formData, rolNombre, puedeEditar, soloLectura, fullName, fechaHoy]);
+  }, [formData, rolNombre, puedeEditar, soloLectura, fullName, fechaHoy, showSnackbar]);
 
-  // 🔹 Función para manejar cambios que asegura datos válidos
+  // ✅ Función para manejar cambios que asegura datos válidos
   const handleChangeValidado = (event) => {
     const { name, value } = event.target;
     
-    // Validaciones específicas por campo
     let valorValidado = value;
     
     if (name === "fechaRevision" || name === "fechaElaboracion") {
-      // Para campos de fecha, asegurar formato válido o string vacío
       if (!value) {
         valorValidado = "";
       } else {
@@ -102,7 +97,6 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
     }
     
     if (name === "revisadoPor" || name === "elaboradoPor") {
-      // Para campos de texto, asegurar string no null
       valorValidado = value === null ? "" : value;
     }
     
@@ -124,11 +118,27 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
     </Stack>
   );
 
+  // ✅ Renderizado de estados
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="60vh" width="100%">
+      <Box display="flex" justifyContent="center" alignItems="center" height="200px" width="100%">
         <CircularProgress />
         <Typography sx={{ ml: 2 }}>Cargando información...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, boxShadow: 3, borderRadius: 3, bgcolor: "background.paper", mb: 3, width: "75%", mx: "auto" }}>
+        <Alert severity="error">
+          <Typography variant="h6" gutterBottom>
+            Error al cargar
+          </Typography>
+          <Typography variant="body2">
+            {error}
+          </Typography>
+        </Alert>
       </Box>
     );
   }
@@ -140,12 +150,12 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
           <InfoDisplay
             icon={<Person sx={{ color: "#185FA4" }} />}
             label="Elaboró"
-            value={formData.elaboradoPor || "No asignado"}
+            value={formData?.elaboradoPor || "No asignado"}
           />
           <InfoDisplay
             icon={<CalendarMonth sx={{ color: "#185FA4" }} />}
             label="Fecha de Elaboración"
-            value={formatearFechaDisplay(formData.fechaElaboracion) || "No asignada"}
+            value={formatearFechaDisplay(formData?.fechaElaboracion) || "No asignada"}
           />
         </Grid>
 
@@ -153,12 +163,12 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
           <InfoDisplay
             icon={<Person sx={{ color: "#185FA4" }} />}
             label="Revisado por"
-            value={formData.revisadoPor || "No asignado"}
+            value={formData?.revisadoPor || "No asignado"}
           />
           <InfoDisplay
             icon={<CalendarMonth sx={{ color: "#185FA4" }} />}
             label="Fecha de Revisión"
-            value={formatearFechaDisplay(formData.fechaRevision) || "No asignada"}
+            value={formatearFechaDisplay(formData?.fechaRevision) || "No asignada"}
           />
         </Grid>
 
@@ -167,15 +177,15 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo })
             fullWidth
             label="Objetivo"
             name="objetivo"
-            value={formData.objetivo || ""}
-            onChange={handleChangeValidado} // 🔹 Usar el manejador validado
+            value={formData?.objetivo || ""}
+            onChange={handleChangeValidado}
             margin="normal"
             multiline
             inputProps={{ maxLength: 255 }}
-            helperText={`${formData.objetivo?.length || 0}/255 caracteres`}
+            helperText={`${formData?.objetivo?.length || 0}/255 caracteres`}
             InputProps={{
               readOnly: !editable.objetivo || soloLectura || !puedeEditar,
-              endAdornment: !editable.objetivo && puedeEditar && (
+              endAdornment: !editable.objetivo && puedeEditar && !soloLectura && (
                 <InputAdornment position="end">
                   <Tooltip title="Editar">
                     <IconButton onClick={() => enableEdit("objetivo")} sx={{ color: "#68A2C9" }}>

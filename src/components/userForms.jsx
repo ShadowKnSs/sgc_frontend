@@ -392,6 +392,11 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
             return;
         }
 
+        if (isEdit) {
+            setOpenConfirmEdit(true);
+            return;
+        }
+
         setSaving(true);
         try {
             const payload = transformUserDataForAPI(formData);
@@ -591,7 +596,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                         onClick={handleSubmit}
                         disabled={saving}
                     >
-                        {saving ? <CircularProgress size={24} /> : (isEdit ? "Actualizar Usuario" : "Guardar")}
+                        {(isEdit ? "Actualizar Usuario" : "Guardar")}
                     </CustomButton>
                 ) : (
                     <CustomButton
@@ -609,7 +614,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                 open={openConfirmEdit}
                 onClose={() => setOpenConfirmEdit(false)}
                 entityType="usuario"
-                entityName={formData.firstName}
+                entityName={`${formData.firstName} ${formData.lastName}`.trim()}
                 onConfirm={handleConfirmEdit}
             />
 

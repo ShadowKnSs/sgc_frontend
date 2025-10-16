@@ -4,10 +4,9 @@ import {
   CardContent,
   IconButton,
   Typography,
-  Box
+  Box, Tooltip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import BusinessIcon from '@mui/icons-material/Business';
 import SchoolIcon from '@mui/icons-material/School';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
@@ -44,37 +43,37 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 
 const iconMap = {
-  Business: <BusinessIcon />,
-  School: <SchoolIcon />,
-  AccountBalance: <AccountBalanceOutlinedIcon />,
-  HomeWork: <HomeWorkIcon />,
-  Yard: <YardOutlinedIcon />,
-  Science: <ScienceOutlinedIcon />,
-  Biotech: <BiotechOutlinedIcon />,
-  Psychology: <PsychologyOutlinedIcon />,
-  Medical: <MedicalInformationOutlinedIcon />,
-  Bloodtype: <BloodtypeOutlinedIcon />,
-  LocalHospital: <LocalHospitalOutlinedIcon />,
-  Topic: <TopicOutlinedIcon />,
-  Assignment: <AssignmentOutlinedIcon />,
-  Article: <ArticleOutlinedIcon />,
-  ImportContacts: <ImportContactsOutlinedIcon />,
-  AutoStories: <AutoStoriesOutlinedIcon />,
-  LocalLibrary: <LocalLibraryOutlinedIcon />,
-  Lightbulb: <LightbulbOutlinedIcon />,
-  Settings: <SettingsOutlinedIcon />,
-  PeopleOutline: <PeopleOutlineOutlinedIcon />,
-  SocialDistance: <SocialDistanceOutlinedIcon />,
-  Groups: <GroupsOutlinedIcon />,
-  Gavel: <GavelOutlinedIcon />,
-  Balance: <BalanceOutlinedIcon />,
-  Assessment: <AssessmentOutlinedIcon />,
-  Timeline: <TimelineOutlinedIcon />,
-  Paid: <PaidOutlinedIcon />,
-  RequestQuote: <RequestQuoteOutlinedIcon />,
-  Translate: <TranslateOutlinedIcon />,
-  Campaign: <CampaignOutlinedIcon />,
-  LaptopChromebook: <LaptopChromebookOutlinedIcon />
+  Business: BusinessIcon,
+  School: SchoolIcon,
+  AccountBalance: AccountBalanceOutlinedIcon,
+  HomeWork: HomeWorkIcon,
+  Yard: YardOutlinedIcon,
+  Science: ScienceOutlinedIcon,
+  Biotech: BiotechOutlinedIcon,
+  Psychology: PsychologyOutlinedIcon,
+  Medical: MedicalInformationOutlinedIcon,
+  Bloodtype: BloodtypeOutlinedIcon,
+  LocalHospital: LocalHospitalOutlinedIcon,
+  Topic: TopicOutlinedIcon,
+  Assignment: AssignmentOutlinedIcon,
+  Article: ArticleOutlinedIcon,
+  ImportContacts: ImportContactsOutlinedIcon,
+  AutoStories: AutoStoriesOutlinedIcon,
+  LocalLibrary: LocalLibraryOutlinedIcon,
+  Lightbulb: LightbulbOutlinedIcon,
+  Settings: SettingsOutlinedIcon,
+  PeopleOutline: PeopleOutlineOutlinedIcon,
+  SocialDistance: SocialDistanceOutlinedIcon,
+  Groups: GroupsOutlinedIcon,
+  Gavel: GavelOutlinedIcon,
+  Balance: BalanceOutlinedIcon,
+  Assessment: AssessmentOutlinedIcon,
+  Timeline: TimelineOutlinedIcon,
+  Paid: PaidOutlinedIcon,
+  RequestQuote: RequestQuoteOutlinedIcon,
+  Translate: TranslateOutlinedIcon,
+  Campaign: CampaignOutlinedIcon,
+  LaptopChromebook: LaptopChromebookOutlinedIcon
 }
 
 const colorPalette = {
@@ -87,11 +86,13 @@ const colorPalette = {
   grisOscuro: "#A4A7A0",
 };
 
-const CardEntidad = ({ title, icon, isActive, handleClick, handleEdit, handleToggle }) => {
+const CardEntidad = ({ title, icon, isActive, handleEdit, handleToggle, disabled = false }) => {
   return (
     <Card
-      onClick={handleClick}
       role="button"
+      tabIndex={0}
+      aria-label={`Abrir ${title}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); } }}
       sx={{
         position: 'relative',
         display: "flex",
@@ -102,7 +103,7 @@ const CardEntidad = ({ title, icon, isActive, handleClick, handleEdit, handleTog
         height: 200,
         borderRadius: 4,
         boxShadow: 3,
-        cursor: "pointer",
+        cursor: "standard",
         backgroundColor: colorPalette.azulClaro,
         transition: "transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
@@ -124,34 +125,33 @@ const CardEntidad = ({ title, icon, isActive, handleClick, handleEdit, handleTog
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <IconButton
-          size="small"
-          onClick={handleEdit}
-          sx={{
-            backgroundColor: colorPalette.verdePastel,
-            color: colorPalette.azulOscuro,
-            "&:hover": {
-              backgroundColor: colorPalette.azulClaro,
-              color: "#fff"
-            }
-          }}
-        >
-          <EditIcon fontSize="small" />
-        </IconButton>
+        <Tooltip title="Editar entidad" arrow>
+          <IconButton
+            size="small"
+            onClick={handleEdit}
+            sx={{
+              backgroundColor: colorPalette.verdePastel,
+              color: colorPalette.azulOscuro,
+              "&:hover": { backgroundColor: colorPalette.azulClaro, color: "#fff" }
+            }}
+            aria-label="Editar entidad"
+            disabled={disabled}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
 
-        <IconButton
-          size="small"
-          onClick={handleToggle}
-          sx={{
-            backgroundColor: "#E57373",
-            color: "#fff",
-            "&:hover": {
-              backgroundColor: "#C62828"
-            }
-          }}
-        >
-          {isActive ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
-        </IconButton>
+        <Tooltip title={isActive ? "Deshabilitar entidad" : "Habilitar entidad"} arrow>
+          <IconButton
+            size="small"
+            onClick={handleToggle}
+            sx={{ backgroundColor: "#E57373", color: "#fff", "&:hover": { backgroundColor: "#C62828" } }}
+            aria-label={isActive ? "Deshabilitar entidad" : "Habilitar entidad"}
+            disabled={disabled}
+          >
+            {isActive ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
       </Box>
 
       <CardContent
@@ -163,21 +163,28 @@ const CardEntidad = ({ title, icon, isActive, handleClick, handleEdit, handleTog
           color: "#fff",
         }}
       >
-        {iconMap[icon] && React.cloneElement(iconMap[icon], {
-          sx: { color: "#fff", fontSize: 70 }
-        })}
+        {(() => { const Icon = iconMap[icon] || BusinessIcon; return <Icon sx={{ color: "#fff", fontSize: 70 }} />; })()}
 
-        <Typography
-          variant="subtitle1"
-          fontWeight="bold"
-          mt={1}
-          sx={{
-            color: "#fff",
-            textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
-          }}
-        >
-          {title}
-        </Typography>
+
+        <Tooltip title={title} arrow>
+          <Typography
+            variant="subtitle1"
+            fontWeight="bold"
+            mt={1}
+            sx={{
+              color: "#fff",
+              textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              wordBreak: "break-word",
+              maxWidth: 170
+            }}
+          >
+            {title}
+          </Typography>
+        </Tooltip>
       </CardContent>
     </Card>
   );

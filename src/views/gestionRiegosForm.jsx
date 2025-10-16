@@ -65,26 +65,29 @@
  * - Integración con análisis de riesgos históricos o comparativos.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {
 
   Box, CircularProgress
 } from "@mui/material";
 
-import MenuNavegacionProceso from "../components/MenuProcesoEstructura";
 import FeedbackSnackbar from "../components/Feedback";
 import Title from "../components/Title";
 import CustomButton from "../components/Button";
 import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
-import useMenuProceso from "../hooks/useMenuProceso";
 import Permiso from "../hooks/userPermiso";
 import SectionTabs from "../components/SectionTabs";
 import useGestionRiesgos from "../hooks/useGestionRiesgos";
 import GestionRiesgosGeneral from "../components/GestionRiesgosGeneral";
 import RiesgosTabs from "../components/RiesgosTabs";
 import RiesgoModal from "../components/Modals/RiesgoModal";
+import BreadcrumbNav from "../components/BreadcrumbNav";
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import WarningIcon from "@mui/icons-material/Warning";
+import FolderIcon from '@mui/icons-material/Folder';
+
 
 // Las secciones del formulario de riesgos
 const sections = ["IDENTIFICACIÓN", "ANÁLISIS", "TRATAMIENTO", "EVALUACIÓN DE LA EFECTIVIDAD"];
@@ -94,6 +97,10 @@ function FormularioGestionRiesgos() {
   const { idRegistro } = useParams();
   const location = useLocation();
   const yaGuardadoRef = useRef(false);
+  const idProcesoFromState = location.state?.idProceso || null;
+  const [idProcesoResolved, setIdProcesoResolved] = useState(
+    () => idProcesoFromState || localStorage.getItem("idProcesoActivo") || null
+  );
 
   const rolActivo = location.state?.rolActivo || JSON.parse(localStorage.getItem("rolActivo"));
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
@@ -101,7 +108,6 @@ function FormularioGestionRiesgos() {
   const fechaHoy = new Date().toISOString().split("T")[0];
   const { soloLectura, puedeEditar } = Permiso("Gestión de Riesgo");
   const [modoEdicion, setModoEdicion] = useState(false);
-  const menuItems = useMenuProceso();
   const [snackbar, setSnackbar] = useState({
     open: false,
     type: "success",
@@ -148,10 +154,27 @@ function FormularioGestionRiesgos() {
   const [rowToDelete, setRowToDelete] = useState(null);
 
   const [riesgoErrors, setRiesgoErrors] = useState({});
-  const [evaluationModalOpen, setEvaluationModalOpen] = useState(false);
-  const [selectedRiesgoId, setSelectedRiesgoId] = useState(null);
-
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (idProcesoResolved) {
+      localStorage.setItem("idProcesoActivo", String(idProcesoResolved));
+    }
+  }, [idProcesoResolved]);
+
+  const breadcrumbItems = useMemo(() => ([
+    {
+      label: 'Estructura',
+      to: idProcesoResolved ? `/estructura-procesos/${idProcesoResolved}` : '/estructura-procesos',
+      icon: AccountTreeIcon
+    },
+    {
+      label: 'Carpetas',
+      to: idProcesoResolved ? `/carpetas/${idProcesoResolved}/Gestión de Riesgo` : undefined,
+      icon: FolderIcon
+    },
+    { label: 'Gestión de Riesgos', icon: WarningIcon }
+  ]), [idProcesoResolved]);
 
 
   // Funcion para mostrar snackbar (FeedBack)
@@ -196,7 +219,6 @@ function FormularioGestionRiesgos() {
   // Handler de tabs (para la tabla de riesgos)
   // --------------------------------------------------------------------------
   const handleTabChange = (newIndex) => {
-    console.log("[LOG] Cambio de tab a:", newIndex);
     setSelectedTab(newIndex);
   };
 
@@ -311,7 +333,6 @@ function FormularioGestionRiesgos() {
       await cargarRiesgos(gestionRiesgo.idGesRies);
       mostrarSnackbar("success", "Evaluación guardada", "La evaluación de efectividad se guardó correctamente.");
     } catch (err) {
-      console.error("[ERROR] al evaluar riesgo:", err);
       mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar la evaluación.");
     }
   };
@@ -320,7 +341,6 @@ function FormularioGestionRiesgos() {
   // Handler para editar
   // --------------------------------------------------------------------------
   const handleEditRiesgo = (riesgo) => {
-    console.log("[LOG] handleEditRiesgo -> riesgo a editar:", riesgo);
     setEditingRiesgo(riesgo);
     setConfirmEditOpen(true);
   };
@@ -329,18 +349,15 @@ function FormularioGestionRiesgos() {
   // Handler para eliminar
   // --------------------------------------------------------------------------
   const handleDeleteRiesgo = (riesgo) => {
-    console.log("[LOG] handleDeleteRiesgo -> riesgo a eliminar:", riesgo);
     setRowToDelete(riesgo);
     setDeleteDialogOpen(true);
   };
   const confirmDeleteRiesgo = async () => {
     if (!gestionRiesgo.idGesRies || !rowToDelete) {
-      console.log("[LOG] Falta idGesRies o rowToDelete. No se puede eliminar.");
       setDeleteDialogOpen(false);
       return;
     }
     const url = `http://127.0.0.1:8000/api/gestionriesgos/${gestionRiesgo.idGesRies}/riesgos/${rowToDelete.idRiesgo}`;
-    console.log("[LOG] Eliminando riesgo con:", url);
 
     try {
       const response = await fetch(url, { method: "DELETE" });
@@ -350,7 +367,6 @@ function FormularioGestionRiesgos() {
       await cargarRiesgos(gestionRiesgo.idGesRies);
       mostrarSnackbar("success", "Eliminado", "Riesgo eliminado correctamente.");
     } catch (err) {
-      console.error("[ERROR] al eliminar riesgo:", err);
       mostrarSnackbar("error", "Error", "Ocurrió un problema al eliminar el riesgo.");
     } finally {
       setDeleteDialogOpen(false);
@@ -379,7 +395,6 @@ function FormularioGestionRiesgos() {
     try {
       await cargarRiesgos(idGesRies);
     } catch (err) {
-      console.error("[ERROR] al cargar riesgos:", err);
     } finally {
       setIsLoading(false);
     }
@@ -399,8 +414,10 @@ function FormularioGestionRiesgos() {
         </Box>
       ) : (
         <>
+          <Box sx={{ mb: 2 }}>
+            <BreadcrumbNav items={breadcrumbItems} />
+          </Box>
           <Title text="Gestión de Riesgos" />
-          <MenuNavegacionProceso items={menuItems} />
 
           <GestionRiesgosGeneral
             data={gestionRiesgo}
@@ -525,12 +542,12 @@ function FormularioGestionRiesgos() {
 
             }}
           />
-          </>
+        </>
       )}
 
 
-        </Box>
-      );
+    </Box>
+  );
 }
 
-      export default FormularioGestionRiesgos;
+export default FormularioGestionRiesgos;

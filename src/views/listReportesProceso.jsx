@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import Title from "../components/Title";
 import ReportCard from "../components/CardReport";
 import GenerateReportModal from "../components/Modals/GenerarReporteModal";
@@ -131,8 +132,8 @@ const ReportesDeProceso = () => {
         {/* Breadcrumb */}
         <BreadcrumbNav
           items={[
-            { label: "Reportes", to: "/typesReports" },
-            { label: "ReportesProceso" }
+            { label: "Reportes", to: "/typesReports", icon: AssignmentIcon  },
+            { label: "Reportes de Proceso", icon:AssignmentIcon }
           ]}
         />
 
@@ -215,7 +216,7 @@ const ReportesDeProceso = () => {
 
         {/* Botón flotante de búsqueda */}
         <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
-          <Tooltip title="Buscar Reportes">
+          <Tooltip title="Buscar Reportes" placement="left">
             <IconButton
               onClick={() => setSearchOpen(!searchOpen)}
               sx={{

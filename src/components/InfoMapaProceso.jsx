@@ -1,5 +1,4 @@
-// src/components/InfoMapaProceso.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react"; 
 import {
     Box,
     Typography,
@@ -16,7 +15,6 @@ import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import { motion, AnimatePresence } from "framer-motion";
 
 import CustomButton from "./Button";
-import FeedbackSnackbar from "./Feedback"; // tu componente de feedback
 
 const icons = {
     documentos: <DescriptionIcon sx={{ color: "#458cd4", fontSize: 28 }} />,
@@ -35,7 +33,7 @@ const fields = [
     { label: "Material", key: "material", max: 255 },
     { label: "Requisitos", key: "requisitos", max: 150 },
     { label: "Salidas", key: "salidas", max: 255 },
-    { label: "Receptores", key: "receptores", max: 255 }, // asumido
+    { label: "Receptores", key: "receptores", max: 255 },
     { label: "Puestos Involucrados", key: "puestosInvolucrados", max: 255 },
 ];
 
@@ -46,29 +44,24 @@ const InfoMapaProceso = ({
     setEditMode,
     handleSaveChanges,
     soloLectura,
+    showSnackbar
 }) => {
     const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
     const [saving, setSaving] = useState(false);
-
-    const [backup, setBackup] = useState(null); // ← snapshot para cancelar
-
-
-
-    // Snackbar de error de validación
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        type: "error",
-        title: "Validación",
-        message: ""
-    });
-    const closeSnackbar = () => setSnackbar(s => ({ ...s, open: false }));
+    const [originalData, setOriginalData] = useState(null); 
 
     const limitsMap = useMemo(() => {
         const m = {};
         fields.forEach(f => { m[f.key] = f.max; });
         return m;
     }, []);
+
+    useEffect(() => {
+        if (editMode && !originalData) {
+            setOriginalData({ ...mapaProceso });
+        }
+    }, [editMode, originalData, mapaProceso]);
 
     const validateAll = () => {
         const newErrors = {};
@@ -85,58 +78,51 @@ const InfoMapaProceso = ({
         return newErrors;
     };
 
-
     const handleCancel = () => {
+        if (originalData) {
+            setMapaProceso({ ...originalData });
+        }
         setEditMode(false);
         setSubmitted(false);
         setErrors({});
-        setSnackbar(s => ({ ...s, open: false }));
+        setOriginalData(null); 
     };
+
     const onSubmit = async () => {
         setSubmitted(true);
         const newErrors = validateAll();
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length > 0) {
-            // Mostrar primer error en el snackbar (solo cuando hay error)
             const firstKey = Object.keys(newErrors)[0];
-            setSnackbar({
-                open: true,
-                type: "error",
-                title: "Validación",
-                message: newErrors[firstKey],
-            });
+            if (showSnackbar) {
+                showSnackbar(newErrors[firstKey], "error", "Error de validación");
+            }
             return;
         }
 
-        // Sin errores → guardar
         try {
             setSaving(true);
-            // soporta async/sync
             await Promise.resolve(handleSaveChanges?.());
             setEditMode(false);
             setSubmitted(false);
             setErrors({});
+            setOriginalData(null); // ✅ Limpiar los datos originales después de guardar
         } catch (e) {
-            setSnackbar({
-                open: true,
-                type: "error",
-                title: "Error",
-                message: "No se pudo guardar la información.",
-            });
+            if (showSnackbar) {
+                showSnackbar("No se pudo guardar la información", "error", "Error");
+            }
         } finally {
             setSaving(false);
         }
     };
 
     const handleChange = (key, value) => {
-        // Cortar manual si pegaste texto largo
         const max = limitsMap[key] ?? 1000;
         const trimmed = value.slice(0, max);
 
         setMapaProceso(prev => ({ ...prev, [key]: trimmed }));
 
-        // Si ya hubo submit o el campo tenía error, limpiar el error de ese campo al escribir
         if (submitted || errors[key]) {
             setErrors(prev => {
                 const cp = { ...prev };
@@ -280,28 +266,15 @@ const InfoMapaProceso = ({
                             >
                                 Guardar Información
                             </CustomButton>
-
                         </>
-
                     ) : (
-                        <CustomButton type="cancelar" onClick={() => setEditMode(true)}>                            Editar Información
+                        <CustomButton type="cancelar" onClick={() => setEditMode(true)}>
+                            Editar Información
                         </CustomButton>
-                    )
-                    }
-                </Box >
-            )
-            }
-
-            {/* Snackbar solo para error */}
-            <FeedbackSnackbar
-                open={snackbar.open}
-                onClose={closeSnackbar}
-                type={snackbar.type}
-                title={snackbar.title}
-                message={snackbar.message}
-                autoHideDuration={5000}
-            />
-        </Box >
+                    )}
+                </Box>
+            )}
+        </Box>
     );
 };
 

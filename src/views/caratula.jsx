@@ -8,11 +8,10 @@ import { Edit, Person } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import UASLPLogo from "../assests/UASLP_SICAL_Logo.png";
-import FeedbackSnackbar from "../components/Feedback";
 import CustomButton from "../components/Button";
 
-/* --------------------- Hook de datos --------------------- */
-const useCaratulaData = (idProceso) => {
+/* --------------------- Hook de datos mejorado --------------------- */
+const useCaratulaData = (idProceso, showSnackbar) => {
   const [caratulaId, setCaratulaId] = useState(null);
   const [personas, setPersonas] = useState([
     { nombre: "", cargo: "", fijo: "Responsable", editando: false },
@@ -22,33 +21,43 @@ const useCaratulaData = (idProceso) => {
   const [loading, setLoading] = useState(true);
   const [existe, setExiste] = useState(false);
   const [version, setVersion] = useState("1.0");
-  const [macroproceso, setMacroproceso] = useState(""); 
+  const [macroproceso, setMacroproceso] = useState("");
+  const [error, setError] = useState("");
 
   const cargar = useCallback(async () => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/caratulas/proceso/${idProceso}`);
-      const data = res.data;
+      setLoading(true);
+      setError("");
 
-      if (data?.idCaratula) {
+      const [resCaratula, resProceso] = await Promise.all([
+        axios.get(`http://localhost:8000/api/caratulas/proceso/${idProceso}`),
+        axios.get(`http://localhost:8000/api/procesos/${idProceso}`)
+      ]);
+
+      const dataCaratula = resCaratula.data;
+      const proceso = resProceso.data.proceso || resProceso.data;
+
+      // Verificar si hay datos de carátula
+      if (dataCaratula?.idCaratula) {
         setExiste(true);
-        setCaratulaId(data.idCaratula);
-        setVersion(data.version || "1.0");
+        setCaratulaId(dataCaratula.idCaratula);
+        setVersion(dataCaratula.version || "1.0");
         setPersonas([
           {
-            nombre: data.responsableNombre || "",
-            cargo: data.responsableCargo || "",
+            nombre: dataCaratula.responsableNombre || "",
+            cargo: dataCaratula.responsableCargo || "",
             fijo: "Responsable",
             editando: false
           },
           {
-            nombre: data.revisoNombre || "",
-            cargo: data.revisoCargo || "",
+            nombre: dataCaratula.revisoNombre || "",
+            cargo: dataCaratula.revisoCargo || "",
             fijo: "Revisó",
             editando: false
           },
           {
-            nombre: data.aproboNombre || "",
-            cargo: data.aproboCargo || "",
+            nombre: dataCaratula.aproboNombre || "",
+            cargo: dataCaratula.aproboCargo || "",
             fijo: "Aprobó",
             editando: false
           },
@@ -61,14 +70,38 @@ const useCaratulaData = (idProceso) => {
           { nombre: "", cargo: "", fijo: "Revisó", editando: false },
           { nombre: "", cargo: "", fijo: "Aprobó", editando: false },
         ]);
+
+        // Mostrar mensaje de que no hay registros
+        if (showSnackbar) {
+          showSnackbar("No se encontró una carátula existente. Puede crear una nueva.", "info", "Información");
+        }
       }
 
-    const resProceso = await axios.get(`http://localhost:8000/api/procesos/${idProceso}`);
-    const proceso = resProceso.data.proceso || resProceso.data;
-    setMacroproceso(proceso.macroproceso?.tipoMacroproceso || "");
+      setMacroproceso(proceso.macroproceso?.tipoMacroproceso || "");
 
     } catch (error) {
       console.error("Error cargando carátula:", error);
+
+      // Manejo específico de errores
+      let errorMessage = "Error al cargar la carátula";
+
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = "No se encontró el proceso solicitado";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Error del servidor al cargar la carátula";
+        }
+      } else if (error.request) {
+        errorMessage = "Error de conexión. Verifique su internet";
+      }
+
+      setError(errorMessage);
+
+      // Mostrar snackbar de error
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+
       setExiste(false);
       setVersion("1.0");
       setPersonas([
@@ -79,9 +112,11 @@ const useCaratulaData = (idProceso) => {
     } finally {
       setLoading(false);
     }
-  }, [idProceso]);
+  }, [idProceso, showSnackbar]);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
 
   return {
     caratulaId,
@@ -95,15 +130,24 @@ const useCaratulaData = (idProceso) => {
     version,
     setVersion,
     macroproceso,
-    setMacroproceso
+    setMacroproceso,
+    error
   };
 };
 
+/* --------------------- Tarjeta Persona --------------------- */
 /* --------------------- Tarjeta Persona --------------------- */
 const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const fallbackRoleColor = roleColor || theme.palette.primary?.main || "#1976d2";
+
+  // Función para limitar el número de caracteres
+  const handleInputChange = (index, field, value) => {
+    if (value.length <= 125) {
+      onChange(index, field, value);
+    }
+  };
 
   return (
     <Card
@@ -115,14 +159,29 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
         mb: 2,
         transition: "all 0.3s ease",
         border: persona.editando ? `2px solid ${fallbackRoleColor}` : "1px solid #e0e0e0",
-        "&:hover": { boxShadow: 4, transform: persona.editando ? "none" : "translateY(-4px)" }
+        "&:hover": {
+          boxShadow: puedeEditar ? 4 : 2,
+          transform: persona.editando ? "none" : (puedeEditar ? "translateY(-4px)" : "none")
+        }
       }}
     >
-      <CardContent sx={{ p: isMobile ? 2 : 2.5, textAlign: "center", height: "100%", overflow: "visible" }}>
+      <CardContent sx={{
+        p: isMobile ? 2 : 2.5,
+        textAlign: "center",
+        height: "100%",
+        overflow: "visible",
+        opacity: puedeEditar ? 1 : 0.8
+      }}>
         <Chip
           label={persona.fijo}
           size="small"
-          sx={{ mb: 2, backgroundColor: fallbackRoleColor, color: "white", fontWeight: "bold" }}
+          sx={{
+            mb: 2,
+            backgroundColor: fallbackRoleColor,
+            color: "white",
+            fontWeight: "bold",
+            opacity: 1
+          }}
         />
 
         {persona.editando ? (
@@ -132,15 +191,29 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
               variant="outlined"
               size="small"
               value={persona.nombre}
-              onChange={(e) => onChange(index, "nombre", e.target.value)}
+              onChange={(e) => handleInputChange(index, "nombre", e.target.value)}
               label="Nombre completo"
               placeholder="Ej: María González Pérez"
               sx={{ mb: 2 }}
+              inputProps={{ maxLength: 125 }} // ✅ Limita la entrada a 125 caracteres
               error={persona.nombre.length > 125}
               helperText={
-                <Box sx={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem" }}>
-                  <span>{persona.nombre.length > 125 ? "Máximo 125 caracteres" : ""}</span>
-                  <span style={{ color: persona.nombre.length > 125 ? "#d32f2f" : "#666" }}>
+                <Box sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: "0.75rem",
+                  mt: 0.5
+                }}>
+                  <span style={{
+                    color: persona.nombre.length > 125 ? "#d32f2f" : "transparent",
+                    fontSize: "0.7rem"
+                  }}>
+                    {persona.nombre.length > 125 ? "Máximo 125 caracteres" : "."}
+                  </span>
+                  <span style={{
+                    color: persona.nombre.length > 125 ? "#d32f2f" : "#666",
+                    fontSize: "0.7rem"
+                  }}>
                     {persona.nombre.length}/125
                   </span>
                 </Box>
@@ -151,15 +224,29 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
               variant="outlined"
               size="small"
               value={persona.cargo}
-              onChange={(e) => onChange(index, "cargo", e.target.value)}
+              onChange={(e) => handleInputChange(index, "cargo", e.target.value)}
               label="Cargo o puesto"
               placeholder="Ej: Gerente de Proyectos"
               sx={{ mb: 2 }}
+              inputProps={{ maxLength: 125 }} // ✅ Limita la entrada a 125 caracteres
               error={persona.cargo.length > 125}
               helperText={
-                <Box sx={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem" }}>
-                  <span>{persona.cargo.length > 125 ? "Máximo 125 caracteres" : ""}</span>
-                  <span style={{ color: persona.cargo.length > 125 ? "#d32f2f" : "#666" }}>
+                <Box sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: "0.75rem",
+                  mt: 0.5
+                }}>
+                  <span style={{
+                    color: persona.cargo.length > 125 ? "#d32f2f" : "transparent",
+                    fontSize: "0.7rem"
+                  }}>
+                    {persona.cargo.length > 125 ? "Máximo 125 caracteres" : "."}
+                  </span>
+                  <span style={{
+                    color: persona.cargo.length > 125 ? "#d32f2f" : "#666",
+                    fontSize: "0.7rem"
+                  }}>
                     {persona.cargo.length}/125
                   </span>
                 </Box>
@@ -167,6 +254,7 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
             />
           </Box>
         ) : (
+          // ... el resto del código permanece igual
           <Box
             sx={{
               animation: "fadeIn 0.3s ease",
@@ -195,7 +283,13 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
                 variant="h6"
                 fontWeight="600"
                 gutterBottom
-                sx={{ minHeight: "64px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                sx={{
+                  minHeight: "64px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  wordBreak: "break-word"
+                }}
               >
                 {persona.nombre || "Sin asignar"}
               </Typography>
@@ -209,7 +303,8 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
-                  overflow: "hidden"
+                  overflow: "hidden",
+                  wordBreak: "break-word"
                 }}
               >
                 {persona.cargo || "Sin cargo asignado"}
@@ -224,7 +319,10 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
                   sx={{
                     alignSelf: "center",
                     border: `1px solid ${fallbackRoleColor}`,
-                    "&:hover": { backgroundColor: fallbackRoleColor, color: "white" }
+                    "&:hover": {
+                      backgroundColor: fallbackRoleColor,
+                      color: "white"
+                    }
                   }}
                 >
                   <Edit />
@@ -238,8 +336,8 @@ const PersonaCard = ({ persona, index, onEdit, onChange, puedeEditar, roleColor 
   );
 };
 
-/* --------------------- Vista Carátula --------------------- */
-const Caratula = ({ puedeEditar }) => {
+/* --------------------- Vista Carátula Mejorada --------------------- */
+const Caratula = ({ puedeEditar, showSnackbar }) => {
   const { idProceso } = useParams();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -256,10 +354,9 @@ const Caratula = ({ puedeEditar }) => {
     version,
     setVersion,
     macroproceso,
-    setMacroproceso
-  } = useCaratulaData(idProceso);
+    error
+  } = useCaratulaData(idProceso, showSnackbar);
 
-  const [alerta, setAlerta] = useState({ open: false, tipo: "", texto: "" });
   const [guardando, setGuardando] = useState(false);
 
   // Colores por rol con fallback
@@ -280,6 +377,9 @@ const Caratula = ({ puedeEditar }) => {
 
   const handleCancel = () => {
     cargar(); // Reset datos originales
+    if (showSnackbar) {
+      showSnackbar("Cambios cancelados", "info", "Cancelado");
+    }
   };
 
   const handleChange = (index, field, value) => {
@@ -313,7 +413,9 @@ const Caratula = ({ puedeEditar }) => {
   const handleSave = async () => {
     const errorMensaje = obtenerMensajeError();
     if (errorMensaje) {
-      setAlerta({ open: true, tipo: "error", texto: errorMensaje });
+      if (showSnackbar) {
+        showSnackbar(errorMensaje, "error", "Error de validación");
+      }
       return;
     }
 
@@ -321,13 +423,13 @@ const Caratula = ({ puedeEditar }) => {
 
     const payload = {
       idProceso,
+      version: version,
       responsable_nombre: personas[0].nombre.trim(),
       responsable_cargo: personas[0].cargo.trim(),
       reviso_nombre: personas[1].nombre.trim(),
       reviso_cargo: personas[1].cargo.trim(),
       aprobo_nombre: personas[2].nombre.trim(),
       aprobo_cargo: personas[2].cargo.trim(),
-      version: existe ? version : "1.0"
     };
 
     try {
@@ -337,6 +439,11 @@ const Caratula = ({ puedeEditar }) => {
         const res = await axios.post("http://localhost:8000/api/caratula", payload);
         setCaratulaId(res.data?.idCaratula || null);
         setExiste(true);
+        setVersion(res.data?.version || "1.0");
+
+        if (showSnackbar) {
+          showSnackbar(`Carátula creada exitosamente - Versión ${res.data?.version || "1.0"}`, "success", "Éxito");
+        }
       } else {
         const parts = (version || "1.0").split(".");
         const major = parseInt(parts[0] || "1", 10);
@@ -346,18 +453,30 @@ const Caratula = ({ puedeEditar }) => {
 
         await axios.put(`http://localhost:8000/api/caratulas/${caratulaId}`, payload);
         setVersion(nuevaVersion);
+
+        if (showSnackbar) {
+          showSnackbar(`Carátula actualizada a versión ${nuevaVersion}`, "success", "Actualizado");
+        }
       }
 
-      setAlerta({
-        open: true,
-        tipo: "success",
-        texto: `Carátula ${existe ? "actualizada" : "guardada"} correctamente. Versión ${existe ? nuevaVersion : "1.0"}`
-      });
-
       setPersonas((prev) => prev.map((p) => ({ ...p, editando: false })));
-    } catch (e) {
-      console.error("Error guardando carátula", e);
-      setAlerta({ open: true, tipo: "error", texto: "Error al guardar. Intente nuevamente." });
+
+    } catch (error) {
+
+      let errorMessage = "Error al guardar la carátula";
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = "No se encontró el recurso solicitado";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Error del servidor al guardar";
+        }
+      } else if (error.request) {
+        errorMessage = "Error de conexión al guardar";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error al guardar");
+      }
     } finally {
       setGuardando(false);
     }
@@ -365,25 +484,152 @@ const Caratula = ({ puedeEditar }) => {
 
   const enEdicion = personas.some((p) => p.editando);
 
+  // Estados de carga y error
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh", flexDirection: "column", gap: 2 }}>
+      <Box sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "50vh",
+        flexDirection: "column",
+        gap: 2
+      }}>
         <CircularProgress size={60} thickness={4} />
-        <Typography variant="h6" color="text.secondary">Cargando carátula...</Typography>
+        <Typography variant="h6" color="text.secondary">
+          Cargando carátula...
+        </Typography>
       </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "50vh",
+        flexDirection: "column",
+        p: 3
+      }}>
+        <Alert severity="error" sx={{ mb: 2, maxWidth: 500 }}>
+          {error}
+        </Alert>
+        <CustomButton
+          type="guardar"
+          onClick={cargar}
+          variant="outlined"
+        >
+          Reintentar
+        </CustomButton>
+      </Box>
+    );
+  }
+
+  // Verificar si no hay datos después de cargar
+  const todasVacias = personas.every(p => !p.nombre.trim() && !p.cargo.trim());
+
+  if (!existe && todasVacias && !loading) {
+    return (
+      <Fade in={true} timeout={800}>
+        <Box sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          py: 2
+        }}>
+          {/* Header con logo y título */}
+          <Box sx={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: 4,
+            width: "100%",
+            gap: isMobile ? 2 : 4
+          }}>
+            <Box sx={{
+              position: "relative",
+              height: "120px",
+              width: "120px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <img
+                src={UASLPLogo}
+                alt="UASLP Logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain"
+                }}
+              />
+            </Box>
+
+            <Box sx={{ textAlign: isMobile ? 'center' : 'left' }}>
+              <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+                Manual Operativo
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {macroproceso || "Sin macroproceso asignado"}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Divider sx={{ width: "100%", mb: 4 }} />
+
+          {/* Mensaje de no datos */}
+          <Alert
+            severity="info"
+            sx={{
+              mb: 4,
+              width: isMobile ? "100%" : "80%",
+              textAlign: "center"
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              No hay carátula registrada
+            </Typography>
+            <Typography variant="body2">
+              {puedeEditar
+                ? "Puede crear una nueva carátula haciendo clic en el ícono de edición de cada tarjeta."
+                : "No tiene permisos para crear una carátula. Contacte al administrador."
+              }
+            </Typography>
+          </Alert>
+
+          {/* Tarjetas vacías */}
+          <Grid container spacing={2} justifyContent="center" sx={{ width: "100%" }}>
+            {personas.map((persona, index) => (
+              <Grid item key={index} xs={12} sm={6} lg={4}>
+                <PersonaCard
+                  persona={persona}
+                  index={index}
+                  onEdit={handleEdit}
+                  onChange={handleChange}
+                  puedeEditar={Boolean(puedeEditar)}
+                  roleColor={roleColors[persona.fijo]}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      </Fade>
     );
   }
 
   return (
     <Fade in={true} timeout={800}>
-      <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", py: 2 }}>
-        <FeedbackSnackbar
-          open={alerta.open}
-          onClose={() => setAlerta({ ...alerta, open: false })}
-          type={alerta.tipo}
-          message={alerta.texto}
-        />
-
+      <Box sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        py: 2
+      }}>
         {/* Header con logo y título */}
         <Box sx={{
           display: "flex",
@@ -394,8 +640,23 @@ const Caratula = ({ puedeEditar }) => {
           width: "100%",
           gap: isMobile ? 2 : 4
         }}>
-          <Box sx={{ position: "relative", height: "120px", width: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src={UASLPLogo} alt="UASLP Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <Box sx={{
+            position: "relative",
+            height: "120px",
+            width: "120px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <img
+              src={UASLPLogo}
+              alt="UASLP Logo"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain"
+              }}
+            />
           </Box>
 
           <Box sx={{ textAlign: isMobile ? 'center' : 'left' }}>
@@ -446,7 +707,13 @@ const Caratula = ({ puedeEditar }) => {
 
         {/* Acciones */}
         {Boolean(puedeEditar) && enEdicion && (
-          <Box sx={{ mt: 4, display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+          <Box sx={{
+            mt: 4,
+            display: "flex",
+            gap: 2,
+            flexWrap: "wrap",
+            justifyContent: "center"
+          }}>
             <CustomButton
               type="cancelar"
               onClick={handleCancel}

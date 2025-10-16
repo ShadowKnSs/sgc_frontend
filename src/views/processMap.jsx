@@ -33,21 +33,20 @@
  * Este componente está diseñado para roles con permisos de edición. Si `soloLectura` está activado,
  * los botones de edición/creación quedan ocultos o inactivos.
  */
-
 import React, { useState, useEffect, useCallback } from "react";
 import Title from "../components/Title";
 import axios from "axios";
 import {
-  Box, Typography, TableCell, TableBody, TableRow, Table, TableHead, TableContainer, Paper, CircularProgress
+  Box, Typography, TableCell, TableBody, TableRow, Table, TableHead,
+  TableContainer, Paper, CircularProgress, Alert
 } from "@mui/material";
-import FeedbackSnackbar from "../components/Feedback";
-import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import ConfirmDelete from '../components/confirmDelete';
 import IndicadorForm from "../components/Modals/IndicadorForm";
 import InfoProceso from "../components/InfoProceso";
 import InfoMapaProceso from "../components/InfoMapaProceso";
 import CustomButton from "../components/Button";
 
-function ProcessMapView({ idProceso, soloLectura }) {
+function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
   const [users, setUsers] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeCards, setActiveCards] = useState([]);
@@ -57,11 +56,11 @@ function ProcessMapView({ idProceso, soloLectura }) {
   const [editUser, setEditUser] = useState(null);
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [alerta, setAlerta] = useState({ tipo: "", texto: "" });
+  const [error, setError] = useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [indicadorAEliminar, setIndicadorAEliminar] = useState(null);
 
-  // Este es tu form local para crear un nuevo "indicador"
+  // Estado para crear nuevo indicador
   const [newUser, setNewUser] = useState({
     descripcion: "",
     formula: "",
@@ -70,7 +69,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
     meta: ""
   });
 
-  // EJEMPLO: info de Proceso / Mapa de Proceso
+  // Información del proceso
   const [proceso, setProceso] = useState({
     objetivo: "",
     alcance: "",
@@ -91,32 +90,89 @@ function ProcessMapView({ idProceso, soloLectura }) {
   });
 
   /**
-   * 1) Efecto para cargar "indmapaproceso" filtrado por idProceso
+   * Cargar indicadores del mapa de proceso
    */
-  useEffect(() => {
-    if (!idProceso) return setLoading(false);
-    axios.get(`http://localhost:8000/api/indmapaproceso?proceso=${idProceso}`)
-      .then((resp) => setUsers(resp.data))
-      .catch((error) => console.error("Error al obtener indmapaproceso:", error))
-      .finally(() => setLoading(false));
-  }, [idProceso]);
+  const cargarIndicadores = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await axios.get(`http://localhost:8000/api/indmapaproceso?proceso=${idProceso}`);
+
+      if (!response.data || response.data.length === 0) {
+        setUsers([]);
+      } else {
+        setUsers(response.data);
+      }
+    } catch (error) {
+      console.error("Error al obtener indmapaproceso:", error);
+
+      let errorMessage = "Error al cargar los indicadores";
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = "No se encontraron indicadores";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Error del servidor al cargar indicadores";
+        }
+      } else if (error.request) {
+        errorMessage = "Error de conexión. Verifique su internet";
+      }
+
+      setError(errorMessage);
+      setUsers([]);
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [idProceso, showSnackbar]);
 
   /**
-   * 2) Efecto para cargar "proceso" y "mapaProceso" (ejemplo)
+   * Cargar datos del proceso y mapa de proceso
    */
-  useEffect(() => {
-    axios.get(`http://localhost:8000/api/procesos/${idProceso}`)
-      .then((response) => response.data.proceso && setProceso(response.data.proceso))
-      .catch((error) => console.error("Error al obtener datos del proceso:", error));
+  const cargarDatosProceso = useCallback(async () => {
+    try {
+      const [procesoRes, mapaRes] = await Promise.all([
+        axios.get(`http://localhost:8000/api/procesos/${idProceso}`),
+        axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
+      ]);
 
-    axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
-      .then((response) => response.data && setMapaProceso(response.data))
-      .catch((error) => console.error("Error al obtener datos del mapa de procesos:", error));
+      if (procesoRes.data.proceso) {
+        setProceso(procesoRes.data.proceso);
+      }
+
+      if (mapaRes.data) {
+        setMapaProceso(mapaRes.data);
+      }
+    } catch (error) {
+      console.error("Error al obtener datos del proceso:", error);
+
+      let errorMessage = "Error al cargar la información del proceso";
+      if (error.response?.status === 404) {
+        errorMessage = "No se encontró el proceso solicitado";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    }
+  }, [idProceso, showSnackbar]);
+
+  useEffect(() => {
+    if (!idProceso) {
+      setLoading(false);
+      return;
+    }
+
+    cargarIndicadores();
+    cargarDatosProceso();
 
     const handleScroll = () => setIsFixed(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [idProceso, cargarIndicadores, cargarDatosProceso]);
 
   const validateFields = () => {
     let tempErrors = {};
@@ -127,8 +183,9 @@ function ProcessMapView({ idProceso, soloLectura }) {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (soloLectura || !validateFields()) return;
+
     const payload = {
       idProceso,
       descripcion: newUser.descripcion,
@@ -137,90 +194,138 @@ function ProcessMapView({ idProceso, soloLectura }) {
       responsable: newUser.responsable,
       meta: parseInt(newUser.meta) || null
     };
-    return axios.post("http://localhost:8000/api/indmapaproceso", payload).then((response) => {
+
+    try {
+      const response = await axios.post("http://localhost:8000/api/indmapaproceso", payload);
       const nuevo = response.data.indMapaProceso;
       setUsers((prev) => [...prev, nuevo]);
       setOpenForm(false);
       setNewUser({ descripcion: "", formula: "", periodo: "", responsable: "", meta: "" });
       setErrors({});
-    })
-      .catch((error) => console.error("Error al agregar indicador (indmapaproceso):", error));
+
+      if (showSnackbar) {
+        showSnackbar("Indicador creado exitosamente", "success", "Éxito");
+      }
+    } catch (error) {
+      console.error("Error al agregar indicador:", error);
+
+      let errorMessage = "Error al crear el indicador";
+      if (error.response?.status === 400) {
+        errorMessage = "Datos inválidos para crear el indicador";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    }
   };
 
   const handleSaveChanges = async () => {
     if (soloLectura) return;
     const payload = { idProceso, ...mapaProceso };
+
     try {
       if (!mapaProceso.idMapaProceso) {
         const res = await axios.post("http://localhost:8000/api/mapaproceso", payload);
         setMapaProceso(res.data);
-        setAlerta({ tipo: "success", texto: "Mapa de proceso creado correctamente." });
+        if (showSnackbar) {
+          showSnackbar("Mapa de proceso creado correctamente", "success", "Éxito");
+        }
       } else {
         await axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, payload);
-        setAlerta({ tipo: "success", texto: "Cambios guardados correctamente." });
+        if (showSnackbar) {
+          showSnackbar("Cambios guardados correctamente", "success", "Éxito");
+        }
       }
       setEditMode(false);
     } catch (error) {
       console.error("Error al guardar:", error);
-      setAlerta({ tipo: "error", texto: "Ocurrió un error al guardar el mapa de proceso." });
+
+      let errorMessage = "Error al guardar el mapa de proceso";
+      if (error.response?.status === 400) {
+        errorMessage = "Datos inválidos para guardar";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
     }
   };
-
-  useEffect(() => {
-    if (alerta.texto) {
-      const timeout = setTimeout(() => setAlerta({ tipo: "", texto: "" }), 4000);
-      return () => clearTimeout(timeout);
-    }
-  }, [alerta]);
 
   const handleDeleteUser = useCallback((indicador) => {
     setIndicadorAEliminar(indicador);
     setConfirmDialogOpen(true);
   }, []);
 
-  const confirmarEliminarIndicador = useCallback(() => {
+  const confirmarEliminarIndicador = useCallback(async () => {
     if (!indicadorAEliminar) return;
-    axios.delete(`http://localhost:8000/api/indmapaproceso/${indicadorAEliminar.idIndicador}`)
-      .then(() => {
-        setUsers((prev) => prev.filter((u) => u.idIndicador !== indicadorAEliminar.idIndicador));
-        setAlerta({ tipo: "success", texto: "Indicador eliminado correctamente." });
-      })
-      .catch(() => setAlerta({ tipo: "error", texto: "Error al eliminar el indicador." }))
-      .finally(() => {
-        setConfirmDialogOpen(false);
-        setIndicadorAEliminar(null);
-      });
-  }, [indicadorAEliminar]);
+
+    try {
+      await axios.delete(`http://localhost:8000/api/indmapaproceso/${indicadorAEliminar.idIndicador}`);
+      setUsers((prev) => prev.filter((u) => u.idIndicador !== indicadorAEliminar.idIndicador));
+
+      if (showSnackbar) {
+        showSnackbar("Indicador eliminado correctamente", "success", "Éxito");
+      }
+    } catch (error) {
+      console.error("Error al eliminar indicador:", error);
+
+      let errorMessage = "Error al eliminar el indicador";
+      if (error.response?.status === 404) {
+        errorMessage = "El indicador no fue encontrado";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    } finally {
+      setConfirmDialogOpen(false);
+      setIndicadorAEliminar(null);
+    }
+  }, [indicadorAEliminar, showSnackbar]);
 
   const handleEditUser = (user) => {
     setEditUser({ ...user, periodo: user.periodoMed || "" });
     setEditFormOpen(true);
   };
 
-  const handleSaveEditUser = () => {
+  const handleSaveEditUser = async () => {
     if (!editUser) return;
-    return axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
-      idProceso,
-      descripcion: editUser.descripcion,
-      formula: editUser.formula,
-      periodoMed: editUser.periodo,
-      responsable: editUser.responsable,
-      meta: parseInt(editUser.meta) || null
-    })
-      .then((resp) => {
-        setUsers((prev) => prev.map((u) => u.idIndicadorMP === editUser.idIndicadorMP ? resp.data : u));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setActiveCards([]);
-        setEditFormOpen(false);
-        setEditUser(null);
-        setAlerta({ tipo: "success", texto: "Indicador actualizado correctamente." });
-      })
-      .catch((error) => console.error("Error al actualizar indicador:", error));
+
+    try {
+      const resp = await axios.put(`http://localhost:8000/api/indmapaproceso/${editUser.idIndicadorMP}`, {
+        idProceso,
+        descripcion: editUser.descripcion,
+        formula: editUser.formula,
+        periodoMed: editUser.periodo,
+        responsable: editUser.responsable,
+        meta: parseInt(editUser.meta) || null
+      });
+
+      setUsers((prev) => prev.map((u) => u.idIndicadorMP === editUser.idIndicadorMP ? resp.data : u));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setActiveCards([]);
+      setEditFormOpen(false);
+      setEditUser(null);
+
+      if (showSnackbar) {
+        showSnackbar("Indicador actualizado correctamente", "success", "Éxito");
+      }
+    } catch (error) {
+      console.error("Error al actualizar indicador:", error);
+
+      let errorMessage = "Error al actualizar el indicador";
+      if (error.response?.status === 404) {
+        errorMessage = "El indicador no fue encontrado";
+      }
+
+      if (showSnackbar) {
+        showSnackbar(errorMessage, "error", "Error");
+      }
+    }
   };
 
-  /**
-   * Render principal
-   */
+  // Estados de carga y error
   if (loading) {
     return (
       <Box sx={{
@@ -238,15 +343,32 @@ function ProcessMapView({ idProceso, soloLectura }) {
     );
   }
 
+  if (error) {
+    return (
+      <Box sx={{
+        p: 3,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "50vh",
+        flexDirection: "column"
+      }}>
+        <Alert severity="error" sx={{ mb: 3, maxWidth: 500 }}>
+          {error}
+        </Alert>
+        <CustomButton
+          type="guardar"
+          onClick={cargarIndicadores}
+          variant="outlined"
+        >
+          Reintentar
+        </CustomButton>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3, display: "flex", minHeight: "100vh", flexDirection: "column" }}>
-      <FeedbackSnackbar
-        open={!!alerta.texto}
-        type={alerta.tipo}
-        message={alerta.texto}
-        onClose={() => setAlerta({ tipo: "", texto: "" })}
-      />
-
       {/* Información del proceso */}
       <InfoProceso proceso={proceso} />
 
@@ -258,18 +380,25 @@ function ProcessMapView({ idProceso, soloLectura }) {
         setEditMode={setEditMode}
         handleSaveChanges={handleSaveChanges}
         soloLectura={soloLectura}
+        showSnackbar={showSnackbar}
       />
 
-      {/* Título + botón de expandir */}
-
+      {/* Título de Indicadores */}
       <Title text="Indicadores" />
 
-
-      {/* Tarjetas expandidas */}
+      {/* Tabla de Indicadores */}
       {users.length === 0 ? (
-        <Typography variant="body1" color="text.secondary" sx={{ my: 4, textAlign: "center" }}>
-          No hay indicadores registrados aún.
-        </Typography>
+        <Box sx={{ my: 4, textAlign: "center" }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            No hay indicadores registrados aún
+          </Alert>
+          <Typography variant="body1" color="text.secondary">
+            {soloLectura
+              ? "No hay indicadores disponibles para mostrar."
+              : "Puede agregar indicadores usando el botón 'Añadir Indicador'."
+            }
+          </Typography>
+        </Box>
       ) : (
         <Box sx={{ mt: 2 }}>
           <TableContainer component={Paper} elevation={2}>
@@ -336,6 +465,7 @@ function ProcessMapView({ idProceso, soloLectura }) {
         setFormData={setNewUser}
         errors={errors}
         modo="crear"
+        showSnackbar={showSnackbar}
       />
 
       {/* Formulario Editar Indicador */}
@@ -346,19 +476,21 @@ function ProcessMapView({ idProceso, soloLectura }) {
         formData={editUser || {}}
         setFormData={setEditUser}
         modo="editar"
+        showSnackbar={showSnackbar}
       />
 
       {/* Confirmación de Eliminación */}
-      <ConfirmDeleteDialog
+      <ConfirmDelete
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
         onConfirm={confirmarEliminarIndicador}
-        itemName={indicadorAEliminar?.descripcion || "este indicador"}
+        entityType="indicador"
+        entityName={indicadorAEliminar?.descripcion || "este indicador"}
+        isPermanent={true}
+        description="Esta acción no se puede deshacer."
       />
     </Box>
   );
-
 }
-
 
 export default ProcessMapView;
