@@ -122,12 +122,15 @@ const ProcessForm = ({
     const prevRef = React.useRef(initialValues);
 
     useEffect(() => {
-        if (!shallowEqual(prevRef.current, initialValues)) {
-            setFormData(initialValues);
+        if (initialValues && initialValues.idUsuario !== undefined) {
+            setFormData({
+                ...initialValues,
+                idUsuario: initialValues.idUsuario ? String(initialValues.idUsuario) : ""
+            });
             setSelectedIcon(initialValues.icono || iconOptions[0].name);
             prevRef.current = initialValues;
         }
-    }, [initialValues])
+    }, [initialValues]);
 
     const handleChange = (field) => (e) => {
         const val = field === "idUsuario" ? String(e.target.value) : e.target.value;
@@ -136,7 +139,15 @@ const ProcessForm = ({
 
     const handleSubmit = () => {
         // Si onSubmit devuelve una promesa (async), la regresamos
-        return onSubmit({ ...formData, icono: selectedIcon });
+        const payload = {
+            ...formData,
+            icono: selectedIcon,
+            idUsuario: formData.idUsuario ? Number(formData.idUsuario) : null,
+            idMacroproceso: formData.idMacroproceso ? Number(formData.idMacroproceso) : null,
+            idEntidad: formData.idEntidad ? Number(formData.idEntidad) : null,
+            anioCertificado: formData.anioCertificado ? Number(formData.anioCertificado) : null,
+        };
+        return onSubmit(payload);
     };
 
 
@@ -166,10 +177,10 @@ const ProcessForm = ({
                         select
                         fullWidth
                         label="Líder del Proceso"
-                        value={formData.idUsuario ?? ""}              
+                        value={formData.idUsuario ?? ""}
                         onChange={handleChange("idUsuario")}
                         sx={commonStyles}
-                        disabled={leaders.length === 0}               
+                        disabled={leaders.length === 0}
                     >
                         <MenuItem value="">{/* opción vacía */}</MenuItem>
                         {leaders.map((l) => (

@@ -39,15 +39,18 @@
  */
 
 import React, { useRef, useState } from "react";
-import { CircularProgress, Box, SpeedDial, SpeedDialAction, Container } from "@mui/material";
+import { CircularProgress, Box, SpeedDial, SpeedDialAction, Container, Stack } from "@mui/material";
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import Title from "../components/Title";
+import CustomButton from "../components/Button";
 import { useNavigate } from "react-router-dom";
 
 const ManualCalidad = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const iframeRef = useRef(null);
   const navigate = useNavigate();
 
@@ -58,6 +61,12 @@ const ManualCalidad = () => {
   const breadcrumbItems = [
     { label: "Manual de Calidad", icon: NewspaperIcon }
   ];
+
+  // URLs de recurso
+  const uniqueId = "69f2e061-d922-4e84-984a-bbba68b7246d";
+  const embedUrl = `https://uaslpedu.sharepoint.com/sites/Sical-virtual/_layouts/15/embed.aspx?UniqueId=${uniqueId}`;
+  // En SharePoint Online, descarga directa con download.aspx + UniqueId
+  const downloadUrl = `https://uaslpedu.sharepoint.com/sites/Sical-virtual/_layouts/15/download.aspx?UniqueId=${uniqueId}`;
 
   // Función para pantalla completa
   const handleFullscreen = () => {
@@ -75,15 +84,58 @@ const ManualCalidad = () => {
     }
   };
 
+  // Descarga (abrir en nueva pestaña). Evitamos fetch por CORS.
+  const handleDownload = () => {
+    if (!isLoaded || downloading) return;
+    setDownloading(true);
+    // Ancla efímera para descarga directa, un solo disparo
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = "";              // sugiere descarga
+    a.target = "_blank";          // no bloqueo de navegación actual
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Rehabilita tras un breve lapso (UX: evita doble click)
+    setTimeout(() => setDownloading(false), 800);
+  };
+
   return (
 
     <Container maxWidth={false} sx={{ minHeight: "100vh", py: 2 }}>
       {/* Breadcrumb pegado a la izquierda */}
-      
-        <BreadcrumbNav items={breadcrumbItems} />
-      
-      <Title text="Manual de Calidad" mode="normal" />
 
+      <BreadcrumbNav items={breadcrumbItems} />
+
+      {/* Header de acciones: título + botones */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        justifyContent="space-between"
+        spacing={2}
+        sx={{ mb: 2 }}
+      >
+        <Title text="Manual de Calidad" mode="normal" />
+        <Stack direction="row" spacing={1.5}>
+          <CustomButton
+            type="descargar"
+            onClick={handleDownload}
+            disabled={!isLoaded || downloading}
+            aria-label="Descargar manual de calidad"
+          >
+            Descargar
+          </CustomButton>
+          <CustomButton
+            type="guardar"
+            onClick={handleFullscreen}
+            aria-label="Ver en pantalla completa"
+            sx={{ ml: { xs: 0, sm: 1 } }}
+          >
+            Pantalla completa
+          </CustomButton>
+        </Stack>
+      </Stack>
       {!isLoaded && (
         <Box sx={{ minHeight: 600, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
           <CircularProgress size={60} thickness={4} color="primary" />
@@ -93,12 +145,12 @@ const ManualCalidad = () => {
       <Box className={!isLoaded ? "hidden" : ""} sx={{ width: "100%", maxWidth: 960, mx: "auto" }}>
         <iframe
           ref={iframeRef}
-          src="https://uaslpedu.sharepoint.com/sites/Sical-virtual/_layouts/15/embed.aspx?UniqueId=69f2e061-d922-4e84-984a-bbba68b7246d"
+          src={embedUrl}
           width="100%"
           height="600"
           frameBorder="0"
           allowFullScreen
-          title="MANUAL DE CALIDAD 28042024"
+          title="MANUAL DE CALIDAD"
           aria-label="Manual de Calidad"
           style={{ border: "0", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
           onLoad={() => setIsLoaded(true)}
@@ -116,6 +168,11 @@ const ManualCalidad = () => {
             icon={<FullscreenIcon />}
             tooltipTitle="Pantalla completa"
             onClick={handleFullscreen}
+          />
+          <SpeedDialAction
+            icon={<DownloadOutlinedIcon />}
+            tooltipTitle="Descargar manual"
+            onClick={handleDownload}
           />
           <SpeedDialAction
             icon={<NewspaperIcon />}
