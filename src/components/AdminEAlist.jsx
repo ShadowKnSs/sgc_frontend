@@ -48,6 +48,15 @@ const AdminEAList = ({ tipo }) => {
     message: '',
   });
 
+  // Convierte a absoluta solo si viene relativa (/storage/...)
+  const toAbsolute = (u) => {
+    if (!u) return '';
+    return /^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`;
+  };
+  // Evitar caché tras crear/editar
+  const withBust = (url) => (!url ? '' : `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`);
+
+
   const showFeedback = useCallback((type, title, message) => {
     setFeedback({ open: true, type, title, message });
   }, []);
@@ -118,7 +127,9 @@ const AdminEAList = ({ tipo }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      setItems([...items, resp.data]);
+      const created = resp.data;
+      if (created?.rutaImg) created.rutaImg = withBust(created.rutaImg);
+      setItems(prev => [created, ...prev]);
       showFeedback('success', 'Creado', `${tipo} creado con éxito`);
       return resp;
     } catch (error) {
@@ -145,8 +156,10 @@ const AdminEAList = ({ tipo }) => {
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
 
+      const updatedItem = resp.data;
+      if (updatedItem?.rutaImg) updatedItem.rutaImg = withBust(updatedItem.rutaImg);
       const updated = items.map(x =>
-        x.idEventosAvisos === editItem.idEventosAvisos ? resp.data : x
+        x.idEventosAvisos === editItem.idEventosAvisos ? updatedItem : x
       );
       setItems(updated);
       showFeedback('success', 'Editado', `${tipo} #${editItem.idEventosAvisos} editado con éxito`);
@@ -197,7 +210,13 @@ const AdminEAList = ({ tipo }) => {
                 }}
               >
                 {item.rutaImg && (
-                  <CardMedia component="img" height="150" image={item.rutaImg} alt={`${tipo} #${item.idEventosAvisos}`} />
+                  <CardMedia
+                    component="img"
+                    height="150"
+                    image={toAbsolute(item.rutaImg)}
+                    alt={`${tipo} #${item.idEventosAvisos}`}
+                    loading="lazy"
+                  />
                 )}
                 <CardContent>
                   <Typography variant="h6" gutterBottom>{tipo} #{item.idEventosAvisos}</Typography>
