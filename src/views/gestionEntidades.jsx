@@ -111,14 +111,14 @@ const GestionEntidades = () => {
         if (!entidad) return;
         setTogglingId(entidad.idEntidadDependencia);
         await toggleEntidad(entidad.idEntidadDependencia, entidad.activo);
+        await obtenerEntidades();
         setTogglingId(null);
         setShowConfirmToggle(false);
         setEntidadSeleccionadaId(null);
       } catch (error) {
-        console.error('Error al cambiar estado:', error);
       }
     }
-  }, [entidadSeleccionadaId, entidades, toggleEntidad]);
+  }, [entidadSeleccionadaId, entidades, toggleEntidad, obtenerEntidades]);
 
   const handleEditar = useCallback((id) => {
     if (editingId) return;
@@ -140,17 +140,18 @@ const GestionEntidades = () => {
           ...data,
           icono: data.icono || 'BusinessIcon'
         });
+        await obtenerEntidades();
         handleCloseDialog();
       } catch (error) {
-        console.error('Error al crear entidad:', error);
       }
     }
-  }, [modoEdicion, crearEntidad, handleCloseDialog]);
+  }, [modoEdicion, crearEntidad, handleCloseDialog, obtenerEntidades]);
 
   const handleConfirmEdit = useCallback(async () => {
     try {
       const entidadId = entidadAEditar.idEntidadDependencia;
       await actualizarEntidad(entidadId, entidadEditada);
+      await obtenerEntidades();
       setEditingId(null);
       setShowConfirmEdit(false);
       setOpenDialog(false);
@@ -158,9 +159,8 @@ const GestionEntidades = () => {
       setEntidadAEditar(null);
       setEntidadEditada(null);
     } catch (error) {
-      console.error('Error al editar:', error);
     }
-  }, [entidadAEditar, entidadEditada, actualizarEntidad]);
+  }, [entidadAEditar, entidadEditada, actualizarEntidad, obtenerEntidades]);
 
   const entidadesList = useMemo(() => {
     if (loading) {
