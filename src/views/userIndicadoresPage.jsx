@@ -27,6 +27,82 @@ import ResultModalEvaluaProveedores from "../components/Modals/ResultModalEvalua
 import usePermiso from "../hooks/userPermiso";
 import ProcesoEntidad from "../components/ProcesoEntidad";
 
+
+function buildDatosGraficas(indicadores = [], results = {}) {
+  const planControl = [], mapaProceso = [], riesgos = [], retroalimentacion = [];
+  let encuesta = null, evaluacion = null;
+
+  indicadores.forEach(ind => {
+    const res = results[ind.idIndicador] || {};
+    const origen = ind.origenIndicador;
+
+    switch (origen) {
+      case "Encuesta":
+        if ((res.noEncuestas ?? 0) > 0) {
+          encuesta = {
+            malo: res.malo || 0,
+            regular: res.regular || 0,
+            bueno: res.bueno || 0,
+            excelente: res.excelente || 0,
+            noEncuestas: res.noEncuestas || 0
+          };
+        }
+        break;
+
+      case "Retroalimentacion":
+        if ((res.cantidadFelicitacion ?? 0) > 0 || (res.cantidadSugerencia ?? 0) > 0 || (res.cantidadQueja ?? 0) > 0) {
+          retroalimentacion.push({
+            nombreIndicador: ind.nombreIndicador,
+            cantidadFelicitacion: res.cantidadFelicitacion || 0,
+            cantidadSugerencia: res.cantidadSugerencia || 0,
+            cantidadQueja: res.cantidadQueja || 0
+          });
+        }
+        break;
+
+      case "EvaluaProveedores":
+        evaluacion = {
+          resultadoConfiableSem1: res.resultadoConfiableSem1 || 0,
+          resultadoConfiableSem2: res.resultadoConfiableSem2 || 0,
+          resultadoCondicionadoSem1: res.resultadoCondicionadoSem1 || 0,
+          resultadoCondicionadoSem2: res.resultadoCondicionadoSem2 || 0,
+          resultadoNoConfiableSem1: res.resultadoNoConfiableSem1 || 0,
+          resultadoNoConfiableSem2: res.resultadoNoConfiableSem2 || 0
+        };
+        break;
+
+      case "ActividadControl":
+        planControl.push({
+          nombreIndicador: ind.nombreIndicador,
+          resultadoSemestral1: res.resultadoSemestral1 || 0,
+          resultadoSemestral2: res.resultadoSemestral2 || 0,
+          resultadoAnual: res.resultadoAnual || 0
+        });
+        break;
+
+      case "MapaProceso":
+        mapaProceso.push({
+          nombreIndicador: ind.nombreIndicador,
+          resultadoSemestral1: res.resultadoSemestral1 || 0,
+          resultadoSemestral2: res.resultadoSemestral2 || 0,
+          resultadoAnual: res.resultadoAnual || 0
+        });
+        break;
+
+      case "GestionRiesgo":
+        if (res.resultadoAnual != null) {
+          riesgos.push({
+            nombreIndicador: ind.nombreIndicador,
+            resultadoAnual: res.resultadoAnual || 0
+          });
+        }
+        break;
+    }
+  });
+
+  return { planControl, mapaProceso, riesgos, encuesta, evaluacion, retroalimentacion };
+}
+
 const UnifiedIndicatorPage = () => {
   const { idProceso: paramProceso, anio } = useParams();
   const { state } = useLocation();
@@ -45,8 +121,10 @@ const UnifiedIndicatorPage = () => {
   const [selectedState, setSelectedState] = useState("noRecord");
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [registrosPorApartado, setRegistrosPorApartado] = useState({});
-  const [datosGraficas, setDatosGraficas] = useState({});
-
+  const datosGraficas = useMemo(
+    () => buildDatosGraficas(indicators, results),
+    [indicators, results]
+  );
   const stateMap = useMemo(() => ({
     noRecord: { label: "Sin registrar", items: [], color: "white" },
     incomplete: { label: "Incompleto", items: [], color: "yellow" },
@@ -107,86 +185,16 @@ const UnifiedIndicatorPage = () => {
 
         // Inicializar estructuras para gráficas
         const resultadosMap = {};
-        const planControl = [], mapaProceso = [], riesgos = [], retroalimentacion = [];
-        let encuesta = null, evaluacion = null;
 
         // Procesar cada indicador
         indicadores.forEach(ind => {
           // Guardar resultado para este indicador
           resultadosMap[ind.idIndicador] = ind;
 
-          // Clasificar por tipo de indicador
-          switch (ind.origenIndicador) {
-            case "Encuesta":
-              if (ind.noEncuestas > 0) {
-                encuesta = {
-                  malo: ind.malo || 0,
-                  regular: ind.regular || 0,
-                  bueno: ind.bueno || 0,
-                  excelente: ind.excelente || 0,
-                  noEncuestas: ind.noEncuestas
-                };
-              }
-              break;
-
-            case "Retroalimentacion":
-              if (ind.cantidadFelicitacion > 0 || ind.cantidadSugerencia > 0 || ind.cantidadQueja > 0) {
-                retroalimentacion.push({
-                  nombreIndicador: ind.nombreIndicador,
-                  cantidadFelicitacion: ind.cantidadFelicitacion || 0,
-                  cantidadSugerencia: ind.cantidadSugerencia || 0,
-                  cantidadQueja: ind.cantidadQueja || 0
-                });
-              }
-              break;
-
-            case "EvaluaProveedores":
-              evaluacion = {
-                resultadoConfiableSem1: ind.resultadoConfiableSem1 || 0,
-                resultadoConfiableSem2: ind.resultadoConfiableSem2 || 0,
-                resultadoCondicionadoSem1: ind.resultadoCondicionadoSem1 || 0,
-                resultadoCondicionadoSem2: ind.resultadoCondicionadoSem2 || 0,
-                resultadoNoConfiableSem1: ind.resultadoNoConfiableSem1 || 0,
-                resultadoNoConfiableSem2: ind.resultadoNoConfiableSem2 || 0
-              };
-              break;
-
-            case "ActividadControl":
-              planControl.push({
-                nombreIndicador: ind.nombreIndicador,
-                resultadoSemestral1: ind.resultadoSemestral1 || 0,
-                resultadoSemestral2: ind.resultadoSemestral2 || 0,
-                resultadoAnual: ind.resultadoAnual || 0
-              });
-              break;
-
-            case "MapaProceso":
-              mapaProceso.push({
-                nombreIndicador: ind.nombreIndicador,
-                resultadoSemestral1: ind.resultadoSemestral1 || 0,
-                resultadoSemestral2: ind.resultadoSemestral2 || 0,
-                resultadoAnual: ind.resultadoAnual || 0
-              });
-              break;
-
-            case "GestionRiesgo":
-              riesgos.push({
-                nombreIndicador: ind.nombreIndicador,
-                resultadoAnual: ind.resultadoAnual || 0
-              });
-              break;
-          }
         });
 
         setResults(resultadosMap);
-        setDatosGraficas({
-          planControl,
-          mapaProceso,
-          riesgos,
-          encuesta,
-          evaluacion,
-          retroalimentacion
-        });
+
 
       } catch (err) {
         console.error("Error al cargar indicadores:", err);
@@ -266,7 +274,6 @@ const UnifiedIndicatorPage = () => {
       setResultModalOpen(false);
       setSnackbar({ open: true, type: "success", title: "Éxito", message: "Resultado guardado correctamente." });
     } catch (err) {
-      console.error("Error al registrar resultado:", err);
       setSnackbar({ open: true, type: "error", title: "Error", message: "Error al guardar resultado." });
     }
   }, [editIndicator]);
@@ -322,8 +329,8 @@ const UnifiedIndicatorPage = () => {
   return (
     <Box sx={{ p: 2, maxWidth: 1200, mx: "auto", position: 'relative' }}>
       <Box sx={{
-        ml: -16, 
-        mb: 2   
+        ml: -16,
+        mb: 2
       }}>
         <BreadcrumbNav items={breadcrumbItems} />
       </Box>

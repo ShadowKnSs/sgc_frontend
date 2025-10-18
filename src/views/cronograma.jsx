@@ -237,7 +237,7 @@ function Cronograma() {
     });
   }, [view, date, usuario, rolActivo, fetchAuditorias]);
 
-
+const safeEvents = Array.isArray(events) ? events : [];
 
   return (
     <Box
@@ -306,7 +306,7 @@ function Cronograma() {
         </Box>
       )}
       {/* Estado sin datos */}
-      {!loadingList && !hasError && events.length === 0 && (
+      {!loadingList && !hasError && safeEvents.length === 0 && (
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 2, gap: 1.5 }}>
           <Typography variant="body2" color="text.secondary">
             No se encontraron auditorías para este mes.
@@ -319,14 +319,14 @@ function Cronograma() {
       {/* Solo ocultar si está cargando por primera vez y hay error */}
       {!(loadingList && hasError) && (
         <AuditoriaCalendar
-          events={events}
+          events={safeEvents}
           view={view}
           date={date}
           setView={setView}
           setDate={setDate}
           onSelectEvent={handleOpenDetails}
           // Prop adicional para mostrar estado vacío dentro del calendario
-          isEmpty={!loadingList && events.length === 0}
+          isEmpty={!loadingList && safeEvents.length === 0}
         />
       )}
 

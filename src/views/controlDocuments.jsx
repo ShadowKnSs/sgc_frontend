@@ -119,20 +119,20 @@ function ProcessMapView({ soloLectura, idProceso, showSnackbar }) {
     setDialogOpen(true);
   };
 
- const handleOpenEditDialog = (doc) => {
-  const formData = {
-    ...doc,
-    usuarios: doc.responsable ? doc.responsable.split(',').map(r => r.trim()) : [],
-    noRevision: String(doc.noRevision ?? ""),  // String, no number
-    noCopias: String(doc.noCopias ?? ""),
-    tiempoRetencion: String(doc.tiempoRetencion ?? ""),
-    disposicion: doc.disposicion ?? ""  // String vacío, no null
+  const handleOpenEditDialog = (doc) => {
+    const formData = {
+      ...doc,
+      usuarios: doc.responsable ? doc.responsable.split(',').map(r => r.trim()) : [],
+      noRevision: String(doc.noRevision ?? ""),  // String, no number
+      noCopias: String(doc.noCopias ?? ""),
+      tiempoRetencion: String(doc.tiempoRetencion ?? ""),
+      disposicion: doc.disposicion ?? ""  // String vacío, no null
+    };
+
+    setFormData(formData);
+    setCurrentDoc(doc);
+    setDialogOpen(true);
   };
-  
-  setFormData(formData);
-  setCurrentDoc(doc);
-  setDialogOpen(true);
-};
 
 
   const handleCloseDialog = () => {
@@ -148,7 +148,7 @@ function ProcessMapView({ soloLectura, idProceso, showSnackbar }) {
     }
 
     setSaving(true);
-    
+
     // Preparar payload común
     const payload = {
       ...formData,
@@ -156,7 +156,7 @@ function ProcessMapView({ soloLectura, idProceso, showSnackbar }) {
       responsable: Array.isArray(formData.usuarios) ? formData.usuarios.join(", ") : formData.usuarios,
       noRevision: formData.noRevision || 0,
       noCopias: formData.noCopias || 0,
-      tiempoRetencion: formData.tiempoRetencion || 0,
+      tiempoRetencion: (formData.tiempoRetencion ?? '').toString().trim() || null,
       disposicion: formData.disposicion || null
     };
 
@@ -171,14 +171,14 @@ function ProcessMapView({ soloLectura, idProceso, showSnackbar }) {
     Object.entries(payload).forEach(([key, value]) => {
       if (key === "archivo" && value instanceof File) {
         formDataToSend.append("archivo", value);
-      } else if (value !== null && value !== undefined) {
-        formDataToSend.append(key, value.toString());
+      } else if (value !== null && value !== undefined && value !== '') {
+        formDataToSend.append(key, value);
       }
     });
 
     try {
       let response;
-      
+
       if (currentDoc) {
         // Modo edición
         response = await axios.post(
@@ -205,7 +205,7 @@ function ProcessMapView({ soloLectura, idProceso, showSnackbar }) {
 
     } catch (error) {
       console.error("Error al guardar documento:", error);
-      
+
       let errorMessage = currentDoc ? "Error al actualizar el documento" : "Error al crear el documento";
       if (error.response?.status === 400) {
         errorMessage = "Datos inválidos";

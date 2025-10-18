@@ -37,7 +37,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
     try {
       setLoadingList(true);
       setHasError(false);
-      setEvents(null);
+      setEvents([]);
       emptySnackShown.current = false;
       //cerrar un snackbar informativo previo
       setSnackbar(prev => (prev.open && prev.severity === 'info' ? { ...prev, open: false } : prev))
@@ -86,7 +86,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       }
 
       // Filtrado client-side si el endpoint no soporta rango (roles ≠ Admin/Coord)
-      const between = (d, a, b) => d >= a && d <= b;
+      const between = (d, a, b) => !!d && d >= a && d <= b;
       if (!["Administrador", "Coordinador"].includes(rolActivo.nombreRol)) {
         auditoriasRaw = auditoriasRaw.filter(r => between(String(r.fechaProgramada), from, to));
       }
@@ -94,7 +94,13 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       const auditorias = await Promise.all(
         auditoriasRaw.map(async (auditoria) => {
           try {
-            const start = new Date(`${auditoria.fechaProgramada}T${auditoria.horaProgramada}`);
+            const fecha = String(auditoria.fechaProgramada || '').trim();
+            const hora = String(auditoria.horaProgramada || '').trim();
+            const start = new Date(`${fecha}T${hora}`);
+            if (isNaN(start.getTime())) {
+              // registro inválido, lo saltamos
+              return null;
+            }
             const end = new Date(start.getTime() + 60 * 60 * 1000);
 
             const rawLiderId = Number(auditoria.auditorLider);
@@ -153,7 +159,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       );
 
       // Filtrar auditorías nulas (que fallaron en el procesamiento)
-      const auditoriasFiltradas = auditorias.filter(a => a !== null);
+      const auditoriasFiltradas = auditorias.filter(a => a && !isNaN(a.start?.getTime()) && !isNaN(a.end?.getTime()));
       setEvents(auditoriasFiltradas);
       setLoadingList(false);
 
@@ -201,29 +207,17 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
           axios.get("http://localhost:8000/api/procesos-con-entidad"),
         ]);
 
-        if (resEntidades.status === "fulfilled") {
-          setEntidades(resEntidades.value.data?.nombres || []);
-        } else {
-          setEntidades([]); // falla silenciosa
-        }
+        setEntidades(resEntidades.data?.nombres || []);
 
-        if (resAuditores.status === "fulfilled") {
-          setAuditores(resAuditores.value.data?.data || []);
-        } else {
-          setAuditores([]);
-        }
+        setAuditores(resAuditores.data?.data || []);
 
-        if (resProcesosCE.status === "fulfilled") {
-          const ce = (resProcesosCE.value.data?.procesos || []).map(p => ({
-            id: Number(p.idProceso),
-            nombre: p.nombreCompleto,
-            nombreEntidad: p.nombreEntidad,
-            nombreProceso: p.nombreProceso,
-          }));
-          setProcesosCE(ce);
-        } else {
-          setProcesosCE([]);
-        }
+        const ce = (resProcesosCE.data?.procesos || []).map(p => ({
+          id: Number(p.idProceso),
+          nombre: p.nombreCompleto,
+          nombreEntidad: p.nombreEntidad,
+          nombreProceso: p.nombreProceso,
+        }));
+        setProcesosCE(ce);
       } catch (err) {
         // Nunca bloquear pantalla
         setEntidades([]);
@@ -243,11 +237,8 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       const res = await axios.get("http://localhost:8000/api/procesos-por-nombre-entidad", {
         params: { nombre: entidadNombre }
       });
-      const opts = (res.data.procesos || []).map(p => ({
-        id: Number(p.idProceso),
-        nombre: p.nombreProceso
-      }));
-      setProcesos(opts);
+      const opts = (res.data.procesos || []).map(p => p.nombreProceso);
+      setProcesos(opts)
     } catch (err) {
       setProcesos([]);
     }
