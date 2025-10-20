@@ -43,7 +43,7 @@ const useAuditoriaData = (usuario, rolActivo, idProceso = null) => {
       setSnackbar(prev => (prev.open && prev.severity === 'info' ? { ...prev, open: false } : prev))
       let response;
 
-      if (["Administrador", "Coordinador"].includes(rolActivo.nombreRol)) {
+      if (["Administrador", "Coordinador de Calidad"].includes(rolActivo.nombreRol)) {
         response = await axios.get("http://localhost:8000/api/auditorias/todas", {
           params: { rol: rolActivo.nombreRol, from, to }
         });

@@ -237,7 +237,7 @@ function Cronograma() {
     });
   }, [view, date, usuario, rolActivo, fetchAuditorias]);
 
-const safeEvents = Array.isArray(events) ? events : [];
+  const safeEvents = Array.isArray(events) ? events : [];
 
   return (
     <Box
@@ -331,50 +331,52 @@ const safeEvents = Array.isArray(events) ? events : [];
       )}
 
       {/* Se muestra el botón "Crear Auditoría" si el usuario tiene el permiso "Cronograma" */}
-      {permiteAcciones() && (
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 460,             
-            right: "40px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 1.25,               // espacio entre botón y leyenda
-            zIndex: 20,
-          }}
-        >
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 590,
+          right: "40px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 1.25,
+          zIndex: 20,
+        }}
+      >
+        {/* Botón visible solo para usuarios con permisos */}
+        {permiteAcciones() && (
           <CustomButton type="generar" onClick={handleOpenForm}>
             Crear Auditoría
           </CustomButton>
+        )}
 
-          {/* Leyenda compacta en columna */}
-          <Box
-            component="aside"
-            aria-label="Leyenda de estados"
-            sx={{
-              p: 1,
-              marginTop: 2,
-              borderRadius: 1,
-              bgcolor: "background.paper",
-              border: "1px solid",
-              borderColor: "divider",
-              boxShadow: 1,
-              minWidth: 125,
-            }}
-          >
-            <Typography variant="overline" sx={{ color: "text.secondary" }}>
-              Estados
-            </Typography>
+        {/* Leyenda visible para todos */}
+        <Box
+          component="aside"
+          aria-label="Leyenda de estados"
+          sx={{
+            p: 1,
+            marginTop: 1,
+            borderRadius: 1,
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 1,
+            minWidth: 125,
+          }}
+        >
+          <Typography variant="overline" sx={{ color: "text.secondary" }}>
+            Estados
+          </Typography>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.5 }}>
-              <LegendItem color="#0288d1" label="Pendiente" />
-              <LegendItem color="#2e7d32" label="Finalizada" />
-              <LegendItem color="#c62828" label="Cancelada" />
-            </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.5 }}>
+            <LegendItem color="#0288d1" label="Pendiente" />
+            <LegendItem color="#2e7d32" label="Finalizada" />
+            <LegendItem color="#c62828" label="Cancelada" />
           </Box>
         </Box>
-      )}
+      </Box>
+
 
 
       <AuditoriaForm
