@@ -334,7 +334,7 @@ function Cronograma() {
       <Box
         sx={{
           position: "absolute",
-          bottom: 590,
+          bottom: 470,
           right: "40px",
           display: "flex",
           flexDirection: "column",

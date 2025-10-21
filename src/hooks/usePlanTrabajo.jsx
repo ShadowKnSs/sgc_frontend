@@ -22,14 +22,14 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
   const [error, setError] = useState(null);
   const [hasData, setHasData] = useState(false);
 
-  // ✅ Función para manejar mensajes
+  // Función para manejar mensajes
   const handleMessage = (message, type = "info", title = "") => {
     if (showSnackbar) {
       showSnackbar(message, type, title);
     }
   };
 
-  // ✅ Función para cargar datos mejorada
+  //  Función para cargar datos mejorada
   const loadData = async () => {
     if (!idRegistro) {
       setError("No se proporcionó un ID de registro válido");
@@ -41,11 +41,14 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
     setError(null);
     try {
       const { data: plan } = await api.get(`/plantrabajo/registro/${idRegistro}`);
-      
+
       setIdPlanTrabajo(plan.idPlanTrabajo ?? null);
 
       if (Array.isArray(plan.fuentes) && plan.fuentes.length) {
-        const fuentesNumeradas = plan.fuentes.map((f, i) => ({ ...f, numero: i + 1 }));
+        const fuentesNumeradas = plan.fuentes.map((f) => ({
+          ...f,
+          numero: (f.noActividad ?? f.numero ?? f.numeroActividad ?? 0),
+        }));
         setRecords(fuentesNumeradas);
       } else {
         setRecords([]);
@@ -63,8 +66,8 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
 
       setFormData(newFormData);
 
-      // ✅ Verificar si hay datos
-      const formHasData = Object.values(newFormData).some(value => 
+      // Verificar si hay datos
+      const formHasData = Object.values(newFormData).some(value =>
         value && value.toString().trim() !== ""
       );
       const hasRecords = Array.isArray(plan.fuentes) && plan.fuentes.length > 0;
@@ -77,14 +80,13 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
       }
 
     } catch (err) {
-      console.error("Error al cargar el plan de trabajo:", err);
-      
+
       let errorMessage = "Error al cargar el plan de trabajo";
-      
+
       if (err.response) {
         if (err.response.status === 404) {
           errorMessage = "No se encontró un plan de trabajo para este registro";
-          // ✅ No es un error crítico, es información
+          // No es un error crítico, es información
           setHasData(false);
           setFormData(prev => ({
             ...prev,
@@ -96,7 +98,7 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
       } else if (err.request) {
         errorMessage = "Error de conexión. Verifique su internet";
       }
-      
+
       setError(errorMessage);
       handleMessage(errorMessage, "error", "Error");
     } finally {
@@ -109,7 +111,6 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
   }, [idRegistro]);
 
   const isFormValid = () =>
-    formData.responsable.trim() !== "" &&
     formData.fechaElaboracion.trim() !== "" &&
     formData.objetivo.trim() !== "";
 
@@ -122,11 +123,11 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
         const payload = {
           idRegistro,
           planTrabajo: {
-            fechaElaboracion: formData.fechaElaboracion,
+            fechaElaboracion: new Date(formData.fechaElaboracion).toISOString().slice(0, 10),
             objetivo: formData.objetivo,
-            revisadoPor: formData.revisadoPor || "",
-            fechaRevision: formData.fechaRevision || "",
-            elaboradoPor: formData.elaboradoPor || "",
+            revisadoPor: (typeof formData.revisadoPor === 'string' && formData.revisadoPor.trim() !== '') ? formData.revisadoPor.trim() : null,
+            fechaRevision: formData.fechaRevision ? new Date(formData.fechaRevision).toISOString().slice(0, 10) : null,
+            elaboradoPor: (typeof formData.elaboradoPor === 'string' && formData.elaboradoPor.trim() !== '') ? formData.elaboradoPor.trim() : null,
           },
         };
         const { data } = await api.post(`/plantrabajo`, payload);
@@ -138,16 +139,23 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
       const payload = {
         fechaElaboracion: formData.fechaElaboracion,
         objetivo: formData.objetivo,
-        revisadoPor: formData.revisadoPor || "",
-        fechaRevision: formData.fechaRevision || "",
-        elaboradoPor: formData.elaboradoPor || "",
       };
+      if (typeof formData.revisadoPor === 'string' && formData.revisadoPor.trim() !== '') {
+        payload.revisadoPor = formData.revisadoPor.trim();
+      }
+      if (formData.fechaRevision) {
+        // normaliza a YYYY-MM-DD
+        payload.fechaRevision = new Date(formData.fechaRevision).toISOString().slice(0, 10);
+      }
+      if (typeof formData.elaboradoPor === 'string' && formData.elaboradoPor.trim() !== '') {
+        payload.elaboradoPor = formData.elaboradoPor.trim();
+      }
       const { data } = await api.put(`/plantrabajo/${idPlanTrabajo}`, payload);
       return data;
     } catch (err) {
       console.error("Error guardando información general:", err);
       let errorMessage = "Error al guardar la información general";
-      
+
       if (err.response) {
         if (err.response.status >= 500) {
           errorMessage = "Error del servidor al guardar";
@@ -157,23 +165,24 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
       } else if (err.request) {
         errorMessage = "Error de conexión al guardar";
       }
-      
+
       throw new Error(errorMessage);
     }
   };
 
-  const crearFuentesBatch = async (nuevas) => {
-    if (!nuevas.length) return null;
-
+  const crearFuentesBatch = async (todas) => {
+    if (!todas.length) return null;
     const body = {
-      fuentes: nuevas.map((f) => ({
+      fuentes: todas.map((f) => ({
         ...f,
-        noActividad: f.numero,
+        noActividad: f.noActividad ?? f.numero,            
         elementoEntrada: f.elementoEntrada || "",
-        descripcion: String(f.descripcion || ""),
-        entregable: String(f.entregable || ""),
+        descripcion: f.descripcion?.toString().trim() ? f.descripcion : null,
+        entregable: f.entregable?.toString().trim() ? f.entregable : null,
         fechaInicio: f.fechaInicio || null,
         fechaTermino: f.fechaTermino || null,
+        estado: f.estado || "En proceso",
+        nombreFuente: f.nombreFuente || "Gestión de Riesgos",
       })),
     };
 
@@ -183,48 +192,16 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
     } catch (error) {
       console.error("Error creating fuentes:", error.response?.data);
       let errorMessage = "Error al crear las fuentes";
-      
+
       if (error.response?.status >= 500) {
         errorMessage = "Error del servidor al crear fuentes";
       } else if (error.request) {
         errorMessage = "Error de conexión al crear fuentes";
       }
-      
+
       throw new Error(errorMessage);
     }
   }
-
-  const updateFuente = async (f) => {
-    if (!f.idFuente) return null;
-
-    const body = {
-      responsable: f.responsable ?? "",
-      fechaInicio: f.fechaInicio || null,
-      fechaTermino: f.fechaTermino || null,
-      estado: f.estado || "En proceso",
-      nombreFuente: f.nombreFuente ?? "",
-      elementoEntrada: f.elementoEntrada || "",
-      descripcion: String(f.descripcion || ""),
-      entregable: String(f.entregable || ""),
-      noActividad: f.numero,
-    };
-
-    try {
-      const { data } = await api.put(`/plantrabajo/fuentes/${f.idFuente}`, body);
-      return data;
-    } catch (error) {
-      console.error("Error updating fuente:", error);
-      let errorMessage = `Error al actualizar la fuente ${f.numero}`;
-      
-      if (error.response?.status >= 500) {
-        errorMessage = "Error del servidor al actualizar fuente";
-      } else if (error.request) {
-        errorMessage = "Error de conexión al actualizar fuente";
-      }
-      
-      throw new Error(errorMessage);
-    }
-  };
 
   const guardarTodo = async () => {
     try {
@@ -234,30 +211,16 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
         handleMessage("Información general guardada correctamente", "success", "Éxito");
       }
 
-      // 2) Separar nuevas vs existentes
-      const nuevas = records.filter((r) => !r.idFuente);
-      const existentes = records.filter((r) => r.idFuente);
-
-      // 3) Crear nuevas en batch (POST con arreglo)
-      if (nuevas.length) {
-        await crearFuentesBatch(nuevas);
-        handleMessage(`${nuevas.length} fuente(s) creada(s) correctamente`, "success", "Éxito");
+      if (records.length) {
+        await crearFuentesBatch(records);
+        handleMessage(`${records.length} fuente(s) guardada(s) correctamente`, "success", "Éxito");
       }
 
-      // 4) Actualizar existentes de a una (PUT plano)
-      if (existentes.length > 0) {
-        for (const f of existentes) {
-          await updateFuente(f);
-        }
-        handleMessage(`${existentes.length} fuente(s) actualizada(s) correctamente`, "success", "Éxito");
-      }
-
-      // ✅ Recargar datos después de guardar
+      // Recargar datos después de guardar
       await loadData();
 
       return "Plan de Trabajo y fuentes guardados correctamente.";
     } catch (error) {
-      console.error("Error en guardarTodo:", error);
       throw error; // Re-lanzar el error para que lo maneje el componente
     }
   };
@@ -272,6 +235,6 @@ export const usePlanTrabajo = (idRegistro, showSnackbar) => {
     loading,
     error,
     hasData,
-    loadData, // ✅ Exportar función para reintentar
+    loadData, //  Exportar función para reintentar
   };
 };

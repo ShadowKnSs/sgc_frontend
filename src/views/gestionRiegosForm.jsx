@@ -307,9 +307,14 @@ function FormularioGestionRiesgos() {
       setCurrentSection(0);
       setIsEditing(false);
       setEditingRiesgo(null);
-      setNuevoRiesgo(nuevoRiesgo);
+      setNuevoRiesgo({
+        idRiesgo: null, responsable: "", fuente: "Gestión de Riesgos",
+        tipoRiesgo: "", descripcion: "", consecuencias: "",
+        valorSeveridad: "", valorOcurrencia: "", actividades: "",
+        accionMejora: "", fechaImp: "", fechaEva: "",
+        reevaluacionSeveridad: "", reevaluacionOcurrencia: "", analisisEfectividad: "",
+      });
     } catch (err) {
-      console.error("[ERROR] al crear/editar el riesgo:", err);
       if (err.message !== "Errores de validación") {
         mostrarSnackbar("error", "Error", "Ocurrió un problema al guardar el riesgo.");
       }
