@@ -17,16 +17,31 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult, anio
   const [result, setResult] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Función para ajustar el valor al rango 0-100
+  const adjustValue = (value) => {
+    if (value === '') return '';
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return '';
+    
+    if (numValue < 0) return '0';
+    if (numValue > 100) return '100';
+    return value;
+  };
+
   useEffect(() => {
     if (open && indicator) {
+      let initialValue = '';
       if (indicator.periodicidad === "Anual") {
-        setResult(savedResult?.resultadoAnual?.toString() || "");
+        initialValue = savedResult?.resultadoAnual?.toString() || "";
       } else if (indicator.periodicidad === "Semestral") {
-        setResult(savedResult?.resultadoSemestral1?.toString() || "");
+        initialValue = savedResult?.resultadoSemestral1?.toString() || "";
       } else {
-        setResult(savedResult?.result?.toString() || "");
-
+        initialValue = savedResult?.result?.toString() || "";
       }
+      
+      // Ajustar el valor inicial al rango 0-100
+      setResult(adjustValue(initialValue));
     }
   }, [open, savedResult, indicator]);
 
@@ -34,22 +49,33 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult, anio
     if (!indicator?.idIndicador) return;
     setSaving(true);
     try {
+      // Asegurarnos de que el valor a guardar esté en el rango correcto
+      const adjustedResult = adjustValue(result);
+      
       const payload = {
         periodicidad: indicator.periodicidad,
         result: indicator.periodicidad === "Anual"
-          ? { resultadoAnual: result }
-          : { resultadoSemestral1: result }
+          ? { resultadoAnual: adjustedResult || "0" }
+          : { resultadoSemestral1: adjustedResult || "0" }
       };
 
       onSave(indicator.idIndicador, payload);
       onClose();
     } catch (error) {
       console.error('Error al guardar:', error);
-
     } finally {
       setSaving(false);
     }
+  };
 
+  const handleResultChange = (e) => {
+    const value = e.target.value;
+    setResult(value);
+  };
+
+  const handleBlur = () => {
+    // Ajustar el valor cuando el campo pierde el foco
+    setResult(adjustValue(result));
   };
 
   return (
@@ -70,21 +96,37 @@ const ResultModalSimple = ({ open, onClose, onSave, indicator, savedResult, anio
             margin="dense"
             label="Resultado"
             type="number"
-            inputProps={{ min: 0, step: 1 }}
+            inputProps={{ 
+              min: 0, 
+              max: 100,
+              step: 1 // Permite decimales si es necesario
+            }}
             fullWidth
             variant="outlined"
             value={result}
-            onChange={(e) => setResult(e.target.value)}
+            onChange={handleResultChange}
+            onBlur={handleBlur}
             InputProps={{
               endAdornment: <InputAdornment position="end">%</InputAdornment>
             }}
+            error={result && (parseFloat(result) < 0 || parseFloat(result) > 100)}
+            helperText={
+              result && (parseFloat(result) < 0 || parseFloat(result) > 100)
+                ? "El resultado debe estar entre 0 y 100"
+                : "Ingrese un valor entre 0 y 100"
+            }
           />
         </DialogContent>
         <DialogActions>
           <CustomButton type="cancelar" onClick={onClose} disabled={saving}>
             Cancelar
           </CustomButton>
-          <CustomButton type="guardar" onClick={handleSave} loading={saving}>
+          <CustomButton 
+            type="guardar" 
+            onClick={handleSave} 
+            loading={saving}
+            disabled={result && (parseFloat(result) < 0 || parseFloat(result) > 100)}
+          >
             Guardar
           </CustomButton>
         </DialogActions>

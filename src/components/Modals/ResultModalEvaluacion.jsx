@@ -9,85 +9,56 @@ import { motion } from "framer-motion";
 
 const MotionBox = motion(Box);
 
-const EvaluaContent = ({ formData, setFormData, activeTab }) => (
-  <Box component="form" sx={{ mt: 2 }}>
-    <Grid container spacing={2}>
-      {activeTab === 0 && (
-        <>
-          <Grid item xs={12}>
-            <TextField
-              label="Confiable (Ene-Jun)"
-              type="number"
-              fullWidth
-              value={formData.confiableSem1 || ""}
-              onChange={(e) => setFormData({ ...formData, confiableSem1: e.target.value })}
-              margin="dense"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Condicionado (Ene-Jun)"
-              type="number"
-              fullWidth
-              value={formData.condicionadoSem1 || ""}
-              onChange={(e) => setFormData({ ...formData, condicionadoSem1: e.target.value })}
-              margin="dense"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="No Confiable (Ene-Jun)"
-              type="number"
-              fullWidth
-              value={formData.noConfiableSem1 || ""}
-              onChange={(e) => setFormData({ ...formData, noConfiableSem1: e.target.value })}
-              margin="dense"
-            />
-          </Grid>
-        </>
-      )}
-      {activeTab === 1 && (
-        <>
-          <Grid item xs={12}>
-            <TextField
-              label="Confiable (Jul-Dic)"
-              type="number"
-              fullWidth
-              value={formData.confiableSem2 || ""}
-              onChange={(e) => setFormData({ ...formData, confiableSem2: e.target.value })}
-              margin="dense"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Condicionado (Jul-Dic)"
-              type="number"
-              fullWidth
-              value={formData.condicionadoSem2 || ""}
-              onChange={(e) => setFormData({ ...formData, condicionadoSem2: e.target.value })}
-              margin="dense"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="No Confiable (Jul-Dic)"
-              type="number"
-              fullWidth
-              value={formData.noConfiableSem2 || ""}
-              onChange={(e) => setFormData({ ...formData, noConfiableSem2: e.target.value })}
-              margin="dense"
-            />
-          </Grid>
-        </>
-      )}
+const EvaluaContent = ({ formData, setFormData, activeTab }) => {
+  const handleNumberChange = (campo, valor) => {
+    // Forzar a número, sin negativos ni >100
+    const num = Math.max(0, Math.min(100, Number(valor) || 0));
+    setFormData({ ...formData, [campo]: num.toString() });
+  };
+
+  const renderField = (label, name, value) => (
+    <Grid item xs={12}>
+      <TextField
+        label={label}
+        type="number"
+        inputProps={{
+          min: 0,
+          max: 100,
+          step: 1
+        }}
+        fullWidth
+        value={value || ""}
+        onChange={(e) => handleNumberChange(name, e.target.value)}
+        margin="dense"
+      />
     </Grid>
-  </Box>
-);
+  );
+
+  return (
+    <Box component="form" sx={{ mt: 2 }}>
+      <Grid container spacing={2}>
+        {activeTab === 0 && (
+          <>
+            {renderField("Confiable (Ene-Jun)", "confiableSem1", formData.confiableSem1)}
+            {renderField("Condicionado (Ene-Jun)", "condicionadoSem1", formData.condicionadoSem1)}
+            {renderField("No Confiable (Ene-Jun)", "noConfiableSem1", formData.noConfiableSem1)}
+          </>
+        )}
+        {activeTab === 1 && (
+          <>
+            {renderField("Confiable (Jul-Dic)", "confiableSem2", formData.confiableSem2)}
+            {renderField("Condicionado (Jul-Dic)", "condicionadoSem2", formData.condicionadoSem2)}
+            {renderField("No Confiable (Jul-Dic)", "noConfiableSem2", formData.noConfiableSem2)}
+          </>
+        )}
+      </Grid>
+    </Box>
+  );
+};
 
 const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedResult = {}, anio }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-
   const [formData, setFormData] = useState({
     confiableSem1: "", confiableSem2: "",
     condicionadoSem1: "", condicionadoSem2: "",
@@ -125,11 +96,10 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
       onSave(indicator.idIndicador, { result: resultData });
       onClose();
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error("Error al guardar:", error);
     } finally {
       setIsSaving(false);
     }
-
   };
 
   return (
@@ -142,7 +112,7 @@ const ResultModalEvaluaProveedores = ({ open, onClose, onSave, indicator, savedR
       >
         <DialogTitleCustom
           title="Registrar Resultado"
-          subtitle={`${indicator?.nombreIndicador || ''} - Origen: ${indicator?.origenIndicador || 'Sin origen'} - Año: ${anio}`}
+          subtitle={`${indicator?.nombreIndicador || ""} - Origen: ${indicator?.origenIndicador || "Sin origen"} - Año: ${anio}`}
         />
         <DialogContent>
           <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} centered>

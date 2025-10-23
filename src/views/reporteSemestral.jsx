@@ -26,7 +26,7 @@
 
 import html2canvas from "html2canvas";
 import { useState, useRef, useEffect } from "react";
-import { Box, Paper, Typography, TextField, Button } from "@mui/material";
+import { Box, Paper, Typography, TextField } from "@mui/material";
 import RiesgosChart from "../components/componentsReportSem/gestionRiesgos";
 import IndicadoresReport from "../components/componentsReportSem/indicadoresRS";
 import AccionesMejora from "../components/componentsReportSem/accionesMejoraRS";
@@ -51,9 +51,7 @@ const ReporteSemestral = () => {
 
     const navigate = useNavigate();
 
-    console.log("👀 ReporteSemestral montado");
-
-    // ✅ Proteger la desestructuración
+    // Proteger la desestructuración
 
     const handleCancel = () => {
         navigate(-1); // 👈 regresa a la vista anterior
@@ -85,23 +83,20 @@ const ReporteSemestral = () => {
     ] = data || [];
 
     useEffect(() => {
-        console.log("📍 location.state recibido:", location.state);
-        console.log("📊 Datos recibidos en ReporteSemestral:", data, anio, periodo);
-
+    
     }, [data, anio, periodo]);
 
-    // ✅ Fallback si no hay datos (por ejemplo, usuario recargó la página)
+    //  Fallback si no hay datos (por ejemplo, usuario recargó la página)
     if (!data) {
         return (
             <p style={{ textAlign: "center", marginTop: "2rem" }}>
-                ⚠️ No se recibieron datos para generar el reporte.
+                 No se recibieron datos para generar el reporte.
             </p>
         );
     }
 
     const handleDownloadPDF = async () => {
         try {
-            console.log("Iniciando la captura de imágenes...");
 
             // Referencias a los componentes
             const riesgosRef = document.getElementById("riesgos-chart");
@@ -118,7 +113,6 @@ const ReporteSemestral = () => {
                     const canvas = await html2canvas(element, { scale: 2 });
                     return canvas.toDataURL("image/png");
                 } catch (error) {
-                    console.error(`Error al capturar la imagen de ${name}:`, error);
                     return null;
                 }
             };
@@ -163,18 +157,16 @@ const ReporteSemestral = () => {
         }
 
         const data = await response.json();
-        console.log("Respuesta del backend:", data);
 
-        // 👉 Abrir PDF en otra pestaña
+        //  Abrir PDF en otra pestaña
         window.open(data.url, "_blank");
 
-        // 👉 Regresar a la vista anterior después de 1.5s
+        // Regresar a la vista anterior después de 1.5s
         setTimeout(() => {
             window.history.back();
         }, 1500);
 
     } catch (error) {
-        console.error("Error al abrir el PDF:", error);
     }
     
 };
@@ -352,12 +344,12 @@ const ReporteSemestral = () => {
                         Cancelar
                     </CustomButton>
                     <CustomButton
-                        type="descargar"
+                        type="guardar"
                         onClick={handleDownloadPDF}
                         disabled={!canDownload()}
 
                     >
-                        Descagar
+                        Guardar
                     </CustomButton>
                 </Box>
             </Paper>

@@ -34,7 +34,7 @@ const ReporteSemCard = ({ id, anio, periodo, fechaGeneracion, ubicacion, onDelet
     }
   };
 
-  // 👉 Descargar / abrir el reporte en otra pestaña
+  // Descargar / abrir el reporte en otra pestaña
   const handleDownloadClick = () => {
     if (!ubicacion) {
       alert("Este reporte no tiene archivo asociado.");

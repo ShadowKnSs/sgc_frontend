@@ -57,8 +57,7 @@ const ConfirmDelete = ({
       await onConfirm();
       onClose();
     } catch (error) {
-      console.error("Error en la eliminación:", error);
-      // El error debería ser manejado por la función onConfirm
+      
     } finally {
       setDeleting(false);
     }
