@@ -50,6 +50,10 @@ function PlanCorrectivoForm({ idProceso, onSave, onCancel, initialData, sequence
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    setFormData(mergedData);
+  }, [mergedData]);
+
+  useEffect(() => {
     if (!idProceso) return;
 
     const fetchEntidad = async () => {

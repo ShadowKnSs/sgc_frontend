@@ -36,8 +36,7 @@
  * Observación:
  * El componente contempla compatibilidad flexible con estructuras de datos del backend usando `idProceso || idProcesoPK`.
  */
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Box, Grid, Stack, TextField, InputAdornment, IconButton, MenuItem } from "@mui/material";
 import { Search as SearchIcon, Clear as ClearIcon } from "@mui/icons-material";
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -51,7 +50,9 @@ import ConfirmDelete from "../components/confirmDelete";
 import ConfirmEdit from "../components/confirmEdit";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import SectionTabs from "../components/SectionTabs";
+import FeedbackSnackbar from "../components/Feedback";
 
+const API_BASE = "http://127.0.0.1:8000/api";
 
 function ProcessList() {
   const [processes, setProcesses] = useState([]);
@@ -60,10 +61,24 @@ function ProcessList() {
   const [openDelete, setOpenDelete] = useState(false);
   const [openConfirmEdit, setOpenConfirmEdit] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState(null);
+  const [openForceDelete, setOpenForceDelete] = useState(false);
 
   const [q, setQ] = useState(""); // buscador
   const [selectedTab, setSelectedTab] = useState(0); // tabs estado
   const [macroFilter, setMacroFilter] = useState(""); // filtro macroproceso
+
+  // Snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    type: "info", // success | info | warning | error
+    title: "",
+    message: "",
+  });
+  const showFeedback = useCallback((type, message, title = "") =>
+    setSnackbar({ open: true, type, message, title }), []);
+
+  const closeFeedback = useCallback(() =>
+    setSnackbar((s) => ({ ...s, open: false })), []);
 
   const macroprocesosMap = {
     1: "Gestión Escolar",
@@ -71,71 +86,84 @@ function ProcessList() {
     3: "Gestión Administrativa",
   };
 
-  // Función para obtener la lista de procesos
-  const fetchProcesses = async () => {
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/api/procesos");
-      const data = response.data.procesos || response.data;
-      console.log("Fetched processes:", data);
-      setProcesses(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching processes:", error);
-      setProcesses([]);
-    }
-  };
 
-  // Función para obtener las entidades
-  const fetchEntidades = async () => {
+  // Obtener la lista de procesos
+  const fetchProcesses = useCallback(async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/entidades");
-      setEntidades(response.data.entidades || []);
-    } catch (error) {
-      console.error("Error fetching entidades:", error);
-      setEntidades([]);
+      const { data } = await axios.get(`${API_BASE}/procesos`);
+      const list = data.procesos || data || [];
+      setProcesses(Array.isArray(list) ? list : []);
+    } catch {
+      setProcesses([]);
+      showFeedback("error", "No se pudieron cargar los procesos.", "Error");
     }
-  };
+  }, [showFeedback]);
+
+  // Obtener entidades
+  const fetchEntidades = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE}/entidades`);
+      setEntidades(data.entidades || []);
+    } catch {
+      setEntidades([]);
+      showFeedback("error", "No se pudieron cargar las entidades.", "Error");
+    }
+  }, [showFeedback]);
 
   useEffect(() => {
     fetchProcesses();
     fetchEntidades();
-  }, []);
+  }, [fetchProcesses, fetchEntidades]);
 
-  // Enriquecer cada proceso para agregar el nombre de la entidad y asegurar el id
+  // Enriquecer procesos
   const enrichedProcesses = processes.map((process) => {
-    // Verificamos ambos nombres de propiedad, por si el backend usa otro nombre
     const processId = process.idProceso || process.idProcesoPK;
     const entity = entidades.find(
       (ent) => ent?.idEntidadDependencia?.toString() === process?.idEntidad?.toString()
     );
+    const macroproceso = macroprocesosMap[process.idMacroproceso] || "Sin macroproceso";
+
     return {
       ...process,
       id: processId,
       name: process.nombreProceso,
       entidad: entity ? entity.nombreEntidad : "Sin entidad",
+      macroproceso: macroproceso,
     };
   });
 
-  // aplicar filtros
+  // Filtros
   const filteredProcesses = enrichedProcesses.filter((p) => {
     const matchesSearch =
-      p.name.toLowerCase().includes(q.toLowerCase()) ||
-      p.entidad.toLowerCase().includes(q.toLowerCase());
+      p.name?.toLowerCase().includes(q.toLowerCase()) ||
+      p.entidad?.toLowerCase().includes(q.toLowerCase());
 
-    // filtro por estado
     const matchesEstado =
       (selectedTab === 0 && p.estado === "Activo") ||
       (selectedTab === 1 && p.estado === "Inactivo");
 
-    // filtro por macroproceso
     const matchesMacro = macroFilter === "" || p.idMacroproceso === parseInt(macroFilter);
 
     return matchesSearch && matchesEstado && matchesMacro;
   });
 
+  // Confirmaciones
   const handleConfirmDelete = async () => {
     if (!selectedProcess) return;
-    await handleDelete(selectedProcess.id);
+    await handleDeactivate(selectedProcess.id); // Cambiado de handleDelete a handleDeactivate
     setOpenDelete(false);
+  };
+
+  const handleConfirmForceDelete = async () => {
+    if (!selectedProcess) return;
+    await handleForceDelete(selectedProcess.id);
+    setOpenForceDelete(false);
+  };
+
+  const handleConfirmActivate = async () => {
+    if (!selectedProcess) return;
+    await handleActivate(selectedProcess.id);
+    setOpenConfirmEdit(false); // Reutilizamos este estado o podríamos crear uno nuevo
   };
 
   const handleConfirmEdit = () => {
@@ -143,6 +171,7 @@ function ProcessList() {
     navigate(`/editar-proceso/${selectedProcess.id}`);
     setOpenConfirmEdit(false);
   };
+
   const confirmDelete = (process) => {
     setSelectedProcess(process);
     setOpenDelete(true);
@@ -153,22 +182,78 @@ function ProcessList() {
     setOpenConfirmEdit(true);
   };
 
-  const handleDelete = async (id) => {
+  // Helpers IDs
+  const getPid = (p) => (p.idProceso ?? p.idProcesoPK)?.toString();
+
+  // Eliminar (inactivar)
+  const handleDeactivate = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/procesos/${id}`);
-      setProcesses((prev) => prev.filter((p) => {
-        const pid = p.idProceso || p.idProcesoPK;
-        return pid !== id;
-      }));
-    } catch (error) {
-      console.error("Error deleting process:", error);
+      const { data } = await axios.delete(`${API_BASE}/procesos/${id}`);
+      const updated = data?.proceso || null;
+
+      setProcesses((prev) =>
+        prev.map((p) => {
+          if (getPid(p) === String(id)) {
+            return updated ? { ...p, ...updated, estado: "Inactivo" } : { ...p, estado: "Inactivo" };
+          }
+          return p;
+        })
+      );
+
+      showFeedback("success", "El proceso fue movido a Inactivos.");
+    } catch {
+      showFeedback("error", "No se pudo desactivar el proceso.", "Error");
     }
   };
 
-  return (
-    <Box sx={{ p: 4 }}>
-      <BreadcrumbNav items={[{ label: "Procesos", icon: AccountTreeIcon }]} />
+  // Función para activar proceso
+  const handleActivate = async (id) => {
+    try {
+      const { data } = await axios.put(`${API_BASE}/procesos/${id}/activar`);
+      const updated = data?.proceso || null;
 
+      setProcesses((prev) =>
+        prev.map((p) => {
+          if (getPid(p) === String(id)) {
+            return updated ? { ...p, ...updated, estado: "Activo" } : { ...p, estado: "Activo" };
+          }
+          return p;
+        })
+      );
+
+      showFeedback("success", "El proceso fue activado exitosamente.");
+    } catch (error) {
+      showFeedback("error", "No se pudo activar el proceso.", "Error");
+    }
+  };
+
+  const handleForceDelete = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/procesos/${id}/force`);
+
+      // Remover completamente de la lista
+      setProcesses((prev) => prev.filter((p) => getPid(p) !== String(id)));
+
+      showFeedback("success", "El proceso fue eliminado permanentemente.");
+    } catch (error) {
+      showFeedback("error", "No se pudo eliminar el proceso.", "Error");
+    }
+  };
+  // Funciones para abrir modales
+
+  const confirmForceDelete = (process) => {
+    setSelectedProcess(process);
+    setOpenForceDelete(true);
+  };
+
+  const confirmActivate = (process) => {
+    setSelectedProcess(process);
+    setOpenConfirmEdit(true);
+  };
+
+  return (
+    <Box sx={{ p: 3.5, mb:3 }}>
+      <BreadcrumbNav items={[{ label: "Procesos", icon: AccountTreeIcon }]} />
       <Title text="Procesos" mode="sticky" />
 
       {/* Toolbar de filtros */}
@@ -203,7 +288,7 @@ function ProcessList() {
             ),
             endAdornment: q ? (
               <InputAdornment position="end">
-                <IconButton onClick={() => setQ("")} size="small">
+                <IconButton onClick={() => setQ("")} size="small" aria-label="limpiar búsqueda">
                   <ClearIcon fontSize="small" />
                 </IconButton>
               </InputAdornment>
@@ -236,10 +321,9 @@ function ProcessList() {
             </MenuItem>
           ))}
         </TextField>
-
       </Stack>
 
-      {/* Grid de procesos filtrados o mensaje si no hay registros */}
+      {/* Grid / vacío */}
       {filteredProcesses.length === 0 ? (
         <Box
           sx={{
@@ -260,12 +344,13 @@ function ProcessList() {
                 process={process}
                 onEdit={() => confirmEdit(process)}
                 onDelete={() => confirmDelete(process)}
+                onActive={() => confirmActivate(process)}
+                onForceDelete={() => confirmForceDelete(process)}
               />
             </Grid>
           ))}
         </Grid>
       )}
-
 
       {/* Botón agregar */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
@@ -283,13 +368,36 @@ function ProcessList() {
         onConfirm={handleConfirmDelete}
         entityType="proceso"
         entityName={selectedProcess?.nombreProceso}
+        isPermanent={false}
+        description="El proceso se moverá a la sección de inactivos y podrá ser reactivado posteriormente."
       />
+
+      <ConfirmDelete
+        open={openForceDelete}
+        onClose={() => setOpenForceDelete(false)}
+        onConfirm={handleConfirmForceDelete}
+        entityType="proceso"
+        entityName={selectedProcess?.nombreProceso}
+        isPermanent={true}
+        description="Esta acción no se puede deshacer. El proceso será eliminado permanentemente del sistema."
+      />
+
       <ConfirmEdit
         open={openConfirmEdit}
         onClose={() => setOpenConfirmEdit(false)}
-        onConfirm={handleConfirmEdit}
+        onConfirm={selectedProcess?.estado === "Activo" ? handleConfirmEdit : handleConfirmActivate}
         entityType="proceso"
         entityName={selectedProcess?.nombreProceso}
+        actionText={selectedProcess?.estado === "Activo" ? "Editar" : "Activar"}
+      />
+
+      {/* Feedback */}
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={closeFeedback}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
       />
     </Box>
   );

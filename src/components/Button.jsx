@@ -126,6 +126,7 @@ const buttonConfigs = {
     textcolor: colorPalette.blanco,
     withshadow: true,
   },
+  
 };
 
 export default function CustomButton({

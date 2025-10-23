@@ -41,8 +41,7 @@ import ProcessForm from "../components/Forms/ProcesoForm";
 import axios from "axios";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
+import FeedbackSnackbar from "../components/Feedback";
 
 const NewProcess = () => {
   const navigate = useNavigate();
@@ -55,50 +54,55 @@ const NewProcess = () => {
   const [entidades, setEntidades] = useState([]);
 
   // Estado para feedback
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // success | error | warning | info
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    type: "info",        // success | info | warning | error
+    title: "",
+    message: "",
+  });
+  const showFeedback = (type, message, title = "") =>
+    setSnackbar({ open: true, type, message, title });
+  const closeFeedback = () => setSnackbar((s) => ({ ...s, open: false }));
+
+  const API_BASE = "http://127.0.0.1:8000/api";
 
 
   useEffect(() => {
     // Obtener líderes
-    axios
-      .get("http://127.0.0.1:8000/api/lideres-2")
+    axios.get(`${API_BASE}/lideres-2`)
       .then((response) => {
         setLeaders(response.data.leaders || []);
       })
       .catch((error) => {
-        console.error("Error al obtener líderes:", error);
+        setLeaders([]);
+        showFeedback("error", "No se pudieron cargar los líderes.", "Error");
       });
 
     // Obtener macroprocesos
-    axios
-      .get("http://127.0.0.1:8000/api/macroprocesos")
+    axios.get(`${API_BASE}/macroprocesos`)
       .then((response) => {
         setMacroprocesos(response.data.macroprocesos || []);
       })
       .catch((error) => {
-        console.error("Error al obtener macroprocesos:", error);
+        setMacroprocesos([]);
+        showFeedback("error", "No se pudieron cargar los macroprocesos.", "Error");
       });
 
     // Obtener entidades/dependencias
-    axios
-      .get("http://127.0.0.1:8000/api/entidades")
+    axios.get(`${API_BASE}/entidades`)
       .then((response) => {
         setEntidades(response.data.entidades || []);
       })
       .catch((error) => {
-        console.error("Error al obtener entidades:", error);
+        setEntidades([]);
+        showFeedback("error", "No se pudieron cargar las entidades.", "Error");
       });
   }, []);
 
   const handleSubmit = async (formData) => {
     try {
-      await axios.post("http://127.0.0.1:8000/api/procesos", formData);
-      
-      setSnackbarMessage("Proceso creado correctamente ");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+      await axios.post(`${API_BASE}/procesos`, formData);
+      showFeedback("success", "Proceso creado correctamente.")
 
       // Redirigir después de un pequeño delay
       setTimeout(() => {
@@ -108,13 +112,11 @@ const NewProcess = () => {
     } catch (error) {
       // Si el backend mandó error 422
       if (error.response && error.response.status === 422) {
-        setSnackbarMessage(error.response.data.error);
+        showFeedback("error", error.response.data.error || "Datos inválidos.", "Error");
       } else {
-        setSnackbarMessage("Error al crear el proceso. Intente nuevamente.");
+        showFeedback("error", "Error al crear el proceso. Intente nuevamente.", "Error");
       }
 
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
     }
   };
 
@@ -122,7 +124,7 @@ const NewProcess = () => {
     <>
       <Box sx={{ p: 4 }}>
         <BreadcrumbNav
-          items={[ { label: "Procesos", to: "/procesos", icon: AccountTreeIcon }, { label: "Nuevo Proceso", icon: AccountTreeIcon }]}
+          items={[{ label: "Procesos", to: "/procesos", icon: AccountTreeIcon }, { label: "Nuevo Proceso", icon: AccountTreeIcon }]}
         />
         <ProcessForm
           initialValues={{
@@ -148,21 +150,14 @@ const NewProcess = () => {
       </Box>
 
       {/* Snackbar de feedback */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={closeFeedback}
+        type={snackbar.type}
+        title={snackbar.title}
+        message={snackbar.message}
+        autoHideDuration={4000}
+      />
     </>
   );
 };

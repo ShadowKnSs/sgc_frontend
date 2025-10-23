@@ -13,7 +13,7 @@ export const getResourcesByRole = (role) => {
       {
         label: "Video del Administrador",
         tipo: "video",
-        src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=9d632f68-cbe2-445a-9f91-cf40c0cd4fa4&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
+        src: "https://www.youtube.com/embed/Ygf9LtbPelw",
       },
       {
         label: "Manual en PDF",
@@ -39,7 +39,7 @@ export const getResourcesByRole = (role) => {
       {
         label: "Video para Líder de Proceso",
         tipo: "video",
-        src: "https://uaslpedu.sharepoint.com/sites/PCI-SistemadeGestindeCalidad/_layouts/15/embed.aspx?UniqueId=e7149bbd-28c8-4a5f-9f92-0a7649a8edf3&embed=%7B%22hvm%22%3Atrue%2C%22ust%22%3Atrue%7D&referrer=OneUpFileViewer&referrerScenario=EmbedDialog.Create",
+        src: "https://www.youtube.com/embed/QRUW4vj7x6k",
       },
       {
         label: "Manual en PDF",

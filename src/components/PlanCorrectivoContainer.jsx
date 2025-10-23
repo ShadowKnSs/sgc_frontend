@@ -73,30 +73,63 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar, showSnac
     const handleSave = async (data) => {
         setSaving(true);
         try {
+            const toDateTime = (d) => {
+                if (!d) return null;
+                // Asegurar que la fecha esté en formato correcto
+                const date = new Date(d);
+                return date.toISOString().split('T')[0] + ' 00:00:00';
+            };
+
+            //  Mejorar el mapeo de actividades
+            const actividades = [
+                ...(data.reaccion || []).map(x => ({
+                    tipo: "reaccion",
+                    descripcionAct: x.actividad || null,
+                    responsable: x.responsable || "",
+                    fechaProgramada: toDateTime(x.fechaProgramada),
+                })),
+                ...(data.planAccion || []).map(x => ({
+                    tipo: "planaccion",
+                    descripcionAct: x.actividad || null,
+                    responsable: x.responsable || "",
+                    fechaProgramada: toDateTime(x.fechaProgramada),
+                })),
+            ].filter(act => act.descripcionAct && act.descripcionAct.trim() !== ''); // Filtrar actividades vacías
+
+            const payload = {
+                ...data,
+                actividades,
+                idRegistro,
+            };
+
+            // NO eliminar reaccion y planAccion aquí, el backend los necesita
+            console.log('Payload enviado:', JSON.stringify(payload, null, 2));
+
             if (editingRecord) {
-                await axios.put(`http://127.0.0.1:8000/api/plan-correctivos/${editingRecord.idPlanCorrectivo}`, {
-                    ...data,
-                    idRegistro
-                });
+                await axios.put(
+                    `http://127.0.0.1:8000/api/plan-correctivos/${editingRecord.idPlanCorrectivo}`,
+                    payload
+                );
                 handleLocalSnackbar("Plan actualizado correctamente", "success", "Actualizado");
                 setEditingRecord(null);
             } else {
-                await axios.post("http://127.0.0.1:8000/api/plan-correctivos", {
-                    ...data,
-                    idRegistro
-                });
+                await axios.post("http://127.0.0.1:8000/api/plan-correctivos", payload);
                 setSequence((prev) => prev + 1);
                 handleLocalSnackbar("Plan creado correctamente", "success", "Guardado");
             }
-            await fetchRecords(); // Recargar datos después de guardar
+
+            await fetchRecords();
             setShowForm(false);
         } catch (err) {
             console.error("Error saving record:", err);
             let errorMessage = "Error al guardar el plan de acción";
 
             if (err.response) {
+                console.error("Response error:", err.response.data);
                 if (err.response.status >= 500) {
                     errorMessage = "Error del servidor al guardar";
+                } else if (err.response.status === 422) {
+                    errorMessage = "Error de validación: " + JSON.stringify(err.response.data);
                 }
             } else if (err.request) {
                 errorMessage = "Error de conexión al guardar";
@@ -131,14 +164,44 @@ function PlanCorrectivoContainer({ idProceso, soloLectura, puedeEditar, showSnac
     };
 
     const handleEdit = (record) => {
+        const toYMD = (v) => {
+            if (!v) return "";
+            const s = String(v);
+            if (s.includes("T")) return s.split("T")[0];
+            if (s.includes(" ")) return s.split(" ")[0];
+            return s;
+        };
+
+        const actividades = Array.isArray(record.actividades) ? record.actividades : [];
+
+        // Mejor separación de actividades
+        const reaccion = actividades
+            .filter(a => (a.tipo || "").toLowerCase() === "reaccion")
+            .map(a => ({
+                actividad: a.descripcionAct || "",
+                responsable: a.responsable || "",
+                fechaProgramada: toYMD(a.fechaProgramada),
+            }));
+
+        const planAccion = actividades
+            .filter(a => (a.tipo || "").toLowerCase() === "planaccion")
+            .map(a => ({
+                actividad: a.descripcionAct || "",
+                responsable: a.responsable || "",
+                fechaProgramada: toYMD(a.fechaProgramada),
+            }));
+
         const recordForEdit = {
             ...record,
             entidad: record.entidad || "",
             codigo: record.codigo || "Código existente",
-            fechaInicio: record.fechaInicio ? record.fechaInicio.split(" ")[0] : "",
-            reaccion: record.actividades || [{ descripcionAct: "", responsable: "", fechaProgramada: "" }],
-            planAccion: record.actividades || [{ descripcionAct: "", responsable: "", fechaProgramada: "" }]
+            fechaInicio: toYMD(record.fechaInicio),
+            reaccion: reaccion.length ? reaccion : [{ actividad: "", responsable: "", fechaProgramada: "" }],
+            planAccion: planAccion.length ? planAccion : [{ actividad: "", responsable: "", fechaProgramada: "" }],
         };
+
+        console.log('Datos para editar:', recordForEdit);
+
         setEditingRecord(recordForEdit);
         setShowForm(true);
         setSelectedRecord(null);

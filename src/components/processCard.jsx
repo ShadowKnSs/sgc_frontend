@@ -1,8 +1,7 @@
 // src/components/ProcessCard.jsx
 import React from "react";
-import {  Button, Card, CardContent, Typography, IconButton, Box } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Card, CardContent, Typography, Box } from "@mui/material";
+import CustomButton from "./Button";
 
 import BusinessIcon from '@mui/icons-material/Business';
 import SchoolIcon from '@mui/icons-material/School';
@@ -38,43 +37,45 @@ import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
 
 
 const iconOptions = [
-    { name: 'Business', component: <BusinessIcon /> },
-    { name: 'School', component: <SchoolIcon /> },
-    { name: 'AccountBalance', component: <AccountBalanceOutlinedIcon /> },
-    { name: 'HomeWork', component: <HomeWorkIcon /> },
-    { name: 'Yard', component: <YardOutlinedIcon /> },
-    { name: 'Science', component: <ScienceOutlinedIcon /> },
-    { name: 'Biotech', component: <BiotechOutlinedIcon /> },
-    { name: 'Psychology', component: <PsychologyOutlinedIcon /> },
-    { name: 'Medical', component: < MedicalInformationOutlinedIcon /> },
-    { name: 'Bloodtype', component: <BloodtypeOutlinedIcon /> },
-    { name: 'LocalHospital', component: <LocalHospitalOutlinedIcon /> },
-    { name: 'Topic', component: <TopicOutlinedIcon /> },
-    { name: 'Assignment', component: <AssignmentOutlinedIcon /> },
-    { name: 'Article', component: <ArticleOutlinedIcon /> },
-    { name: 'ImportContacts', component: <ImportContactsOutlinedIcon /> },
-    { name: 'AutoStories', component: <AutoStoriesOutlinedIcon /> },
-    { name: 'LocalLibrary', component: <LocalLibraryOutlinedIcon /> },
-    { name: 'Lightbulb', component: <LightbulbOutlinedIcon /> },
-    { name: 'Settings', component: <SettingsOutlinedIcon /> },
-    { name: 'PeopleOutline', component: <PeopleOutlineOutlinedIcon /> },
-    { name: 'SocialDistance', component: <SocialDistanceOutlinedIcon /> },
-    { name: 'Groups', component: <GroupsOutlinedIcon /> },
-    { name: 'Gavel', component: <GavelOutlinedIcon /> },
-    { name: 'Balance', component: <BalanceOutlinedIcon /> },
-    { name: 'Assessment', component: <AssessmentOutlinedIcon /> },
-    { name: 'Timeline', component: <TimelineOutlinedIcon /> },
-    { name: 'Paid', component: <PaidOutlinedIcon /> },
-    { name: 'RequestQuote', component: <RequestQuoteOutlinedIcon /> },
-    { name: 'Translate', component: <TranslateOutlinedIcon /> },
-    { name: 'Campaign', component: <CampaignOutlinedIcon /> },
-    { name: 'LaptopChromebook', component: <LaptopChromebookOutlinedIcon /> },
+  { name: 'Business', component: <BusinessIcon /> },
+  { name: 'School', component: <SchoolIcon /> },
+  { name: 'AccountBalance', component: <AccountBalanceOutlinedIcon /> },
+  { name: 'HomeWork', component: <HomeWorkIcon /> },
+  { name: 'Yard', component: <YardOutlinedIcon /> },
+  { name: 'Science', component: <ScienceOutlinedIcon /> },
+  { name: 'Biotech', component: <BiotechOutlinedIcon /> },
+  { name: 'Psychology', component: <PsychologyOutlinedIcon /> },
+  { name: 'Medical', component: < MedicalInformationOutlinedIcon /> },
+  { name: 'Bloodtype', component: <BloodtypeOutlinedIcon /> },
+  { name: 'LocalHospital', component: <LocalHospitalOutlinedIcon /> },
+  { name: 'Topic', component: <TopicOutlinedIcon /> },
+  { name: 'Assignment', component: <AssignmentOutlinedIcon /> },
+  { name: 'Article', component: <ArticleOutlinedIcon /> },
+  { name: 'ImportContacts', component: <ImportContactsOutlinedIcon /> },
+  { name: 'AutoStories', component: <AutoStoriesOutlinedIcon /> },
+  { name: 'LocalLibrary', component: <LocalLibraryOutlinedIcon /> },
+  { name: 'Lightbulb', component: <LightbulbOutlinedIcon /> },
+  { name: 'Settings', component: <SettingsOutlinedIcon /> },
+  { name: 'PeopleOutline', component: <PeopleOutlineOutlinedIcon /> },
+  { name: 'SocialDistance', component: <SocialDistanceOutlinedIcon /> },
+  { name: 'Groups', component: <GroupsOutlinedIcon /> },
+  { name: 'Gavel', component: <GavelOutlinedIcon /> },
+  { name: 'Balance', component: <BalanceOutlinedIcon /> },
+  { name: 'Assessment', component: <AssessmentOutlinedIcon /> },
+  { name: 'Timeline', component: <TimelineOutlinedIcon /> },
+  { name: 'Paid', component: <PaidOutlinedIcon /> },
+  { name: 'RequestQuote', component: <RequestQuoteOutlinedIcon /> },
+  { name: 'Translate', component: <TranslateOutlinedIcon /> },
+  { name: 'Campaign', component: <CampaignOutlinedIcon /> },
+  { name: 'LaptopChromebook', component: <LaptopChromebookOutlinedIcon /> },
 
 ];
 
-const ProcessCard = ({ process, onEdit, onDelete }) => {
+const ProcessCard = ({ process, onEdit, onDelete, onActive, onForceDelete }) => {
   const iconObj = iconOptions.find(icon => icon.name === process.icono);
   const IconComponent = iconObj ? iconObj.component : null;
+
+  const isActive = process.estado === "Activo";
 
   return (
     <Card
@@ -87,14 +88,33 @@ const ProcessCard = ({ process, onEdit, onDelete }) => {
         boxShadow: 4,
         minHeight: 200,
         transition: "transform 0.3s, box-shadow 0.3s",
-        backgroundColor: "#DFECDF", // verdeClaro
+        backgroundColor: isActive ? "#DFECDF" : "#F5F5F5",
         "&:hover": {
           transform: "scale(1.015)",
           boxShadow: 6,
         },
         position: "relative",
+        border: isActive ? "none" : "1px solid #e0e0e0",
       }}
     >
+      {/* Estado badge */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          backgroundColor: isActive ? "#4CAF50" : "#757575",
+          color: "white",
+          px: 1,
+          py: 0.5,
+          borderRadius: 2,
+          fontSize: "0.75rem",
+          fontWeight: "bold",
+        }}
+      >
+        {isActive ? "Activo" : "Inactivo"}
+      </Box>
+
       {/* Icono decorativo */}
       {IconComponent && (
         <Box
@@ -102,7 +122,7 @@ const ProcessCard = ({ process, onEdit, onDelete }) => {
             position: "absolute",
             top: 16,
             right: 16,
-            backgroundColor: "#68A2C9", // azulClaro
+            backgroundColor: isActive ? "#68A2C9" : "#9E9E9E",
             borderRadius: "50%",
             p: 1,
             display: "flex",
@@ -117,44 +137,59 @@ const ProcessCard = ({ process, onEdit, onDelete }) => {
         </Box>
       )}
 
-      <CardContent sx={{ pr: 4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#185FA4" }}>
+      <CardContent sx={{ pr: 4, mt: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: isActive ? "#185FA4" : "#757575" }}>
           {process.nombreProceso}
         </Typography>
-        <Typography variant="body2" sx={{ color: "#555", mt: 0.5 }}>
+        <Typography variant="body2" sx={{ color: isActive ? "#555" : "#9E9E9E", mt: 0.5 }}>
           {process.entidad || process.dependencia || "Sin entidad"}
         </Typography>
+        {process.macroproceso && (
+          <Typography variant="body2" sx={{ color: isActive ? "#666" : "#9E9E9E", mt: 0.5, fontSize: "0.8rem" }}>
+            {process.macroproceso}
+          </Typography>
+        )}
       </CardContent>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}>
-        <Button
-          variant="contained"
-          onClick={onEdit}
-          sx={{
-            backgroundColor: "#68A2C9",
-            color: "#fff",
-            borderRadius: 2,
-            "&:hover": { backgroundColor: "#185FA4" },
-          }}
-        >
-          Editar
-        </Button>
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={onDelete}
-          sx={{
-            borderRadius: 2,
-            color: "#C62828",
-            borderColor: "#C62828",
-            "&:hover": {
-              backgroundColor: "#FDECEA",
-              borderColor: "#B71C1C",
-            },
-          }}
-        >
-          Eliminar
-        </Button>
+        {isActive ? (
+          // Botones para procesos ACTIVOS
+          <>
+            <CustomButton
+              type="cancelar"
+              onClick={onEdit}
+              sx={{ minWidth: "100px" }}
+            >
+              Editar
+            </CustomButton>
+            <CustomButton
+              type="guardar"
+              onClick={onDelete}
+              sx={{ minWidth: "120px" }}
+            >
+              Desactivar
+            </CustomButton>
+          </>
+        ) : (
+          // Botones para procesos INACTIVOS
+          <>
+            <CustomButton
+              type="cancelar"
+              onClick={onForceDelete}
+              sx={{ minWidth: "100px" }}
+            >
+              Eliminar
+            </CustomButton>
+            <CustomButton
+              type="aceptar"
+              onClick={onActive}
+              sx={{ minWidth: "100px" }}
+            >
+              Activar
+            </CustomButton>
+
+          </>
+        )}
       </Box>
     </Card>
   );

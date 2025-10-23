@@ -108,6 +108,8 @@ export const ALLOWED_BY_ROLE = {
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
     "/seguimientoPrincipal/:idRegistro/:idProceso",
+    "/auditorias/:id",
+    "/auditoria/:idRegistro",
 
   ],
   "Supervisor": [
@@ -133,6 +135,8 @@ export const ALLOWED_BY_ROLE = {
     "/actividad-mejora",
     "/actividad-mejora/:idRegistro",
     "/seguimientoPrincipal/:idRegistro/:idProceso",
+    "/auditorias/:id",
+    "/auditoria/:idRegistro",
 
   ],
   // Invitado (sin credenciales) se controla con PUBLIC_PATHS
