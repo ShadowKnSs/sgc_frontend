@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip, Typography, CircularProgress } from "@mui/material";
+import { Box, Modal, TextField, MenuItem, Grid, Snackbar, IconButton, Tooltip, Typography } from "@mui/material";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -49,8 +49,8 @@ import SearchFilter from "../components/SearchFilter";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-
-
+import CustomButton from "../components/Button";
+import DialogTitleCustom from "../components/TitleDialog";
 
 const PrincipalReportSem = () => {
     const [open, setOpen] = useState(false);
@@ -105,7 +105,7 @@ const PrincipalReportSem = () => {
             return;
         }
 
-        setLoading(true); // 🔵 Inicia cargando
+        setLoading(true); //  Inicia cargando
 
         try {
             const response = await fetch(
@@ -140,7 +140,6 @@ const PrincipalReportSem = () => {
             const responses = await Promise.all(urls.map(url => fetch(url)));
             const results = await Promise.all(responses.map(res => res.json()));
 
-            const nombresListas = ["Riesgos", "Indicadores", "AccionesMejora", "Auditorías", "Seguimiento"];
 
             let hayDatos = false;
             results.forEach((lista, index) => {
@@ -155,12 +154,10 @@ const PrincipalReportSem = () => {
                 return;
             }
 
-            console.log("Resultados finales para navegar:", results);
 
             navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
 
         } catch (error) {
-            console.error("Error al obtener los datos:", error);
         }
     };
 
@@ -186,7 +183,7 @@ const PrincipalReportSem = () => {
                 <Box
                     sx={{
                         width: "100%",
-                        maxWidth: 1550,   
+                        maxWidth: 1550,
                         mx: "auto",
                         px: { xs: 1.5, sm: 2 },
                         alignSelf: "stretch",
@@ -229,7 +226,7 @@ const PrincipalReportSem = () => {
 
                 {/* Botón flotante de búsqueda */}
                 <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
-                    <Tooltip title="Buscar Reportes">
+                    <Tooltip title="Buscar Reportes" placement="left">
                         <IconButton
                             onClick={toggleSearch}
                             sx={{
@@ -269,9 +266,9 @@ const PrincipalReportSem = () => {
                         p: 4,
                         borderRadius: 2,
                     }}>
-                        <h2 id="modal-title" style={{ color: "#004A98", textAlign: "center", fontSize: "28px" }}>
-                            Generar Reporte Semestral
-                        </h2>
+                        <DialogTitleCustom
+                            title="Generar Reporte Semestral"
+                        />
 
                         <TextField
                             label="Año"
@@ -280,7 +277,17 @@ const PrincipalReportSem = () => {
                             variant="outlined"
                             margin="normal"
                             value={year}
-                            onChange={(e) => setYear(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val >= 0 && val <= new Date().getFullYear() + 10) setYear(val);
+                            }}
+
+                            inputProps={{
+                                min: 0, 
+                                step: 1,
+                            }}
+                            error={year < 0}
+                            helperText={year < 0 ? "El año no puede ser negativo" : ""}
                         />
 
                         <TextField
@@ -296,32 +303,36 @@ const PrincipalReportSem = () => {
                             <MenuItem value="07-12">Julio - Diciembre</MenuItem>
                         </TextField>
 
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                            <Button
+                        {/* BOTONES ACTUALIZADOS CON CUSTOMBUTTON */}
+                        <Box sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            mt: 2,
+                            gap: 1
+                        }}>
+                            <CustomButton
+                                type="cancelar"
                                 onClick={handleCloseForm}
-                                sx={{ backgroundColor: "#004A98", color: "white", "&:hover": { backgroundColor: "#003366" }, borderRadius: "30px", padding: "8px 16px" }}
+                                sx={{
+                                    minWidth: "120px",
+                                    flex: 1
+                                }}
                             >
                                 Cancelar
-                            </Button>
-                            <Button
-                                onClick={handleClick}
-                                sx={{
-                                    backgroundColor: "#F9B800",
-                                    color: "white",
-                                    "&:hover": { backgroundColor: "#D99400" },
-                                    borderRadius: "30px",
-                                    padding: "8px 16px",
-                                    minWidth: "120px",
-                                }}
-                                disabled={!year || !period || loading}
-                            >
-                                {loading ? (
-                                    <CircularProgress size={24} sx={{ color: "white" }} />
-                                ) : (
-                                    "Generar"
-                                )}
-                            </Button>
+                            </CustomButton>
 
+                            <CustomButton
+                                type="guardar"
+                                onClick={handleClick}
+                                loading={loading}
+                                disabled={!year || !period || loading}
+                                sx={{
+                                    minWidth: "120px",
+                                    flex: 1
+                                }}
+                            >
+                                Generar
+                            </CustomButton>
                         </Box>
                     </Box>
                 </Modal>
@@ -329,7 +340,7 @@ const PrincipalReportSem = () => {
                 {/* Snackbar */}
                 <Snackbar
                     open={openSnackbar}
-                    autoHideDuration={6000}
+                    autoHideDuration={4000}
                     onClose={handleCloseSnackbar}
                     message={messageSnackbar}
                 />

@@ -1,7 +1,7 @@
 import React from "react";
-import { 
-    Box, TextField, Stepper, Step, StepButton, StepContent, 
-    Typography, CircularProgress, Alert as MuiAlert 
+import {
+    Box, TextField, Stepper, Step, StepButton, StepContent,
+    Typography, CircularProgress, Alert as MuiAlert
 } from "@mui/material";
 import Title from "../Title";
 import { useProyectoMejoraForm } from "../../hooks/useProyectoMejoraForm"
@@ -21,30 +21,19 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
     }
 
     const {
-        formData,
-        activeStep,
-        handleStep,
-        handleNext,
-        handleBack,
-        handleChange,
-        handleDynamicChange,
-        addDynamicField,
-        removeDynamicField,
-        handleSubmit,
-        erroresCampos,
-        loading,
-        error,
-        saving
+        steps, formData, activeStep, onStepClick, onNext, onBack, handleChange,
+        handleDynamicChange, addDynamicField, removeDynamicField, handleSubmit,
+        erroresCampos, loading, error, saving, stepHasError
     } = formContext;
 
-    // ✅ Función para manejar cancelación mejorada
+    //  Función para manejar cancelación mejorada
     const handleCancel = () => {
         if (onCancel) {
             onCancel();
         }
     };
 
-    // ✅ Función para manejar envío mejorado
+    // Función para manejar envío mejorado
     const handleSubmitImproved = async () => {
         await handleSubmit();
         if (onSaved) {
@@ -52,20 +41,9 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
         }
     };
 
-    const steps = [
-        "Datos Generales",
-        "Descripción de la Mejora",
-        "Objetivos",
-        "Información Complementaria",
-        "Indicadores de Éxito",
-        "Recursos",
-        "Plan de Trabajo",
-        "Aprobación"
-    ];
-
     const maxChars = 255;
 
-    // ✅ Renderizado de estados
+    //  Renderizado de estados
     if (loading) {
         return (
             <Box sx={{ p: 4, width: "800px", margin: "auto", minHeight: "600px", display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
@@ -80,9 +58,9 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
     if (error) {
         return (
             <Box sx={{ p: 4, width: "800px", margin: "auto", minHeight: "600px", display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <MuiAlert 
-                    severity="error" 
-                    sx={{ 
+                <MuiAlert
+                    severity="error"
+                    sx={{
                         '& .MuiAlert-message': { textAlign: 'left' }
                     }}
                 >
@@ -106,41 +84,41 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
             case 0:
                 return (
                     <Box>
-                        <TextField 
-                            fullWidth 
-                            label="División" 
-                            name="division" 
-                            value={formData.division} 
-                            onChange={handleChange} 
-                            margin="normal" 
-                            inputProps={{ maxLength: 255 }} 
-                            disabled={disabled} 
-                            error={getError("division")} 
-                            helperText={getError("division") ? "Este campo es obligatorio" : `${formData.division?.length || 0}/255`} 
+                        <TextField
+                            fullWidth
+                            label="División"
+                            name="division"
+                            value={formData.division}
+                            onChange={handleChange}
+                            margin="normal"
+                            inputProps={{ maxLength: 255 }}
+                            disabled={disabled}
+                            error={getError("division")}
+                            helperText={getError("division") ? "Este campo es obligatorio" : `${formData.division?.length || 0}/255`}
                         />
-                        <TextField 
-                            fullWidth 
-                            label="Departamento" 
-                            name="departamento" 
-                            value={formData.departamento} 
-                            onChange={handleChange} 
-                            margin="normal" 
-                            inputProps={{ maxLength: 255 }} 
-                            disabled={disabled} 
-                            error={getError("departamento")} 
-                            helperText={getError("departamento") ? "Este campo es obligatorio" : `${formData.departamento?.length || 0}/255`} 
+                        <TextField
+                            fullWidth
+                            label="Departamento"
+                            name="departamento"
+                            value={formData.departamento}
+                            onChange={handleChange}
+                            margin="normal"
+                            inputProps={{ maxLength: 255 }}
+                            disabled={disabled}
+                            error={getError("departamento")}
+                            helperText={getError("departamento") ? "Este campo es obligatorio" : `${formData.departamento?.length || 0}/255`}
                         />
-                        <TextField 
-                            fullWidth 
-                            label="Fecha" 
-                            name="fecha" 
-                            type="date" 
-                            value={formData.fecha} 
-                            onChange={handleChange} 
-                            margin="normal" 
-                            disabled={disabled} 
-                            error={getError("fecha")} 
-                            helperText={getHelper("fecha")} 
+                        <TextField
+                            fullWidth
+                            label="Fecha"
+                            name="fecha"
+                            type="date"
+                            value={formData.fecha}
+                            onChange={handleChange}
+                            margin="normal"
+                            disabled={disabled}
+                            error={getError("fecha")}
+                            helperText={getHelper("fecha")}
                             InputLabelProps={{ shrink: true }}
                         />
                         <TextField
@@ -156,17 +134,17 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                             helperText={getHelper("noMejora")}
                             inputProps={{ min: 0 }}
                         />
-                        <TextField 
-                            fullWidth 
-                            label="Responsable" 
-                            name="responsable" 
-                            value={formData.responsable} 
-                            onChange={handleChange} 
-                            margin="normal" 
-                            inputProps={{ maxLength: 255 }} 
-                            disabled={disabled} 
-                            error={getError("responsable")} 
-                            helperText={getError("responsable") ? "Este campo es obligatorio" : `${formData.responsable?.length || 0}/255`} 
+                        <TextField
+                            fullWidth
+                            label="Responsable"
+                            name="responsable"
+                            value={formData.responsable}
+                            onChange={handleChange}
+                            margin="normal"
+                            inputProps={{ maxLength: 255 }}
+                            disabled={disabled}
+                            error={getError("responsable")}
+                            helperText={getError("responsable") ? "Este campo es obligatorio" : `${formData.responsable?.length || 0}/255`}
                         />
                     </Box>
                 );
@@ -179,20 +157,20 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                         >
                             {formData.descripcionMejora?.length || 0}/{maxChars}
                         </Typography>
-                        <TextField 
-                            fullWidth 
-                            label="Descripción de la Mejora" 
-                            name="descripcionMejora" 
-                            value={formData.descripcionMejora} 
-                            onChange={handleChange} 
-                            margin="normal" 
-                            multiline 
-                            minRows={2} 
-                            maxRows={6}  
-                            inputProps={{ maxLength: maxChars }} 
-                            disabled={disabled} 
-                            error={getError("descripcionMejora")} 
-                            helperText={getHelper("descripcionMejora")} 
+                        <TextField
+                            fullWidth
+                            label="Descripción de la Mejora"
+                            name="descripcionMejora"
+                            value={formData.descripcionMejora}
+                            onChange={handleChange}
+                            margin="normal"
+                            multiline
+                            minRows={2}
+                            maxRows={6}
+                            inputProps={{ maxLength: maxChars }}
+                            disabled={disabled}
+                            error={getError("descripcionMejora")}
+                            helperText={getHelper("descripcionMejora")}
                         />
                     </Box>
                 );
@@ -226,7 +204,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                         ))}
                         {!soloLectura && puedeEditar && (
                             <CustomButton
-                                type="agregar"
+                                type="aceptar"
                                 onClick={() => addDynamicField("objetivos", { descripcion: "" })}
                                 disabled={saving}
                             >
@@ -245,48 +223,47 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                             >
                                 {formData.areaImpacto?.length || 0}/{maxChars}
                             </Typography>
-                            <TextField 
-                                fullWidth 
-                                label="Área de Impacto" 
-                                name="areaImpacto" 
-                                value={formData.areaImpacto} 
-                                onChange={handleChange} 
-                                margin="normal" 
-                                multiline 
-                                rows={4} 
-                                inputProps={{ maxLength: maxChars }} 
-                                disabled={disabled} 
-                                error={getError("areaImpacto")} 
-                                helperText={getHelper("areaImpacto")} 
+                            <TextField
+                                fullWidth
+                                label="Área de Impacto"
+                                name="areaImpacto"
+                                value={formData.areaImpacto}
+                                onChange={handleChange}
+                                margin="normal"
+                                multiline
+                                rows={4}
+                                inputProps={{ maxLength: maxChars }}
+                                disabled={disabled}
+                                error={getError("areaImpacto")}
+                                helperText={getHelper("areaImpacto")}
                             />
                         </Box>
 
-                        <TextField 
-                            fullWidth 
-                            label="Personal Beneficiado" 
-                            name="personalBeneficiado" 
-                            type="number" 
-                            value={formData.personalBeneficiado} 
-                            onChange={handleChange} 
-                            margin="normal" 
-                            disabled={disabled} 
-                            error={getError("personalBeneficiado")} 
+                        <TextField
+                            fullWidth
+                            label="Personal Beneficiado"
+                            name="personalBeneficiado"
+                            value={formData.personalBeneficiado}
+                            onChange={handleChange}
+                            margin="normal"
+                            disabled={disabled}
+                            error={getError("personalBeneficiado")}
                             helperText={getHelper("personalBeneficiado")}
                             inputProps={{ min: 0 }}
                         />
 
                         {formData.responsables.map((resp, index) => (
                             <Box key={index} display="flex" alignItems="center" gap={1} mb={2}>
-                                <TextField 
-                                    fullWidth 
-                                    label={`Responsable ${index + 1}`} 
-                                    value={resp.nombre} 
-                                    onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)} 
-                                    margin="normal" 
-                                    disabled={disabled} 
+                                <TextField
+                                    fullWidth
+                                    label={`Responsable ${index + 1}`}
+                                    value={resp.nombre}
+                                    onChange={(e) => handleDynamicChange("responsables", index, "nombre", e.target.value)}
+                                    margin="normal"
+                                    disabled={disabled}
                                     error={getError(`responsables.${index}.nombre`)}
-                                    helperText={getError(`responsables.${index}.nombre`) ? "Este campo es obligatorio" : `${resp.nombre?.length || 0}/255`} 
-                                    inputProps={{ maxLength: 255 }} 
+                                    helperText={getError(`responsables.${index}.nombre`) ? "Este campo es obligatorio" : `${resp.nombre?.length || 0}/255`}
+                                    inputProps={{ maxLength: 255 }}
                                 />
                                 {!soloLectura && puedeEditar && (
                                     <CustomButton
@@ -302,7 +279,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                         ))}
                         {!soloLectura && puedeEditar && (
                             <CustomButton
-                                type="agregar"
+                                type="aceptar"
                                 onClick={() => addDynamicField("responsables", { nombre: "" })}
                                 disabled={saving}
                             >
@@ -313,19 +290,19 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                             <Typography variant="caption" sx={{ display: "block", textAlign: "right", color: "text.secondary" }}>
                                 {formData.situacionActual?.length || 0}/{maxChars}
                             </Typography>
-                            <TextField 
-                                fullWidth 
-                                label="Situación Actual" 
-                                name="situacionActual" 
-                                value={formData.situacionActual} 
-                                onChange={handleChange} 
-                                margin="normal" 
-                                multiline 
-                                rows={4} 
-                                inputProps={{ maxLength: maxChars }} 
-                                disabled={disabled} 
-                                error={getError("situacionActual")} 
-                                helperText={getHelper("situacionActual")} 
+                            <TextField
+                                fullWidth
+                                label="Situación Actual"
+                                name="situacionActual"
+                                value={formData.situacionActual}
+                                onChange={handleChange}
+                                margin="normal"
+                                multiline
+                                rows={4}
+                                inputProps={{ maxLength: maxChars }}
+                                disabled={disabled}
+                                error={getError("situacionActual")}
+                                helperText={getHelper("situacionActual")}
                             />
                         </Box>
                     </Box>
@@ -385,7 +362,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                         ))}
                         {!soloLectura && puedeEditar && (
                             <CustomButton
-                                type="agregar"
+                                type="aceptar"
                                 onClick={() => addDynamicField("indicadoresExito", { nombre: "", meta: "" })}
                                 disabled={saving}
                             >
@@ -448,7 +425,7 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
                         ))}
                         {!soloLectura && puedeEditar && (
                             <CustomButton
-                                type="agregar"
+                                type="aceptar"
                                 onClick={() => addDynamicField("recursos", { tiempoEstimado: "", recursosMatHum: "" })}
                                 disabled={saving}
                                 sx={{ mb: 2 }}
@@ -589,8 +566,8 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
     return (
         <Box sx={{ p: 4, width: "800px", margin: "auto", minHeight: "600px", borderRadius: 2, border: "1px solid #ccc", boxShadow: 2, backgroundColor: "#fff" }}>
             <Title text="Formulario de Proyecto de Mejora" />
-            
-            {/* ✅ Mostrar estado de guardado */}
+
+            {/*  Mostrar estado de guardado */}
             {saving && (
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, p: 1, backgroundColor: 'info.light', borderRadius: 1 }}>
                     <CircularProgress size={20} sx={{ mr: 2 }} />
@@ -601,27 +578,28 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
             <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
                 {steps.map((label, index) => (
                     <Step key={label}>
-                        <StepButton 
-                            onClick={handleStep(index)} 
+                        <StepButton
+                            onClick={() => onStepClick(index)}
                             disabled={saving}
+                            sx={stepHasError(index) ? { color: 'error.main', '& .MuiStepLabel-label': { color: 'error.main' } } : {}}
                         >
                             {label}
                         </StepButton>
                         <StepContent>
                             <Box sx={{ minHeight: "300px" }}>{renderStepContent(index)}</Box>
                             <Box sx={{ mb: 2, display: "flex", justifyContent: "center", gap: 2 }}>
-                                <CustomButton 
-                                    type="cancelar" 
+                                <CustomButton
+                                    type="cancelar"
                                     onClick={handleCancel}
                                     disabled={saving}
                                 >
                                     Cancelar
                                 </CustomButton>
-                                
+
                                 {activeStep > 0 && (
-                                    <CustomButton 
-                                        type="cancelar" 
-                                        onClick={handleBack}
+                                    <CustomButton
+                                        type="descargar"
+                                        onClick={onBack}
                                         disabled={saving}
                                     >
                                         Anterior
@@ -630,12 +608,12 @@ function ProyectoMejoraVertical({ soloLectura, puedeEditar, showSnackbar, onCanc
 
                                 <CustomButton
                                     type="guardar"
-                                    onClick={activeStep === steps.length - 1 ? handleSubmitImproved : handleNext}
+                                    onClick={activeStep === steps.length - 1 ? handleSubmitImproved : onNext}
                                     disabled={saving}
                                     loading={saving && activeStep === steps.length - 1}
                                 >
-                                    {activeStep === steps.length - 1 
-                                        ? (saving ? "Guardando..." : "Guardar Proyecto") 
+                                    {activeStep === steps.length - 1
+                                        ? (saving ? "Guardando..." : "Guardar Proyecto")
                                         : "Siguiente"
                                     }
                                 </CustomButton>

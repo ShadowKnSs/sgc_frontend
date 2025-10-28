@@ -237,7 +237,7 @@ function Cronograma() {
     });
   }, [view, date, usuario, rolActivo, fetchAuditorias]);
 
-
+  const safeEvents = Array.isArray(events) ? events : [];
 
   return (
     <Box
@@ -306,7 +306,7 @@ function Cronograma() {
         </Box>
       )}
       {/* Estado sin datos */}
-      {!loadingList && !hasError && events.length === 0 && (
+      {!loadingList && !hasError && safeEvents.length === 0 && (
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 2, gap: 1.5 }}>
           <Typography variant="body2" color="text.secondary">
             No se encontraron auditorías para este mes.
@@ -319,62 +319,64 @@ function Cronograma() {
       {/* Solo ocultar si está cargando por primera vez y hay error */}
       {!(loadingList && hasError) && (
         <AuditoriaCalendar
-          events={events}
+          events={safeEvents}
           view={view}
           date={date}
           setView={setView}
           setDate={setDate}
           onSelectEvent={handleOpenDetails}
           // Prop adicional para mostrar estado vacío dentro del calendario
-          isEmpty={!loadingList && events.length === 0}
+          isEmpty={!loadingList && safeEvents.length === 0}
         />
       )}
 
       {/* Se muestra el botón "Crear Auditoría" si el usuario tiene el permiso "Cronograma" */}
-      {permiteAcciones() && (
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 460,             
-            right: "40px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 1.25,               // espacio entre botón y leyenda
-            zIndex: 20,
-          }}
-        >
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 470,
+          right: "40px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 1.25,
+          zIndex: 20,
+        }}
+      >
+        {/* Botón visible solo para usuarios con permisos */}
+        {permiteAcciones() && (
           <CustomButton type="generar" onClick={handleOpenForm}>
             Crear Auditoría
           </CustomButton>
+        )}
 
-          {/* Leyenda compacta en columna */}
-          <Box
-            component="aside"
-            aria-label="Leyenda de estados"
-            sx={{
-              p: 1,
-              marginTop: 2,
-              borderRadius: 1,
-              bgcolor: "background.paper",
-              border: "1px solid",
-              borderColor: "divider",
-              boxShadow: 1,
-              minWidth: 125,
-            }}
-          >
-            <Typography variant="overline" sx={{ color: "text.secondary" }}>
-              Estados
-            </Typography>
+        {/* Leyenda visible para todos */}
+        <Box
+          component="aside"
+          aria-label="Leyenda de estados"
+          sx={{
+            p: 1,
+            marginTop: 1,
+            borderRadius: 1,
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 1,
+            minWidth: 125,
+          }}
+        >
+          <Typography variant="overline" sx={{ color: "text.secondary" }}>
+            Estados
+          </Typography>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.5 }}>
-              <LegendItem color="#0288d1" label="Pendiente" />
-              <LegendItem color="#2e7d32" label="Finalizada" />
-              <LegendItem color="#c62828" label="Cancelada" />
-            </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.5 }}>
+            <LegendItem color="#0288d1" label="Pendiente" />
+            <LegendItem color="#2e7d32" label="Finalizada" />
+            <LegendItem color="#c62828" label="Cancelada" />
           </Box>
         </Box>
-      )}
+      </Box>
+
 
 
       <AuditoriaForm

@@ -49,12 +49,11 @@
 
  * Posibles mejoras futuras:
  * - Mostrar gráficas por cada sección con Chart.js.
- * - Exportar sección a PDF.
  * - Permitir comentarios o anotaciones por parte del usuario revisor.
  * - Agregar versión o historial de análisis.
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Box, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Snackbar, Alert, Paper, CircularProgress } from "@mui/material";
 import axios from "axios";
@@ -139,6 +138,13 @@ const FormularioAnalisis = () => {
     { label: 'Análisis de Datos', icon: AssessmentIcon }
   ]), [idProcesoResolved]);
 
+  const deepClone = (obj) =>
+    typeof structuredClone === "function"
+      ? structuredClone(obj)
+      : JSON.parse(JSON.stringify(obj));
+
+  // Snapshots para rollback
+  const backupFormRef = useRef(null);
   // Función para manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -154,6 +160,18 @@ const FormularioAnalisis = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleEditar = () => {
+    // snapshot de lo que SÍ se edita en modo edición
+    backupFormRef.current = deepClone(formData);
+    setModoEdicion(true);
+  };
+
+  const handleCancelar = () => {
+    if (backupFormRef.current) setFormData(deepClone(backupFormRef.current));
+    setModoEdicion(false);
+    showSnackbar("Cambios descartados", "info");
   };
 
   // Función para obtener la info basica
@@ -179,14 +197,12 @@ const FormularioAnalisis = () => {
             proceso: response.data.proceso.nombreProceso || prev.proceso
           }));
         }
-        console.log("Entidad:", response.data.proceso);
         return response.data.idRegistro;
       } else {
         showSnackbar("No se encontró un registro para el proceso y año especificados", "warning");
         return null;
       }
     } catch (error) {
-      console.error("Error al obtener el idRegistro:", error);
       showSnackbar("Error al obtener el registro", "error");
       return null;
     }
@@ -195,10 +211,8 @@ const FormularioAnalisis = () => {
   // Función para cargar los datos del formulario
   const fetchFormData = async (registroId) => {
     try {
-      console.log("Registro:", registroId);
       const response = await axios.get(`http://127.0.0.1:8000/api/analisisDatos/${registroId}`);
       const data = response.data;
-      console.log("Respuesta de la API:", data);
 
       if (data.analisisDatos && data.analisisDatos.length > 0) {
         const periodo = data.analisisDatos[0].periodoEvaluacion;
@@ -208,7 +222,6 @@ const FormularioAnalisis = () => {
         }));
       }
       else {
-        console.warn("No se encontró registro en formAnalisisDatos para el idRegistro:", registroId);
       }
 
       // Filtrar indicadores por origen
@@ -279,7 +292,6 @@ const FormularioAnalisis = () => {
       setNecesidadInterpretacion(nuevaNecesidadInterpretacion);
       showSnackbar("Datos cargados correctamente", "success");
     } catch (error) {
-      console.error("Error fetching data: ", error);
       showSnackbar("Error al cargar los datos", "error");
     } finally {
       setLoading(false);
@@ -299,29 +311,6 @@ const FormularioAnalisis = () => {
     loadData();
   }, [idRegistro]);
 
-  const updateNecesidadInterpretacion = async (seccion, campo, valor) => {
-    try {
-      // Mapear nuestras secciones internas a las de la API
-      let seccionApi = seccion;
-      if (seccion === "Conformidad") seccionApi = "Conformidad";
-      if (seccion === "desempeno") seccionApi = "Desempeño";
-      if (seccion === "eficacia") seccionApi = "Eficacia";
-      if (seccion === "satisfaccion") seccionApi = "Satisfaccion";
-      if (seccion === "evaluacion") seccionApi = "Desempeño Proveedores";
-
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/analisisDatos/${idRegistro}/necesidad-interpretacion`,
-        {
-          seccion: seccionApi,
-          campo,
-          valor,
-        }
-      );
-      showSnackbar("Campo actualizado correctamente", "success");
-    } catch (error) {
-      showSnackbar("Error al actualizar el campo", "error");
-    }
-  };
 
   const handleNecesidadInterpretacionChange = (pestana, campo, valor) => {
     setNecesidadInterpretacion((prev) => ({
@@ -349,10 +338,6 @@ const FormularioAnalisis = () => {
     }));
 
     try {
-      console.log("🛠️ Enviando datos al backend: ", {
-        periodoEvaluacion: formData.periodoEvaluacion,
-        secciones
-      });
 
       await axios.put(`http://localhost:8000/api/analisisDatos/${idRegistro}/guardar-completo`, {
         periodoEvaluacion: formData.periodoEvaluacion,
@@ -365,7 +350,7 @@ const FormularioAnalisis = () => {
         periodoEvaluacion: formData.periodoEvaluacion
       }));
       setModoEdicion(false);
-
+      backupFormRef.current = null;
       showSnackbar("Datos guardados correctamente");
 
     } catch (err) {
@@ -469,13 +454,13 @@ const FormularioAnalisis = () => {
   }
 
   return (
-    <Box sx={{ width: "80%", margin: "auto", mt: 5, p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
+    <Box sx={{ width: "85%", margin: "auto", mt: 2, p: 2, mb: 5, borderRadius: 3, boxShadow: 3, bgcolor: "background.paper" }}>
       <Box sx={{ mb: 2 }}>
         <BreadcrumbNav items={breadcrumbItems} />
       </Box>
       <Title text="Análisis de Datos"></Title>
       <Fade in timeout={600}>
-        <Paper sx={{ p: 3, mb: 3, borderRadius: 3, boxShadow: 3 }}>
+        <Paper sx={{ p: 3, mb: 2, borderRadius: 3, boxShadow: 3 }}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#0056b3" }}>
             Información General
           </Typography>
@@ -521,11 +506,6 @@ const FormularioAnalisis = () => {
                   onChange={handleChange}
                   fullWidth
                   sx={{ mt: 1 }}
-                  onKeyDown={(e) => {
-                    if (/[0-9]/.test(e.key)) {
-                      e.preventDefault();
-                    }
-                  }}
                 />
               ) : (
                 <Typography sx={{ ml: 4 }}>{formData.periodoEvaluacion || "Sin definir"}</Typography>
@@ -534,15 +514,27 @@ const FormularioAnalisis = () => {
           </Box>
 
           {puedeEditar && (
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+            <Box
+              sx={{
+                mt: 2,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+              }}
+            >
               {!modoEdicion ? (
-                <ButtonInd type="cancelar" onClick={() => setModoEdicion(true)}>
+                <ButtonInd type="cancelar" onClick={handleEditar}>
                   Editar
                 </ButtonInd>
               ) : (
-                <ButtonInd type="guardar" onClick={handleGuardarTodo}>
-                  Guardar
-                </ButtonInd>
+                <>
+                  <ButtonInd type="cancelar" onClick={handleCancelar}>
+                    Cancelar
+                  </ButtonInd>
+                  <ButtonInd type="guardar" onClick={handleGuardarTodo}>
+                    Guardar
+                  </ButtonInd>
+                </>
               )}
             </Box>
           )}
@@ -715,7 +707,7 @@ const FormularioAnalisis = () => {
               label="Necesidad"
               fullWidth
               multiline
-              rows={4}
+              rows={10}
               value={necesidadInterpretacion[getCurrentPestana()]?.necesidad || ""}
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "necesidad", e.target.value)
@@ -730,7 +722,7 @@ const FormularioAnalisis = () => {
               label="Interpretación"
               fullWidth
               multiline
-              rows={4}
+              rows={10}
               value={necesidadInterpretacion[getCurrentPestana()]?.interpretacion || ""}
               onChange={(e) =>
                 handleNecesidadInterpretacionChange(getCurrentPestana(), "interpretacion", e.target.value)

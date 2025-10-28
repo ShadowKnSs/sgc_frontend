@@ -107,7 +107,7 @@ const InfoMapaProceso = ({
             setEditMode(false);
             setSubmitted(false);
             setErrors({});
-            setOriginalData(null); // ✅ Limpiar los datos originales después de guardar
+            setOriginalData(null); // Limpiar los datos originales después de guardar
         } catch (e) {
             if (showSnackbar) {
                 showSnackbar("No se pudo guardar la información", "error", "Error");

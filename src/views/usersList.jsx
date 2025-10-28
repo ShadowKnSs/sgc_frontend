@@ -38,7 +38,7 @@ import FeedbackSnackbar from "../components/Feedback";
 // Virtualización
 import { FixedSizeList as VirtualList } from "react-window";
 
-// Lazy-loaded (code splitting)
+// Lazy-loaded
 const UserCard = React.lazy(() => import("../components/userCard"));
 const UserTempCard = React.lazy(() => import("../components/userTempCard"));
 const UserForm = React.lazy(() => import("../components/userForms"));
@@ -47,7 +47,7 @@ const SupervisorProcessDialog = React.lazy(() => import("../components/Modals/Su
 
 // Ruta base de la API
 const API_URL = "http://127.0.0.1:8000/api";
-const VIRTUALIZE_THRESHOLD = 60; // a partir de X usuarios, usa virtualización
+const VIRTUALIZE_THRESHOLD = 60; // a partir de 60 usuarios, usa virtualización
 
 function UserManagement() {
     // Responsive

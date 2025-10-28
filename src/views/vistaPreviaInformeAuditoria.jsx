@@ -13,8 +13,10 @@
 
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import React, { useState, useEffect } from "react";
+import CustomButton from "../components/Button";
+import Title from "../components/Title";
 
 function VistaPreviaAud() {
   const { idAuditorialInterna } = useParams();
@@ -47,7 +49,6 @@ function VistaPreviaAud() {
       });
       navigate("/reportes-auditoria");
     } catch (error) {
-      console.error("Error al guardar reporte:", error);
       alert("Error al guardar el reporte");
     }
   };
@@ -56,16 +57,10 @@ function VistaPreviaAud() {
     <Box sx={{ p: 4, backgroundColor: "#f7f7f7", minHeight: "100vh" }}>
       <Box sx={{ maxWidth: "900px", margin: "0 auto", backgroundColor: "white", padding: 4, borderRadius: "8px" }}>
         {/* Título */}
-        <h1
-          style={{
-            textAlign: "center",
-            marginBottom: "32px",
-            fontFamily: "'Roboto', sans-serif",
-            color: "#004A98",
-          }}
-        >
-          Auditoría del {fecha ? new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '---'}
-        </h1>
+        <Title
+          text={`Auditoría del ${fecha ? new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '---'}`}
+        />
+        
 
         {/* Vista previa del PDF */}
         <iframe
@@ -76,35 +71,20 @@ function VistaPreviaAud() {
         ></iframe>
 
         {/* Botones */}
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Button
-            sx={{
-              backgroundColor: '#0057A8',
-              color: 'white',
-              fontWeight: 'bold',
-              borderRadius: '20px',
-              paddingX: 3,
-              marginRight: 2,
-              '&:hover': { backgroundColor: '#004488' }
-            }}
+        <Box display="flex" justifyContent="center" mt={3} gap={2}>
+          <CustomButton
+            type="cancelar"
             onClick={() => navigate('/reportes-auditoria')}
           >
             Cancelar
-          </Button>
-          <Button
-            sx={{
-              backgroundColor: '#FFB800',
-              color: 'white',
-              fontWeight: 'bold',
-              borderRadius: '20px',
-              paddingX: 3,
-              '&:hover': { backgroundColor: '#E0A500' }
-            }}
+          </CustomButton>
+          <CustomButton
+            type="guardar"
             onClick={handleGuardarReporte}
             disabled={cargando}
           >
             {cargando ? "Cargando..." : "Guardar"}
-          </Button>
+          </CustomButton>
         </Box>
       </Box>
     </Box>

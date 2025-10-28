@@ -7,7 +7,7 @@
  */
 import React from "react";
 import { Card, CardContent, Typography, Divider, Box, IconButton, Tooltip, Chip, Avatar } from "@mui/material";
-import { Edit, Delete, Refresh } from "@mui/icons-material";
+import { Edit, Delete } from "@mui/icons-material";
 import SupervisorAccount from "@mui/icons-material/SupervisorAccount";
 import PlaylistAdd from "@mui/icons-material/PlaylistAdd";
 import CustomButton from "./Button";

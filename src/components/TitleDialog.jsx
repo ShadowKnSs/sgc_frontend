@@ -31,9 +31,9 @@
  * - Adaptable: solo muestra el subtítulo si está presente
 
  * Mejoras Futuras:
- * - 💡 Permitir personalizar el color del borde inferior mediante props
- * - 💡 Soporte para incluir íconos al lado del título
- * - 💡 Internacionalización (i18n) para textos multilenguaje
+ * - Permitir personalizar el color del borde inferior mediante props
+ * - Soporte para incluir íconos al lado del título
+ * -  Internacionalización (i18n) para textos multilenguaje
 
  */
 import React from "react";

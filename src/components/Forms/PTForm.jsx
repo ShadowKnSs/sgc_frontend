@@ -22,7 +22,7 @@ const PTForm = ({ formData, handleChange, soloLectura, puedeEditar, rolActivo, s
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ Función para mostrar fecha en formato legible
+  //  Función para mostrar fecha en formato legible
   const formatearFechaDisplay = (fechaStr) => {
     if (!fechaStr) return "";
     try {

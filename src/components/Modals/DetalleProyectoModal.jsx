@@ -52,7 +52,7 @@ const DetalleProyectoModal = ({ open, onClose, proyecto }) => {
   );
 
   const handleDescargarPDF = () => {
-    const url = `http://localhost:8000/ap/reporte-proyecto-mejora/${proyecto.idProyectoMejora}`;
+    const url = `http://localhost:8000/api/reporte-proyecto-mejora/${proyecto.idProyectoMejora}`;
     window.open(url, "_blank");
   };
 

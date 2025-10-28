@@ -42,7 +42,6 @@ import React, { useRef, useState } from "react";
 import { CircularProgress, Box, SpeedDial, SpeedDialAction, Container, Stack } from "@mui/material";
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import Title from "../components/Title";
 import CustomButton from "../components/Button";
@@ -164,16 +163,7 @@ const ManualCalidad = () => {
           sx={{ position: 'fixed', bottom: 24, right: 24 }}
           icon={<FullscreenIcon />}
         >
-          <SpeedDialAction
-            icon={<FullscreenIcon />}
-            tooltipTitle="Pantalla completa"
-            onClick={handleFullscreen}
-          />
-          <SpeedDialAction
-            icon={<DownloadOutlinedIcon />}
-            tooltipTitle="Descargar manual"
-            onClick={handleDownload}
-          />
+          
           <SpeedDialAction
             icon={<NewspaperIcon />}
             tooltipTitle="Ir a Noticias"

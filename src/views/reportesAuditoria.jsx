@@ -27,19 +27,20 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Modal, TextField, MenuItem, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box, Modal, TextField, MenuItem, Typography, IconButton, Tooltip } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import FiltroAuditoria from "../components/buscadorAuditoria"
 import Title from "../components/Title";
 import { CircularProgress, Grid } from "@mui/material";
-import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
-import ReportView from "../components/ReportView";
+import ConfirmDelete from "../components/confirmDelete"; import ReportView from "../components/ReportView";
 import FeedbackSnackbar from "../components/Feedback";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 import DescriptionIcon from "@mui/icons-material/Description";
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import CustomButton from "../components/Button";
+import DialogTitleCustom from "../components/TitleDialog";
 
 const ReportesAuditoria = () => {
   const [reports, setReports] = useState([]);
@@ -56,7 +57,6 @@ const ReportesAuditoria = () => {
   const [procesos, setProcesos] = useState([]);
   const [entidadSeleccionada, setEntidadSeleccionada] = useState("");
   const [procesoSeleccionado, setProcesoSeleccionado] = useState("");
-  const [loadingModal, setLoadingModal] = useState(false);
   const reporteExistente = reports.find(
     r => r.idAuditorialInterna === Number(fechaSeleccionada)
   );
@@ -73,31 +73,13 @@ const ReportesAuditoria = () => {
 
   const navigate = useNavigate();
 
-  const cargarDatosModal = async () => {
-    try {
-      const resEntidades = await axios.get("http://localhost:8000/api/entidades");
-      setEntidades(resEntidades.data.entidades || []);
 
-      const resAuditorias = await axios.get("http://localhost:8000/api/auditorias");
-      setAuditorias(resAuditorias.data);
-    } catch (err) {
-    } finally {
-      setLoadingModal(false); // cuando termina la carga se apaga el loader
-    }
-  };
 
   const confirmarEliminacion = (id) => {
     setIdAEliminar(id);
     setOpenConfirm(true);
   };
 
-  const fetchAuditorias = async () => {
-    try {
-      const res = await axios.get("http://localhost:8000/api/auditorias");
-      setAuditorias(res.data);
-    } catch (err) {
-    }
-  };
 
   const fetchReportes = async () => {
     setLoading(true);
@@ -128,73 +110,25 @@ const ReportesAuditoria = () => {
       setIdAEliminar(null);
       setAlerta({ tipo: "success", mensaje: "Reporte eliminado correctamente" });
     } catch (err) {
-      console.error("Error al eliminar reporte:", err);
       alert("Error al eliminar el reporte");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerar = async () => {
-    try {
-      const auditoria = auditorias.find(a => a.idAuditorialInterna === fechaSeleccionada);
-      if (!auditoria) return alert("Selecciona una auditoría válida");
-
-      const payload = {
-        idAuditorialInterna: auditoria.idAuditorialInterna,
-        hallazgo: auditoria.verificacionRuta?.map(v => v.tipoHallazgo).join(', ') || "Sin hallazgos",
-        oportunidadesMejora: auditoria.puntosMejora?.map(p => p.descripcion).join(', ') || "Sin oportunidades",
-        cantidadAuditoria: 1, // o un conteo basado en algún criterio si tienes más datos
-        ruta: `reporte_${auditoria.idAuditorialInterna}_${Date.now()}.pdf` // puedes modificar según necesites
-      };
-
-      const res = await axios.post("http://localhost:8000/api/reportesauditoria", payload);
-
-      setReports([...reports, {
-        id: res.data.idReporte,
-        idAuditorialInterna: auditoria.idAuditorialInterna,
-        title: "Auditoría Interna",
-        entidad: auditoria.registro?.proceso?.entidad?.nombre || "Sin entidad",
-        lider: auditoria.auditorLider || "Sin líder",
-        date: new Date(auditoria.fecha).toLocaleDateString()
-      }]);
-
-      setAlerta({ tipo: "success", mensaje: "Reporte generado correctamente" });
-
-      setOpenModal(false);
-    } catch (err) {
-      console.error("Error al generar reporte:", err);
-      alert("Error al generar reporte");
-    }
-  };
-
-  useEffect(() => {
-    fetchReportes();
-    const cargarAuditorias = async () => {
-      try {
-        const res = await axios.get("http://localhost:8000/api/auditorias");
-        setAuditorias(res.data);
-      } catch (err) {
-        console.error("Error al cargar auditorías:", err);
-      }
-    };
-    cargarAuditorias();
-    if (openModal) {
-      fetchAuditorias();
-    }
-  }, [openModal]);
 
   useEffect(() => {
     fetchReportes();
     const cargarDatos = async () => {
       try {
-        const resEntidades = await axios.get("http://localhost:8000/api/entidades");
-        setEntidades(resEntidades.data.entidades || []);
-        const resAuditorias = await axios.get("http://localhost:8000/api/auditorias");
+        const [resEntidades, resAuditorias] = await Promise.all([
+          axios.get("http://localhost:8000/api/entidades"),
+          axios.get("http://localhost:8000/api/auditorias")
+        ]);
 
+        setEntidades(resEntidades.data.entidades || []);
         setAuditorias(resAuditorias.data);
       } catch (err) {
-        console.error("Error al cargar datos:", err);
       } finally {
         setLoading(false);
       }
@@ -306,11 +240,7 @@ const ReportesAuditoria = () => {
 
         <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
           <FabCustom
-            onClick={() => {
-              setOpenModal(true);
-              setLoadingModal(true);
-              cargarDatosModal();
-            }}
+            onClick={() => setOpenModal(true)}
             title="Agregar Reporte"
             icon={<Add />}
           />
@@ -324,135 +254,122 @@ const ReportesAuditoria = () => {
               left: "50%",
               transform: "translate(-50%, -50%)",
               width: 400,
-              height: 350,
               bgcolor: "white",
               boxShadow: 24,
               p: 4,
               borderRadius: 3,
-              justifyContent: "center",
-              alignItems: "center"
             }}
           >
-            {loadingModal ? (
-              <Box
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center"
-                }}
+
+            <DialogTitleCustom
+              title="Generar Reporte de Auditoría"
+            />
+
+            {/* Entidad */}
+            <TextField
+              select
+              fullWidth
+              variant="outlined"
+              label="Facultad/Entidad"
+              margin="dense"
+              value={entidadSeleccionada}
+              onChange={(e) => {
+                setEntidadSeleccionada(e.target.value);
+                setProcesoSeleccionado("");
+                setFechaSeleccionada("");
+              }}
+            >
+              {entidades.length > 0 ? (
+                entidades.map(ent => (
+                  <MenuItem key={ent.idEntidadDependencia} value={String(ent.idEntidadDependencia)}>
+                    {ent.nombreEntidad || "Sin nombre"}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>No hay entidades</MenuItem>
+              )}
+            </TextField>
+
+            {/* Proceso */}
+            <TextField
+              select
+              fullWidth
+              variant="outlined"
+              label="Proceso"
+              margin="dense"
+              value={procesoSeleccionado}
+              onChange={(e) => {
+                setProcesoSeleccionado(e.target.value);
+                setFechaSeleccionada("");
+              }}
+              disabled={!entidadSeleccionada}
+            >
+              {procesos.length > 0 ? (
+                procesos.map(proc => (
+                  <MenuItem key={proc.idProceso} value={String(proc.idProceso)}>
+                    {proc.nombreProceso || "Sin nombre"}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>No hay procesos</MenuItem>
+              )}
+            </TextField>
+
+            {/* Auditoría */}
+            <TextField
+              select
+              fullWidth
+              variant="outlined"
+              label="Auditoría"
+              margin="dense"
+              value={fechaSeleccionada}
+              onChange={(e) => setFechaSeleccionada(e.target.value)}
+              disabled={!procesoSeleccionado}
+            >
+              {auditorias.filter(aud => aud.registro?.proceso?.idProceso === Number(procesoSeleccionado)).length > 0 ? (
+                auditorias
+                  .filter(aud => aud.registro?.proceso?.idProceso === Number(procesoSeleccionado))
+                  .map(aud => (
+                    <MenuItem key={aud.idAuditorialInterna} value={String(aud.idAuditorialInterna)}>
+                      {new Date(aud.fecha).toLocaleDateString()}
+                    </MenuItem>
+                  ))
+              ) : (
+                <MenuItem disabled>No hay auditorías</MenuItem>
+              )}
+            </TextField>
+
+            {/* Botones - ACTUALIZADOS CON CUSTOMBUTTON */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3, gap: 1 }}>
+              <CustomButton
+                type="cancelar"
+                onClick={() => setOpenModal(false)}
+                sx={{ flex: 1 }}
               >
-                <CircularProgress size={50} color="primary" />
-                <Typography sx={{ mt: 2, color: "gray" }}>Cargando datos...</Typography>
-              </Box>
-            ) : (
-              <>
-                <h2 style={{ textAlign: "center", color: "#004A98" }}>Generar Reporte De Auditoría</h2>
-                {/* Entidad */}
-                <TextField
-                  select
-                  fullWidth
-                  variant="outlined"
-                  label="Facultad/Entidad"
-                  margin="dense"
-                  value={entidadSeleccionada}
-                  onChange={(e) => {
-                    setEntidadSeleccionada(e.target.value);
-                    setProcesoSeleccionado(""); // reset proceso
-                    setFechaSeleccionada("");   // reset auditoría
-                  }}
-                >
-                  {entidades.length > 0 ? (
-                    entidades.map(ent => (
-                      <MenuItem key={ent.idEntidadDependencia} value={String(ent.idEntidadDependencia)}>
-                        {ent.nombreEntidad || "Sin nombre"}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No hay entidades</MenuItem>
-                  )}
-                </TextField>
-
-                {/* Proceso */}
-                <TextField
-                  select
-                  fullWidth
-                  variant="outlined"
-                  label="Proceso"
-                  margin="dense"
-                  value={procesoSeleccionado}
-                  onChange={(e) => {
-                    setProcesoSeleccionado(e.target.value);
-                    setFechaSeleccionada(""); // reset auditoría
-                  }}
-                  disabled={!entidadSeleccionada}
-                >
-                  {procesos.length > 0 ? (
-                    procesos.map(proc => (
-                      <MenuItem key={proc.idProceso} value={String(proc.idProceso)}>
-                        {proc.nombreProceso || "Sin nombre"}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No hay procesos</MenuItem>
-                  )}
-                </TextField>
-
-                {/* Auditoría */}
-                <TextField
-                  select
-                  fullWidth
-                  variant="outlined"
-                  label="Auditoría"
-                  margin="dense"
-                  value={fechaSeleccionada}
-                  onChange={(e) => setFechaSeleccionada(e.target.value)}
-                  disabled={!procesoSeleccionado}
-                >
-                  {auditorias.filter(aud => aud.registro?.proceso?.idProceso === Number(procesoSeleccionado)).length > 0 ? (
-                    auditorias
-                      .filter(aud => aud.registro?.proceso?.idProceso === Number(procesoSeleccionado))
-                      .map(aud => (
-                        <MenuItem key={aud.idAuditorialInterna} value={String(aud.idAuditorialInterna)}>
-                          {new Date(aud.fecha).toLocaleDateString()}
-                        </MenuItem>
-                      ))
-                  ) : (
-                    <MenuItem disabled>No hay auditorías</MenuItem>
-                  )}
-                </TextField>
-                {/* Botones */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#004A98", borderRadius: "50px" }}
-                    onClick={() => setOpenModal(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#FFC107", borderRadius: "50px" }}
-                    disabled={!fechaSeleccionada || reporteExistente} // deshabilita si ya existe
-                    onClick={() => {
-                      setOpenModal(false);
-                      navigate(`/vista-previa/${fechaSeleccionada}`);
-                    }}
-                  >
-                    {reporteExistente ? "Reporte ya generado" : "Generar"}
-                  </Button>
-                </Box>
-              </>
-            )}
+                Cancelar
+              </CustomButton>
+              <CustomButton
+                type="guardar"
+                onClick={() => {
+                  setOpenModal(false);
+                  navigate(`/vista-previa/${fechaSeleccionada}`);
+                }}
+                disabled={!fechaSeleccionada || reporteExistente}
+                sx={{ flex: 1 }}
+              >
+                {reporteExistente ? "Reporte ya generado" : "Generar"}
+              </CustomButton>
+            </Box>
           </Box>
         </Modal>
-        <ConfirmDeleteDialog
+        <ConfirmDelete
           open={openConfirm}
           onClose={() => setOpenConfirm(false)}
           onConfirm={handleEliminarReporte}
-          titulo="¿Eliminar Reporte?"
-          subtitulo="Esta acción no se puede deshacer."
+          entityType="reporte"
+          entityName="de auditoría"
+          isPermanent={true}
+          description="Esta acción no se puede deshacer. El reporte será eliminado permanentemente del sistema."
         />
       </Box>
     </Box>

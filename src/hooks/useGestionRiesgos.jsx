@@ -25,8 +25,8 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     loadData();
   }, [idRegistro]);
 
-  
-  
+
+
 
   const fetchIdRegistro = async () => {
     try {
@@ -66,7 +66,6 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     } catch (error) {
       // Manejar solo errores que no sean 404
       if (error.response?.status !== 404) {
-        console.error("[useGestionRiesgos] Error al obtener gestionriesgos:", error);
       }
     }
   };
@@ -82,12 +81,50 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     }
   };
 
-  const organizarRiesgos = (lista) => ({
-    0: lista.map((r, i) => ({ Riesgo: i + 1, fuente: r.fuente, tipoRiesgo: r.tipoRiesgo, descripcion: r.descripcion })),
-    1: lista.map((r, i) => ({ idRiesgo: i + 1, consecuencias: r.consecuencias, valorSeveridad: r.valorSeveridad, valorOcurrencia: r.valorOcurrencia, valorNRP: r.valorNRP })),
-    2: lista.map((r, i) => ({ idRiesgo: i + 1, actividades: r.actividades, accionMejora: r.accionMejora, fechaImp: r.fechaImp, fechaEva: r.fechaEva, responsable: r.responsable })),
-    3: lista.map((r, i) => ({ idRiesgo: i + 1, reevaluacionSeveridad: r.reevaluacionSeveridad, reevaluacionOcurrencia: r.reevaluacionOcurrencia, reevaluacionNRP: r.reevaluacionNRP, reevaluacionEfectividad: r.reevaluacionEfectividad, analisisEfectividad: r.analisisEfectividad })),
-  });
+  const organizarRiesgos = (lista) => {
+    const AUTO_PT = 'Se llena automáticamente desde el Plan de Trabajo';
+    const POR_DEF = 'Por definir';
+
+    const safeStr = (v) => (typeof v === 'string' ? v.trim() : v);
+    const orAutoPT = (v) => (safeStr(v) ? v : AUTO_PT);
+    const orPorDef = (v) => (safeStr(v) || v === 0 ? v : POR_DEF);
+
+    return {
+      // Identificación
+      0: lista.map((r, i) => ({
+        Riesgo: i + 1,
+        fuente: r.fuente,
+        tipoRiesgo: r.tipoRiesgo,
+        descripcion: r.descripcion
+      })),
+      // Análisis
+      1: lista.map((r,i) => ({
+        Riesgo: i + 1,
+        consecuencias: r.consecuencias,
+        valorSeveridad: r.valorSeveridad,
+        valorOcurrencia: r.valorOcurrencia,
+        valorNRP: r.valorNRP
+      })),
+      // Tratamiento (fallback a AUTO_PT)
+      2: lista.map((r, i) => ({
+        Riesgo: i + 1,
+        actividades: orAutoPT(r.actividades),
+        accionMejora: orAutoPT(r.accionMejora),
+        fechaImp: orAutoPT(r.fechaImp),
+        fechaEva: orAutoPT(r.fechaEva),
+        responsable: orAutoPT(r.responsable),
+      })),
+      // Evaluación (fallback a POR_DEF)
+      3: lista.map((r, i) => ({
+        Riesgo: i + 1,
+        reevaluacionSeveridad: orPorDef(r.reevaluacionSeveridad),
+        reevaluacionOcurrencia: orPorDef(r.reevaluacionOcurrencia),
+        reevaluacionNRP: orPorDef(r.reevaluacionNRP),
+        reevaluacionEfectividad: orPorDef(r.reevaluacionEfectividad),
+        analisisEfectividad: orPorDef(r.analisisEfectividad),
+      })),
+    };
+  };
 
   const handleGuardarGestionRiesgos = async (dataOverride = null) => {
     try {
@@ -136,7 +173,7 @@ const useGestionRiesgos = (idRegistro, mostrarSnackbar) => {
     setRiesgos,
     setSavedData,
     cargarRiesgos
-    
+
   };
 };
 

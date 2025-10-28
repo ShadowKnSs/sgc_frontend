@@ -16,9 +16,21 @@ import { motion } from 'framer-motion';
 
 const MotionBox = motion(Box);
 
+// Función para ajustar valores entre 0 y 100
+const adjustPercentValue = (value) => {
+  if (value === '') return '';
+  
+  const numValue = parseFloat(value);
+  if (isNaN(numValue)) return '';
+  
+  if (numValue < 0) return '0';
+  if (numValue > 100) return '100';
+  return value;
+};
+
 const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, savedResult = {}, anio }) => {
   const [tab, setTab] = useState(0);
-  const [isSaving, setIsSaving] = useState(false); // Estado para loading
+  const [isSaving, setIsSaving] = useState(false);
 
   const defaultState = useMemo(() => {
     const obj = {};
@@ -35,15 +47,15 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
     if (open && indicator) {
       if (indicator.periodicidad === "Semestral" && fields.length > 0) {
         setResultEneJun({
-          [fields[0].name]: savedResult?.resultadoSemestral1?.toString() ?? ""
+          [fields[0].name]: adjustPercentValue(savedResult?.resultadoSemestral1?.toString() ?? "")
         });
         setResultJulDic({
-          [fields[0].name]: savedResult?.resultadoSemestral2?.toString() ?? ""
+          [fields[0].name]: adjustPercentValue(savedResult?.resultadoSemestral2?.toString() ?? "")
         });
       } else if (indicator.periodicidad === "Anual") {
         setResultEneJun(prev => ({
           ...prev,
-          [fields[0].name]: savedResult?.resultadoAnual?.toString() ?? ""
+          [fields[0].name]: adjustPercentValue(savedResult?.resultadoAnual?.toString() ?? "")
         }));
       }
 
@@ -61,8 +73,34 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
     }
   };
 
+  const handleFieldBlur = (tabNumber, fieldName, value) => {
+    // Ajustar el valor cuando el campo pierde el foco (solo para campos de porcentaje)
+    const field = fields.find(f => f.name === fieldName);
+    if (field?.percent) {
+      const adjustedValue = adjustPercentValue(value);
+      if (tabNumber === 0) {
+        setResultEneJun(prev => ({ ...prev, [fieldName]: adjustedValue }));
+      } else {
+        setResultJulDic(prev => ({ ...prev, [fieldName]: adjustedValue }));
+      }
+    }
+  };
+
   const handleSave = () => {
     if (!indicator?.idIndicador) return;
+    
+    // Ajustar valores antes de guardar
+    const adjustedEneJun = { ...resultEneJun };
+    const adjustedJulDic = { ...resultJulDic };
+    
+    fields.forEach(field => {
+      if (field.percent) {
+        adjustedEneJun[field.name] = adjustPercentValue(resultEneJun[field.name]);
+        adjustedJulDic[field.name] = adjustPercentValue(resultJulDic[field.name]);
+      }
+    });
+
+    setIsSaving(true);
     try {
       const payload = {
         periodicidad: indicator.periodicidad,
@@ -70,10 +108,10 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
       };
 
       if (indicator.periodicidad === "Anual") {
-        payload.result.resultadoAnual = parseFloat(resultEneJun[fields[0].name]);
+        payload.result.resultadoAnual = parseFloat(adjustedEneJun[fields[0].name]) || 0;
       } else {
-        payload.result.resultadoSemestral1 = parseFloat(resultEneJun[fields[0].name]);
-        payload.result.resultadoSemestral2 = parseFloat(resultJulDic[fields[0].name]);
+        payload.result.resultadoSemestral1 = parseFloat(adjustedEneJun[fields[0].name]) || 0;
+        payload.result.resultadoSemestral2 = parseFloat(adjustedJulDic[fields[0].name]) || 0;
       }
 
       onSave(indicator.idIndicador, payload);
@@ -81,9 +119,61 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
     } catch (error) {
       console.error('Error al guardar:', error);
     } finally {
-      setIsSaving(false); // Desactivar loading
+      setIsSaving(false);
     }
+  };
 
+  // Verificar si hay valores inválidos para deshabilitar el botón
+  const hasInvalidValues = () => {
+    const checkTab = (tabData) => {
+      return fields.some(field => {
+        if (field.percent && tabData[field.name]) {
+          const value = parseFloat(tabData[field.name]);
+          return value < 0 || value > 100;
+        }
+        return false;
+      });
+    };
+
+    return checkTab(resultEneJun) || 
+           (indicator.periodicidad === "Semestral" && checkTab(resultJulDic));
+  };
+
+  // Función para renderizar campo de texto con validación
+  const renderTextField = (tabNumber, field, value, onChangeHandler) => {
+    const isPercentField = field.percent;
+    const currentValue = value ?? "";
+    const hasError = isPercentField && currentValue && 
+                    (parseFloat(currentValue) < 0 || parseFloat(currentValue) > 100);
+
+    return (
+      <TextField
+        fullWidth
+        label={field.label}
+        type="number"
+        value={currentValue}
+        onChange={(e) => onChangeHandler(tabNumber, field.name, e.target.value)}
+        onBlur={(e) => handleFieldBlur(tabNumber, field.name, e.target.value)}
+        margin="dense"
+        inputProps={{ 
+          min: isPercentField ? 0 : undefined,
+          max: isPercentField ? 100 : undefined,
+          step: isPercentField ? 0.01 : 1
+        }}
+        error={hasError}
+        helperText={
+          hasError 
+            ? "El valor debe estar entre 0 y 100" 
+            : isPercentField 
+            ? "Ingrese un valor entre 0 y 100" 
+            : ""
+        }
+        InputProps={{
+          endAdornment: isPercentField ? 
+            <InputAdornment position="end">%</InputAdornment> : null
+        }}
+      />
+    );
   };
 
   return (
@@ -108,17 +198,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
               <Grid container spacing={2}>
                 {fields.map(field => (
                   <Grid item xs={12} key={field.name}>
-                    <TextField
-                      fullWidth
-                      label={field.label}
-                      type="number"
-                      value={resultEneJun[field.name] ?? ""}
-                      onChange={(e) => handleFieldChange(0, field.name, e.target.value)}
-                      margin="dense"
-                      InputProps={{
-                        endAdornment: field.percent ? <InputAdornment position="end">%</InputAdornment> : null
-                      }}
-                    />
+                    {renderTextField(0, field, resultEneJun[field.name], handleFieldChange)}
                   </Grid>
                 ))}
               </Grid>
@@ -127,17 +207,7 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
               <Grid container spacing={2}>
                 {fields.map(field => (
                   <Grid item xs={12} key={field.name}>
-                    <TextField
-                      fullWidth
-                      label={field.label}
-                      type="number"
-                      value={resultJulDic[field.name] ?? ""}
-                      onChange={(e) => handleFieldChange(1, field.name, e.target.value)}
-                      margin="dense"
-                      InputProps={{
-                        endAdornment: field.percent ? <InputAdornment position="end">%</InputAdornment> : null
-                      }}
-                    />
+                    {renderTextField(1, field, resultJulDic[field.name], handleFieldChange)}
                   </Grid>
                 ))}
               </Grid>
@@ -148,14 +218,15 @@ const ResultModalSemestralDual = ({ open, onClose, onSave, indicator, fields, sa
           <CustomButton
             type="cancelar"
             onClick={onClose}
-            disabled={isSaving} // Deshabilitar durante el guardado
+            disabled={isSaving}
           >
             Cancelar
           </CustomButton>
           <CustomButton
             type="guardar"
             onClick={handleSave}
-            loading={isSaving} // Pasar estado de loading
+            loading={isSaving}
+            disabled={hasInvalidValues() || isSaving}
           >
             Guardar
           </CustomButton>

@@ -150,7 +150,7 @@ const RiesgoModal = ({
   // Para creación nueva, solo mostramos las primeras 2 secciones
   const showNavigation = !isEditing || currentSection < 2;
   const canProceed = currentSection === 0 ?
-    (nuevoRiesgo.fuente && nuevoRiesgo.tipoRiesgo && nuevoRiesgo.descripcion) :
+    (nuevoRiesgo.tipoRiesgo && nuevoRiesgo.descripcion) :
     (nuevoRiesgo.valorSeveridad && nuevoRiesgo.valorOcurrencia);
 
   return (

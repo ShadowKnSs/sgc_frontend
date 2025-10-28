@@ -3,7 +3,7 @@ import { Box, Typography, Divider, Alert, CircularProgress } from "@mui/material
 import AddIcon from "@mui/icons-material/Add";
 import TablaRegistros from "../components/TablaRegistros";
 import ModalForm from "../components/Modals/ModalForm";
-import DetailsModal from "../components/Modals/DetailsModal";
+// import DetailsModal from "../components/Modals/DetailsModal";
 import CustomButton from "../components/Button";
 
 const initForm = (numero = 1) => ({
@@ -32,7 +32,7 @@ const camposObligatorios = [
 const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  // const [selectedRecord, setSelectedRecord] = useState(null);
   const [form, setForm] = useState(initForm());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,7 +45,7 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
 
   const validateForm = () => {
     const missingFields = camposObligatorios.filter(campo => !form[campo]?.trim());
-    
+
     if (missingFields.length > 0) {
       const fieldNames = {
         responsable: "Responsable",
@@ -57,7 +57,7 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
         descripcion: "Descripción",
         entregable: "Entregable"
       };
-      
+
       const missingNames = missingFields.map(field => fieldNames[field]).join(", ");
       handleShowMessage(
         `Los siguientes campos son obligatorios: ${missingNames}`,
@@ -71,7 +71,7 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
     if (form.fechaInicio && form.fechaTermino) {
       const inicio = new Date(form.fechaInicio);
       const termino = new Date(form.fechaTermino);
-      
+
       if (termino < inicio) {
         handleShowMessage(
           "La fecha de término no puede ser anterior a la fecha de inicio",
@@ -94,14 +94,17 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
           return;
         }
         setEditIndex(index);
-        setForm({ ...record, numero: record.numero || index + 1 });
+        setForm({
+          ...record,
+          numero: record.numero || index + 1,
+          noActividad: record.noActividad ?? record.numero ?? (index + 1),
+        });
       } else {
         setEditIndex(null);
-        setForm(initForm(records.length + 1));
-      }
-      setShowModal(true);
+        const sig = Math.max(0, ...records.map(r => Number(r.noActividad ?? r.numero ?? 0))) + 1;
+        setForm(initForm(sig));
+      } setShowModal(true);
     } catch (err) {
-      console.error("Error al abrir modal:", err);
       handleShowMessage("Error al abrir el formulario", "error", "Error");
     }
   };
@@ -116,10 +119,10 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
 
       setRecords(updatedRecords);
       setShowModal(false);
-      
+
       // Mostrar mensaje de éxito
-      const message = editIndex !== null 
-        ? "Fuente actualizada correctamente" 
+      const message = editIndex !== null
+        ? "Fuente actualizada correctamente"
         : "Fuente agregada correctamente";
       handleShowMessage(message, "success", "Éxito");
     } catch (err) {
@@ -176,7 +179,7 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
             No hay fuentes registradas
           </Typography>
           <Typography variant="body2">
-            {!soloLectura 
+            {!soloLectura
               ? "Puede agregar una fuente haciendo clic en 'Agregar Fuente'."
               : "No tiene permisos para agregar fuentes."
             }
@@ -230,10 +233,10 @@ const FuentesManager = ({ records, setRecords, soloLectura, showSnackbar }) => {
         soloLectura={soloLectura}
       />
 
-      <DetailsModal
+      {/* <DetailsModal
         selectedRecord={selectedRecord}
         handleCloseCardModal={() => setSelectedRecord(null)}
-      />
+      /> */}
     </>
   );
 };

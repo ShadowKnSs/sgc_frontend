@@ -60,6 +60,12 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [indicadorAEliminar, setIndicadorAEliminar] = useState(null);
 
+
+  const api = axios.create({
+    baseURL: "http://localhost:8000/api"
+  });
+
+
   // Estado para crear nuevo indicador
   const [newUser, setNewUser] = useState({
     descripcion: "",
@@ -97,7 +103,7 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
       setLoading(true);
       setError("");
 
-      const response = await axios.get(`http://localhost:8000/api/indmapaproceso?proceso=${idProceso}`);
+      const response = await api.get(`/indmapaproceso`, { params: { proceso: idProceso } });
 
       if (!response.data || response.data.length === 0) {
         setUsers([]);
@@ -105,7 +111,6 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
         setUsers(response.data);
       }
     } catch (error) {
-      console.error("Error al obtener indmapaproceso:", error);
 
       let errorMessage = "Error al cargar los indicadores";
       if (error.response) {
@@ -133,32 +138,57 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
    * Cargar datos del proceso y mapa de proceso
    */
   const cargarDatosProceso = useCallback(async () => {
+    // defaults “vacíos” para el mapa, en caso de 404
+    const mapaVacio = {
+      documentos: "",
+      fuente: "",
+      material: "",
+      requisitos: "",
+      salidas: "",
+      receptores: "",
+      puestosInvolucrados: ""
+    };
+
+    // 1) Cargar PROCESO (si este falla, sí avisamos)
     try {
-      const [procesoRes, mapaRes] = await Promise.all([
-        axios.get(`http://localhost:8000/api/procesos/${idProceso}`),
-        axios.get(`http://localhost:8000/api/mapaproceso/${idProceso}`)
-      ]);
-
-      if (procesoRes.data.proceso) {
+      const procesoRes = await api.get(`/procesos/${idProceso}`);
+      if (procesoRes.data?.proceso) {
         setProceso(procesoRes.data.proceso);
-      }
-
-      if (mapaRes.data) {
-        setMapaProceso(mapaRes.data);
+      } else {
+        // No lanzó error pero no vino “proceso”
+        if (showSnackbar) {
+          showSnackbar("No se encontró el proceso solicitado", "warning", "Aviso");
+        }
       }
     } catch (error) {
-      console.error("Error al obtener datos del proceso:", error);
+      let msg = "Error al cargar la información del proceso";
+      if (error.response?.status === 404) msg = "No se encontró el proceso solicitado";
+      if (showSnackbar) showSnackbar(msg, "error", "Error");
+    }
 
-      let errorMessage = "Error al cargar la información del proceso";
-      if (error.response?.status === 404) {
-        errorMessage = "No se encontró el proceso solicitado";
+    // 2) Cargar MAPA (404 sin datos, no es error)
+    try {
+      const mapaRes = await api.get(`/mapaproceso/${idProceso}`);
+      if (mapaRes.data) {
+        setMapaProceso(mapaRes.data);
+      } else {
+        setMapaProceso(mapaVacio);
       }
-
-      if (showSnackbar) {
-        showSnackbar(errorMessage, "error", "Error");
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // No hay mapa aún  set vacíos, no alertamos como error
+        setMapaProceso(mapaVacio);
+      } else {
+        // Otros errores del servidor o red
+        if (showSnackbar) {
+          showSnackbar("Error al cargar el mapa de proceso", "warning", "Aviso");
+        }
+        // Mantén el estado actual o usa vacíos
+        setMapaProceso(prev => prev?.idMapaProceso ? prev : mapaVacio);
       }
     }
   }, [idProceso, showSnackbar]);
+
 
   useEffect(() => {
     if (!idProceso) {
@@ -196,7 +226,7 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
     };
 
     try {
-      const response = await axios.post("http://localhost:8000/api/indmapaproceso", payload);
+      const response = await api.post(`/indmapaproceso`, payload);
       const nuevo = response.data.indMapaProceso;
       setUsers((prev) => [...prev, nuevo]);
       setOpenForm(false);
@@ -226,13 +256,13 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
 
     try {
       if (!mapaProceso.idMapaProceso) {
-        const res = await axios.post("http://localhost:8000/api/mapaproceso", payload);
+        const res = await api.post(`/mapaproceso`, payload);
         setMapaProceso(res.data);
         if (showSnackbar) {
           showSnackbar("Mapa de proceso creado correctamente", "success", "Éxito");
         }
       } else {
-        await axios.put(`http://localhost:8000/api/mapaproceso/${mapaProceso.idMapaProceso}`, payload);
+        await api.put(`/mapaproceso/${mapaProceso.idMapaProceso}`, payload);
         if (showSnackbar) {
           showSnackbar("Cambios guardados correctamente", "success", "Éxito");
         }
@@ -261,14 +291,12 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
     if (!indicadorAEliminar) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/indmapaproceso/${indicadorAEliminar.idIndicador}`);
-      setUsers((prev) => prev.filter((u) => u.idIndicador !== indicadorAEliminar.idIndicador));
-
+      await api.delete(`/indmapaproceso/${indicadorAEliminar.idIndicadorMP}`);
+      setUsers((prev) => prev.filter((u) => u.idIndicadorMP !== indicadorAEliminar.idIndicadorMP));
       if (showSnackbar) {
         showSnackbar("Indicador eliminado correctamente", "success", "Éxito");
       }
     } catch (error) {
-      console.error("Error al eliminar indicador:", error);
 
       let errorMessage = "Error al eliminar el indicador";
       if (error.response?.status === 404) {

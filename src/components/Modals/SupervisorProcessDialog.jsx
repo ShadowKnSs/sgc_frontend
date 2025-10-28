@@ -34,7 +34,6 @@ const SupervisorProcessDialog = React.memo(({ open, onClose, supervisorUser, onS
             setSelected(assignedResponse.data.procesosIds || []);
 
         } catch (e) {
-            console.error("Error al cargar procesos:", e);
             setError("Error al cargar procesos");
             onError && onError("No se pudieron cargar los procesos");
         } finally {

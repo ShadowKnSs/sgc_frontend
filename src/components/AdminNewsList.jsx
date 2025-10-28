@@ -21,6 +21,15 @@ function formatDate(dateString) {
   return dayjs(dateString).format('DD-MM-YYYY HH:mm');
 }
 
+// Convierte a URL absoluta solo si viene relativo (p. ej. "/storage/img/..")
+const toAbsolute = (u) => {
+  if (!u) return '';
+  return /^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`;
+};
+
+// Para evitar caché tras crear/editar (cache-busting simple)
+const withBust = (url) => (!url ? '' : `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`);
+
 const AdminNewsList = () => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
   const idUsuario = usuario?.idUsuario ?? null;
@@ -37,7 +46,6 @@ const AdminNewsList = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-
   // FeedbackSnackbar
   const [feedback, setFeedback] = useState({
     open: false,
@@ -49,12 +57,11 @@ const AdminNewsList = () => {
     setFeedback({ open: true, type, title, message });
   }, []);
 
-
   const fetchNews = useCallback(async () => {
     setIsLoading(true);
     try {
-      const resp = await axios.get('http://127.0.0.1:8000/api/noticias');
-      setNews(resp.data);
+      const resp = await axios.get('http://localhost:8000/api/noticias');
+      setNews(resp.data || []);
     } catch (error) {
       console.error('Error al cargar noticias:', error);
       showFeedback('error', 'Error', 'Error al cargar noticias');
@@ -74,8 +81,8 @@ const AdminNewsList = () => {
   const handleConfirmDelete = async () => {
     if (!deleteItem) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/noticias/${deleteItem.idNoticias}`);
-      setNews(news.filter(n => n.idNoticias !== deleteItem.idNoticias));
+      await axios.delete(`http://localhost:8000/api/noticias/${deleteItem.idNoticias}`);
+      setNews(prev => prev.filter(n => n.idNoticias !== deleteItem.idNoticias));
       showFeedback('success', 'Eliminada', `Noticia "${deleteItem.titulo}" eliminada con éxito`);
     } catch (error) {
       console.error('Error al eliminar noticia:', error);
@@ -102,19 +109,24 @@ const AdminNewsList = () => {
       const data = new FormData();
       data.append('idUsuario', idUsuario);
       data.append('titulo', formData.titulo);
-      data.append('descripcion', formData.descripcion);
+      data.append('descripcion', formData.descripcion || '');
       if (formData.file) data.append('imagen', formData.file);
 
-      const resp = await axios.post('http://127.0.0.1:8000/api/noticias', data);
-      setNews([...news, resp.data]);
+      const resp = await axios.post('http://localhost:8000/api/noticias', data);
+      // Forzamos bust a la imagen si viene ruta relativa
+      const created = resp.data;
+      if (created?.rutaImg) {
+        created.rutaImg = withBust(created.rutaImg);
+      }
+      setNews(prev => [created, ...prev]);
       showFeedback('success', 'Creada', 'Noticia creada con éxito');
       return resp;
     } catch (error) {
       console.error('Error al crear noticia:', error);
       showFeedback('error', 'Error', 'Error al crear noticia');
-      throw error; // <- permite al modal manejar fallo si quieres
+      throw error;
     } finally {
-      handleCloseModal(); // <- se cierra al finalizar
+      handleCloseModal();
     }
   };
 
@@ -124,18 +136,22 @@ const AdminNewsList = () => {
     try {
       const data = new FormData();
       data.append('titulo', pendingChanges.titulo);
-      data.append('descripcion', pendingChanges.descripcion);
+      data.append('descripcion', pendingChanges.descripcion || '');
       if (pendingChanges.file) data.append('imagen', pendingChanges.file);
 
       const resp = await axios.post(
-        `http://127.0.0.1:8000/api/noticias/${editItem.idNoticias}?_method=PUT`,
+        `http://localhost:8000/api/noticias/${editItem.idNoticias}?_method=PUT`,
         data
       );
 
-      const updated = news.map(n =>
-        n.idNoticias === editItem.idNoticias ? resp.data : n
+      const updatedItem = resp.data;
+      if (updatedItem?.rutaImg) {
+        updatedItem.rutaImg = withBust(updatedItem.rutaImg);
+      }
+
+      setNews(prev =>
+        prev.map(n => (n.idNoticias === editItem.idNoticias ? updatedItem : n))
       );
-      setNews(updated);
 
       showFeedback('success', 'Editada', `Noticia "${editItem.titulo}" editada con éxito`);
       setConfirmEditOpen(false);
@@ -149,7 +165,6 @@ const AdminNewsList = () => {
       showFeedback('error', 'Error', 'Error al editar noticia');
     }
   };
-
 
   const handleCloseEditDialog = () => { setConfirmEditOpen(false); setPendingChanges(null); };
 
@@ -186,8 +201,9 @@ const AdminNewsList = () => {
                     <CardMedia
                       component="img"
                       height="150"
-                      image={item.rutaImg.startsWith('http') ? item.rutaImg : `http://127.0.0.1:8000${item.rutaImg}`}
+                      image={toAbsolute(item.rutaImg)}
                       alt={item.titulo}
+                      loading="lazy"
                     />
                   )}
 

@@ -15,17 +15,22 @@ import { motion } from "framer-motion";
 const MotionBox = motion(Box);
 
 const EncuestaContent = ({ formData, setFormData, error, setError }) => {
+  const toNum = (v) => Number(v || 0);
+
   const validarSumaRespuestas = (nuevosDatos) => {
-    const encuestas = Number(nuevosDatos.encuestas || 0);
-    const malas = Number(nuevosDatos.malas || 0);
-    const regulares = Number(nuevosDatos.regulares || 0);
-    const buenas = Number(nuevosDatos.buenas || 0);
-    const excelentes = Number(nuevosDatos.excelentes || 0);
+    const encuestas = toNum(nuevosDatos.encuestas);
+    const malas = toNum(nuevosDatos.malas);
+    const regulares = toNum(nuevosDatos.regulares);
+    const buenas = toNum(nuevosDatos.buenas);
+    const excelentes = toNum(nuevosDatos.excelentes);
 
     const sumaRespuestas = malas + regulares + buenas + excelentes;
 
     if (sumaRespuestas > encuestas) {
-      setError(`La suma de las respuestas (${sumaRespuestas}) no puede exceder el total de encuestas (${encuestas})`);
+      setError(`La suma de las respuestas (${sumaRespuestas}) no puede exceder el total de encuestas (${encuestas}).`);
+      return false;
+    } else if (encuestas < 0 || malas < 0 || regulares < 0 || buenas < 0 || excelentes < 0) {
+      setError("Los valores no pueden ser negativos.");
       return false;
     } else {
       setError("");
@@ -34,17 +39,37 @@ const EncuestaContent = ({ formData, setFormData, error, setError }) => {
   };
 
   const handleChange = (campo, valor) => {
-    // Convertir a número y evitar valores negativos
-    const valorNumerico = Math.max(0, Number(valor) || 0);
+    // 1) Evitar negativos y normalizar a entero
+    const valorNumerico = Math.max(0, parseInt(valor, 10) || 0);
 
-    const nuevosDatos = {
-      ...formData,
-      [campo]: valorNumerico.toString()
-    };
+    // Borrador con el nuevo valor
+    const draft = { ...formData, [campo]: String(valorNumerico) };
 
-    setFormData(nuevosDatos);
-    validarSumaRespuestas(nuevosDatos);
+    // 2) Si se edita una categoría, capar al restante disponible (encuestas - otras)
+    if (campo !== "encuestas") {
+      const encuestas = toNum(draft.encuestas);
+      const malas = toNum(campo === "malas" ? valorNumerico : draft.malas);
+      const regulares = toNum(campo === "regulares" ? valorNumerico : draft.regulares);
+      const buenas = toNum(campo === "buenas" ? valorNumerico : draft.buenas);
+      const excelentes = toNum(campo === "excelentes" ? valorNumerico : draft.excelentes);
+
+      // Suma de las otras tres categorías (excluyendo la actual)
+      const otras =
+        (campo === "malas" ? 0 : malas) +
+        (campo === "regulares" ? 0 : regulares) +
+        (campo === "buenas" ? 0 : buenas) +
+        (campo === "excelentes" ? 0 : excelentes);
+
+      const restante = Math.max(0, encuestas - otras);
+      const capped = Math.min(valorNumerico, restante);
+
+      draft[campo] = String(capped);
+    }
+
+    setFormData(draft);
+    validarSumaRespuestas(draft);
   };
+
 
   return (
     <Box component="form" sx={{ mt: 2 }}>
@@ -53,57 +78,82 @@ const EncuestaContent = ({ formData, setFormData, error, setError }) => {
           <TextField
             label="No. de Encuestas"
             type="number"
-            inputProps={{ min: 0 }}
+            inputProps={{
+              min: 0,
+              max: 999999,
+              step: 1
+            }}
             fullWidth
             value={formData.encuestas || ""}
             onChange={(e) => handleChange("encuestas", e.target.value)}
             margin="dense"
           />
         </Grid>
+
         <Grid item xs={6}>
           <TextField
             label="Respuestas Malas"
             type="number"
-            inputProps={{ min: 0 }}
+            inputProps={{
+              min: 0,
+              max: Number(formData.encuestas || 0),
+              step: 1
+            }}
             fullWidth
             value={formData.malas || ""}
             onChange={(e) => handleChange("malas", e.target.value)}
             margin="dense"
           />
         </Grid>
+
         <Grid item xs={6}>
           <TextField
             label="Respuestas Regulares"
             type="number"
-            inputProps={{ min: 0 }}
+            inputProps={{
+              min: 0,
+              max: Number(formData.encuestas || 0),
+              step: 1
+            }}
             fullWidth
             value={formData.regulares || ""}
             onChange={(e) => handleChange("regulares", e.target.value)}
             margin="dense"
           />
         </Grid>
+
         <Grid item xs={6}>
           <TextField
             label="Respuestas Buenas"
             type="number"
-            inputProps={{ min: 0 }}
+            inputProps={{
+              min: 0,
+              max: Number(formData.encuestas || 0),
+              step: 1
+            }}
             fullWidth
             value={formData.buenas || ""}
             onChange={(e) => handleChange("buenas", e.target.value)}
             margin="dense"
           />
         </Grid>
+
         <Grid item xs={6}>
           <TextField
             label="Respuestas Excelentes"
             type="number"
-            inputProps={{ min: 0 }}
+            inputProps={{
+              min: 0,
+              max: Number(formData.encuestas || 0),
+              step: 1
+            }}
             fullWidth
             value={formData.excelentes || ""}
             onChange={(e) => handleChange("excelentes", e.target.value)}
             margin="dense"
           />
         </Grid>
+
         {error && (
           <Grid item xs={12}>
             <Typography color="error" variant="body2">
@@ -127,7 +177,6 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-
   useEffect(() => {
     if (open) {
       const resultado = savedResult || {};
@@ -144,23 +193,21 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
 
   const handleSave = () => {
     if (!indicator?.idIndicador || error) return;
+
+    setIsSaving(true);
     try {
       const resultData = {
-        noEncuestas: Number(formData.encuestas),
-        malo: Number(formData.malas),
-        regular: Number(formData.regulares),
-        bueno: Number(formData.buenas),
-        excelente: Number(formData.excelentes)
+        noEncuestas: Number(formData.encuestas || 0),
+        malo: Number(formData.malas || 0),
+        regular: Number(formData.regulares || 0),
+        bueno: Number(formData.buenas || 0),
+        excelente: Number(formData.excelentes || 0)
       };
-
       onSave(indicator.idIndicador, { result: resultData });
       onClose();
-    } catch (error) {
-      console.error('Error al guardar:', error);
     } finally {
       setIsSaving(false);
     }
-
   };
 
   return (
@@ -191,7 +238,10 @@ const ResultModalEncuesta = ({ open, onClose, onSave, indicator, savedResult = {
             type="guardar"
             onClick={handleSave}
             loading={isSaving}
-            disabled={!!error} // Mantener deshabilitado si hay error
+            disabled={
+              !!error ||
+              formData.encuestas === "" // evitar guardar sin total
+            }
           >
             Guardar
           </CustomButton>
