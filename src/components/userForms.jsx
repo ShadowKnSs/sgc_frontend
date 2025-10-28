@@ -13,15 +13,11 @@ import FeedbackSnackbar from "./Feedback";
 
 const API_URL = 'http://localhost:8000/api';
 
-const MAX = {
-    firstName: 255,
-    lastName: 255,
-    secondLastName: 255,
-    email: 120,
-    phone: 10,
-};
+const MAX = { firstName: 255, lastName: 255, secondLastName: 255, email: 120, phone: 10, rpe: 10 };
+
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const onlyDigits = (s) => /^\d+$/.test(s);
 
 function CountTextField({
     label, name, value, onChange, max, errorText, onBlur, ...props
@@ -101,7 +97,7 @@ const formatPhoneNumber = (v) => {
 function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     const [formData, setFormData] = useState({
         firstName: "", lastName: "", secondLastName: "",
-        email: "", phone: "", academicDegree: "",
+        email: "", phone: "", academicDegree: "", rpe: "",
         roles: [], supervisor: "", expirationDateTime: ""
     });
 
@@ -166,13 +162,14 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
             if (editingUser) {
                 setFormData({
                     ...editingUser,
+                    rpe: editingUser.rpe ?? editingUser.RPE ?? "",
                     expirationDateTime: editingUser.expirationDateTime || "",
                     supervisor: editingUser.supervisor?.id || ""
                 });
             } else {
                 setFormData({
                     firstName: "", lastName: "", secondLastName: "",
-                    email: "", phone: "", academicDegree: "",
+                    email: "", phone: "", academicDegree: "", rpe: "",
                     roles: [], supervisor: "", expirationDateTime: ""
                 });
             }
@@ -235,6 +232,11 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                 newErrors.roles = "Debe seleccionar al menos un rol";
             }
         }
+        if (touched.rpe || errors.rpe) {
+            if (!formData.rpe) newErrors.rpe = "El RPE es obligatorio";
+            else if (!onlyDigits(formData.rpe)) newErrors.rpe = "El RPE debe contener solo dígitos";
+            else if (formData.rpe.length > MAX.rpe) newErrors.rpe = `Máximo ${MAX.rpe} dígitos`;
+        }
 
         setErrors(newErrors);
     }, [formData, touched]);
@@ -277,6 +279,11 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                 v = v.slice(0, MAX.email);
             }
 
+            if (name === "rpe") {
+                v = v.replace(/\D/g, ""); 
+                v = v.slice(0, MAX.rpe);
+            }
+
             return { ...prev, [name]: v };
         });
     };
@@ -289,7 +296,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         }
     };
 
-    const extractRPE = (email) => (email || "").split('@')[0] || '';
+    // const extractRPE = (email) => (email || "").split('@')[0] || '';
     const generatePassword = (firstName) => `${(firstName || "").trim().split(" ")[0].toLowerCase()}12345678`;
 
     const handlePhoneChange = (e) => {
@@ -332,6 +339,9 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         if (formData.secondLastName && formData.secondLastName.trim().length > MAX.secondLastName) {
             newErrors.secondLastName = `Máximo ${MAX.secondLastName} caracteres`;
         }
+        if (!formData.rpe) newErrors.rpe = "El RPE es obligatorio";
+        else if (!onlyDigits(formData.rpe)) newErrors.rpe = "El RPE debe contener solo dígitos";
+        else if (formData.rpe.length > MAX.rpe) newErrors.rpe = `Máximo ${MAX.rpe} dígitos`;
 
         if (!trimmedEmail) newErrors.email = "El correo electrónico es obligatorio";
         else if (trimmedEmail.length > MAX.email) newErrors.email = `Máximo ${MAX.email} caracteres`;
@@ -343,7 +353,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         if (!formData.roles.length) newErrors.roles = "Debe seleccionar al menos un rol";
 
         // Marcar todos los campos como tocados para mostrar todos los errores
-        const allFields = ['firstName', 'lastName', 'email', 'phone', 'roles'];
+        const allFields = ['firstName', 'lastName', 'email', 'phone', 'roles', 'rpe'];
         setTouched(prev => {
             const newTouched = { ...prev };
             allFields.forEach(field => {
@@ -366,7 +376,8 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
             correo: data.email.trim(),
             telefono: data.phone,
             gradoAcademico: data.academicDegree || null,
-            RPE: extractRPE(data.email),
+            // RPE: extractRPE(data.email),
+            RPE: data.rpe.trim(),
             pass: generatePassword(data.firstName),
             roles: rolesTransformed,
             expirationDateTime: data.expirationDateTime || null,
@@ -426,11 +437,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                     newErrors.email = backendErrors.correo[0]; // Tomar el primer mensaje de error
                 }
 
-                if (backendErrors.RPE) {
-                    newErrors.email = newErrors.email
-                        ? `${newErrors.email}. ${backendErrors.RPE[0]}`
-                        : backendErrors.RPE[0];
-                }
+                if (backendErrors.RPE) newErrors.rpe = backendErrors.RPE[0];
 
                 // Actualizar otros campos si es necesario
                 if (backendErrors.nombre) {
@@ -459,7 +466,10 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                 });
                 setTouched(newTouched);
 
-                showSnackbar("error", "Error", "Ese correo ya esta en uso.");
+                const msg = backendErrors.RPE ? "Ese RPE ya está en uso." :
+                    backendErrors.correo ? "Ese correo ya está en uso." :
+                        "Error de validación.";
+                showSnackbar("error", "Error", msg);
             } else {
                 showSnackbar("error", "Error", error?.response?.data?.message || error.message || "No se pudo guardar el usuario.");
             }
@@ -637,6 +647,17 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
                             max={MAX.secondLastName}
                             errorText={errors.secondLastName}
                         />
+                        <CountTextField
+                            label="RPE"
+                            name="rpe"
+                            value={formData.rpe}
+                            onChange={handleChange}
+                            onBlur={() => handleBlur('rpe')}
+                            max={MAX.rpe}
+                            errorText={errors.rpe}
+                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                        />
+
                         <CountTextField
                             label="Correo Electrónico"
                             name="email"

@@ -68,7 +68,7 @@ function UserManagement() {
     const [userToDelete, setUserToDelete] = useState(null);
     const [assignOpen, setAssignOpen] = useState(false);
     const [supervisorToAssign, setSupervisorToAssign] = useState(null);
-    const [allUsers, setAllUsers] = useState([]); 
+    const [allUsers, setAllUsers] = useState([]);
     const [selectedTab, setSelectedTab] = useState(0);
     const [reactivatingUser, setReactivatingUser] = useState(null);
 
@@ -114,6 +114,7 @@ function UserManagement() {
             email: user.correo,
             phone: user.telefono,
             academicDegree: user.gradoAcademico,
+            rpe: user.RPE ?? user.rpe ?? "",
             roles: Array.isArray(user.roles) ? user.roles.map((r) => r.nombreRol) : [],
             supervisor: hasSupervisor
                 ? {
@@ -123,7 +124,7 @@ function UserManagement() {
                     secondLastName: user.supervisor.apellidoMat,
                 }
                 : null,
-            activo: Boolean(user.activo), 
+            activo: Boolean(user.activo),
         };
     };
     // Mapear el tab seleccionado al valor de estado
@@ -146,7 +147,7 @@ function UserManagement() {
     }, []);
 
     // Cargar usuarios normales con filtros
-  
+
     // Modificar la función fetchUsers para incluir el parámetro de estado
     const fetchUsers = useCallback(async () => {
         try {
@@ -154,7 +155,7 @@ function UserManagement() {
             const params = {
                 exclude_me: true,
                 per_page: 200,
-                estado: estado 
+                estado: estado
             };
 
             const response = await axios.get(`${API_URL}/usuarios`, { params });
@@ -170,7 +171,7 @@ function UserManagement() {
         } finally {
             setInitialLoading(false);
         }
-    }, [showFeedback, estado]); 
+    }, [showFeedback, estado]);
 
     // Modificar applyFilters para manejar correctamente el estado
     const applyFilters = useCallback(() => {
@@ -234,18 +235,19 @@ function UserManagement() {
     }, [fetchUsuariosTemporales]);
 
     // Guardar usuario creado o editado
-    const handleAddUser = useCallback(async (usuarioGuardado) => { 
+    const handleAddUser = useCallback(async (usuarioGuardado) => {
+
         if (editingUser) {
-            setUsers((prev) => prev.map((u) => (u.id === editingUser.id ? transformUserData(usuarioGuardado) : u)));
             showFeedback("success", "Usuario actualizado", "El usuario fue actualizado correctamente");
-            await fetchUsers(); 
         } else {
-            setUsers((prev) => [...prev, transformUserData(usuarioGuardado)]);
             showFeedback("success", "Usuario creado", "El usuario fue creado correctamente");
         }
+        // Garantiza consistencia con filtros/orden desde API
+        await fetchUsers();
+        
         setError(null);
-        setEditingUser(null);
-    }, [editingUser, showFeedback]);
+         setEditingUser(null);
+    }, [editingUser, showFeedback, fetchUsers]);
 
 
     const handleDeactivate = useCallback(
@@ -443,52 +445,52 @@ function UserManagement() {
 
     // Lista a renderizar (ya viene transformada)
     const vmUsers = users;
-return (
-  <Box
-    sx={{
-      p: isMobile ? 2 : isTablet ? 3 : 4,
-      textAlign: "center",
-      maxWidth: "100%",
-    }}
-  >
-    <Box>
-      <BreadcrumbNav items={[{ label: "Gestión de Usuarios", icon: PeopleIcon }]} />
-    </Box>
-
-    {initialLoading ? (
-      <>
-        {/* Skeletons para usuarios normales */}
+    return (
         <Box
-          display="grid"
-          gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
-          gap={2}
-          justifyContent="center"
+            sx={{
+                p: isMobile ? 2 : isTablet ? 3 : 4,
+                textAlign: "center",
+                maxWidth: "100%",
+            }}
         >
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <UserCardSkeleton key={idx} />
-          ))}
-        </Box>
+            <Box>
+                <BreadcrumbNav items={[{ label: "Gestión de Usuarios", icon: PeopleIcon }]} />
+            </Box>
 
-        {/* Skeletons para usuarios temporales */}
-        <Box sx={{ mt: 6 }}>
-          <Skeleton variant="text" width="200px" height={40} sx={{ mx: "auto", mb: 2 }} />
-          <Grid container spacing={3}>
-            {Array.from({ length: 3 }).map((_, idx) => (
-              <Grid item xs={12} sm={6} md={4} key={idx}>
-                <UserTempCardSkeleton />
-              </Grid>
-            ))}
-          </Grid>
-          <Box mt={4} display="flex" justifyContent="center">
-            <Skeleton variant="rounded" width={200} height={40} />
-          </Box>
-        </Box>
-      </>
-    ) : error ? (
-      <Alert severity="error">{error}</Alert>
-    ) : (
-      <>
-        <Title text="Gestión de Usuarios" />
+            {initialLoading ? (
+                <>
+                    {/* Skeletons para usuarios normales */}
+                    <Box
+                        display="grid"
+                        gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+                        gap={2}
+                        justifyContent="center"
+                    >
+                        {Array.from({ length: 8 }).map((_, idx) => (
+                            <UserCardSkeleton key={idx} />
+                        ))}
+                    </Box>
+
+                    {/* Skeletons para usuarios temporales */}
+                    <Box sx={{ mt: 6 }}>
+                        <Skeleton variant="text" width="200px" height={40} sx={{ mx: "auto", mb: 2 }} />
+                        <Grid container spacing={3}>
+                            {Array.from({ length: 3 }).map((_, idx) => (
+                                <Grid item xs={12} sm={6} md={4} key={idx}>
+                                    <UserTempCardSkeleton />
+                                </Grid>
+                            ))}
+                        </Grid>
+                        <Box mt={4} display="flex" justifyContent="center">
+                            <Skeleton variant="rounded" width={200} height={40} />
+                        </Box>
+                    </Box>
+                </>
+            ) : error ? (
+                <Alert severity="error">{error}</Alert>
+            ) : (
+                <>
+                    <Title text="Gestión de Usuarios" />
 
                     {/* Toolbar de filtros */}
                     <Stack
@@ -597,24 +599,24 @@ return (
                                     justifyContent="center"
                                     sx={{ width: "100%" }}
                                 >
-                                {users
-                                    .filter(user => user != null) 
-                                    .map((user) => { 
-                                        const canDelete = user.id !== currentUserId;
-                                        return (
-                                            <Suspense key={user.id} fallback={<UserCardSkeleton />}>
-                                                <UserCard
-                                                    user={user}
-                                                    onEdit={() => handleEdit(user)}
-                                                    onDelete={canDelete ? () => handleDeleteAction(user) : undefined}
-                                                    onAssign={handleOpenAssign}
-                                                    onReactivate={handleReactivate}
-                                                    reactivating={reactivatingUser === user.id}
-                                                    canDelete={canDelete}
-                                                />
-                                            </Suspense>
-                                        );
-                                    })}
+                                    {users
+                                        .filter(user => user != null)
+                                        .map((user) => {
+                                            const canDelete = user.id !== currentUserId;
+                                            return (
+                                                <Suspense key={user.id} fallback={<UserCardSkeleton />}>
+                                                    <UserCard
+                                                        user={user}
+                                                        onEdit={() => handleEdit(user)}
+                                                        onDelete={canDelete ? () => handleDeleteAction(user) : undefined}
+                                                        onAssign={handleOpenAssign}
+                                                        onReactivate={handleReactivate}
+                                                        reactivating={reactivatingUser === user.id}
+                                                        canDelete={canDelete}
+                                                    />
+                                                </Suspense>
+                                            );
+                                        })}
                                 </Box>
                             )}
                         </>
