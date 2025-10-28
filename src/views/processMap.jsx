@@ -291,14 +291,12 @@ function ProcessMapView({ idProceso, soloLectura, showSnackbar }) {
     if (!indicadorAEliminar) return;
 
     try {
-      await api.delete(`/indmapaproceso/${indicadorAEliminar.idIndicador}`);
-      setUsers((prev) => prev.filter((u) => u.idIndicador !== indicadorAEliminar.idIndicador));
-
+      await api.delete(`/indmapaproceso/${indicadorAEliminar.idIndicadorMP}`);
+      setUsers((prev) => prev.filter((u) => u.idIndicadorMP !== indicadorAEliminar.idIndicadorMP));
       if (showSnackbar) {
         showSnackbar("Indicador eliminado correctamente", "success", "Éxito");
       }
     } catch (error) {
-      console.error("Error al eliminar indicador:", error);
 
       let errorMessage = "Error al eliminar el indicador";
       if (error.response?.status === 404) {

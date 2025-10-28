@@ -116,7 +116,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     const [snackbar, setSnackbar] = useState({ open: false, type: "info", title: "", message: "" });
     const [saving, setSaving] = useState(false);
 
-    const [generatingToken, setGeneratingToken] = useState(false); // ← NUEVO estado para loading de token
+    const [generatingToken, setGeneratingToken] = useState(false); // Estado para loading de token
 
 
     const showSnackbar = (type, title, message) =>
@@ -382,8 +382,19 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
     const saveUser = async (data) => {
         const url = isEdit ? `${API_URL}/usuarios/${editingUser.id}` : `${API_URL}/usuarios`;
         const method = isEdit ? "put" : "post";
-        const { data: resp } = await axios({ method, url, data, headers: { "Content-Type": "application/json" } });
-        return resp.usuario;
+
+        try {
+            const response = await axios({
+                method,
+                url,
+                data,
+                headers: { "Content-Type": "application/json" }
+            });
+            return response.data;
+        } catch (error) {
+            // Re-lanzar el error para que lo capturen las funciones superiores
+            throw error;
+        }
     };
 
     const handleSubmit = async () => {
@@ -404,7 +415,54 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
             onSubmit(usuarioGuardado);
             onClose();
         } catch (error) {
-            showSnackbar("error", "Error", error?.response?.data?.message || error.message || "No se pudo guardar el usuario.");
+            // Capturar errores de validación de Laravel
+            if (error.response && error.response.status === 422) {
+                const backendErrors = error.response.data.errors;
+
+                // Mapear errores del backend a los campos del frontend
+                const newErrors = {};
+
+                if (backendErrors.correo) {
+                    newErrors.email = backendErrors.correo[0]; // Tomar el primer mensaje de error
+                }
+
+                if (backendErrors.RPE) {
+                    newErrors.email = newErrors.email
+                        ? `${newErrors.email}. ${backendErrors.RPE[0]}`
+                        : backendErrors.RPE[0];
+                }
+
+                // Actualizar otros campos si es necesario
+                if (backendErrors.nombre) {
+                    newErrors.firstName = backendErrors.nombre[0];
+                }
+
+                if (backendErrors.apellidoPat) {
+                    newErrors.lastName = backendErrors.apellidoPat[0];
+                }
+
+                if (backendErrors.telefono) {
+                    newErrors.phone = backendErrors.telefono[0];
+                }
+
+                if (backendErrors.roles) {
+                    newErrors.roles = backendErrors.roles[0];
+                }
+
+                setErrors(newErrors);
+
+                // Marcar los campos con error como "touched" para mostrar los errores
+                const errorFields = Object.keys(newErrors);
+                const newTouched = { ...touched };
+                errorFields.forEach(field => {
+                    newTouched[field] = true;
+                });
+                setTouched(newTouched);
+
+                showSnackbar("error", "Error", "Ese correo ya esta en uso.");
+            } else {
+                showSnackbar("error", "Error", error?.response?.data?.message || error.message || "No se pudo guardar el usuario.");
+            }
         } finally {
             setSaving(false);
         }
@@ -418,7 +476,45 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
             setOpenConfirmEdit(false);
             onClose();
         } catch (error) {
-            showSnackbar("error", "Error", error?.response?.data?.message || error.message || "No se pudo guardar el usuario.");
+            // Mismo manejo de errores que en handleSubmit
+            if (error.response && error.response.status === 422) {
+                const backendErrors = error.response.data.errors;
+
+                const newErrors = {};
+
+                if (backendErrors.correo) {
+                    newErrors.email = backendErrors.correo[0];
+                }
+
+                if (backendErrors.RPE) {
+                    newErrors.email = newErrors.email
+                        ? `${newErrors.email}. ${backendErrors.RPE[0]}`
+                        : backendErrors.RPE[0];
+                }
+
+                // Actualizar otros campos según sea necesario
+                if (backendErrors.nombre) {
+                    newErrors.firstName = backendErrors.nombre[0];
+                }
+
+                if (backendErrors.apellidoPat) {
+                    newErrors.lastName = backendErrors.apellidoPat[0];
+                }
+
+                setErrors(newErrors);
+
+                const errorFields = Object.keys(newErrors);
+                const newTouched = { ...touched };
+                errorFields.forEach(field => {
+                    newTouched[field] = true;
+                });
+                setTouched(newTouched);
+
+                setOpenConfirmEdit(false); // Cerrar el diálogo de confirmación
+                showSnackbar("error", "Error de validación", "Por favor, corrija los errores en el formulario.");
+            } else {
+                showSnackbar("error", "Error", error?.response?.data?.message || error.message || "No se pudo guardar el usuario.");
+            }
         }
     };
 
@@ -429,7 +525,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
             return;
         }
 
-        setGeneratingToken(true); // ← Activar loading
+        setGeneratingToken(true); // Activar loading
         try {
             const res = await fetch(`${API_URL}/generar-token`, {
                 method: "POST",
@@ -448,7 +544,7 @@ function UserForm({ open, onClose, editingUser, onSubmit, onTokenCreated }) {
         } catch (e) {
             showSnackbar("error", "Error", e?.message || "No se pudo generar el token.");
         } finally {
-            setGeneratingToken(false); // ← Desactivar loading
+            setGeneratingToken(false); // Desactivar loading
         }
     };
 
