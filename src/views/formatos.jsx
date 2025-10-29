@@ -388,6 +388,15 @@ const Formatos = () => {
       return;
     }
 
+    const nombreExiste = formatos.some(
+      (f) => f.nombreFormato.trim().toLowerCase() === formData.nombreFormato.trim().toLowerCase()
+    );
+
+    if (nombreExiste) {
+      showSnackbar('warning', 'Nombre duplicado', 'Ya existe un formato con ese nombre.');
+      return; 
+    }
+
     setUploading(true);
     const submitData = new FormData();
     submitData.append('idUsuario', idUsuario);
@@ -405,7 +414,6 @@ const Formatos = () => {
     } catch (error) {
       let message = 'Hubo un problema al subir el formato.';
 
-      // Manejo de errores del backend
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
         if (errors.archivo) {
@@ -422,7 +430,8 @@ const Formatos = () => {
     } finally {
       setUploading(false);
     }
-  }, [puedeEditar, idUsuario, showSnackbar, handleCloseModal]);
+  }, [puedeEditar, idUsuario, formatos, showSnackbar, handleCloseModal]);
+
 
   // Filtrar formatos basado en el término de búsqueda
   const filteredFormatos = useMemo(() => {
