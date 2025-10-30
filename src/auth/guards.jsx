@@ -41,6 +41,7 @@ export const ALLOWED_BY_ROLE = {
     "/cronograma",
     "/formatos",
     "/busca_supervisor",
+    "/auditores",
     "/estructura-procesos/:idProceso",
     "/manual-operativo",
     "/manual-operativo/:idProceso",

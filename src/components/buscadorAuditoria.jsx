@@ -14,6 +14,9 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
   const [auditor, setAuditor] = useState('');
   const [auditoresOptions, setAuditoresOptions] = useState([]);
   const [loadingAuditores, setLoadingAuditores] = useState(false);
+  const [loadingProcesos, setLoadingProcesos] = useState(false);
+  const [loadingEntidades, setLoadingEntidades] = useState(false);
+
 
   const [entidad, setEntidad] = useState('');
   const [proceso, setProceso] = useState('');
@@ -61,9 +64,12 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
   };
 
   const fetchEntidades = async () => {
+    setLoadingEntidades(true);
     try {
       const response = await axios.get(API_URLS.entidades);
-      if (response.data.entidades) {
+      if (Array.isArray(response.data)) {
+        setEntidadesOptions(response.data);
+      } else if (response.data.entidades) {
         setEntidadesOptions(response.data.entidades);
       } else {
         setEntidadesOptions([]);
@@ -71,20 +77,25 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
     } catch (err) {
       console.error("Error al obtener entidades", err);
       setEntidadesOptions([]);
+    } finally {
+      setLoadingEntidades(false);
     }
   };
 
   const fetchProcesos = async () => {
+    setLoadingProcesos(true);
     try {
       const response = await axios.get(API_URLS.procesos);
-      if (response.data.procesos) {
-        setProcesosOptions(response.data.procesos);
+      if (Array.isArray(response.data)) {
+        setProcesosOptions(response.data);
       } else {
         setProcesosOptions([]);
       }
     } catch (err) {
       console.error("Error al obtener procesos", err);
       setProcesosOptions([]);
+    } finally {
+      setLoadingProcesos(false);
     }
   };
 
@@ -214,7 +225,7 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
           value={auditor}
           onChange={(e) => setAuditor(e.target.value)}
           sx={{ mb: 2 }}
-          disabled={loadingAuditores}
+          disabled={false}
         >
           <MenuItem value="">
             <em>Todos los auditores</em>
@@ -237,18 +248,26 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
           label="Entidad (opcional)"
           variant="outlined"
           fullWidth
-          value={entidad || ''} 
+          value={entidad || ''}
           onChange={(e) => setEntidad(e.target.value)}
           sx={{ mb: 2 }}
         >
           <MenuItem value="">
             <em>Todas las entidades</em>
           </MenuItem>
-          {entidadesOptions.map((e) => (
-            <MenuItem key={e.idEntidadDependencia} value={e.idEntidadDependencia}>
-              {e.nombreEntidad}
+
+          {loadingEntidades && (
+            <MenuItem disabled>
+              <CircularProgress size={20} sx={{ mr: 1 }} /> Cargando entidades...
             </MenuItem>
-          ))}
+          )}
+
+          {!loadingEntidades &&
+            entidadesOptions.map((e) => (
+              <MenuItem key={e.idEntidadDependencia} value={e.idEntidadDependencia}>
+                {e.nombreEntidad}
+              </MenuItem>
+            ))}
         </TextField>
 
         <TextField
@@ -263,11 +282,19 @@ const BuscadorAuditoria = ({ open, onClose, searchTerm, setSearchTerm }) => {
           <MenuItem value="">
             <em>Todos los procesos</em>
           </MenuItem>
-          {procesosOptions.map((p) => (
-            <MenuItem key={p.idProceso} value={p.idProceso}>
-              {p.nombreProceso}
+
+          {loadingProcesos && (
+            <MenuItem disabled>
+              <CircularProgress size={20} sx={{ mr: 1 }} /> Cargando procesos...
             </MenuItem>
-          ))}
+          )}
+
+          {!loadingProcesos &&
+            procesosOptions.map((p) => (
+              <MenuItem key={p.idProceso} value={p.idProceso}>
+                {p.nombreProceso}
+              </MenuItem>
+            ))}
         </TextField>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
