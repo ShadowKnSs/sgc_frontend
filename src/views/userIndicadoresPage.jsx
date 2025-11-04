@@ -335,19 +335,52 @@ const UnifiedIndicatorPage = () => {
         <BreadcrumbNav items={breadcrumbItems} />
       </Box>
       <Box sx={{ position: "relative", mb: 2 }}>
-        <Box sx={{ textAlign: "center" }}>
-          <Title text="Indicadores" />
-          <ProcesoEntidad idProceso={paramProceso} />
-        </Box>
-        <Box sx={{ position: "absolute", top: 10, right: -150 }}>
-          <IrGraficasBoton
-            idRegistro={registrosPorApartado["Análisis de Datos"] ?? null}
-            datosGraficas={datosGraficas}
-            idProceso={paramProceso}
-            anio={anio}
-            loading={loading}
-          />
-        </Box>
+        <Grid container alignItems="center" spacing={2}>
+          {/* Columna izquierda vacía en desktop para balancear el espacio del botón */}
+          <Grid item xs={0} md={2} sx={{ display: { xs: "none", md: "block" } }} />
+
+          {/* Columna central: Title + ProcesoEntidad, siempre centrados horizontalmente */}
+          <Grid
+            item
+            xs={12}
+            md={8}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",      // centra horizontalmente
+              justifyContent: "center",  // centra verticalmente si hace falta
+              textAlign: "center",
+            }}
+          >
+            <Title text="Indicadores" />
+            <ProcesoEntidad idProceso={paramProceso} />
+          </Grid>
+
+          {/* Columna derecha: botón.
+        En desktop se alinea a la derecha del grid (flex-end).
+        En móvil ocupa una fila propia y se centra (mt para separar). */}
+          <Grid
+            item
+            xs={12}
+            md={2}
+            sx={{
+              display: "flex",
+              justifyContent: { xs: "center", md: "flex-end" },
+              alignItems: "center",
+              mt: { xs: 2, md: 0 },
+            }}
+          >
+            <Box sx={{ width: { xs: "auto", md: "100%" }, display: "flex", justifyContent: { xs: "center", md: "flex-end" } }}>
+              <IrGraficasBoton
+                idRegistro={registrosPorApartado["Análisis de Datos"] ?? null}
+                datosGraficas={datosGraficas}
+                idProceso={paramProceso}
+                anio={anio}
+                loading={loading}
+              />
+            </Box>
+          </Grid>
+        </Grid>
       </Box>
       <Box sx={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 2, mb: 6 }}>
         <FiltroOrigenIndicador origenSeleccionado={origenSeleccionado} onChange={setOrigenSeleccionado} />

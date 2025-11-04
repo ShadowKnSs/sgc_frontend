@@ -102,16 +102,16 @@ const AuditoriaCalendar = ({
     return (
         <div
             style={{
-                height: "calc(100vh - 120px)", // Altura adaptativa
+                // Altura un poco mayor; ajusta según necesidad visual de tu layout
+                height: "calc(100vh - 180px)",
+                minHeight: 700,
                 width: "100%",
-                maxWidth: "1200px",            // Espacio más amplio
-                margin: "0 auto",              // Centrado horizontal
-                padding: "16px",               // Espacio interno
+                maxWidth: "1450px",      // quitar límite anterior
+                margin: "0 auto",
+                padding: "12px 16px 48px",
                 boxSizing: "border-box",
-                paddingBottom: "48px"          // Espacio inferior para evitar solapamiento
             }}
         >
-
             <Calendar
                 localizer={localizer}
                 events={Array.isArray(events) ? events : []}

@@ -68,7 +68,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import BreadcrumbNav from "../components/BreadcrumbNav";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Stack } from "@mui/material";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import Title from "../components/Title";
 import CircularProgress from '@mui/material/CircularProgress';
@@ -131,11 +131,12 @@ function Cronograma() {
   });
 
   const LegendItem = ({ color, label }) => (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
       <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: color }} />
       <Typography variant="caption">{label}</Typography>
     </Box>
   );
+
   const pad = (n) => String(n).padStart(2, '0');
   const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const startOfWeek = (d) => {
@@ -239,6 +240,8 @@ function Cronograma() {
 
   const safeEvents = Array.isArray(events) ? events : [];
 
+  const canCreate = permiteAcciones();
+
   return (
     <Box
       sx={{
@@ -247,12 +250,56 @@ function Cronograma() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        paddingTop: "20px",
+        pt: "10px",
         position: "relative",
       }}
     >
       <BreadcrumbNav items={[{ label: "Cronograma", icon: CalendarMonthIcon }]} />
       <Title text="Cronograma de Auditorías" mode="sticky" />
+
+      {/* HEADER: leyenda a la izquierda, botón a la derecha.
+          Si no hay permiso, la leyenda se centra */}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: canCreate ? "space-between" : "center",
+          gap: 2,
+          flexWrap: "wrap",
+         
+        }}
+      >
+        {/* Leyenda compacta y horizontal */}
+        <Box
+          component="aside"
+          aria-label="Leyenda de estados"
+          sx={{
+            px: 1.5,
+            py: 1,
+            borderRadius: 1,
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 0,
+          }}
+        >
+          <Typography variant="overline" sx={{ color: "text.secondary", mr: 1 }}>
+            Estados
+          </Typography>
+          <Stack direction="row" spacing={2} sx={{ display: "inline-flex", ml: 1 }}>
+            <LegendItem color="#0288d1" label="Pendiente" />
+            <LegendItem color="#2e7d32" label="Finalizada" />
+            <LegendItem color="#c62828" label="Cancelada" />
+          </Stack>
+        </Box>
+
+        {canCreate && (
+          <CustomButton type="generar" onClick={handleOpenForm}>
+            Crear Auditoría
+          </CustomButton>
+        )}
+      </Box>
 
       {loadingList && (
         <Box sx={{
@@ -329,55 +376,6 @@ function Cronograma() {
           isEmpty={!loadingList && safeEvents.length === 0}
         />
       )}
-
-      {/* Se muestra el botón "Crear Auditoría" si el usuario tiene el permiso "Cronograma" */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 470,
-          right: "40px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          gap: 1.25,
-          zIndex: 20,
-        }}
-      >
-        {/* Botón visible solo para usuarios con permisos */}
-        {permiteAcciones() && (
-          <CustomButton type="generar" onClick={handleOpenForm}>
-            Crear Auditoría
-          </CustomButton>
-        )}
-
-        {/* Leyenda visible para todos */}
-        <Box
-          component="aside"
-          aria-label="Leyenda de estados"
-          sx={{
-            p: 1,
-            marginTop: 1,
-            borderRadius: 1,
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            boxShadow: 1,
-            minWidth: 125,
-          }}
-        >
-          <Typography variant="overline" sx={{ color: "text.secondary" }}>
-            Estados
-          </Typography>
-
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.5 }}>
-            <LegendItem color="#0288d1" label="Pendiente" />
-            <LegendItem color="#2e7d32" label="Finalizada" />
-            <LegendItem color="#c62828" label="Cancelada" />
-          </Box>
-        </Box>
-      </Box>
-
-
 
       <AuditoriaForm
         open={openForm}
