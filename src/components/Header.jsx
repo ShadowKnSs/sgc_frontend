@@ -106,7 +106,7 @@ function Header() {
       </div>
 
       <div className="header-right">
-        {rolActivo?.nombreRol !== "Administrador" && (
+        {rolActivo?.nombreRol !== "Administrador" && rolActivo?.nombreRol !== "Invitado" && (
           <Tooltip title="Notificaciones" arrow>
             <IconButton onClick={handleOpenDialog} className="header-link">
               <Badge
