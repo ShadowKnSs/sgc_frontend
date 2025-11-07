@@ -1,14 +1,14 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import TitleDialog from '../TitleDialog';
 
 
-const NewsModal = ({ open, newsItem, onClose }) => {
+const NewsModal = ({ open, newsItem, onClose, onEnlarge }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ m: 0, p: 2 }}>
-      <TitleDialog title={newsItem?.title} />
+        <TitleDialog title={newsItem?.title} />
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -27,10 +27,10 @@ const NewsModal = ({ open, newsItem, onClose }) => {
           <img
             src={newsItem.image}
             alt={newsItem.title}
-            style={{ width: '70%', marginBottom: '1em', borderRadius: '5px' }}
-          />
+            style={{ width: '70%', marginBottom: '1em', borderRadius: 5, cursor: 'pointer' }}
+            onClick={() => onEnlarge?.(newsItem.image, newsItem.title)} />
         )}
-        <Typography variant="body1" sx={{ textAlign: 'justify', whiteSpace: "pre-line"}}>
+        <Typography variant="body1" sx={{ textAlign: 'justify', whiteSpace: "pre-line" }}>
           {newsItem?.description}
         </Typography>
       </DialogContent>

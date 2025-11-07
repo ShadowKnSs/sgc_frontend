@@ -24,6 +24,7 @@ import NewsCarousel from '../components/NewsCarrusel';
 import DualCarousel from '../components/EventosAvisosCarousel';
 import ImageModal from '../components/Modals/ImageModal';
 import NewsModal from '../components/Modals/NewsModal';
+import ZoomImageModal from '../components/Modals/ImagenModalNot';
 import Title from "../components/Title";
 import BreadcrumbNav from "../components/BreadcrumbNav";
 
@@ -59,6 +60,10 @@ const UserHome = () => {
   const [selectedNews, setSelectedNews] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [enlargeOpen, setEnlargeOpen] = useState(false);
+  const [enlargeSrc, setEnlargeSrc] = useState(null);
+  const [enlargeTitle, setEnlargeTitle] = useState("");
+
   // Se determina si el usuario es "Invitado"
   const rolActivo = JSON.parse(localStorage.getItem("rolActivo") || "null") || { nombreRol: "Invitado" };
   const esInvitado = rolActivo.nombreRol === "Invitado";
@@ -88,7 +93,6 @@ const UserHome = () => {
       }));
       setNewsData(news);
     } catch (error) {
-      console.error('Error al cargar noticias:', error);
     }
   };
   // Obtiene eventos desde Laravel
@@ -101,7 +105,6 @@ const UserHome = () => {
       }));
       setEventsData(events);
     } catch (error) {
-      console.error('Error al cargar eventos:', error);
     }
   };
 
@@ -115,7 +118,6 @@ const UserHome = () => {
       }));
       setAnnouncementsData(announcements);
     } catch (error) {
-      console.error('Error al cargar avisos:', error);
     }
   };
 
@@ -125,13 +127,26 @@ const UserHome = () => {
   const handleViewMoreNews = (newsItem) => setSelectedNews(newsItem);
   const handleCloseNewsModal = () => setSelectedNews(null);
 
+  // Abrir el modal de zoom desde el NewsModal
+
+  const handleEnlargeFromNews = (src, title) => {
+    setEnlargeSrc(src);
+    setEnlargeTitle(title || "Vista ampliada");
+    setEnlargeOpen(true);
+  };
+  const handleCloseEnlarge = () => {
+    setEnlargeOpen(false);
+    setEnlargeSrc(null);
+    setEnlargeTitle("");
+  };
+
   return (
     <Box sx={{ p: 2 }}>
       <style>{arrowOverride}</style>
 
       {/* Breadcrumb pegado a la izquierda */}
-        <BreadcrumbNav items={breadcrumbItems} />
-      
+      <BreadcrumbNav items={breadcrumbItems} />
+
       {esInvitado && (
         <SpeedDial
           ariaLabel="Accesos rápidos"
@@ -162,7 +177,14 @@ const UserHome = () => {
       <ImageModal open={Boolean(selectedImage)} imageUrl={selectedImage} onClose={handleCloseImageModal} />
 
       {/* Modal Noticia */}
-      <NewsModal open={Boolean(selectedNews)} newsItem={selectedNews} onClose={handleCloseNewsModal} />
+      <NewsModal open={Boolean(selectedNews)} newsItem={selectedNews} onClose={handleCloseNewsModal} onEnlarge={handleEnlargeFromNews} />
+
+      <ZoomImageModal
+        open={enlargeOpen}
+        src={enlargeSrc}
+        title={enlargeTitle}
+        onClose={handleCloseEnlarge}
+      />
     </Box>
   );
 };
