@@ -625,7 +625,7 @@ function UserManagement() {
                     {/* Sección de usuarios temporales */}
                     {selectedTab === 0 && usuariosTemporales.length > 0 && (
                         <>
-                            <Box sx={{ mt: 6 }}>
+                            <Box sx={{ mt: 6, mr: 10, ml: 10  }}>
                                 <Title text="Usuarios Temporales" />
                             </Box>
 
