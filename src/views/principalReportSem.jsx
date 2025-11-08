@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Box, Modal, TextField, MenuItem, Grid, Snackbar, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Modal, TextField, MenuItem, Button, Grid, Snackbar, IconButton, Tooltip, Typography, CircularProgress, Alert } from "@mui/material";
 import FabCustom from "../components/FabCustom";
 import Add from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -46,11 +46,6 @@ import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import ReporteSemCard from "../components/componentsReportSem/CardReportSem";
 import SearchFilter from "../components/SearchFilter";
-import BreadcrumbNav from "../components/BreadcrumbNav";
-import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import CustomButton from "../components/Button";
-import DialogTitleCustom from "../components/TitleDialog";
 
 const PrincipalReportSem = () => {
     const [open, setOpen] = useState(false);
@@ -65,14 +60,52 @@ const PrincipalReportSem = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [messageSnackbar, setMessageSnackbar] = useState("");
 
+    const [feedback, setFeedback] = useState({
+    open: false,
+    message: '',
+    severity: 'success', // puede ser 'success' o 'error'
+});
+
     const navigate = useNavigate();
 
+    // Función para manejar el cierre del Snackbar
+const handleCloseSnackbarDelete = (event, reason) => {
+    if (reason === 'clickaway') {
+        return;
+    }
+    setFeedback({ ...feedback, open: false });
+};
 
-
-    const handleReporteEliminado = (idEliminado) => {
-        // Filtramos el reporte eliminado de la lista
+// *** CAMBIO CLAVE: LÓGICA DE ELIMINACIÓN Y FEEDBACK ***
+const handleReporteEliminado = (idEliminado, success) => {
+    if (success) {
+        // 1. Eliminar visualmente la card
         setReportes((prev) => prev.filter((r) => r.idReporteSemestral !== idEliminado));
-    };
+        
+        // 2. Mostrar mensaje de éxito
+        setFeedback({
+            open: true,
+            message: 'Reporte eliminado correctamente.',
+            severity: 'success',
+        });
+    } else {
+        // 1. No eliminar la card (ya que la eliminación falló)
+        
+        // 2. Mostrar mensaje de error
+        setFeedback({
+            open: true,
+            message: 'Error al eliminar reporte. Intente de nuevo.',
+            severity: 'error',
+        });
+    }
+};
+
+   
+
+/*const handleReporteEliminado = (idEliminado) => {
+  // Filtramos el reporte eliminado de la lista
+  setReportes((prev) => prev.filter((r) => r.idReporteSemestral !== idEliminado));
+};*/
 
     useEffect(() => {
         fetchReportes();
@@ -85,7 +118,7 @@ const PrincipalReportSem = () => {
             const data = await response.json();
             setReportes(data);
         } catch (error) {
-            console.error(" Error al cargar reportes:", error);
+            console.error("❌ Error al cargar reportes:", error);
         }
     };
 
@@ -102,10 +135,11 @@ const PrincipalReportSem = () => {
 
     const handleClick = async () => {
         if (!year || !period) {
+            console.warn("⚠️ Por favor ingresa el año y el periodo.");
             return;
         }
 
-        setLoading(true); //  Inicia cargando
+        setLoading(true); // 🔵 Inicia cargando
 
         try {
             const response = await fetch(
@@ -114,15 +148,16 @@ const PrincipalReportSem = () => {
             const data = await response.json();
 
             if (data.exists) {
-                setMessageSnackbar(" Error: El reporte ya existe.");
+                setMessageSnackbar("❌ Error: El reporte ya existe.");
                 setOpenSnackbar(true);
                 return;
             }
 
             await fetchData(year, period);
         } catch (error) {
+            console.error("🚨 Error en la verificación del reporte:", error);
         } finally {
-            setLoading(false);
+            setLoading(false); // 🔵 Finaliza cargando
             handleCloseForm();
         }
     };
@@ -140,26 +175,30 @@ const PrincipalReportSem = () => {
             const responses = await Promise.all(urls.map(url => fetch(url)));
             const results = await Promise.all(responses.map(res => res.json()));
 
+            const nombresListas = ["Riesgos", "Indicadores", "AccionesMejora", "Auditorías", "Seguimiento"];
 
             let hayDatos = false;
             results.forEach((lista, index) => {
                 if (lista.length > 0) {
+                    console.log(`📌 Hay datos en la lista: ${nombresListas[index]}`);
                     hayDatos = true;
                 }
             });
 
             if (!hayDatos) {
-                setMessageSnackbar(" No hay datos para ese año y periodo.");
+                setMessageSnackbar("⚠️ No hay datos para ese año y periodo.");
                 setOpenSnackbar(true);
                 return;
             }
 
+            console.log("✅ Resultados finales para navegar:", results);
 
             navigate("/reporteSemestral", { state: { data: results, periodo, anio } });
 
         } catch (error) {
+            console.error("Error al obtener los datos:", error);
         }
-    };
+    }; 
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -167,7 +206,6 @@ const PrincipalReportSem = () => {
 
     return (
         <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-
             {/* Componente SearchFilter */}
             <SearchFilter
                 open={searchOpen}
@@ -176,30 +214,11 @@ const PrincipalReportSem = () => {
                 setSearchTerm={setSearchTerm}
             />
 
-
             <Box sx={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-
-
-                <Box
-                    sx={{
-                        width: "100%",
-                        maxWidth: 1550,
-                        mx: "auto",
-                        px: { xs: 1.5, sm: 2 },
-                        alignSelf: "stretch",
-                        pt: 1.5,
-                    }}
-                >
-                    <BreadcrumbNav
-                        items={[
-                            { label: "Reportes", to: "/typesReports", icon: AssignmentIcon },
-                            { label: "Reportes Semestrales", icon: AnalyticsOutlinedIcon },
-                        ]}
-                    />
-                </Box>
                 {/* Título */}
-                <Title text="Reportes Semestrales" />
-
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 5, mb: 5 }}>
+                    <Title text="Reportes Semestrales" sx={{ textAlign: "center", fontSize: "2rem", fontWeight: "bold" }} />
+                </Box>
 
                 {/* Grid de cards o mensaje si no hay reportes */}
                 {reportes.length === 0 ? (
@@ -213,20 +232,20 @@ const PrincipalReportSem = () => {
                         {reportes.map((reporte) => (
                             <Grid item key={reporte.idReporteSemestral}>
                                 <ReporteSemCard
-                                    id={reporte.idReporteSemestral} // importante para eliminar
-                                    anio={reporte.anio}
-                                    periodo={reporte.periodo}
-                                    fechaGeneracion={reporte.fechaGeneracion}
-                                    ubicacion={reporte.ubicacion}
-                                    onDeleted={handleReporteEliminado} // <-- aquí pasamos el callback
-                                />
+          id={reporte.idReporteSemestral} // importante para eliminar
+          anio={reporte.anio}
+          periodo={reporte.periodo}
+          fechaGeneracion={reporte.fechaGeneracion}
+          ubicacion={reporte.ubicacion}
+          onDeleted={handleReporteEliminado} // <-- aquí pasamos el callback
+        />
                             </Grid>
                         ))}
                     </Grid>)}
 
                 {/* Botón flotante de búsqueda */}
                 <Box sx={{ position: "fixed", bottom: 90, right: 16 }}>
-                    <Tooltip title="Buscar Reportes" placement="left">
+                    <Tooltip title="Buscar Reportes">
                         <IconButton
                             onClick={toggleSearch}
                             sx={{
@@ -266,9 +285,9 @@ const PrincipalReportSem = () => {
                         p: 4,
                         borderRadius: 2,
                     }}>
-                        <DialogTitleCustom
-                            title="Generar Reporte Semestral"
-                        />
+                        <h2 id="modal-title" style={{ color: "#004A98", textAlign: "center", fontSize: "28px" }}>
+                            Generar Reporte Semestral
+                        </h2>
 
                         <TextField
                             label="Año"
@@ -277,17 +296,7 @@ const PrincipalReportSem = () => {
                             variant="outlined"
                             margin="normal"
                             value={year}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val >= 0 && val <= new Date().getFullYear() + 10) setYear(val);
-                            }}
-
-                            inputProps={{
-                                min: 0, 
-                                step: 1,
-                            }}
-                            error={year < 0}
-                            helperText={year < 0 ? "El año no puede ser negativo" : ""}
+                            onChange={(e) => setYear(e.target.value)}
                         />
 
                         <TextField
@@ -303,36 +312,32 @@ const PrincipalReportSem = () => {
                             <MenuItem value="07-12">Julio - Diciembre</MenuItem>
                         </TextField>
 
-                        {/* BOTONES ACTUALIZADOS CON CUSTOMBUTTON */}
-                        <Box sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            mt: 2,
-                            gap: 1
-                        }}>
-                            <CustomButton
-                                type="cancelar"
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                            <Button
                                 onClick={handleCloseForm}
-                                sx={{
-                                    minWidth: "120px",
-                                    flex: 1
-                                }}
+                                sx={{ backgroundColor: "#004A98", color: "white", "&:hover": { backgroundColor: "#003366" }, borderRadius: "30px", padding: "8px 16px" }}
                             >
                                 Cancelar
-                            </CustomButton>
-
-                            <CustomButton
-                                type="guardar"
+                            </Button>
+                            <Button
                                 onClick={handleClick}
-                                loading={loading}
-                                disabled={!year || !period || loading}
                                 sx={{
-                                    minWidth: "120px",
-                                    flex: 1
+                                    backgroundColor: "#F9B800",
+                                    color: "white",
+                                    "&:hover": { backgroundColor: "#D99400" },
+                                    borderRadius: "30px",
+                                    padding: "8px 16px",
+                                    minWidth: "120px", // 👈 para que no se encoja cuando aparezca el loader
                                 }}
+                                disabled={!year || !period || loading} // 👈 deshabilitado también cuando carga
                             >
-                                Generar
-                            </CustomButton>
+                                {loading ? (
+                                    <CircularProgress size={24} sx={{ color: "white" }} />
+                                ) : (
+                                    "Generar"
+                                )}
+                            </Button>
+
                         </Box>
                     </Box>
                 </Modal>
@@ -340,14 +345,27 @@ const PrincipalReportSem = () => {
                 {/* Snackbar */}
                 <Snackbar
                     open={openSnackbar}
-                    autoHideDuration={4000}
+                    autoHideDuration={6000}
                     onClose={handleCloseSnackbar}
                     message={messageSnackbar}
                 />
+                <Snackbar 
+            open={feedback.open} 
+            autoHideDuration={4000} 
+            onClose={handleCloseSnackbarDelete}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        >
+            <Alert 
+                onClose={handleCloseSnackbarDelete} 
+                severity={feedback.severity} 
+                sx={{ width: '100%' }}
+            >
+                {feedback.message}
+            </Alert>
+        </Snackbar>
             </Box>
         </Box>
     );
 };
 
 export default PrincipalReportSem;
-

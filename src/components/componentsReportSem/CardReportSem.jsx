@@ -14,7 +14,7 @@ const ReporteSemCard = ({ id, anio, periodo, fechaGeneracion, ubicacion, onDelet
     setOpenDelete(true);
   };
 
-  const handleConfirmDelete = async () => {
+ const handleConfirmDelete = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/delte-repor-sem/${id}`, {
         method: "DELETE",
@@ -22,19 +22,28 @@ const ReporteSemCard = ({ id, anio, periodo, fechaGeneracion, ubicacion, onDelet
       });
 
       if (!response.ok) {
+        // Si la respuesta HTTP no es 2xx, lanza un error
         throw new Error(`Error al eliminar el reporte: ${response.status}`);
       }
 
       console.log("Reporte eliminado con éxito");
       setOpenDelete(false);
-      if (onDeleted) onDeleted(id);
+      
+      // *** CAMBIO CLAVE (ÉXITO) ***
+      // Llama a onDeleted con el ID y un indicador de éxito (true)
+      if (onDeleted) onDeleted(id, true);
+      
     } catch (error) {
       console.error("Error al eliminar el reporte:", error);
-      alert("No se pudo eliminar el reporte. Intente nuevamente.");
+      setOpenDelete(false);
+      
+      // *** CAMBIO CLAVE (ERROR) ***
+      // Llama a onDeleted solo con un indicador de error (false) y un mensaje si lo deseas
+      if (onDeleted) onDeleted(id, false);
     }
   };
 
-  // Descargar / abrir el reporte en otra pestaña
+  // 👉 Descargar / abrir el reporte en otra pestaña
   const handleDownloadClick = () => {
     if (!ubicacion) {
       alert("Este reporte no tiene archivo asociado.");
@@ -100,5 +109,3 @@ const ReporteSemCard = ({ id, anio, periodo, fechaGeneracion, ubicacion, onDelet
 };
 
 export default ReporteSemCard;
-
-
